@@ -1,0 +1,27 @@
+import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+
+export const routes: Routes = [
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  {
+    path: 'login',
+    loadComponent: () => import('./auth/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
+    children: [
+      { path: '', loadComponent: () => import('./dashboard/pages/home/home.component').then(m => m.HomeComponent) },
+      { path: 'events', loadComponent: () => import('./dashboard/pages/events/events.component').then(m => m.EventsComponent) },
+      { path: 'guests/:eventId', loadComponent: () => import('./dashboard/pages/guests/guests.component').then(m => m.GuestsComponent) },
+      { path: 'config/:eventId', loadComponent: () => import('./dashboard/pages/config/config.component').then(m => m.ConfigComponent) },
+      { path: 'cards/:eventId', loadComponent: () => import('./dashboard/pages/cards/cards.component').then(m => m.CardsComponent) }
+    ]
+  },
+  {
+    path: 'invitacion/:slug',
+    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent)
+  },
+  { path: '**', redirectTo: '/dashboard' }
+];

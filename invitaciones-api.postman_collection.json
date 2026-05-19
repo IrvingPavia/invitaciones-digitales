@@ -1,0 +1,448 @@
+{
+  "info": {
+    "name": "Invitaciones Digitales API",
+    "description": "Colección completa de endpoints para el Gestor de Invitaciones Digitales",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "eventId", "value": "1", "type": "string" },
+    { "key": "guestId", "value": "1", "type": "string" },
+    { "key": "guestCode", "value": "", "type": "string" },
+    { "key": "eventSlug", "value": "xv-valeria-2025", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) { pm.collectionVariables.set('token', res.token); pm.test('Login exitoso', () => pm.response.to.have.status(200)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"admin123\",\n  \"newPassword\": \"nuevaPassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth", "change-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Get All Events",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/events", "host": ["{{baseUrl}}"], "path": ["events"] }
+          }
+        },
+        {
+          "name": "Get Event by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Create Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('eventId', res.id.toString());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"XV Años de Valeria\",\n  \"event_type\": \"XV Años\",\n  \"event_date\": \"2025-12-15T20:00:00\",\n  \"slug\": \"xv-valeria-2025\"\n}" },
+            "url": { "raw": "{{baseUrl}}/events", "host": ["{{baseUrl}}"], "path": ["events"] }
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"XV Años de Valeria García\",\n  \"event_type\": \"XV Años\",\n  \"event_date\": \"2025-12-15T20:00:00\",\n  \"active\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["events", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Guests",
+      "item": [
+        {
+          "name": "Get Guests by Event",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/guests/event/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["guests", "event", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Get Guest by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/guests/{{guestId}}", "host": ["{{baseUrl}}"], "path": ["guests", "{{guestId}}"] }
+          }
+        },
+        {
+          "name": "Create Guest - Individual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) { pm.collectionVariables.set('guestId', res.id.toString()); pm.collectionVariables.set('guestCode', res.unique_code); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"event_id\": {{eventId}},\n  \"guest_type\": \"individual\",\n  \"guest_names\": \"Juan Pérez\",\n  \"max_companions\": 2,\n  \"notes\": \"Mesa VIP\"\n}" },
+            "url": { "raw": "{{baseUrl}}/guests", "host": ["{{baseUrl}}"], "path": ["guests"] }
+          }
+        },
+        {
+          "name": "Create Guest - Family",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"event_id\": {{eventId}},\n  \"guest_type\": \"family\",\n  \"family_name\": \"Familia García\",\n  \"guest_names\": \"Carlos García, María García, Pedro García\",\n  \"max_companions\": 0\n}" },
+            "url": { "raw": "{{baseUrl}}/guests", "host": ["{{baseUrl}}"], "path": ["guests"] }
+          }
+        },
+        {
+          "name": "Update Guest",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"guest_type\": \"individual\",\n  \"family_name\": \"\",\n  \"guest_names\": \"Juan Pérez López\",\n  \"max_companions\": 1,\n  \"notes\": \"Mesa 5\"\n}" },
+            "url": { "raw": "{{baseUrl}}/guests/{{guestId}}", "host": ["{{baseUrl}}"], "path": ["guests", "{{guestId}}"] }
+          }
+        },
+        {
+          "name": "Delete Guest",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/guests/{{guestId}}", "host": ["{{baseUrl}}"], "path": ["guests", "{{guestId}}"] }
+          }
+        },
+        {
+          "name": "Get Guest QR",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/guests/{{guestId}}/qr", "host": ["{{baseUrl}}"], "path": ["guests", "{{guestId}}", "qr"] }
+          }
+        },
+        {
+          "name": "Import Guests from Excel",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/invitados.xlsx", "description": "Archivo Excel con invitados" }]
+            },
+            "url": { "raw": "{{baseUrl}}/guests/import/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["guests", "import", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Export Guests to Excel",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/guests/export/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["guests", "export", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Download Excel Template",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/guests/template/download", "host": ["{{baseUrl}}"], "path": ["guests", "template", "download"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Config",
+      "item": [
+        {
+          "name": "Get Event Config",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Save Event Config",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"config_json\": {\n    \"intro\": { \"enabled\": true, \"background\": \"\", \"phrase\": \"Bienvenidos a mis XV Años\", \"duration\": 4 },\n    \"hero\": {\n      \"backgroundGif\": \"https://example.com/bg.gif\",\n      \"audioUrl\": \"https://example.com/music.mp3\",\n      \"eventDescription\": \"XV Años\",\n      \"celebrantNames\": \"Valeria García\",\n      \"countdownDate\": \"2025-12-15T20:00:00\"\n    },\n    \"invitation\": { \"title\": \"Están cordialmente invitados\", \"subtitle\": \"\" },\n    \"details\": {\n      \"parents\": { \"enabled\": true, \"title\": \"Padres\", \"content\": \"Sr. Carlos García & Sra. María López\" },\n      \"godparents\": { \"enabled\": true, \"title\": \"Padrinos\", \"content\": \"Sr. Roberto Martínez & Sra. Ana Torres\" },\n      \"ceremony\": { \"enabled\": true, \"icon\": \"church\", \"name\": \"Parroquia San Juan\", \"address\": \"Av. Principal 123\", \"time\": \"6:00 PM\", \"mapsUrl\": \"https://maps.google.com\" },\n      \"party\": { \"enabled\": true, \"image\": \"\", \"name\": \"Salón Versalles\", \"address\": \"Calle Flores 456\", \"time\": \"8:00 PM\", \"mapsUrl\": \"https://maps.google.com\" }\n    },\n    \"itinerary\": { \"enabled\": true, \"title\": \"Itinerario\", \"items\": [] },\n    \"gallery\": { \"enabled\": true, \"title\": \"Galería\", \"description\": \"Momentos especiales\" },\n    \"dresscode\": { \"enabled\": true, \"title\": \"Código de Vestimenta\", \"description\": \"Formal. Colores pasteles permitidos.\" },\n    \"gifts\": { \"enabled\": true, \"title\": \"Mesa de Regalos\", \"description\": \"Tu presencia es el mejor regalo\", \"link\": \"https://liverpool.com.mx\", \"buttonText\": \"Ver Lista\" },\n    \"rsvp\": { \"enabled\": true, \"title\": \"Confirmar Asistencia\" }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Get Itinerary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}/itinerary", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}", "itinerary"] }
+          }
+        },
+        {
+          "name": "Add Itinerary Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"icon\": \"restaurant\",\n  \"time\": \"8:00 PM\",\n  \"title\": \"Cena de Gala\",\n  \"description\": \"Disfruta de una deliciosa cena\",\n  \"sort_order\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}/itinerary", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}", "itinerary"] }
+          }
+        },
+        {
+          "name": "Update Itinerary Item",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"icon\": \"music_note\",\n  \"time\": \"9:00 PM\",\n  \"title\": \"Vals\",\n  \"description\": \"El primer vals de la festejada\",\n  \"sort_order\": 2\n}" },
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}/itinerary/1", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}", "itinerary", "1"] }
+          }
+        },
+        {
+          "name": "Delete Itinerary Item",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}/itinerary/1", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}", "itinerary", "1"] }
+          }
+        },
+        {
+          "name": "Get Photos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}/photos", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}", "photos"] }
+          }
+        },
+        {
+          "name": "Delete Photo",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/config/{{eventId}}/photos/1", "host": ["{{baseUrl}}"], "path": ["config", "{{eventId}}", "photos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/image.jpg" }]
+            },
+            "url": { "raw": "{{baseUrl}}/uploads/images", "host": ["{{baseUrl}}"], "path": ["uploads", "images"] }
+          }
+        },
+        {
+          "name": "Upload GIF/Animated",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/animation.gif" }]
+            },
+            "url": { "raw": "{{baseUrl}}/uploads/gifs", "host": ["{{baseUrl}}"], "path": ["uploads", "gifs"] }
+          }
+        },
+        {
+          "name": "Upload Audio MP3",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "/path/to/music.mp3" }]
+            },
+            "url": { "raw": "{{baseUrl}}/uploads/audio", "host": ["{{baseUrl}}"], "path": ["uploads", "audio"] }
+          }
+        },
+        {
+          "name": "Upload Gallery Photos",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "files", "type": "file", "src": "/path/to/photo1.jpg" },
+                { "key": "files", "type": "file", "src": "/path/to/photo2.jpg" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/uploads/photos/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["uploads", "photos", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cards",
+      "item": [
+        {
+          "name": "Get Card Template",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/cards/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["cards", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Save Card Template",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"front_config\": {\n    \"bgColor\": \"#fff8f0\",\n    \"textColor\": \"#333333\",\n    \"borderColor\": \"#d4a017\",\n    \"bgImage\": \"\",\n    \"footerText\": \"¡Te esperamos!\"\n  },\n  \"back_config\": {\n    \"bgColor\": \"#ffffff\",\n    \"borderColor\": \"#d4a017\",\n    \"topText\": \"Escanea para ver tu invitación\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cards/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["cards", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Download Cards PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/cards/{{eventId}}/pdf", "host": ["{{baseUrl}}"], "path": ["cards", "{{eventId}}", "pdf"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RSVP (Public)",
+      "item": [
+        {
+          "name": "Get Guest by Code",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/rsvp/{{guestCode}}", "host": ["{{baseUrl}}"], "path": ["rsvp", "{{guestCode}}"] }
+          }
+        },
+        {
+          "name": "Confirm Attendance - Individual",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"confirmed_names\": \"Juan Pérez, Ana López\",\n  \"confirmed_count\": 2\n}" },
+            "url": { "raw": "{{baseUrl}}/rsvp/{{guestCode}}/confirm", "host": ["{{baseUrl}}"], "path": ["rsvp", "{{guestCode}}", "confirm"] }
+          }
+        },
+        {
+          "name": "Confirm Attendance - Family",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"confirmed_names\": \"Carlos García, María García, Pedro García\",\n  \"confirmed_count\": 3\n}" },
+            "url": { "raw": "{{baseUrl}}/rsvp/{{guestCode}}/confirm", "host": ["{{baseUrl}}"], "path": ["rsvp", "{{guestCode}}", "confirm"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Get Landing Data",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/public/invitation/{{eventSlug}}", "host": ["{{baseUrl}}"], "path": ["public", "invitation", "{{eventSlug}}"] }
+          }
+        },
+        {
+          "name": "Get Guest by Slug + Code",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/public/invitation/{{eventSlug}}/guest/{{guestCode}}", "host": ["{{baseUrl}}"], "path": ["public", "invitation", "{{eventSlug}}", "guest", "{{guestCode}}"] }
+          }
+        },
+        {
+          "name": "Get KPIs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/public/kpis/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["public", "kpis", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3000/health", "raw": "http://localhost:3000/health" }
+          }
+        }
+      ]
+    }
+  ]
+}
