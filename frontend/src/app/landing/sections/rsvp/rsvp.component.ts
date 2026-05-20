@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RsvpConfig, Guest } from '../../../core/models/models';
+import { RsvpConfig, Guest, GlobalTextStyles } from '../../../core/models/models';
 import { ApiService } from '../../../core/services/api.service';
 import { inject } from '@angular/core';
 
@@ -13,9 +13,13 @@ import { inject } from '@angular/core';
     <section id="rsvp" class="landing-section rsvp-section">
       <div class="section-container">
         <div class="section-header">
-          <div class="section-line"></div>
-          <h2 class="section-heading">{{ config.title || 'Confirmar Asistencia' }}</h2>
-          <div class="section-line"></div>
+          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          <h2 class="section-heading"
+              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+          >{{ config.title || 'Confirmar Asistencia' }}</h2>
+          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
 
         <div class="rsvp-card reveal">
@@ -100,7 +104,7 @@ import { inject } from '@angular/core';
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
     .rsvp-card {
-      background: rgba(0,0,0,0.5); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 20px; padding: 40px;
     }
     .rsvp-for { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-bottom: 8px; }
@@ -128,12 +132,12 @@ import { inject } from '@angular/core';
     }
     .rsvp-confirm-btn {
       display: inline-flex; align-items: center; gap: 10px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: #1a1a2e; font-weight: 700; font-size: 16px;
+      background: var(--theme-btn-bg, linear-gradient(135deg, var(--gold), var(--gold-light)));
+      color: var(--theme-btn-text, #1a1a2e); font-weight: 700; font-size: 16px;
       padding: 16px 40px; border-radius: 30px; border: none; cursor: pointer;
-      transition: all 0.3s; box-shadow: 0 4px 20px rgba(212,160,23,0.3);
+      transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       .material-icons { font-size: 20px; }
-      &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(212,160,23,0.5); }
+      &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
       &:disabled { opacity: 0.6; cursor: not-allowed; }
     }
     .rsvp-success { padding: 20px 0; }
@@ -149,7 +153,21 @@ export class LandingRsvpComponent {
   @Input() config!: RsvpConfig;
   @Input() guest!: Guest;
   @Input() slug = '';
+  @Input() styles?: GlobalTextStyles;
   private api = inject(ApiService);
+
+  getFontFamily(key?: string): string {
+    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
+    return m[key||'sans']||'var(--font-sans)';
+  }
+  getSeparatorBg(): string {
+    const c=this.styles?.separatorStyle?.color||'#d4a017',t=this.styles?.separatorStyle?.type||'elegant';
+    switch(t){case 'formal':return c;case 'executive':return `linear-gradient(180deg,${c},transparent 40%,transparent 60%,${c})`;case 'festive':return `repeating-linear-gradient(90deg,${c} 0px,${c} 4px,transparent 4px,transparent 10px)`;case 'animated':return `linear-gradient(90deg,transparent,${c},transparent)`;case 'minimal':return `${c}40`;case 'ornamental':return `linear-gradient(90deg,transparent,${c}60,${c},${c}60,transparent)`;default:return `linear-gradient(90deg,transparent,${c}80,transparent)`;}
+  }
+  getSeparatorHeight(): string {
+    const t=this.styles?.separatorStyle?.type||'elegant';
+    switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
+  }
 
   confirmed = signal(false);
   loading = signal(false);

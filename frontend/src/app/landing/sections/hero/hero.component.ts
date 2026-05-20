@@ -42,11 +42,16 @@ import { HeroConfig, Event } from '../../../core/models/models';
         <p class="hero-event-type animate-in" style="animation-delay:0.2s"
            [style.font-family]="getFontFamily(config.eventDescriptionStyle?.fontFamily)"
            [style.font-size.px]="config.eventDescriptionStyle?.fontSize || 22"
-           [style.color]="config.eventDescriptionStyle?.color || '#ffffff'"
+           [style.font-weight]="config.eventDescriptionStyle?.fontWeight || 400"
+           [style.background]="getEventDescGradient()"
+           [style.-webkit-background-clip]="'text'"
+           [style.background-clip]="'text'"
+           [style.-webkit-text-fill-color]="'transparent'"
         >{{ config.eventDescription }}</p>
         <h1 class="hero-names animate-in" style="animation-delay:0.5s"
             [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
             [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
+            [style.font-weight]="config.celebrantNamesStyle?.fontWeight || 400"
             [style.background]="getGradient()"
             [style.-webkit-background-clip]="'text'"
             [style.background-clip]="'text'"
@@ -99,9 +104,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
       padding: 0 20px;
     }
     .landing-nav.scrolled {
-      background: rgba(13,17,23,0.85);
+      background: var(--theme-card-bg, rgba(13,17,23,0.85));
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(212,160,23,0.2);
+      border-bottom: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .nav-inner {
@@ -109,19 +114,18 @@ import { HeroConfig, Event } from '../../../core/models/models';
       height: 72px; width: 100%;
     }
     .nav-title {
-      font-family: var(--font-script); font-size: 22px; color: var(--gold);
-      text-shadow: 0 0 20px rgba(212,160,23,0.4);
+      font-family: var(--font-script); font-size: 22px; color: var(--theme-nav-text, var(--gold));
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       min-width: 0; flex: 1;
     }
     .nav-actions { display: flex; gap: 12px; align-items: center; }
     .nav-btn {
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1); border: 1px solid var(--theme-card-border, rgba(255,255,255,0.2));
       border-radius: 50%; width: 48px; height: 48px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: white; transition: all 0.3s;
       .material-icons { font-size: 26px; }
-      &:hover { background: rgba(212,160,23,0.2); border-color: var(--gold); color: var(--gold); }
+      &:hover { background: rgba(212,160,23,0.2); border-color: var(--theme-card-border, var(--gold)); color: var(--theme-nav-text, var(--gold)); }
     }
     .nav-menu {
       background: rgba(13,17,23,0.95); backdrop-filter: blur(12px);
@@ -132,7 +136,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
       display: block; padding: 14px 28px;
       color: rgba(255,255,255,0.8); text-decoration: none;
       font-size: 17px; transition: all 0.2s;
-      &:hover { color: var(--gold); background: rgba(212,160,23,0.05); padding-left: 36px; }
+      &:hover { color: var(--theme-nav-text, var(--gold)); background: rgba(212,160,23,0.05); padding-left: 36px; }
     }
     .hero-section {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -142,8 +146,8 @@ import { HeroConfig, Event } from '../../../core/models/models';
     .hero-content { max-width: 800px; }
     .hero-event-type {
       letter-spacing: 6px; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 32px;
-      text-shadow: 0 0 20px rgba(212,160,23,0.5);
+      margin-bottom: 32px;
+      text-shadow: none;
     }
     .hero-names {
       line-height: 1.1; margin-bottom: 40px;
@@ -161,16 +165,16 @@ import { HeroConfig, Event } from '../../../core/models/models';
     }
     .countdown-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.4); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 12px; padding: 10px 6px; flex: 1; min-width: 0;
-      backdrop-filter: blur(8px); overflow: hidden;
+      overflow: hidden;
     }
     .countdown-value {
-      font-size: clamp(20px, 5vw, 36px); font-weight: 700; color: var(--gold);
+      font-size: clamp(20px, 5vw, 36px); font-weight: 700; color: var(--theme-nav-text, var(--gold));
       line-height: 1.2; font-family: var(--font-serif);
     }
     .countdown-label { font-size: clamp(8px, 2vw, 10px); color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-    .countdown-sep { font-size: clamp(16px, 3vw, 28px); color: var(--gold); font-weight: 700; opacity: 0.5; flex-shrink: 0; }
+    .countdown-sep { font-size: clamp(16px, 3vw, 28px); color: var(--theme-nav-text, var(--gold)); font-weight: 700; opacity: 0.5; flex-shrink: 0; }
     .scroll-indicator { display: flex; flex-direction: column; align-items: center; gap: 0; }
     .scroll-arrow {
       font-size: 32px; color: rgba(255,255,255,0.4);
@@ -238,11 +242,24 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   }
 
   getFontFamily(key?: string): string {
-    switch (key) {
-      case 'serif': return 'var(--font-serif)';
-      case 'script': return 'var(--font-script)';
-      default: return 'var(--font-sans)';
-    }
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key || 'sans'] || 'var(--font-sans)';
+  }
+
+  getEventDescGradient(): string {
+    const s = this.config.eventDescriptionStyle;
+    const c1 = s?.color1 || '#ffffff';
+    const c2 = s?.color2 || '';
+    if (!c2) return `linear-gradient(0deg, ${c1}, ${c1})`;
+    const angle = s?.gradientAngle ?? 135;
+    const intensity = s?.gradientIntensity ?? 50;
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
   }
 
   getGradient(): string {

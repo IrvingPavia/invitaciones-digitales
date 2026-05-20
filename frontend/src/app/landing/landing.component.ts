@@ -78,47 +78,47 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
       }
 
       @if (!showIntro()) {
-        <div class="landing-wrapper">
+        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme?.buttonText || '#1a1a2e'">
         <!-- Sticky nav -->
         <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" />
 
         <!-- Sections -->
         <div appScrollReveal>
-          <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" />
+          <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" />
         </div>
         @if (data()!.config.details?.enabled && data()!.config.details.cards.length > 0) {
           <div appScrollReveal>
-            <app-landing-details [config]="data()!.config.details" />
+            <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (data()!.config.venues?.enabled && data()!.config.venues.items.length > 0) {
           <div appScrollReveal>
-            <app-landing-venues [config]="data()!.config.venues" />
+            <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (data()!.config.itinerary?.enabled) {
           <div appScrollReveal>
-            <app-landing-itinerary [config]="data()!.config.itinerary" [items]="data()!.itinerary" />
+            <app-landing-itinerary [config]="data()!.config.itinerary" [items]="data()!.itinerary" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (data()!.config.gallery?.enabled) {
           <div appScrollReveal>
-            <app-landing-gallery [config]="data()!.config.gallery" [photos]="data()!.photos" />
+            <app-landing-gallery [config]="data()!.config.gallery" [photos]="data()!.photos" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (data()!.config.dresscode?.enabled) {
           <div appScrollReveal>
-            <app-landing-dresscode [config]="data()!.config.dresscode" />
+            <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (data()!.config.gifts?.enabled) {
           <div appScrollReveal>
-            <app-landing-gifts [config]="data()!.config.gifts" />
+            <app-landing-gifts [config]="data()!.config.gifts" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (data()!.config.rsvp?.enabled && guest()) {
           <div appScrollReveal>
-            <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" />
+            <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" [styles]="data()!.config.globalStyles" />
           </div>
         }
 
@@ -152,7 +152,6 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     .landing-bg-overlay {
       position: fixed; inset: 0; z-index: -1;
       background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(3px);
     }
     .landing-wrapper {
       max-width: 520px;
@@ -167,14 +166,14 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     }
     .footer-title {
       font-family: var(--font-script); font-size: 20px;
-      color: rgba(212,160,23,0.5); margin-bottom: 8px;
+      color: var(--theme-nav-text, var(--gold)); margin-bottom: 8px;
     }
-    .footer-sub { color: rgba(255,255,255,0.3); }
+    .footer-sub { color: var(--theme-nav-text, rgba(255,255,255,0.3)); opacity: 0.6; }
     .back-to-top {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-      background: rgba(13,17,23,0.85);
+      background: var(--theme-card-bg, rgba(13,17,23,0.85));
       backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(212,160,23,0.2);
+      border-top: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       display: flex; align-items: center; justify-content: center;
       gap: 4px; height: 48px; cursor: pointer;
       transform: translateY(100%);
@@ -184,19 +183,18 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
       transform: translateY(0);
       box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
     }
-    .back-to-top:hover { background: rgba(13,17,23,0.95); }
-    .back-to-top:hover .back-arrow { color: var(--gold-light); }
-    .back-to-top:hover .back-text { color: white; }
+    .back-to-top:hover { background: var(--theme-card-bg, rgba(13,17,23,0.95)); }
+    .back-to-top:hover .back-arrow { opacity: 1; }
+    .back-to-top:hover .back-text { opacity: 1; }
     .back-arrow {
-      font-size: 20px; color: var(--gold);
+      font-size: 20px; color: var(--theme-nav-text, var(--gold));
       animation: arrowPulse 1.5s ease-in-out infinite;
     }
     .back-arrow:nth-child(2) { animation-delay: 0.15s; margin-right: 8px; }
     .back-arrow:nth-child(4) { animation-delay: 0.15s; margin-left: 8px; }
     .back-text {
       font-family: var(--font-script); font-size: 20px;
-      color: var(--gold); letter-spacing: 2px;
-      text-shadow: 0 0 12px rgba(212,160,23,0.4);
+      color: var(--theme-nav-text, var(--gold)); letter-spacing: 2px;
     }
     @keyframes arrowPulse {
       0%, 100% { opacity: 0.5; transform: scale(1); }
@@ -213,9 +211,10 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     }
   `]
 })
-export class LandingComponent implements OnInit {
+export class LandingComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+  private scrollbarStyle: HTMLStyleElement | null = null;
   data = signal<LandingData | null>(null);
   guest = signal<Guest | null>(null);
   loading = signal(true);
@@ -238,6 +237,7 @@ export class LandingComponent implements OnInit {
         this.data.set(d);
         this.loading.set(false);
         if (d.config.intro?.enabled) this.showIntro.set(true);
+        this.applyScrollbarColor(d.config.theme?.cardBorder || '#d4a017');
         if (code) {
           this.api.getGuestByCode(this.slug, code).subscribe({
             next: (g) => this.guest.set(g),
@@ -247,5 +247,15 @@ export class LandingComponent implements OnInit {
       },
       error: () => { this.error.set(true); this.loading.set(false); }
     });
+  }
+
+  ngOnDestroy() {
+    this.scrollbarStyle?.remove();
+  }
+
+  private applyScrollbarColor(color: string) {
+    this.scrollbarStyle = document.createElement('style');
+    this.scrollbarStyle.textContent = `::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${color};border-radius:3px}html{scrollbar-color:${color} transparent}`;
+    document.head.appendChild(this.scrollbarStyle);
   }
 }

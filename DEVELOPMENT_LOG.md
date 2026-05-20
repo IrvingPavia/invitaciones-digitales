@@ -1,17 +1,17 @@
 # 📋 DEVELOPMENT LOG - Gestor de Invitaciones Digitales
 
-> Última actualización: 2026-05-18
+> Última actualización: 2026-05-19
 > Este archivo sirve como contexto para retomar el desarrollo. Compártelo con `@DEVELOPMENT_LOG.md` al iniciar una nueva sesión.
 
 ---
 
-## 🏗️ Stack Real (difiere del README original)
+## 🏗️ Stack Real
 
 | Componente | Tecnología |
 |---|---|
 | Frontend | Angular 18 (Standalone Components, Signals) |
 | Backend | Node.js + Express |
-| Base de Datos | **MySQL 8.0** (mysql2/promise) — NO SQLite |
+| Base de Datos | MySQL 8.0 (mysql2/promise) |
 | Contenedores | Docker + Docker Compose |
 | Servidor web | Nginx (frontend en producción) |
 
@@ -20,129 +20,95 @@
 ## 📁 Estructura Actual
 
 ```
-Portafolio/
-├── backend/
-│   ├── src/
-│   │   ├── index.js              # Express app, rutas, middleware
-│   │   ├── middleware/auth.js    # JWT verification
-│   │   ├── models/database.js    # MySQL pool + schema + seed
-│   │   └── routes/
-│   │       ├── auth.js           # Login, me, change-password
-│   │       ├── events.js         # CRUD eventos + getDefaultConfig
-│   │       ├── guests.js         # CRUD + import/export Excel + QR
-│   │       ├── config.js         # Config JSON + itinerary + photos
-│   │       ├── uploads.js        # Multer: images, audio, gifs, photos
-│   │       ├── rsvp.js           # Confirmación pública
-│   │       ├── cards.js          # Template + PDF generation
-│   │       └── public.js         # Landing data + KPIs (sin auth)
-│   ├── .env                      # DB_HOST, JWT_SECRET, BASE_URL, etc.
-│   └── Dockerfile
-├── frontend/
-│   ├── src/app/
-│   │   ├── app.config.ts         # provideRouter, provideHttpClient, provideAnimations
-│   │   ├── app.routes.ts         # Lazy loading routes
-│   │   ├── auth/login.component.ts
-│   │   ├── core/
-│   │   │   ├── guards/auth.guard.ts
-│   │   │   ├── interceptors/auth.interceptor.ts
-│   │   │   ├── models/models.ts          # ⚠️ Interfaces actualizadas (ver abajo)
-│   │   │   └── services/
-│   │   │       ├── api.service.ts
-│   │   │       └── auth.service.ts
-│   │   ├── dashboard/
-│   │   │   ├── dashboard.component.ts    # Sidebar con overlay mobile, arrow toggle
-│   │   │   └── pages/
-│   │   │       ├── home/home.component.ts
-│   │   │       ├── events/events.component.ts
-│   │   │       ├── guests/guests.component.ts
-│   │   │       ├── config/config.component.ts  # ⚠️ Componente más grande
-│   │   │       └── cards/cards.component.ts
-│   │   └── landing/
-│   │       ├── landing.component.ts      # ScrollRevealDirective + wrapper
-│   │       └── sections/
-│   │           ├── intro/intro.component.ts
-│   │           ├── hero/hero.component.ts       # Countdown, gradient names, phrase
-│   │           ├── invitation/invitation.component.ts
-│   │           ├── details/details.component.ts # N cards dinámicas con estilos globales
-│   │           ├── venues/venues.component.ts   # N lugares con maps
-│   │           ├── itinerary/itinerary.component.ts
-│   │           ├── gallery/gallery.component.ts # Carrusel + lightbox sin fondo
-│   │           ├── dresscode/dresscode.component.ts
-│   │           ├── gifts/gifts.component.ts
-│   │           └── rsvp/rsvp.component.ts
-│   ├── src/styles.scss           # Estilos globales + responsive
-│   ├── nginx.conf
-│   └── Dockerfile
-├── docker-compose.yml
-├── .env.example
-└── DEVELOPMENT_LOG.md            # Este archivo
+Portafolio/                         ← Workspace
+└── invitaciones-digitales/         ← Proyecto (repo git)
+    ├── backend/
+    │   ├── src/
+    │   │   ├── index.js
+    │   │   ├── middleware/auth.js
+    │   │   ├── models/database.js
+    │   │   └── routes/ (auth, events, guests, config, uploads, rsvp, cards, public)
+    │   ├── .env
+    │   └── Dockerfile
+    ├── frontend/
+    │   ├── src/
+    │   │   ├── index.html              # Google Fonts expandidas + Material Icons
+    │   │   ├── main.ts
+    │   │   ├── styles.scss             # Estilos globales + @font-face Spumoni
+    │   │   ├── assets/fonts/           # SpumoniLPStd.woff2, .woff, .ttf, .eot
+    │   │   └── app/
+    │   │       ├── app.config.ts
+    │   │       ├── app.routes.ts
+    │   │       ├── auth/login.component.ts
+    │   │       ├── core/
+    │   │       │   ├── guards/auth.guard.ts
+    │   │       │   ├── interceptors/auth.interceptor.ts
+    │   │       │   ├── models/models.ts          # ⚠️ Interfaces actualizadas (ver abajo)
+    │   │       │   └── services/ (api.service.ts, auth.service.ts)
+    │   │       ├── dashboard/
+    │   │       │   ├── dashboard.component.ts
+    │   │       │   └── pages/
+    │   │       │       ├── home/home.component.ts
+    │   │       │       ├── events/events.component.ts
+    │   │       │       ├── guests/guests.component.ts
+    │   │       │       ├── config/config.component.ts   # ⚠️ NECESITA config.component.html
+    │   │       │       └── cards/cards.component.ts
+    │   │       └── landing/
+    │   │           ├── landing.component.ts
+    │   │           └── sections/ (intro, hero, invitation, details, venues, itinerary, gallery, dresscode, gifts, rsvp)
+    │   ├── angular.json
+    │   ├── nginx.conf
+    │   └── Dockerfile
+    ├── docker-compose.yml          # Volúmenes con nombre fijo
+    ├── .gitignore
+    ├── .env.example
+    ├── README.md
+    ├── DEVELOPMENT_LOG.md
+    └── invitaciones-api.postman_collection.json
 ```
 
 ---
 
-## 🔧 Cambios Realizados en Esta Sesión
+## 🔧 Cambios Realizados en Esta Sesión (2026-05-19)
 
-### Landing - Secciones
+### Infraestructura
 
-1. **Venues (NUEVO)** — Componente que renderiza N lugares del evento con icono, nombre, dirección, horario (AM/PM) y botón "Cómo llegar" (Google Maps). Botón alineado debajo del horario.
+1. **Proyecto movido** de `c:\Portafolio\` a `c:\Portafolio\invitaciones-digitales\` (workspace multi-proyecto)
+2. **Git inicializado** + push a https://github.com/IrvingPavia/invitaciones-digitales
+3. **Docker volumes con nombre fijo** (`invitaciones_mysql_data`, `invitaciones_backend_uploads`) para evitar pérdida de datos al mover carpetas
+4. **Eliminado `version: '3.9'`** del docker-compose (obsoleto)
+5. **Datos migrados** de volúmenes `portafolio_*` a `invitaciones_*`
+6. **Rama `int-001`** creada como punto de restauración estable
+7. **Budget CSS** aumentado a `maximumWarning: 6kb`, `maximumError: 10kb` en angular.json
 
-2. **Details (REESCRITO)** — Ya no usa padres/padrinos fijos. Ahora es un array de `DetailCard[]` con:
-   - `iconUrl` (imagen subida, opcional — si no hay, no se muestra nada)
-   - `title` (opcional)
-   - `content` (texto libre con saltos de línea)
-   - `textAlign` (left/center/right por card)
-   - Estilos globales: `titleStyle` y `contentStyle` (fontFamily, fontSize, color)
-   - Título de sección configurable
+### Dashboard - Config Component (UI/UX PRO refactor)
 
-3. **Gallery (REESCRITO)** — Carrusel tipo álbum:
-   - Deslizamiento derecha→izquierda con transición suave
-   - Auto-play cada 4s
-   - Swipe táctil en mobile
-   - Flechas + dots + contador
-   - Lightbox sin fondo negro, botón "Cerrar" abajo
-   - Se cierra al scroll o click fuera
+8. **Template separado** `config.component.html` con `templateUrl`
+9. **Section cards** — cada sección envuelta en `.section-card` con header dorado y body organizado
+10. **Toggle pills** (ON/OFF) elegantes reemplazando checkboxes para habilitar/deshabilitar secciones
+11. **Field rows** con grid layout: `.field`, `.field-sm`, `.field-xs`, `.field-row`
+12. **Preview unificado** de estilos globales en un solo bloque (encabezado + separador + título degradado + subtítulo + contenido)
+13. **Photo grid** con delete button on hover (`.photo-item`, `.photo-delete`)
+14. **File inputs estilizados** — borde dashed dorado, botón "Seleccionar archivo" con gradiente
+15. **Regalos** separado en 2 section-cards: Mesa de Regalos + Transferencia Bancaria
+16. **Slider de intensidad del degradado** (`gradientIntensity: 0-100`) — controla punto medio del gradiente
+17. **Slider de grosor** (`fontWeight: 100-900`) — para títulos y nombres de celebrantes
+18. **Sliders compactos** con clase `.slider-field` (max-width: 200px) y labels con valores numéricos
+19. **Preview de nombres de celebrantes** en la sección Carátula con degradado en vivo
 
-4. **Hero (MODIFICADO)**:
-   - Nuevo campo `heroPhrase` entre nombres y countdown
-   - Estilos individuales para cada texto (fontFamily, fontSize, color)
-   - Nombres con degradado 2 colores + ángulo configurable
-   - Countdown responsivo: `flex-wrap: nowrap`, items con `flex:1`, `overflow:hidden`
-   - Navbar muestra "Descripción + Nombres" (ej: "XV Años Valeria"), full width
+### Sesión 2 — Prioridades 2, 3 y 4
 
-5. **Scroll Reveal** — Directiva `ScrollRevealDirective` con IntersectionObserver, fade-in + translateY al entrar al viewport.
-
-### Dashboard
-
-6. **Responsive completo**:
-   - Sidebar como overlay en mobile con botón flecha sutil en el borde izquierdo
-   - Botón de colapsar/expandir como pestaña-flecha en el borde derecho del sidebar (desktop)
-   - Eliminado el topbar — usuario y logout están en el sidebar footer
-   - Tabs con scroll horizontal + flechas de navegación
-   - Grids responsivos (1 col mobile, 2 col tablet, 4 col desktop)
-   - `overflow-x: hidden` en todos los contenedores
-   - Tablas con scroll interno
-
-7. **Navegación**:
-   - Botón "Volver a Eventos" (`.back-link`) alineado a la derecha en config, guests y cards
-   - Eliminado `withViewTransitions()` que causaba error `InvalidStateError`
-
-8. **Config Component**:
-   - Tabs con wrapper + flechas para scroll
-   - Toggle "Visible" en itinerario y galería
-   - Sección Venues con N lugares configurables
-   - Sección Detalles con N cards + estilos globales
-   - Hero con controles de color (picker + hex input)
-   - `ensureDefaults()` que migra configs viejas al formato nuevo
-   - `migrateDetails()` convierte formato padres/padrinos → cards
-
-9. **Estilos globales**:
-   - `input[type="color"]` con tamaño 48x40px visible
-   - `.back-link` con borde dorado, float right
-   - Mobile: cards con `overflow-x: hidden`, `word-break: break-word`
-
-### Backend
-
-10. **events.js** — `getDefaultConfig()` actualizado con formato nuevo de details (`{ enabled, title, cards: [] }`)
+20. **Prioridad 2**: `eventDescriptionStyle` convertido de `HeroTextStyle` a `HeroGradientStyle` (color1, color2, gradientAngle, gradientIntensity, fontWeight)
+21. **Prioridad 2**: Controles completos en dashboard + preview en vivo para descripción del evento
+22. **Prioridad 2**: Hero landing aplica degradado con `background-clip: text` + fontWeight
+23. **Prioridad 3**: `ThemeConfig` agregado (cardBg, cardBorder, textPrimary, textSecondary)
+24. **Prioridad 3**: Tab "Tema" en dashboard con inputs + preview de card y navbar
+25. **Prioridad 3**: CSS variables `--theme-card-bg/border/text-primary/text-secondary` inyectadas en landing-wrapper
+26. **Prioridad 3**: Todos los componentes del landing usan variables de tema para cards
+27. **Prioridad 3**: Navbar, footer y botón "Volver" heredan colores del tema
+28. **Prioridad 4**: `IntroConfig.phraseStyle` agregado (fontFamily, fontSize, color, fontWeight)
+29. **Prioridad 4**: Controles en dashboard + aplicación dinámica en intro.component.ts
+30. **Tipos ampliados**: `HeroTextStyle.fontFamily` y `HeroGradientStyle.fontFamily` ahora son `string` (no literal union)
 
 ---
 
@@ -160,40 +126,131 @@ interface EventConfig {
   dresscode: DresscodeConfig;
   gifts: GiftsConfig;
   rsvp: RsvpConfig;
+  globalStyles: GlobalTextStyles;
+  theme: ThemeConfig;
+}
+
+interface ThemeConfig {
+  cardBg: string;          // fondo de cards, ej: 'rgba(255,255,255,0.05)'
+  cardBorder: string;      // borde/acento, ej: 'rgba(212,160,23,0.3)'
+  textPrimary: string;     // texto principal
+  textSecondary: string;   // texto secundario
+}
+
+interface GlobalTextStyles {
+  sectionHeadingStyle: DetailTextStyle;
+  titleStyle: DetailTextStyle;           // con color2 + gradientAngle para degradado
+  subtitleStyle: DetailTextStyle;
+  contentStyle: DetailTextStyle;
+  separatorStyle: SeparatorStyle;
+}
+
+interface SeparatorStyle {
+  type: 'elegant' | 'formal' | 'executive' | 'festive' | 'animated' | 'minimal' | 'ornamental';
+  color: string;
+}
+
+interface DetailTextStyle {
+  fontFamily: string;
+  fontSize: number;
+  color: string;
+  color2?: string;
+  gradientAngle?: number;
+  gradientIntensity?: number;
+  fontWeight?: number;  // 100-900
+}
+
+interface IntroConfig {
+  enabled: boolean;
+  background: string;
+  phrase: string;
+  duration: number;
+  phraseStyle?: { fontFamily: string; fontSize: number; color: string; fontWeight?: number; };
+}
+
+interface HeroGradientStyle {
+  fontFamily: string;
+  fontSize: number;
+  color1: string;
+  color2: string;
+  gradientAngle: number;
+  gradientIntensity?: number;
+  fontWeight?: number;
 }
 
 interface HeroConfig {
-  backgroundGif, audioUrl, eventDescription, celebrantNames, heroPhrase, countdownDate
-  eventDescriptionStyle: HeroTextStyle    // { fontFamily, fontSize, color }
-  celebrantNamesStyle: HeroGradientStyle  // { fontFamily, fontSize, color1, color2, gradientAngle }
-  heroPhraseStyle: HeroTextStyle          // { fontFamily, fontSize, color }
+  backgroundGif: string;
+  audioUrl: string;
+  eventDescription: string;
+  eventDescriptionStyle: HeroGradientStyle;  // ← ahora soporta degradado
+  celebrantNames: string;
+  celebrantNamesStyle: HeroGradientStyle;
+  heroPhrase: string;
+  heroPhraseStyle: HeroTextStyle;
+  countdownDate: string;
 }
 
-interface DetailsConfig {
+interface TransferConfig {
   enabled: boolean;
   title: string;
-  titleStyle: DetailTextStyle;    // { fontFamily, fontSize, color }
-  contentStyle: DetailTextStyle;
-  cards: DetailCard[];            // { id, iconUrl, title, content, textAlign }
+  description: string;
+  accountName: string;
+  bank: string;
+  accountType: 'tarjeta' | 'cuenta' | 'clabe';
+  accountNumber: string;
+  animation: 'coins' | 'bills' | 'none';
 }
 
-interface VenuesConfig {
-  enabled: boolean;
-  items: VenueItem[];  // { id, title, icon, name, address, time, mapsUrl }
+interface ItineraryItem {
+  id?: number;
+  icon: string;
+  iconType: 'emoji' | 'custom';
+  iconUrl?: string;
+  time: string;           // formato "HH:mm" 24h
+  title: string;
+  description: string;
+  sort_order: number;
 }
 ```
 
 ---
 
-## ⚠️ Bugs/Pendientes Conocidos
+## ⚠️ TAREAS PENDIENTES (en orden de prioridad)
 
-- [x] CSS warning en config.component.ts línea 27 (`.countdown-picker` tenía CSS suelto sin selector) — **CORREGIDO**
+### Prioridad 1 — Estilos globales en TODOS los componentes del landing ✅
+- [x] Aplicar `getTitleGradient()` + `fontWeight` en: venues, itinerary, gallery, dresscode, gifts, rsvp
+- [x] Separadores ya estaban en TODOS los encabezados de sección
+- [x] `sectionHeadingStyle` ya se aplicaba en todos los componentes
+- [x] `contentStyle` aplicado a: details, venues, itinerary, dresscode, gifts
+- [x] `subtitleStyle` aplicado a: invitation, gallery
+- [x] `titleStyle` con degradado aplicado a: invitation, details, venues
+
+### Prioridad 2 — Carátula: degradado en "Descripción del evento" ✅
+- [x] Cambiar `eventDescriptionStyle` de `HeroTextStyle` a `HeroGradientStyle` (color1, color2, gradientAngle, gradientIntensity, fontWeight)
+- [x] Agregar controles en el dashboard (colores, ángulo, intensidad, grosor) + preview en vivo
+- [x] Aplicar degradado con `background-clip: text` en hero.component.ts del landing
+- [x] Aplicar `fontWeight` a celebrantNames en el landing
+
+### Prioridad 3 — Nuevo tab "Tema" (colores globales de la landing) ✅
+- [x] Modelo: `ThemeConfig` agregado a `EventConfig` (cardBg, cardBorder, textPrimary, textSecondary)
+- [x] Tab "Tema" en dashboard con inputs de color/texto + preview en vivo
+- [x] CSS variables `--theme-card-bg`, `--theme-card-border`, `--theme-text-primary`, `--theme-text-secondary` inyectadas en landing-wrapper
+- [x] Cards de TODOS los componentes usan `var(--theme-card-bg)` y `var(--theme-card-border)`: details, venues, itinerary, gallery, dresscode, gifts, rsvp
+- [x] Navbar (scrolled): hereda fondo y borde del tema
+- [x] Footer: texto hereda color de bordes
+- [x] Botón "Volver arriba": hereda colores del tema
+
+### Prioridad 4 — Configuración de texto del Intro ✅
+- [x] `IntroConfig.phraseStyle` agregado (fontFamily, fontSize, color, fontWeight)
+- [x] Controles en dashboard: fuente, tamaño, color, grosor
+- [x] Aplicado en intro.component.ts con bindings dinámicos
+
+### Prioridad 5 — Otros pendientes
 - [ ] Warnings de `?.` innecesarios en templates (no afectan funcionalidad)
-- [ ] CSS budget warnings en hero, gallery, rsvp (componentes exceden 2KB de CSS inline — es un warning de Angular, no un bug)
-- [ ] No hay git inicializado en el proyecto
-- [x] README.md sigue diciendo SQLite (debería decir MySQL) — **CORREGIDO**
-- [ ] La carpeta `frontend/src/app/landing/sections/venues/` ya tiene componente funcional
-- [x] El `flex: wrap` en `.flex` global puede afectar layouts que no lo esperan — **CORREGIDO**
+- [ ] CSS budget warnings en componentes (warning, no error)
+- [ ] Sliders compactos: verificar que `.slider-field` se aplica correctamente
+- [ ] Selectores de color: agregar campo de texto hexadecimal al lado del color picker para copiar/pegar códigos de color
+- [ ] Scrollbar: thumb hereda color de bordes del tema (requiere CSS global)
 
 ---
 
@@ -201,6 +258,7 @@ interface VenuesConfig {
 
 ```bash
 # Levantar todo
+cd c:\Portafolio\invitaciones-digitales
 docker-compose up -d --build
 
 # Solo frontend
@@ -213,6 +271,12 @@ docker-compose logs -f
 # Frontend: http://localhost
 # Login: admin / admin123
 # Landing ejemplo: http://localhost/invitacion/{slug}?t={codigo}
+
+# BD
+# Host: localhost:3306
+# DB: invitaciones
+# User: invitaciones_user / invitaciones_pass
+# Root: root / rootpassword
 ```
 
 ---
@@ -222,7 +286,20 @@ docker-compose logs -f
 - **Landing mobile-first**: wrapper de 520px max-width, background full viewport con cover
 - **Dark theme**: fondo #0d1117, acentos dorados (#d4a017), glassmorphism en cards
 - **Secciones opcionales**: todas tienen toggle `enabled` excepto hero e invitation
-- **Estilos de texto configurables**: fontFamily (sans/serif/script), fontSize (px), color (hex)
-- **Nombres con degradado**: background-clip text, 2 colores + ángulo
-- **Gallery**: carrusel single-image, aspect-ratio 3:4, auto-play 4s
+- **Estilos globales**: una sola pestaña controla fuentes/colores de toda la landing (excepto hero)
+- **Títulos con degradado**: background-clip text, 2 colores + ángulo configurable con range slider
+- **Separadores configurables**: 7 estilos (elegant, formal, executive, festive, animated, minimal, ornamental) + color
+- **15 fuentes**: sans (4) + serif (4) + script (7), todas con latin-ext para español
+- **Spumoni**: fuente custom cargada como @font-face local
+- **Transferencia bancaria**: sección independiente con animación de partículas y copy-to-clipboard
+- **Itinerario**: emojis como iconos + opción custom, time spinner visual, feedback al guardar
 - **Dashboard sidebar**: fixed en desktop, overlay en mobile, arrow toggle en borde
+- **Volúmenes Docker**: nombres fijos para evitar pérdida de datos al mover proyecto
+
+---
+
+## 📦 GitHub
+
+- Repo: https://github.com/IrvingPavia/invitaciones-digitales
+- Branch: main
+- Cuenta: IrvingPavia (Irving.pavia.sosa@hotmail.com)

@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvitationConfig, Guest } from '../../../core/models/models';
+import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-invitation',
@@ -10,16 +10,31 @@ import { InvitationConfig, Guest } from '../../../core/models/models';
     <section id="invitation" class="landing-section">
       <div class="section-container">
         <div class="invitation-ornament">✦ ✦ ✦</div>
-        <h2 class="invitation-title reveal">{{ config.title }}</h2>
+        <h2 class="invitation-title reveal"
+            [style.font-family]="getFontFamily(styles?.titleStyle?.fontFamily)"
+            [style.font-size.px]="styles?.titleStyle?.fontSize || 42"
+            [style.font-weight]="styles?.titleStyle?.fontWeight || 400"
+            [style.background-image]="getTitleGradient()"
+            [class.gradient-text]="!!styles?.titleStyle?.color2"
+            [style.color]="!styles?.titleStyle?.color2 ? (styles?.titleStyle?.color || '#d4a017') : null"
+        >{{ config.title }}</h2>
         @if (config.subtitle) {
-          <p class="invitation-subtitle reveal">{{ config.subtitle }}</p>
+          <p class="invitation-subtitle reveal"
+             [style.font-family]="getFontFamily(styles?.subtitleStyle?.fontFamily)"
+             [style.font-size.px]="styles?.subtitleStyle?.fontSize || 16"
+             [style.color]="styles?.subtitleStyle?.color || 'rgba(255,255,255,0.7)'"
+          >{{ config.subtitle }}</p>
         }
 
         @if (guest) {
           <div class="invitation-card reveal">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño invitamos a</p>
-              <h3 class="invitation-name">{{ guest.family_name || guest.guest_names }}</h3>
+              <h3 class="invitation-name"
+                  [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.contentStyle?.fontSize ? styles!.contentStyle.fontSize + 10 : 30"
+                  [style.color]="styles?.contentStyle?.color || '#ffffff'"
+              >{{ guest.family_name || guest.guest_names }}</h3>
               @if (guest.guest_type === 'family') {
                 <div class="invitation-names-list">
                   @for (name of guestNames(); track name) {
@@ -56,18 +71,25 @@ import { InvitationConfig, Guest } from '../../../core/models/models';
       font-family: var(--font-script); font-size: clamp(32px, 7vw, 56px);
       color: var(--gold); margin: 16px 0;
       text-shadow: 0 0 30px rgba(212,160,23,0.3);
+      line-height: 1.4; padding: 0.1em 0;
+    }
+    .invitation-title.gradient-text {
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
     }
     .invitation-subtitle { color: rgba(255,255,255,0.7); font-size: 16px; margin-bottom: 40px; }
     .invitation-card {
-      background: rgba(0,0,0,0.4); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 16px; padding: 40px; margin: 32px auto;
       max-width: 500px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(212,160,23,0.1);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.3);
     }
-    .invitation-for { color: rgba(255,255,255,0.6); font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
+    .invitation-for { color: var(--theme-text-secondary, rgba(255,255,255,0.8)); font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
     .invitation-name {
       font-family: var(--font-serif); font-size: clamp(24px, 5vw, 36px);
-      color: white; margin-bottom: 16px;
+      color: var(--theme-text-primary, white); margin-bottom: 16px;
     }
     .invitation-names-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
     .guest-name-chip {
@@ -88,6 +110,7 @@ import { InvitationConfig, Guest } from '../../../core/models/models';
 export class LandingInvitationComponent {
   @Input() config!: InvitationConfig;
   @Input() guest: Guest | null = null;
+  @Input() styles?: GlobalTextStyles;
 
   guestNames() { return this.guest?.guest_names.split(',') || []; }
   guestCount() {
@@ -95,5 +118,26 @@ export class LandingInvitationComponent {
     return this.guest.guest_type === 'family'
       ? this.guest.guest_names.split(',').length
       : this.guest.max_companions + 1;
+  }
+
+  getFontFamily(key?: string): string {
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key || 'sans'] || 'var(--font-sans)';
+  }
+
+  getTitleGradient(): string {
+    const s = this.styles?.titleStyle;
+    if (!s?.color2) return 'none';
+    const c1 = s.color || '#d4a017';
+    const c2 = s.color2;
+    const angle = s.gradientAngle ?? 135;
+    const intensity = s.gradientIntensity ?? 50;
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
   }
 }

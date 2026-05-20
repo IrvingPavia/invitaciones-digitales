@@ -36,6 +36,31 @@ export interface EventConfig {
   dresscode: DresscodeConfig;
   gifts: GiftsConfig;
   rsvp: RsvpConfig;
+  globalStyles: GlobalTextStyles;
+  theme: ThemeConfig;
+}
+
+export interface ThemeConfig {
+  cardBg: string;
+  cardBorder: string;
+  textPrimary: string;
+  textSecondary: string;
+  navFooterText: string;
+  buttonBg: string;
+  buttonText: string;
+}
+
+export interface GlobalTextStyles {
+  titleStyle: DetailTextStyle;
+  subtitleStyle: DetailTextStyle;
+  contentStyle: DetailTextStyle;
+  sectionHeadingStyle: DetailTextStyle;
+  separatorStyle: SeparatorStyle;
+}
+
+export interface SeparatorStyle {
+  type: 'elegant' | 'formal' | 'executive' | 'festive' | 'animated' | 'minimal' | 'ornamental';
+  color: string;
 }
 
 export interface IntroConfig {
@@ -43,27 +68,35 @@ export interface IntroConfig {
   background: string;
   phrase: string;
   duration: number;
+  phraseStyle?: {
+    fontFamily: string;
+    fontSize: number;
+    color: string;
+    fontWeight?: number;
+  };
 }
 
 export interface HeroTextStyle {
-  fontFamily: 'serif' | 'sans' | 'script';
+  fontFamily: string;
   fontSize: number;
   color: string;
 }
 
 export interface HeroGradientStyle {
-  fontFamily: 'serif' | 'sans' | 'script';
+  fontFamily: string;
   fontSize: number;
   color1: string;
   color2: string;
   gradientAngle: number;
+  gradientIntensity?: number;
+  fontWeight?: number;
 }
 
 export interface HeroConfig {
   backgroundGif: string;
   audioUrl: string;
   eventDescription: string;
-  eventDescriptionStyle: HeroTextStyle;
+  eventDescriptionStyle: HeroGradientStyle;
   celebrantNames: string;
   celebrantNamesStyle: HeroGradientStyle;
   heroPhrase: string;
@@ -79,15 +112,17 @@ export interface InvitationConfig {
 export interface DetailsConfig {
   enabled: boolean;
   title: string;
-  titleStyle: DetailTextStyle;
-  contentStyle: DetailTextStyle;
   cards: DetailCard[];
 }
 
 export interface DetailTextStyle {
-  fontFamily: 'serif' | 'sans' | 'script';
+  fontFamily: string;
   fontSize: number;
   color: string;
+  color2?: string;
+  gradientAngle?: number;
+  gradientIntensity?: number;
+  fontWeight?: number; // 100-900
 }
 
 export interface DetailCard {
@@ -122,6 +157,8 @@ export interface ItineraryConfig {
 export interface ItineraryItem {
   id?: number;
   icon: string;
+  iconType: 'emoji' | 'custom';
+  iconUrl?: string;
   time: string;
   title: string;
   description: string;
@@ -146,6 +183,18 @@ export interface GiftsConfig {
   description: string;
   link: string;
   buttonText: string;
+  transfer: TransferConfig;
+}
+
+export interface TransferConfig {
+  enabled: boolean;
+  title: string;
+  description: string;
+  accountName: string;
+  bank: string;
+  accountType: 'tarjeta' | 'cuenta' | 'clabe';
+  accountNumber: string;
+  animation: 'coins' | 'bills' | 'none';
 }
 
 export interface RsvpConfig {

@@ -1,6 +1,6 @@
 import { Component, Input, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GalleryConfig, Photo } from '../../../core/models/models';
+import { GalleryConfig, Photo, GlobalTextStyles } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-gallery',
@@ -10,12 +10,20 @@ import { GalleryConfig, Photo } from '../../../core/models/models';
     <section id="gallery" class="landing-section gallery-section">
       <div class="section-container">
         <div class="section-header">
-          <div class="section-line"></div>
-          <h2 class="section-heading">{{ config.title || 'Galería' }}</h2>
-          <div class="section-line"></div>
+          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          <h2 class="section-heading"
+              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+          >{{ config.title || 'Galería' }}</h2>
+          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
         @if (config.description) {
-          <p class="gallery-desc">{{ config.description }}</p>
+          <p class="gallery-desc"
+             [style.font-family]="getFontFamily(styles?.subtitleStyle?.fontFamily)"
+             [style.font-size.px]="styles?.subtitleStyle?.fontSize || 16"
+             [style.color]="styles?.subtitleStyle?.color || 'rgba(255,255,255,0.6)'"
+          >{{ config.description }}</p>
         }
 
         @if (photos.length > 0) {
@@ -156,6 +164,20 @@ import { GalleryConfig, Photo } from '../../../core/models/models';
 export class LandingGalleryComponent implements OnInit, OnDestroy {
   @Input() config!: GalleryConfig;
   @Input() photos: Photo[] = [];
+  @Input() styles?: GlobalTextStyles;
+
+  getFontFamily(key?: string): string {
+    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
+    return m[key||'sans']||'var(--font-sans)';
+  }
+  getSeparatorBg(): string {
+    const c=this.styles?.separatorStyle?.color||'#d4a017',t=this.styles?.separatorStyle?.type||'elegant';
+    switch(t){case 'formal':return c;case 'executive':return `linear-gradient(180deg,${c},transparent 40%,transparent 60%,${c})`;case 'festive':return `repeating-linear-gradient(90deg,${c} 0px,${c} 4px,transparent 4px,transparent 10px)`;case 'animated':return `linear-gradient(90deg,transparent,${c},transparent)`;case 'minimal':return `${c}40`;case 'ornamental':return `linear-gradient(90deg,transparent,${c}60,${c},${c}60,transparent)`;default:return `linear-gradient(90deg,transparent,${c}80,transparent)`;}
+  }
+  getSeparatorHeight(): string {
+    const t=this.styles?.separatorStyle?.type||'elegant';
+    switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
+  }
 
   current = signal(0);
   offset = signal(0);

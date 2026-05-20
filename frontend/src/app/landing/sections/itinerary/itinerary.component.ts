@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ItineraryConfig, ItineraryItem } from '../../../core/models/models';
+import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-itinerary',
@@ -10,9 +10,13 @@ import { ItineraryConfig, ItineraryItem } from '../../../core/models/models';
     <section id="itinerary" class="landing-section itinerary-section">
       <div class="section-container">
         <div class="section-header">
-          <div class="section-line"></div>
-          <h2 class="section-heading">{{ config.title || 'Itinerario' }}</h2>
-          <div class="section-line"></div>
+          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          <h2 class="section-heading"
+              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+          >{{ config.title || 'Itinerario' }}</h2>
+          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
 
         <div class="timeline">
@@ -20,13 +24,28 @@ import { ItineraryConfig, ItineraryItem } from '../../../core/models/models';
             <div class="timeline-item" [class.right]="i % 2 !== 0">
               <div class="timeline-content reveal">
                 <div class="timeline-icon">
-                  <span class="material-icons">{{ item.icon || 'event' }}</span>
+                  @if (item.iconType === 'custom' && item.iconUrl) {
+                    <img [src]="item.iconUrl" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                  } @else if (item.iconType === 'emoji' && item.icon) {
+                    <span class="emoji-icon">{{ item.icon }}</span>
+                  } @else {
+                    <span class="material-icons">{{ item.icon || 'event' }}</span>
+                  }
                 </div>
                 <div class="timeline-body">
-                  <span class="timeline-time">{{ item.time }}</span>
-                  <h4 class="timeline-title">{{ item.title }}</h4>
+                  <span class="timeline-time">{{ formatTime(item.time) }}</span>
+                  <h4 class="timeline-title"
+                      [style.font-family]="getFontFamily(styles?.subtitleStyle?.fontFamily)"
+                      [style.font-size.px]="styles?.subtitleStyle?.fontSize || 16"
+                      [style.font-weight]="styles?.subtitleStyle?.fontWeight || 500"
+                      [style.color]="styles?.subtitleStyle?.color || 'white'"
+                  >{{ item.title }}</h4>
                   @if (item.description) {
-                    <p class="timeline-desc">{{ item.description }}</p>
+                    <p class="timeline-desc"
+                       [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
+                       [style.font-size.px]="styles?.contentStyle?.fontSize || 13"
+                       [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.6)'"
+                    >{{ item.description }}</p>
                   }
                 </div>
               </div>
@@ -64,7 +83,7 @@ import { ItineraryConfig, ItineraryItem } from '../../../core/models/models';
     }
     .timeline-content {
       display: flex; gap: 16px; align-items: flex-start;
-      background: rgba(0,0,0,0.45); border: 1px solid rgba(212,160,23,0.2);
+      background: var(--theme-card-bg, rgba(0,0,0,0.45)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       border-radius: 12px; padding: 20px; max-width: 340px;
       transition: transform 0.3s;
       &:hover { transform: translateY(-2px); }
@@ -73,7 +92,9 @@ import { ItineraryConfig, ItineraryItem } from '../../../core/models/models';
       width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
       background: rgba(212,160,23,0.1); border: 1px solid rgba(212,160,23,0.3);
       display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
       .material-icons { font-size: 20px; color: var(--gold); }
+      .emoji-icon { font-size: 22px; }
     }
     .timeline-time { font-size: 12px; color: var(--gold); font-weight: 600; letter-spacing: 1px; }
     .timeline-title { font-family: var(--font-serif); font-size: 16px; color: white; margin: 4px 0; }
@@ -91,4 +112,45 @@ import { ItineraryConfig, ItineraryItem } from '../../../core/models/models';
 export class LandingItineraryComponent {
   @Input() config!: ItineraryConfig;
   @Input() items: ItineraryItem[] = [];
+  @Input() styles?: GlobalTextStyles;
+
+  formatTime(time: string): string {
+    if (!time || time.includes('AM') || time.includes('PM')) return time;
+    const [hStr, mStr] = time.split(':');
+    let h = parseInt(hStr) || 0;
+    const m = parseInt(mStr) || 0;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  getFontFamily(key?: string): string {
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key || 'sans'] || 'var(--font-sans)';
+  }
+
+  getSeparatorBg(): string {
+    const c = this.styles?.separatorStyle?.color || '#d4a017';
+    const t = this.styles?.separatorStyle?.type || 'elegant';
+    switch (t) {
+      case 'formal': return c;
+      case 'executive': return `linear-gradient(180deg, ${c}, transparent 40%, transparent 60%, ${c})`;
+      case 'festive': return `repeating-linear-gradient(90deg, ${c} 0px, ${c} 4px, transparent 4px, transparent 10px)`;
+      case 'animated': return `linear-gradient(90deg, transparent, ${c}, transparent)`;
+      case 'minimal': return `${c}40`;
+      case 'ornamental': return `linear-gradient(90deg, transparent, ${c}60, ${c}, ${c}60, transparent)`;
+      default: return `linear-gradient(90deg, transparent, ${c}80, transparent)`;
+    }
+  }
+
+  getSeparatorHeight(): string {
+    const t = this.styles?.separatorStyle?.type || 'elegant';
+    switch (t) { case 'executive': return '4px'; case 'festive': return '3px'; case 'ornamental': return '2px'; default: return '1px'; }
+  }
 }

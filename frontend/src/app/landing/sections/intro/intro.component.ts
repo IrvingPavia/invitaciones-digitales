@@ -20,7 +20,12 @@ import { IntroConfig } from '../../../core/models/models';
             <div class="particle" [style]="p"></div>
           }
         </div>
-        <p class="intro-phrase">{{ config.phrase }}</p>
+        <p class="intro-phrase"
+           [style.font-family]="getFontFamily(config.phraseStyle?.fontFamily)"
+           [style.font-size.px]="config.phraseStyle?.fontSize || 42"
+           [style.color]="config.phraseStyle?.color || '#d4a017'"
+           [style.font-weight]="config.phraseStyle?.fontWeight || 400"
+        >{{ config.phrase }}</p>
         <div class="intro-progress">
           <div class="intro-progress-bar" [style.animation-duration]="config.duration + 's'"></div>
         </div>
@@ -51,7 +56,6 @@ import { IntroConfig } from '../../../core/models/models';
     .intro-phrase {
       font-family: var(--font-script);
       font-size: clamp(28px, 6vw, 52px);
-      color: var(--gold);
       text-shadow: 0 0 30px rgba(212,160,23,0.5);
       animation: phraseIn 1s ease 0.5s both;
       margin-bottom: 24px;
@@ -93,6 +97,17 @@ export class LandingIntroComponent implements OnInit, OnDestroy {
   fading = false;
   particles: string[] = [];
   private timer: any;
+
+  getFontFamily(key?: string): string {
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key || 'script'] || 'var(--font-script)';
+  }
 
   ngOnInit() {
     this.particles = Array.from({ length: 20 }, () => {

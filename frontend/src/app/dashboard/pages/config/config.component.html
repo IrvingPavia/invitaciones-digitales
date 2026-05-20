@@ -1,0 +1,469 @@
+@if (config(); as c) {
+<div class="config-header"><h2>Configuración de Landing</h2></div>
+<div class="config-toolbar">
+  <a routerLink="/dashboard" class="btn btn-outline">← Volver</a>
+  <button class="btn btn-primary" (click)="save()" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+</div>
+<div class="tabs-wrapper">
+  <div class="tabs-arrow" (click)="scrollTabs(-200)"><span class="material-icons">chevron_left</span></div>
+  <div class="tabs" #tabsEl>
+    @for (tab of tabs; track tab.key) {
+      <button class="tab" [class.active]="activeTab === tab.key" (click)="activeTab = tab.key">{{ tab.label }}</button>
+    }
+  </div>
+  <div class="tabs-arrow" (click)="scrollTabs(200)"><span class="material-icons">chevron_right</span></div>
+</div>
+
+@if (activeTab === 'styles') {
+<div class="section-card">
+  <div class="section-card-header"><span>Encabezados de Sección</span></div>
+  <div class="section-card-body">
+    <div class="field-row">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.globalStyles.sectionHeadingStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.globalStyles.sectionHeadingStyle.fontSize" min="12" max="72"></div>
+      <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.globalStyles.sectionHeadingStyle.color" (valueChange)="c.globalStyles.sectionHeadingStyle.color = $event"></app-color-picker></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Separadores</span></div>
+  <div class="section-card-body">
+    <div class="field-row">
+      <div class="field"><label class="form-label">Estilo</label><select [(ngModel)]="c.globalStyles.separatorStyle.type"><option value="elegant">Elegante</option><option value="formal">Formal</option><option value="executive">Ejecutivo</option><option value="festive">Festivo</option><option value="animated">Animado</option><option value="minimal">Minimal</option><option value="ornamental">Ornamental</option></select></div>
+      <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.globalStyles.separatorStyle.color" (valueChange)="c.globalStyles.separatorStyle.color = $event"></app-color-picker></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Títulos (Degradado bicolor)</span></div>
+  <div class="section-card-body">
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.globalStyles.titleStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.globalStyles.titleStyle.fontSize" min="12" max="96"></div>
+    </div>
+    <div class="field-row mb-12">
+      <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.globalStyles.titleStyle.color" (valueChange)="c.globalStyles.titleStyle.color = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.globalStyles.titleStyle.color2!" (valueChange)="c.globalStyles.titleStyle.color2 = $event"></app-color-picker></div>
+    </div>
+    <div class="field-row" style="margin-top:12px;">
+      <div class="field slider-field"><label class="form-label">Ángulo: {{ c.globalStyles.titleStyle.gradientAngle }}°</label><input type="range" min="0" max="360" [(ngModel)]="c.globalStyles.titleStyle.gradientAngle"></div>
+      <div class="field slider-field"><label class="form-label">Intensidad: {{ c.globalStyles.titleStyle.gradientIntensity }}%</label><input type="range" min="0" max="100" [(ngModel)]="c.globalStyles.titleStyle.gradientIntensity"></div>
+      <div class="field slider-field"><label class="form-label">Grosor: {{ c.globalStyles.titleStyle.fontWeight }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.globalStyles.titleStyle.fontWeight"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Subtítulos</span></div>
+  <div class="section-card-body">
+    <div class="field-row">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.globalStyles.subtitleStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.globalStyles.subtitleStyle.fontSize" min="10" max="48"></div>
+      <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.globalStyles.subtitleStyle.color" (valueChange)="c.globalStyles.subtitleStyle.color = $event"></app-color-picker></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Contenido</span></div>
+  <div class="section-card-body">
+    <div class="field-row">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.globalStyles.contentStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.globalStyles.contentStyle.fontSize" min="10" max="36"></div>
+      <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.globalStyles.contentStyle.color" (valueChange)="c.globalStyles.contentStyle.color = $event"></app-color-picker></div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview unificado -->
+<div class="section-card preview-card">
+  <div class="section-card-header"><span>Vista previa</span></div>
+  <div class="section-card-body" style="text-align:center;padding:32px 24px;">
+    <p [style.fontFamily]="getFontPreview(c.globalStyles.sectionHeadingStyle.fontFamily)" [style.fontSize.px]="c.globalStyles.sectionHeadingStyle.fontSize" [style.color]="c.globalStyles.sectionHeadingStyle.color" style="margin-bottom:12px;">Encabezado de Sección</p>
+    <div [style.background]="getSeparatorPreviewBg()" [style.height]="getSeparatorHeight()" style="width:50%;margin:12px auto;border-radius:2px;"></div>
+    <span [style.fontFamily]="getFontPreview(c.globalStyles.titleStyle.fontFamily)" [style.fontSize.px]="c.globalStyles.titleStyle.fontSize" [style.fontWeight]="c.globalStyles.titleStyle.fontWeight" [style.backgroundImage]="getTitleGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;margin:12px 0;line-height:1.4;padding:0.1em 0.2em;">Título con Degradado</span>
+    <p [style.fontFamily]="getFontPreview(c.globalStyles.subtitleStyle.fontFamily)" [style.fontSize.px]="c.globalStyles.subtitleStyle.fontSize" [style.color]="c.globalStyles.subtitleStyle.color" style="margin-bottom:8px;">Subtítulo de ejemplo</p>
+    <p [style.fontFamily]="getFontPreview(c.globalStyles.contentStyle.fontFamily)" [style.fontSize.px]="c.globalStyles.contentStyle.fontSize" [style.color]="c.globalStyles.contentStyle.color">Este es un texto de contenido para visualizar el estilo aplicado.</p>
+  </div>
+</div>
+}
+
+@if (activeTab === 'theme') {
+<div class="section-card">
+  <div class="section-card-header"><span>Colores del Tema</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Estos colores se aplican a cards, navbar, footer, scrollbar y botones de la landing.</p>
+    <div class="field mb-16">
+      <label class="form-label">Fondo de cards</label>
+      <app-color-picker [value]="c.theme.cardBg" [showOpacity]="true" (valueChange)="c.theme.cardBg = $event"></app-color-picker>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Borde de cards</label>
+      <app-color-picker [value]="c.theme.cardBorder" [showOpacity]="true" (valueChange)="c.theme.cardBorder = $event"></app-color-picker>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Texto primario</label>
+      <app-color-picker [value]="c.theme.textPrimary" (valueChange)="c.theme.textPrimary = $event"></app-color-picker>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Texto secundario</label>
+      <app-color-picker [value]="c.theme.textSecondary" [showOpacity]="true" (valueChange)="c.theme.textSecondary = $event"></app-color-picker>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Texto de navbar / footer / botón volver</label>
+      <app-color-picker [value]="c.theme.navFooterText" (valueChange)="c.theme.navFooterText = $event"></app-color-picker>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Fondo de botones</label>
+      <app-color-picker [value]="c.theme.buttonBg" (valueChange)="c.theme.buttonBg = $event"></app-color-picker>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Texto de botones</label>
+      <app-color-picker [value]="c.theme.buttonText" (valueChange)="c.theme.buttonText = $event"></app-color-picker>
+    </div>
+  </div>
+</div>
+<!-- Preview -->
+<div class="section-card preview-card">
+  <div class="section-card-header"><span>Vista previa</span></div>
+  <div class="section-card-body" style="padding:24px;">
+    <div style="border-radius:12px;padding:20px;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.cardBorder">
+      <p [style.color]="c.theme.textPrimary" style="font-size:16px;margin-bottom:8px;font-weight:600;">Título de ejemplo</p>
+      <p [style.color]="c.theme.textSecondary" style="font-size:14px;margin-bottom:12px;">Texto secundario dentro de una card.</p>
+      <button style="border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" [style.background]="c.theme.buttonBg" [style.color]="c.theme.buttonText">Botón ejemplo</button>
+    </div>
+    <div style="margin-top:16px;padding:12px 20px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.cardBorder">
+      <span [style.color]="c.theme.navFooterText" style="font-size:14px;">Navbar / Footer</span>
+      <span [style.color]="c.theme.navFooterText" style="font-size:14px;">↑ Volver</span>
+    </div>
+  </div>
+</div>
+}
+
+@if (activeTab === 'intro') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Pantalla de Intro</span>
+    <label class="toggle-pill" (click)="c.intro.enabled = !c.intro.enabled"><span class="toggle-pill-dot" [class.active]="c.intro.enabled"></span>{{ c.intro.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field mb-16"><label class="form-label">Frase de bienvenida</label><input class="form-control" [(ngModel)]="c.intro.phrase"></div>
+    <div class="field mb-16"><label class="form-label">Duración (segundos, máx 5)</label><input type="number" class="form-control" [(ngModel)]="c.intro.duration" min="1" max="5" style="max-width:120px;"></div>
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.intro.phraseStyle!.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.intro.phraseStyle!.fontSize" min="16" max="72"></div>
+      <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.intro.phraseStyle!.color" (valueChange)="c.intro.phraseStyle!.color = $event"></app-color-picker></div>
+    </div>
+    <div class="field-row mb-16">
+      <div class="field slider-field"><label class="form-label">Grosor: {{ c.intro.phraseStyle!.fontWeight }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.intro.phraseStyle!.fontWeight"></div>
+    </div>
+    <div class="field"><label class="form-label">Imagen/GIF de fondo</label><input type="file" accept="image/*,.gif" (change)="uploadFile($event, 'gifs', 'intro.background')">
+      @if (c.intro.background) { <img [src]="c.intro.background" class="upload-preview"> }
+    </div>
+  </div>
+</div>
+}
+
+@if (activeTab === 'hero') {
+<div class="section-card">
+  <div class="section-card-header"><span>Descripción del evento</span></div>
+  <div class="section-card-body">
+    <div class="field mb-12"><input class="form-control" [(ngModel)]="c.hero.eventDescription" placeholder="Ej: Nuestra Boda"></div>
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.hero.eventDescriptionStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.hero.eventDescriptionStyle.fontSize" min="10" max="48"></div>
+    </div>
+    <div class="field-row mb-12">
+      <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.hero.eventDescriptionStyle.color1" (valueChange)="c.hero.eventDescriptionStyle.color1 = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.hero.eventDescriptionStyle.color2" (valueChange)="c.hero.eventDescriptionStyle.color2 = $event"></app-color-picker></div>
+    </div>
+    <div class="field-row">
+      <div class="field slider-field"><label class="form-label">Ángulo: {{ c.hero.eventDescriptionStyle.gradientAngle }}°</label><input type="range" min="0" max="360" [(ngModel)]="c.hero.eventDescriptionStyle.gradientAngle"></div>
+      <div class="field slider-field"><label class="form-label">Intensidad: {{ c.hero.eventDescriptionStyle.gradientIntensity }}%</label><input type="range" min="0" max="100" [(ngModel)]="c.hero.eventDescriptionStyle.gradientIntensity"></div>
+      <div class="field slider-field"><label class="form-label">Grosor: {{ c.hero.eventDescriptionStyle.fontWeight }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.hero.eventDescriptionStyle.fontWeight"></div>
+    </div>
+    <!-- Preview -->
+    <div style="margin-top:16px;text-align:center;padding:16px;background:rgba(0,0,0,0.2);border-radius:8px;">
+      <span [style.fontFamily]="getFontPreview(c.hero.eventDescriptionStyle.fontFamily)" [style.fontSize.px]="c.hero.eventDescriptionStyle.fontSize" [style.fontWeight]="c.hero.eventDescriptionStyle.fontWeight" [style.backgroundImage]="getEventDescGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;letter-spacing:4px;text-transform:uppercase;">{{ c.hero.eventDescription || 'Descripción' }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Nombres de celebrantes</span></div>
+  <div class="section-card-body">
+    <div class="field mb-12"><input class="form-control" [(ngModel)]="c.hero.celebrantNames" placeholder="Ej: María & Juan"></div>
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.hero.celebrantNamesStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.hero.celebrantNamesStyle.fontSize" min="20" max="120"></div>
+    </div>
+    <div class="field-row">
+      <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.hero.celebrantNamesStyle.color1" (valueChange)="c.hero.celebrantNamesStyle.color1 = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.hero.celebrantNamesStyle.color2" (valueChange)="c.hero.celebrantNamesStyle.color2 = $event"></app-color-picker></div>
+    </div>
+    <div class="field-row" style="margin-top:12px;">
+      <div class="field slider-field"><label class="form-label">Ángulo: {{ c.hero.celebrantNamesStyle.gradientAngle }}°</label><input type="range" min="0" max="360" [(ngModel)]="c.hero.celebrantNamesStyle.gradientAngle"></div>
+      <div class="field slider-field"><label class="form-label">Intensidad: {{ c.hero.celebrantNamesStyle.gradientIntensity }}%</label><input type="range" min="0" max="100" [(ngModel)]="c.hero.celebrantNamesStyle.gradientIntensity"></div>
+      <div class="field slider-field"><label class="form-label">Grosor: {{ c.hero.celebrantNamesStyle.fontWeight || 400 }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.hero.celebrantNamesStyle.fontWeight"></div>
+    </div>
+    <!-- Preview nombres -->
+    <div style="margin-top:16px;text-align:center;padding:16px;background:rgba(0,0,0,0.2);border-radius:8px;">
+      <span [style.fontFamily]="getFontPreview(c.hero.celebrantNamesStyle.fontFamily)" [style.fontSize.px]="c.hero.celebrantNamesStyle.fontSize > 60 ? 48 : c.hero.celebrantNamesStyle.fontSize" [style.fontWeight]="c.hero.celebrantNamesStyle.fontWeight" [style.backgroundImage]="getCelebrantGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;line-height:1.4;padding:0.1em 0.2em;">{{ c.hero.celebrantNames || 'Nombre' }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Frase</span></div>
+  <div class="section-card-body">
+    <div class="field mb-12"><input class="form-control" [(ngModel)]="c.hero.heroPhrase" placeholder="Ej: Juntos para siempre"></div>
+    <div class="field-row">
+      <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.hero.heroPhraseStyle.fontFamily"><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.hero.heroPhraseStyle.fontSize" min="10" max="36"></div>
+      <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.hero.heroPhraseStyle.color" (valueChange)="c.hero.heroPhraseStyle.color = $event"></app-color-picker></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Cuenta regresiva</span></div>
+  <div class="section-card-body">
+    <div class="countdown-picker">
+      <div class="countdown-grid">
+        <div class="picker-group"><span class="picker-label">Fecha</span><input type="date" class="picker-input" [(ngModel)]="countdownDate" (ngModelChange)="updateCountdown()"></div>
+        <div class="picker-group"><span class="picker-label">Hora</span>
+          <div class="time-inputs">
+            <div class="time-field"><button (click)="adjustTime('h',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ countdownHour % 12 || 12 }}</span><button (click)="adjustTime('h',-1)"><span class="material-icons">expand_more</span></button><small>HR</small></div>
+            <span class="time-sep">:</span>
+            <div class="time-field"><button (click)="adjustTime('m',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ countdownMin | number:'2.0-0' }}</span><button (click)="adjustTime('m',-1)"><span class="material-icons">expand_more</span></button><small>MIN</small></div>
+            <div class="time-ampm"><button [class.active]="countdownHour < 12" (click)="countdownHour < 12 ? null : (countdownHour = countdownHour - 12); updateCountdown()">AM</button><button [class.active]="countdownHour >= 12" (click)="countdownHour >= 12 ? null : (countdownHour = countdownHour + 12); updateCountdown()">PM</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="picker-preview"><span class="material-icons">event</span> {{ countdownPreview }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header"><span>Multimedia</span></div>
+  <div class="section-card-body">
+    <div class="field mb-16"><label class="form-label">GIF de fondo</label><input type="file" accept=".gif,image/*" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')">
+      @if (c.hero.backgroundGif) { <img [src]="c.hero.backgroundGif" class="upload-preview"> }
+    </div>
+    <div class="field"><label class="form-label">Audio MP3</label><input type="file" accept="audio/*" (change)="uploadFile($event, 'audio', 'hero.audioUrl')">
+      @if (c.hero.audioUrl) { <audio [src]="c.hero.audioUrl" controls style="margin-top:8px;width:100%;border-radius:8px;"></audio> }
+    </div>
+  </div>
+</div>
+}
+
+@if (activeTab === 'invitation') {
+<div class="section-card">
+  <div class="section-card-header"><span>Sección de Invitación</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Los estilos de fuente se configuran en la pestaña "Estilos"</p>
+    <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.invitation.title"></div>
+    <div class="field"><label class="form-label">Subtítulo</label><input class="form-control" [(ngModel)]="c.invitation.subtitle"></div>
+  </div>
+</div>
+}
+
+@if (activeTab === 'details') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Detalles del Evento</span>
+    <label class="toggle-pill" (click)="c.details.enabled = !c.details.enabled"><span class="toggle-pill-dot" [class.active]="c.details.enabled"></span>{{ c.details.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field mb-16"><label class="form-label">Título de sección</label><input class="form-control" [(ngModel)]="c.details.title"></div>
+    @for (card of c.details.cards; track card.id; let i = $index) {
+    <div class="venue-card">
+      <div class="venue-header"><strong>Tarjeta {{ i + 1 }}</strong><button class="btn btn-sm btn-danger" (click)="removeDetailCard(i)">Eliminar</button></div>
+      <div class="field-row mb-12">
+        <div class="venue-icon-preview">@if (card.iconUrl) { <img [src]="card.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
+        <div class="field"><label class="form-label">Icono</label><input type="file" accept="image/*" (change)="uploadDetailIcon($event, card)"></div>
+      </div>
+      <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="card.title"></div>
+      <div class="field mb-12"><label class="form-label">Contenido</label><textarea class="form-control" [(ngModel)]="card.content" rows="3"></textarea></div>
+      <div class="field"><label class="form-label">Alineación</label><select class="form-control" [(ngModel)]="card.textAlign" style="max-width:200px;"><option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option></select></div>
+    </div>
+    }
+    <button class="btn btn-outline" (click)="addDetailCard()">+ Agregar tarjeta</button>
+  </div>
+</div>
+}
+
+@if (activeTab === 'venues') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Eventos / Lugares</span>
+    <label class="toggle-pill" (click)="c.venues.enabled = !c.venues.enabled"><span class="toggle-pill-dot" [class.active]="c.venues.enabled"></span>{{ c.venues.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    @for (venue of c.venues.items; track venue.id; let i = $index) {
+    <div class="venue-card">
+      <div class="venue-header"><strong>{{ venue.title || 'Evento ' + (i+1) }}</strong><button class="btn btn-sm btn-danger" (click)="removeVenue(i)">Eliminar</button></div>
+      <div class="field-row mb-12">
+        <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="venue.title" placeholder="Ej: Ceremonia"></div>
+        <div class="field"><label class="form-label">Nombre del lugar</label><input class="form-control" [(ngModel)]="venue.name"></div>
+      </div>
+      <div class="field-row mb-12">
+        <div class="venue-icon-preview">@if (venue.icon) { <img [src]="venue.icon" style="width:100%;height:100%;object-fit:cover;"> }</div>
+        <div class="field"><label class="form-label">Icono</label><input type="file" accept="image/*" (change)="uploadVenueIcon($event, venue)"></div>
+      </div>
+      <div class="field mb-12"><label class="form-label">Dirección</label><input class="form-control" [(ngModel)]="venue.address"></div>
+      <div class="field mb-12"><label class="form-label">URL Google Maps</label><input class="form-control" [(ngModel)]="venue.mapsUrl"></div>
+      <div class="field"><label class="form-label">Hora</label>
+        <div class="time-inputs">
+          <div class="time-field"><button (click)="adjustVenueTime(venue,'h',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ venueHour(venue) }}</span><button (click)="adjustVenueTime(venue,'h',-1)"><span class="material-icons">expand_more</span></button><small>HR</small></div>
+          <span class="time-sep">:</span>
+          <div class="time-field"><button (click)="adjustVenueTime(venue,'m',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ venueMin(venue) | number:'2.0-0' }}</span><button (click)="adjustVenueTime(venue,'m',-1)"><span class="material-icons">expand_more</span></button><small>MIN</small></div>
+          <div class="time-ampm"><button [class.active]="venueAmPm(venue)==='AM'" (click)="setAmPm(venue,'AM')">AM</button><button [class.active]="venueAmPm(venue)==='PM'" (click)="setAmPm(venue,'PM')">PM</button></div>
+        </div>
+      </div>
+    </div>
+    }
+    <button class="btn btn-outline" (click)="addVenue()">+ Agregar evento</button>
+  </div>
+</div>
+}
+
+@if (activeTab === 'itinerary') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Itinerario</span>
+    <label class="toggle-pill" (click)="c.itinerary.enabled = !c.itinerary.enabled"><span class="toggle-pill-dot" [class.active]="c.itinerary.enabled"></span>{{ c.itinerary.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field mb-16"><label class="form-label">Título de sección</label><input class="form-control" [(ngModel)]="c.itinerary.title"></div>
+    @for (item of itinerary(); track item.id; let i = $index) {
+    <div class="itinerary-card" [class.saved]="savedItems[item.id!]">
+      <div class="venue-header">
+        <div class="flex gap-12" style="align-items:center">
+          <div class="itinerary-icon-preview">
+            @if (item.iconType === 'emoji') { <span class="emoji-preview">{{ item.icon }}</span> }
+            @else if (item.iconUrl) { <img [src]="item.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }
+          </div>
+          <strong>{{ item.title || 'Actividad ' + (i+1) }}</strong>
+        </div>
+        <button class="btn btn-sm btn-danger" (click)="removeItinerary(item)">Eliminar</button>
+      </div>
+      <div class="flex gap-12 mb-12">
+        <label class="radio-label"><input type="radio" value="emoji" [(ngModel)]="item.iconType" [name]="'iconType'+item.id"> Emoji</label>
+        <label class="radio-label"><input type="radio" value="custom" [(ngModel)]="item.iconType" [name]="'iconType'+item.id"> Imagen</label>
+      </div>
+      @if (item.iconType === 'emoji') {
+      <div class="emoji-grid mb-12">@for (emoji of emojiOptions; track emoji) { <button class="emoji-btn" [class.active]="item.icon === emoji" (click)="item.icon = emoji">{{ emoji }}</button> }</div>
+      } @else { <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadItineraryIcon($event, item)"></div> }
+      <div class="field mb-12"><label class="form-label">Hora</label>
+        <div class="time-inputs">
+          <div class="time-field"><button (click)="adjustItineraryTime(item,'h',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ itineraryHour(item) }}</span><button (click)="adjustItineraryTime(item,'h',-1)"><span class="material-icons">expand_more</span></button><small>HR</small></div>
+          <span class="time-sep">:</span>
+          <div class="time-field"><button (click)="adjustItineraryTime(item,'m',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ itineraryMin(item) | number:'2.0-0' }}</span><button (click)="adjustItineraryTime(item,'m',-1)"><span class="material-icons">expand_more</span></button><small>MIN</small></div>
+          <div class="time-ampm"><button [class.active]="itineraryAmPm(item)==='AM'" (click)="setItineraryAmPm(item,'AM')">AM</button><button [class.active]="itineraryAmPm(item)==='PM'" (click)="setItineraryAmPm(item,'PM')">PM</button></div>
+        </div>
+      </div>
+      <div class="field-row mb-12">
+        <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="item.title"></div>
+        <div class="field"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="item.description"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" (click)="saveItineraryItem(item)">{{ savedItems[item.id!] ? '✓ Guardado' : 'Guardar actividad' }}</button>
+    </div>
+    }
+    <button class="btn btn-outline" (click)="addItinerary()">+ Agregar actividad</button>
+  </div>
+</div>
+}
+
+@if (activeTab === 'gallery') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Galería de Fotos</span>
+    <label class="toggle-pill" (click)="c.gallery.enabled = !c.gallery.enabled"><span class="toggle-pill-dot" [class.active]="c.gallery.enabled"></span>{{ c.gallery.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field-row mb-16">
+      <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.gallery.title"></div>
+      <div class="field"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="c.gallery.description"></div>
+    </div>
+    <div class="field mb-16"><label class="form-label">Subir fotos</label><input type="file" accept="image/*" multiple (change)="uploadPhotos($event)"></div>
+    <div class="photo-grid">
+      @for (photo of photos(); track photo.id) {
+      <div class="photo-item">
+        <img [src]="photo.url">
+        <button class="photo-delete" (click)="deletePhoto(photo)">×</button>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}
+
+@if (activeTab === 'dresscode') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Código de Vestimenta</span>
+    <label class="toggle-pill" (click)="c.dresscode.enabled = !c.dresscode.enabled"><span class="toggle-pill-dot" [class.active]="c.dresscode.enabled"></span>{{ c.dresscode.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.dresscode.title"></div>
+    <div class="field"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
+  </div>
+</div>
+}
+
+@if (activeTab === 'gifts') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Mesa de Regalos</span>
+    <label class="toggle-pill" (click)="c.gifts.enabled = !c.gifts.enabled"><span class="toggle-pill-dot" [class.active]="c.gifts.enabled"></span>{{ c.gifts.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.gifts.title"></div>
+    <div class="field mb-12"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.gifts.description" rows="2"></textarea></div>
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Link externo</label><input class="form-control" [(ngModel)]="c.gifts.link" placeholder="https://..."></div>
+      <div class="field" style="max-width:200px;"><label class="form-label">Texto del botón</label><input class="form-control" [(ngModel)]="c.gifts.buttonText"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Transferencia Bancaria</span>
+    <label class="toggle-pill" (click)="c.gifts.transfer.enabled = !c.gifts.transfer.enabled"><span class="toggle-pill-dot" [class.active]="c.gifts.transfer.enabled"></span>{{ c.gifts.transfer.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  @if (c.gifts.transfer.enabled) {
+  <div class="section-card-body">
+    <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.gifts.transfer.title"></div>
+    <div class="field mb-12"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="c.gifts.transfer.description"></div>
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Titular de la cuenta</label><input class="form-control" [(ngModel)]="c.gifts.transfer.accountName"></div>
+      <div class="field"><label class="form-label">Banco</label><input class="form-control" [(ngModel)]="c.gifts.transfer.bank"></div>
+    </div>
+    <div class="field-row mb-12">
+      <div class="field"><label class="form-label">Tipo de cuenta</label><select class="form-control" [(ngModel)]="c.gifts.transfer.accountType"><option value="tarjeta">Tarjeta</option><option value="cuenta">Cuenta</option><option value="clabe">CLABE</option></select></div>
+      <div class="field"><label class="form-label">Número</label><input class="form-control" [(ngModel)]="c.gifts.transfer.accountNumber"></div>
+    </div>
+    <div class="field"><label class="form-label">Animación</label><select class="form-control" [(ngModel)]="c.gifts.transfer.animation" style="max-width:200px;"><option value="coins">Monedas</option><option value="bills">Billetes</option><option value="none">Ninguna</option></select></div>
+  </div>
+  }
+</div>
+}
+
+@if (activeTab === 'rsvp') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Confirmación de Asistencia</span>
+    <label class="toggle-pill" (click)="c.rsvp.enabled = !c.rsvp.enabled"><span class="toggle-pill-dot" [class.active]="c.rsvp.enabled"></span>{{ c.rsvp.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.rsvp.title"></div>
+  </div>
+</div>
+}
+
+}
