@@ -232,8 +232,8 @@ export class GuestsComponent implements OnInit {
   }
 
   landingUrl(g: Guest) {
-    const base = environment.production ? window.location.origin : 'http://localhost';
-    return `${base}/invitacion/${this.eventSlug}?t=${g.unique_code}`;
+    const origin = environment.production ? window.location.origin : 'http://localhost';
+    return `${origin}${environment.baseUrl}/invitacion/${this.eventSlug}?t=${g.unique_code}`;
   }
 
   showQR(g: Guest) { this.api.getGuestQR(g.id).subscribe(d => this.qrData.set(d)); }

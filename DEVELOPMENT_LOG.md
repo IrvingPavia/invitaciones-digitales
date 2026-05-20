@@ -1,6 +1,6 @@
 # 📋 DEVELOPMENT LOG - Gestor de Invitaciones Digitales
 
-> Última actualización: 2026-05-19
+> Última actualización: 2026-05-20
 > Este archivo sirve como contexto para retomar el desarrollo. Compártelo con `@DEVELOPMENT_LOG.md` al iniciar una nueva sesión.
 
 ---
@@ -70,7 +70,23 @@ Portafolio/                         ← Workspace
 
 ---
 
-## 🔧 Cambios Realizados en Esta Sesión (2026-05-19)
+## 🔧 Cambios Realizados en Esta Sesión (2026-05-20)
+
+### Lightbox Gallery — Tema
+
+37. **Gallery lightbox**: aplicado `--theme-card-bg`, `--theme-card-border`, `--theme-text-primary`, `--theme-text-secondary` al lightbox (imagen borde, botón cerrar fondo/borde/texto/hover)
+
+### BaseUrl — URLs dinámicas en dashboard
+
+38. **`environment.production.ts`**: `baseUrl: '/invitaciones'` para deploy en servidor con subpath (vacío en local)
+39. **`events.component.ts`**: URLs de landing usan `environment.baseUrl + '/invitacion/' + slug` en href y textos informativos
+40. **`home.component.ts`**: botón "Ver Landing" usa `[href]` con `environment.baseUrl`
+41. **`guests.component.ts`**: `landingUrl()` concatena `origin + baseUrl + '/invitacion/...'`
+42. **Eliminado `routerLink`** con `target="_blank"` para links de landing → reemplazado por `[href]` con URL completa
+
+---
+
+## 🔧 Cambios Realizados en Sesión (2026-05-19)
 
 ### Infraestructura
 
@@ -258,10 +274,16 @@ interface ItineraryItem {
 ### Prioridad 5 — Otros pendientes
 - [x] Selectores de color: `ColorPickerComponent` con hex input + copiar (implementado)
 - [x] Scrollbar: color dinámico via style injection en landing (implementado)
+- [x] Gallery component: aplicar `--theme-card-bg/border` a lightbox
 - [ ] Warnings de `?.` innecesarios en templates (no afectan funcionalidad)
 - [ ] CSS budget warnings en componentes (warning, no error)
 - [ ] Sliders compactos: verificar que `.slider-field` se aplica correctamente
-- [ ] Gallery component: aplicar `--theme-card-bg/border` a lightbox
+
+### Prioridad 6 — BaseUrl para deploy en servidor ✅
+- [x] `environment.production.ts` con `baseUrl: '/invitaciones'`
+- [x] `events.component.ts` usa `environment.baseUrl` en URLs de landing
+- [x] `home.component.ts` usa `environment.baseUrl` en botón Ver Landing
+- [x] `guests.component.ts` usa `environment.baseUrl` en `landingUrl()`
 
 ---
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { Event, KPIs } from '../../../core/models/models';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -41,7 +42,7 @@ import { Event, KPIs } from '../../../core/models/models';
               <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="btn btn-secondary btn-sm">
                 <span class="material-icons">style</span> Tarjetas
               </a>
-              <a [routerLink]="['/invitacion', selectedEvent()!.slug]" target="_blank" class="btn btn-primary btn-sm">
+              <a [href]="environment.baseUrl + '/invitacion/' + selectedEvent()!.slug" target="_blank" class="btn btn-primary btn-sm">
                 <span class="material-icons">open_in_new</span> Ver Landing
               </a>
             }
@@ -105,6 +106,7 @@ export class HomeComponent implements OnInit {
   selectedEvent = signal<Event | null>(null);
   kpis = signal<KPIs | null>(null);
   loading = signal(true);
+  environment = environment;
 
   ngOnInit() {
     this.api.getEvents().subscribe(events => {

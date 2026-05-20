@@ -149,15 +149,17 @@ import { GalleryConfig, Photo, GlobalTextStyles } from '../../../core/models/mod
       max-width: 100%; max-height: 78vh;
       border-radius: 12px; object-fit: contain;
       box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
     }
     .lightbox-close {
       display: flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      background: var(--theme-card-bg, rgba(255,255,255,0.1));
+      border: 1px solid var(--theme-card-border, rgba(255,255,255,0.2));
       border-radius: 24px; padding: 8px 20px;
-      color: rgba(255,255,255,0.7); font-size: 13px;
+      color: var(--theme-text-secondary, rgba(255,255,255,0.7)); font-size: 13px;
       cursor: pointer; transition: all 0.2s;
       .material-icons { font-size: 16px; }
-      &:hover { background: rgba(255,255,255,0.2); color: white; }
+      &:hover { background: var(--theme-card-border, rgba(255,255,255,0.2)); color: var(--theme-text-primary, white); }
     }
   `]
 })

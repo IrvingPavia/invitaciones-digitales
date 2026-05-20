@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { Event } from '../../../core/models/models';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-events',
@@ -31,7 +32,7 @@ import { Event } from '../../../core/models/models';
           <tbody>
             @for (e of events(); track e.id) {
               <tr>
-                <td><strong>{{ e.name }}</strong><br><small class="text-muted">/invitacion/{{ e.slug }}</small></td>
+                <td><strong>{{ e.name }}</strong><br><small class="text-muted">{{ environment.baseUrl }}/invitacion/{{ e.slug }}</small></td>
                 <td><span class="badge badge-info">{{ e.event_type }}</span></td>
                 <td>{{ e.event_date | date:'dd/MM/yyyy' }}</td>
                 <td>{{ e.total_guests || 0 }}</td>
@@ -42,7 +43,7 @@ import { Event } from '../../../core/models/models';
                     <a [routerLink]="['/dashboard/guests', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Invitados"><span class="material-icons" style="font-size:16px">people</span></a>
                     <a [routerLink]="['/dashboard/config', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Configurar"><span class="material-icons" style="font-size:16px">settings</span></a>
                     <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
-                    <a [routerLink]="['/invitacion', e.slug]" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
+                    <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
                     <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
                     <button class="btn btn-danger btn-sm btn-icon" (click)="deleteEvent(e)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
                   </div>
@@ -92,7 +93,7 @@ import { Event } from '../../../core/models/models';
             <small class="text-muted">Solo letras, números y guiones. Ej: xv-valeria-2025</small>
           </div>
           @if (!editing) {
-            <small class="text-muted" style="display:block;margin-bottom:16px">La URL de la invitación será: /invitacion/{{ form.slug }}</small>
+            <small class="text-muted" style="display:block;margin-bottom:16px">La URL de la invitación será: {{ environment.baseUrl }}/invitacion/{{ form.slug }}</small>
           }
           @if (editing) {
             <div class="form-group">
@@ -121,6 +122,7 @@ export class EventsComponent implements OnInit {
   saving = signal(false);
   editing = false;
   editId = 0;
+  environment = environment;
   form: any = { name: '', event_type: 'XV Años', event_date: '', slug: '', active: 1 };
 
   ngOnInit() { this.load(); }
