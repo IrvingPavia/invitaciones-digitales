@@ -43,7 +43,8 @@ Portafolio/                         ← Workspace
     │   │       ├── core/
     │   │       │   ├── guards/auth.guard.ts
     │   │       │   ├── interceptors/auth.interceptor.ts
-    │   │       │   ├── models/models.ts          # ⚠️ Interfaces actualizadas (ver abajo)
+    │   │       │   ├── components/color-picker.component.ts  # Reutilizable
+    │   │       │   ├── models/models.ts
     │   │       │   └── services/ (api.service.ts, auth.service.ts)
     │   │       ├── dashboard/
     │   │       │   ├── dashboard.component.ts
@@ -51,7 +52,7 @@ Portafolio/                         ← Workspace
     │   │       │       ├── home/home.component.ts
     │   │       │       ├── events/events.component.ts
     │   │       │       ├── guests/guests.component.ts
-    │   │       │       ├── config/config.component.ts   # ⚠️ NECESITA config.component.html
+    │   │       │       ├── config/config.component.ts + config.component.html
     │   │       │       └── cards/cards.component.ts
     │   │       └── landing/
     │   │           ├── landing.component.ts
@@ -101,14 +102,20 @@ Portafolio/                         ← Workspace
 20. **Prioridad 2**: `eventDescriptionStyle` convertido de `HeroTextStyle` a `HeroGradientStyle` (color1, color2, gradientAngle, gradientIntensity, fontWeight)
 21. **Prioridad 2**: Controles completos en dashboard + preview en vivo para descripción del evento
 22. **Prioridad 2**: Hero landing aplica degradado con `background-clip: text` + fontWeight
-23. **Prioridad 3**: `ThemeConfig` agregado (cardBg, cardBorder, textPrimary, textSecondary)
-24. **Prioridad 3**: Tab "Tema" en dashboard con inputs + preview de card y navbar
-25. **Prioridad 3**: CSS variables `--theme-card-bg/border/text-primary/text-secondary` inyectadas en landing-wrapper
+23. **Prioridad 3**: `ThemeConfig` con 7 campos (cardBg, cardBorder, textPrimary, textSecondary, navFooterText, buttonBg, buttonText)
+24. **Prioridad 3**: Tab "Tema" en dashboard con `ColorPickerComponent` + preview
+25. **Prioridad 3**: CSS variables inyectadas en landing-wrapper: `--theme-card-bg`, `--theme-card-border`, `--theme-text-primary`, `--theme-text-secondary`, `--theme-nav-text`, `--theme-btn-bg`, `--theme-btn-text`
 26. **Prioridad 3**: Todos los componentes del landing usan variables de tema para cards
-27. **Prioridad 3**: Navbar, footer y botón "Volver" heredan colores del tema
-28. **Prioridad 4**: `IntroConfig.phraseStyle` agregado (fontFamily, fontSize, color, fontWeight)
-29. **Prioridad 4**: Controles en dashboard + aplicación dinámica en intro.component.ts
-30. **Tipos ampliados**: `HeroTextStyle.fontFamily` y `HeroGradientStyle.fontFamily` ahora son `string` (no literal union)
+27. **Prioridad 3**: Navbar, footer y botón "Volver" usan `--theme-nav-text`
+28. **Prioridad 3**: Botones (gifts, venues, rsvp) usan `--theme-btn-bg` / `--theme-btn-text`
+29. **Prioridad 4**: `IntroConfig.phraseStyle` agregado (fontFamily, fontSize, color, fontWeight)
+30. **Prioridad 4**: Controles en dashboard + aplicación dinámica en intro.component.ts
+31. **Tipos ampliados**: `HeroTextStyle.fontFamily` y `HeroGradientStyle.fontFamily` ahora son `string` (no literal union)
+32. **ColorPickerComponent**: swatch visual + input hex + slider opacidad + botón copiar
+33. **Fix blur**: eliminado `backdrop-filter: blur` del overlay global y countdown items
+34. **Fix scrollbar**: color dinámico via `<style>` inyectado al `<head>` con el color del tema
+35. **Fix invitation card**: usa `--theme-card-bg/border` + texto usa `--theme-text-secondary/primary`
+36. **Fix countdown**: usa `--theme-card-bg/border` + color de valores usa `--theme-nav-text`
 
 ---
 
@@ -132,9 +139,12 @@ interface EventConfig {
 
 interface ThemeConfig {
   cardBg: string;          // fondo de cards, ej: 'rgba(255,255,255,0.05)'
-  cardBorder: string;      // borde/acento, ej: 'rgba(212,160,23,0.3)'
+  cardBorder: string;      // borde de cards, ej: 'rgba(212,160,23,0.3)'
   textPrimary: string;     // texto principal
   textSecondary: string;   // texto secundario
+  navFooterText: string;   // texto de navbar, footer y botón volver
+  buttonBg: string;        // fondo de botones (gifts, venues, rsvp)
+  buttonText: string;      // texto de botones
 }
 
 interface GlobalTextStyles {
@@ -246,11 +256,12 @@ interface ItineraryItem {
 - [x] Aplicado en intro.component.ts con bindings dinámicos
 
 ### Prioridad 5 — Otros pendientes
+- [x] Selectores de color: `ColorPickerComponent` con hex input + copiar (implementado)
+- [x] Scrollbar: color dinámico via style injection en landing (implementado)
 - [ ] Warnings de `?.` innecesarios en templates (no afectan funcionalidad)
 - [ ] CSS budget warnings en componentes (warning, no error)
 - [ ] Sliders compactos: verificar que `.slider-field` se aplica correctamente
-- [ ] Selectores de color: agregar campo de texto hexadecimal al lado del color picker para copiar/pegar códigos de color
-- [ ] Scrollbar: thumb hereda color de bordes del tema (requiere CSS global)
+- [ ] Gallery component: aplicar `--theme-card-bg/border` a lightbox
 
 ---
 
@@ -301,5 +312,5 @@ docker-compose logs -f
 ## 📦 GitHub
 
 - Repo: https://github.com/IrvingPavia/invitaciones-digitales
-- Branch: main
+- Branch: main (producción), int-001 (desarrollo activo)
 - Cuenta: IrvingPavia (Irving.pavia.sosa@hotmail.com)
