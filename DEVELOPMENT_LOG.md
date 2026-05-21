@@ -1,6 +1,6 @@
 # 📋 DEVELOPMENT LOG - Gestor de Invitaciones Digitales
 
-> Última actualización: 2026-05-20
+> Última actualización: 2026-05-21
 > Este archivo sirve como contexto para retomar el desarrollo. Compártelo con `@DEVELOPMENT_LOG.md` al iniciar una nueva sesión.
 
 ---
@@ -70,7 +70,24 @@ Portafolio/                         ← Workspace
 
 ---
 
-## 🔧 Cambios Realizados en Esta Sesión (2026-05-20)
+## 🔧 Cambios Realizados en Esta Sesión (2026-05-21)
+
+### Detalles — Selector de Icono (Emoji/Imagen)
+
+59. **Modelo `DetailCard`**: agregados campos `iconType: 'emoji' | 'image'` e `icon: string` para persistir selección
+60. **Dashboard config (details tab)**: toggle buttons Emoji/Imagen + emoji picker dropdown (mismo patrón que itinerario)
+61. **`ensureDefaults`**: migración retrocompatible — cards existentes reciben `iconType` e `icon` al cargar
+62. **Landing `details.component.ts`**: renderiza emoji (`.emoji-icon` con fondo tema) o imagen según `iconType`
+63. **Fix carga de contenido**: `ensureHtmlContent()` convierte texto plano con `\n` a `<p>` HTML para Quill
+
+### Editor Quill — Color Picker Integrado
+
+64. **Paleta de colores**: 22 colores predefinidos útiles (blancos, grises, dorados, colores vivos) en dropdown estilizado
+65. **Color personalizado**: `<input type="color">` inyectado al final de cada paleta via `ngAfterViewChecked`
+66. **Estilos Quill mejorados**: dropdown con fondo `#1a1a2e`, bordes dorados, items con hover animado, border-radius
+67. **`onEditorCreated`**: captura instancias de Quill para aplicar color custom al texto seleccionado
+
+---
 
 ### Lightbox Gallery — Tema
 
@@ -83,6 +100,25 @@ Portafolio/                         ← Workspace
 40. **`home.component.ts`**: botón "Ver Landing" usa `[href]` con `environment.baseUrl`
 41. **`guests.component.ts`**: `landingUrl()` concatena `origin + baseUrl + '/invitacion/...'`
 42. **Eliminado `routerLink`** con `target="_blank"` para links de landing → reemplazado por `[href]` con URL completa
+
+### Prioridad 7 — Consistencia de Tema en toda la Landing
+
+43. **P7.1 Intro**: barra de loading usa `themeColor` pasado como `@Input` (color de `navFooterText`)
+44. **P7.2/3/4 Hero**: botones nav `color: --theme-text-primary`, menú navegación `--theme-text-primary`, scroll arrows `--theme-text-primary`, focus/active usa `--theme-btn-bg` en vez de blur dorado
+45. **P7.5 Tema opacidad**: `[showOpacity]="true"` en TODOS los color pickers del tab Tema
+46. **P7.6 Tema fuentes**: campos `textPrimaryFont`, `textSecondaryFont`, `navFooterFont`, `buttonFont` en `ThemeConfig` + selectores en dashboard + variables CSS `--theme-text-primary-font`, `--theme-text-secondary-font`, `--theme-nav-font`, `--theme-btn-font` inyectadas en landing-wrapper
+47. **P7.7 Invitation**: ornamentos ✦ usan `--theme-text-primary`, chips de nombres usan `--theme-card-bg/border/text-primary`, contador asistentes usa `--theme-nav-text`
+48. **P7.8 Venues**: icono schedule usa `--theme-text-primary`
+49. **P7.9 Itinerario**: línea vertical `--theme-card-border`, dots `--theme-text-primary`, fondo iconos `--theme-card-bg/border`, horarios `--theme-text-primary`
+50. **P7.10 Gallery**: flechas carrusel `--theme-card-bg/border/text-primary`, dots activos `--theme-text-primary`
+51. **P7.11 Dresscode**: icono usa `--theme-text-primary`
+52. **P7.12 Gifts**: icono mesa regalos `--theme-text-primary`, transferencia: icono/título/desc/labels/values/botones copiado todos con variables de tema
+53. **RSVP**: textos, badges, chips nombres, botones selección acompañantes, inputs y labels respetan tema + placeholders heredan `--theme-text-primary` con opacity 0.4
+54. **Countdown**: aumentado padding (`14px 12px`), `min-width: 60px`, gap `8px` para evitar cuadros estrechos
+55. **Transferencia**: número de cuenta/tarjeta unificado con mismo estilo que titular (`--theme-text-primary`)
+56. **Dashboard Tema UI**: quitados "Texto ejemplo" inline, fuentes se previsualizan en la Vista Previa existente con `fontFamily` dinámico
+57. **Footer/Back-to-top**: usan `--theme-nav-font` para fuente dinámica
+58. **Nav menu items**: usan `--theme-text-primary-font`
 
 ---
 
@@ -227,6 +263,16 @@ interface TransferConfig {
   animation: 'coins' | 'bills' | 'none';
 }
 
+interface DetailCard {
+  id: string;
+  iconType: 'emoji' | 'image';
+  icon: string;
+  iconUrl: string;
+  title: string;
+  content: string;          // HTML (Quill editor)
+  textAlign: 'left' | 'center' | 'right';
+}
+
 interface ItineraryItem {
   id?: number;
   icon: string;
@@ -284,6 +330,66 @@ interface ItineraryItem {
 - [x] `events.component.ts` usa `environment.baseUrl` en URLs de landing
 - [x] `home.component.ts` usa `environment.baseUrl` en botón Ver Landing
 - [x] `guests.component.ts` usa `environment.baseUrl` en `landingUrl()`
+
+### Prioridad 7 — Consistencia de Tema en toda la Landing
+
+#### P7.1 — Intro: barra de loading respete color del tema
+- [x] La barra de progreso del intro usa `themeColor` Input (navFooterText)
+
+#### P7.2 — Botones hero/nav: iconos y textos no respetan tema
+- [x] Botones audio/nav: `color: --theme-text-primary`
+- [x] Scroll arrows: `--theme-text-primary`
+- [x] Textos menú navegación: `--theme-text-primary` + `--theme-text-primary-font`
+
+#### P7.3 — Color texto primario sin efecto real
+- [x] `--theme-text-primary` aplicado a todos los controles del P7.2
+
+#### P7.4 — Blur dorado en botones audio/nav al hacer click
+- [x] Focus/active usa `--theme-btn-bg` en vez de blur dorado hardcodeado
+
+#### P7.5 — Agregar intensidad (opacidad) a TODAS las configuraciones de colores del tema
+- [x] `[showOpacity]="true"` en todos los color pickers del tab Tema
+
+#### P7.6 — Agregar estilo de fuente a TODAS las opciones de texto en configuración de Tema
+- [x] Campos `textPrimaryFont`, `textSecondaryFont`, `navFooterFont`, `buttonFont` en ThemeConfig
+- [x] Selectores compactos en dashboard + Vista Previa con fuentes aplicadas
+- [x] Variables CSS inyectadas en landing-wrapper y usadas en nav, footer, back-to-top
+
+#### P7.7 — Card Invitación: detalles de tema
+- [x] Ornamentos ✦: `--theme-text-primary`
+- [x] Chips nombres: `--theme-card-bg/border/text-primary`
+- [x] Contador asistentes: `--theme-nav-text`
+
+#### P7.8 — Cards Lugares: icono de horarios
+- [x] Icono schedule: `--theme-text-primary`
+
+#### P7.9 — Itinerario: colores de tema
+- [x] Línea vertical, dots, fondo iconos, horarios: todos con variables de tema
+
+#### P7.10 — Galería: controles de navegación
+- [x] Flechas y dots del carrusel: `--theme-card-bg/border/text-primary`
+
+#### P7.11 — Card Código de Vestimenta
+- [x] Icono default: `--theme-text-primary`
+- [ ] Agregar en configuración: opción de seleccionar icono personalizado
+- [ ] Agregar mini cards con ejemplos de imágenes de vestimenta (pendiente: esperar imágenes de referencia)
+
+#### P7.12 — Card Regalos
+- [x] Mesa de Regalos: icono respeta tema
+- [x] Transferencia Bancaria: icono, título, desc, labels, values, botones copiado respetan tema
+- [x] Número cuenta/tarjeta unificado con mismo estilo que titular
+- [ ] Agregar config para seleccionar/subir icono personalizado en Mesa de Regalos y Transferencia
+
+#### Ajustes adicionales
+- [x] RSVP card: textos, badges, chips, botones selección, inputs, placeholders respetan tema
+- [x] RSVP inputs: placeholder usa `--theme-text-secondary`, focus usa `--theme-text-primary` con glow sutil
+- [x] Countdown: padding y min-width aumentados para evitar cuadros estrechos
+- [x] Dashboard Tema: Vista Previa muestra fuentes dinámicas, eliminados "Texto ejemplo" inline
+- [x] Transferencia: número cuenta/tarjeta unificado con `--theme-text-primary` (mismo estilo que titular)
+- [x] Itinerario BD: columnas `icon_type` e `icon_url` agregadas a tabla + backend guarda/lee correctamente
+- [x] Itinerario UI: radio buttons reemplazados por botones toggle estilizados (Emoji/Imagen) + dropdown de emojis con trigger
+- [x] Itinerario imagen: recomendación "PNG o SVG, 128x128px" al seleccionar tipo imagen
+- [x] Tabs arrows: `user-select: none` para evitar selección de texto al hacer click
 
 ---
 

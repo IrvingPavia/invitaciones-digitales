@@ -33,7 +33,7 @@ router.put('/:eventId', auth, async (req, res) => {
 router.get('/:eventId/itinerary', auth, async (req, res) => {
   try {
     const [items] = await getDB().query('SELECT * FROM itinerary WHERE event_id = ? ORDER BY sort_order', [req.params.eventId]);
-    res.json(items);
+    res.json(items.map(i => ({ ...i, iconType: i.icon_type || 'emoji', iconUrl: i.icon_url || '' })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -41,10 +41,10 @@ router.get('/:eventId/itinerary', auth, async (req, res) => {
 
 router.post('/:eventId/itinerary', auth, async (req, res) => {
   try {
-    const { icon, time, title, description, sort_order } = req.body;
+    const { icon, iconType, icon_type, iconUrl, icon_url, time, title, description, sort_order } = req.body;
     const [result] = await getDB().query(
-      'INSERT INTO itinerary (event_id, icon, time, title, description, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
-      [req.params.eventId, icon || 'event', time, title, description || '', sort_order || 0]
+      'INSERT INTO itinerary (event_id, icon, icon_type, icon_url, time, title, description, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.params.eventId, icon || '🎉', iconType || icon_type || 'emoji', iconUrl || icon_url || null, time, title, description || '', sort_order || 0]
     );
     res.status(201).json({ id: result.insertId });
   } catch (err) {
@@ -54,10 +54,10 @@ router.post('/:eventId/itinerary', auth, async (req, res) => {
 
 router.put('/:eventId/itinerary/:id', auth, async (req, res) => {
   try {
-    const { icon, time, title, description, sort_order } = req.body;
+    const { icon, iconType, icon_type, iconUrl, icon_url, time, title, description, sort_order } = req.body;
     await getDB().query(
-      'UPDATE itinerary SET icon=?, time=?, title=?, description=?, sort_order=? WHERE id=? AND event_id=?',
-      [icon, time, title, description, sort_order, req.params.id, req.params.eventId]
+      'UPDATE itinerary SET icon=?, icon_type=?, icon_url=?, time=?, title=?, description=?, sort_order=? WHERE id=? AND event_id=?',
+      [icon, iconType || icon_type || 'emoji', iconUrl || icon_url || null, time, title, description, sort_order, req.params.id, req.params.eventId]
     );
     res.json({ message: 'Actividad actualizada' });
   } catch (err) {

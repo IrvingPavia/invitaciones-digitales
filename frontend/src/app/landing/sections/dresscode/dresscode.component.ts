@@ -39,7 +39,7 @@ import { DresscodeConfig, GlobalTextStyles } from '../../../core/models/models';
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px;
     }
-    .dresscode-icon { font-size: 56px; color: var(--gold); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
     .dresscode-desc { color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.8; white-space: pre-line; }
     .reveal { animation: revealUp 0.8s ease both; }
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

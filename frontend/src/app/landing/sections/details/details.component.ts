@@ -21,7 +21,11 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
             <div class="detail-card reveal">
-              @if (card.iconUrl) {
+              @if (card.iconType === 'emoji' && card.icon) {
+                <div class="detail-icon emoji-icon">
+                  <span>{{ card.icon }}</span>
+                </div>
+              } @else if (card.iconUrl) {
                 <div class="detail-icon">
                   <img [src]="card.iconUrl" [alt]="card.title">
                 </div>
@@ -35,11 +39,10 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
                     [style.color]="!styles?.titleStyle?.color2 ? (styles?.titleStyle?.color || '#d4a017') : null"
                 >{{ card.title }}</h3>
               }
-              <p [style.text-align]="card.textAlign"
-                 [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
-                 [style.font-size.px]="styles?.contentStyle?.fontSize || 14"
-                 [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'"
-              >{{ card.content }}</p>
+              <div [style.text-align]="card.textAlign"
+                 class="detail-content"
+                 [innerHTML]="card.content"
+              ></div>
             </div>
           }
         </div>
@@ -65,6 +68,11 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
       border: 1px solid rgba(212,160,23,0.3);
       img { width: 100%; height: 100%; object-fit: cover; }
     }
+    .detail-icon.emoji-icon {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--theme-card-bg, rgba(0,0,0,0.3));
+      span { font-size: 36px; }
+    }
     h3 { margin-bottom: 12px; line-height: 1.4; padding: 0.1em 0; }
     h3.gradient-text {
       -webkit-background-clip: text;
@@ -73,6 +81,9 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
       display: inline-block;
     }
     p { line-height: 1.7; white-space: pre-line; }
+    .detail-content { line-height: 1.7; color: var(--theme-text-secondary, rgba(255,255,255,0.7)); }
+    .detail-content p { margin: 0 0 8px; }
+    .detail-content p:last-child { margin-bottom: 0; }
     .reveal { animation: revealUp 0.8s ease both; }
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   `]

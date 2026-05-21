@@ -113,18 +113,18 @@ import { GalleryConfig, Photo, GlobalTextStyles } from '../../../core/models/mod
       cursor: pointer; transition: all 0.3s; padding: 0;
     }
     .dot.active {
-      background: var(--gold); transform: scale(1.3);
+      background: var(--theme-text-primary, var(--gold)); transform: scale(1.3);
       box-shadow: 0 0 8px rgba(212,160,23,0.6);
     }
 
     .carousel-arrow {
       position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(0,0,0,0.5); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 50%; width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--gold); transition: all 0.3s;
+      cursor: pointer; color: var(--theme-text-primary, var(--gold)); transition: all 0.3s;
       .material-icons { font-size: 24px; }
-      &:hover { background: rgba(212,160,23,0.3); }
+      &:hover { background: var(--theme-card-border, rgba(212,160,23,0.3)); }
     }
     .arrow-left { left: 12px; }
     .arrow-right { right: 12px; }

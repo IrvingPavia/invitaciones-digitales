@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, AfterViewInit, OnDestroy, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/models/models';
 
@@ -21,7 +21,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
 
         <div class="timeline">
           @for (item of items; track item.id; let i = $index) {
-            <div class="timeline-item" [class.right]="i % 2 !== 0">
+            <div class="timeline-item" [class.right]="i % 2 !== 0" [style.transition-delay.ms]="i * 100">
               <div class="timeline-content reveal">
                 <div class="timeline-icon">
                   @if (item.iconType === 'custom' && item.iconUrl) {
@@ -49,7 +49,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
                   }
                 </div>
               </div>
-              <div class="timeline-dot"></div>
+            <div class="timeline-dot">✦</div>
             </div>
           }
         </div>
@@ -66,20 +66,28 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
     .timeline { position: relative; padding: 0 20px; }
     .timeline::before {
       content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
-      width: 2px; background: linear-gradient(to bottom, transparent, rgba(212,160,23,0.5), transparent);
+      width: 2px; background: linear-gradient(to bottom, transparent, var(--theme-card-border, rgba(212,160,23,0.5)), transparent);
       transform: translateX(-50%);
     }
     .timeline-item {
       display: flex; justify-content: flex-end;
       padding-right: calc(50% + 30px); margin-bottom: 32px; position: relative;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
     }
+    .timeline-item.visible { opacity: 1; transform: translateY(0); }
     .timeline-item.right { justify-content: flex-start; padding-right: 0; padding-left: calc(50% + 30px); }
     .timeline-dot {
       position: absolute; left: 50%; top: 20px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: var(--gold); border: 3px solid rgba(13,17,23,0.8);
+      width: auto; height: auto;
+      font-size: 16px; color: var(--theme-text-primary, var(--gold));
       transform: translateX(-50%);
-      box-shadow: 0 0 12px rgba(212,160,23,0.5);
+      text-shadow: 0 0 8px currentColor;
+      opacity: 0;
+      animation: none;
+    }
+    .timeline-item.visible .timeline-dot {
+      animation: diamondAppear 0.6s ease forwards;
     }
     .timeline-content {
       display: flex; gap: 16px; align-items: flex-start;
@@ -90,17 +98,22 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
     }
     .timeline-icon {
       width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-      background: rgba(212,160,23,0.1); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(212,160,23,0.1)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      .material-icons { font-size: 20px; color: var(--gold); }
+      .material-icons { font-size: 20px; color: var(--theme-text-primary, var(--gold)); }
       .emoji-icon { font-size: 22px; }
     }
-    .timeline-time { font-size: 12px; color: var(--gold); font-weight: 600; letter-spacing: 1px; }
+    .timeline-time { font-size: 12px; color: var(--theme-text-primary, var(--gold)); font-weight: 600; letter-spacing: 1px; }
     .timeline-title { font-family: var(--font-serif); font-size: 16px; color: white; margin: 4px 0; }
     .timeline-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
     .reveal { animation: revealUp 0.8s ease both; }
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes diamondAppear {
+      0% { opacity: 0; transform: translateX(-50%) scale(0); }
+      60% { opacity: 1; transform: translateX(-50%) scale(1.3); text-shadow: 0 0 16px currentColor; }
+      100% { opacity: 1; transform: translateX(-50%) scale(1); text-shadow: 0 0 8px currentColor; }
+    }
 
     @media (max-width: 640px) {
       .timeline::before { left: 20px; }
@@ -109,10 +122,26 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
     }
   `]
 })
-export class LandingItineraryComponent {
+export class LandingItineraryComponent implements AfterViewInit, OnDestroy {
   @Input() config!: ItineraryConfig;
   @Input() items: ItineraryItem[] = [];
   @Input() styles?: GlobalTextStyles;
+  private el = inject(ElementRef);
+  private observer!: IntersectionObserver;
+
+  ngAfterViewInit() {
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.2 });
+    const items = this.el.nativeElement.querySelectorAll('.timeline-item');
+    items.forEach((item: Element) => this.observer.observe(item));
+  }
+
+  ngOnDestroy() { this.observer?.disconnect(); }
 
   formatTime(time: string): string {
     if (!time || time.includes('AM') || time.includes('PM')) return time;

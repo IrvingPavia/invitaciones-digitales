@@ -114,7 +114,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
       height: 72px; width: 100%;
     }
     .nav-title {
-      font-family: var(--font-script); font-size: 22px; color: var(--theme-nav-text, var(--gold));
+      font-family: var(--theme-nav-font, var(--font-script)); font-size: 22px; color: var(--theme-nav-text, var(--gold));
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       min-width: 0; flex: 1;
     }
@@ -123,18 +123,20 @@ import { HeroConfig, Event } from '../../../core/models/models';
       background: rgba(255,255,255,0.1); border: 1px solid var(--theme-card-border, rgba(255,255,255,0.2));
       border-radius: 50%; width: 48px; height: 48px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: white; transition: all 0.3s;
+      cursor: pointer; color: var(--theme-text-primary, white); transition: all 0.3s;
       .material-icons { font-size: 26px; }
       &:hover { background: rgba(212,160,23,0.2); border-color: var(--theme-card-border, var(--gold)); color: var(--theme-nav-text, var(--gold)); }
+      &:focus, &:active { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-btn-bg, #d4a017) 30%, transparent); }
     }
     .nav-menu {
-      background: rgba(13,17,23,0.95); backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(212,160,23,0.2);
+      background: var(--theme-card-bg, rgba(13,17,23,0.95)); backdrop-filter: blur(12px);
+      border-top: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       padding: 8px 0;
     }
     .nav-menu-item {
       display: block; padding: 14px 28px;
-      color: rgba(255,255,255,0.8); text-decoration: none;
+      color: var(--theme-text-primary, rgba(255,255,255,0.8)); text-decoration: none;
+      font-family: var(--theme-text-primary-font, inherit);
       font-size: 17px; transition: all 0.2s;
       &:hover { color: var(--theme-nav-text, var(--gold)); background: rgba(212,160,23,0.05); padding-left: 36px; }
     }
@@ -159,14 +161,14 @@ import { HeroConfig, Event } from '../../../core/models/models';
       text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     .countdown {
-      display: flex; align-items: center; justify-content: center; gap: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       margin-bottom: 50px; flex-wrap: nowrap;
-      width: 100%; padding: 0 6px; box-sizing: border-box;
+      width: 100%; padding: 0 10px; box-sizing: border-box;
     }
     .countdown-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
-      border-radius: 12px; padding: 10px 6px; flex: 1; min-width: 0;
+      border-radius: 12px; padding: 14px 12px; flex: 1; min-width: 60px;
       overflow: hidden;
     }
     .countdown-value {
@@ -177,9 +179,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
     .countdown-sep { font-size: clamp(16px, 3vw, 28px); color: var(--theme-nav-text, var(--gold)); font-weight: 700; opacity: 0.5; flex-shrink: 0; }
     .scroll-indicator { display: flex; flex-direction: column; align-items: center; gap: 0; }
     .scroll-arrow {
-      font-size: 32px; color: rgba(255,255,255,0.4);
+      font-size: 32px; color: var(--theme-text-primary, rgba(255,255,255,0.4));
       animation: scrollBounce 1.5s ease-in-out infinite;
-      display: block;
+      display: block; opacity: 0.6;
     }
     .animate-in { animation: fadeInUp 0.8s ease both; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }

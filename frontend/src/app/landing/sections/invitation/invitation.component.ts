@@ -66,7 +66,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
       padding: 80px 20px; position: relative;
     }
     .section-container { max-width: 800px; margin: 0 auto; text-align: center; }
-    .invitation-ornament { color: var(--gold); font-size: 18px; letter-spacing: 8px; opacity: 0.6; margin: 16px 0; }
+    .invitation-ornament { color: var(--theme-text-primary, var(--gold)); font-size: 24px; letter-spacing: 12px; opacity: 0.6; margin: 16px 0; }
     .invitation-title {
       font-family: var(--font-script); font-size: clamp(32px, 7vw, 56px);
       color: var(--gold); margin: 16px 0;
@@ -93,14 +93,14 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
     }
     .invitation-names-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
     .guest-name-chip {
-      background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.3);
-      border-radius: 20px; padding: 4px 14px; font-size: 13px; color: rgba(255,255,255,0.8);
+      background: var(--theme-card-bg, rgba(212,160,23,0.15)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      border-radius: 20px; padding: 4px 14px; font-size: 13px; color: var(--theme-text-primary, rgba(255,255,255,0.8));
     }
     .invitation-count {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(212,160,23,0.1); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(212,160,23,0.1)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 20px; padding: 8px 20px;
-      color: var(--gold); font-size: 15px; font-weight: 600;
+      color: var(--theme-nav-text, var(--gold)); font-size: 15px; font-weight: 600;
       .material-icons { font-size: 18px; }
     }
     .reveal { animation: revealUp 0.8s ease both; }

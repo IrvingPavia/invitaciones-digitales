@@ -44,10 +44,14 @@ export interface ThemeConfig {
   cardBg: string;
   cardBorder: string;
   textPrimary: string;
+  textPrimaryFont?: string;
   textSecondary: string;
+  textSecondaryFont?: string;
   navFooterText: string;
+  navFooterFont?: string;
   buttonBg: string;
   buttonText: string;
+  buttonFont?: string;
 }
 
 export interface GlobalTextStyles {
@@ -127,6 +131,8 @@ export interface DetailTextStyle {
 
 export interface DetailCard {
   id: string;
+  iconType: 'emoji' | 'image';
+  icon: string;
   iconUrl: string;
   title: string;
   content: string;

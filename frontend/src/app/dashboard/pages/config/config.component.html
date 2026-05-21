@@ -105,23 +105,35 @@
     </div>
     <div class="field mb-16">
       <label class="form-label">Texto primario</label>
-      <app-color-picker [value]="c.theme.textPrimary" (valueChange)="c.theme.textPrimary = $event"></app-color-picker>
+      <app-color-picker [value]="c.theme.textPrimary" [showOpacity]="true" (valueChange)="c.theme.textPrimary = $event"></app-color-picker>
+      <div class="field-row" style="margin-top:8px;align-items:center;">
+        <div class="field" style="max-width:180px;"><label class="form-label">Fuente</label><select [(ngModel)]="c.theme.textPrimaryFont" style="font-size:12px;"><option value="">Hereda</option><option value="sans">Lato</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant</option><option value="cinzel">Cinzel</option><option value="baskerville">Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      </div>
     </div>
     <div class="field mb-16">
       <label class="form-label">Texto secundario</label>
       <app-color-picker [value]="c.theme.textSecondary" [showOpacity]="true" (valueChange)="c.theme.textSecondary = $event"></app-color-picker>
+      <div class="field-row" style="margin-top:8px;align-items:center;">
+        <div class="field" style="max-width:180px;"><label class="form-label">Fuente</label><select [(ngModel)]="c.theme.textSecondaryFont" style="font-size:12px;"><option value="">Hereda</option><option value="sans">Lato</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant</option><option value="cinzel">Cinzel</option><option value="baskerville">Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      </div>
     </div>
     <div class="field mb-16">
       <label class="form-label">Texto de navbar / footer / botón volver</label>
-      <app-color-picker [value]="c.theme.navFooterText" (valueChange)="c.theme.navFooterText = $event"></app-color-picker>
+      <app-color-picker [value]="c.theme.navFooterText" [showOpacity]="true" (valueChange)="c.theme.navFooterText = $event"></app-color-picker>
+      <div class="field-row" style="margin-top:8px;align-items:center;">
+        <div class="field" style="max-width:180px;"><label class="form-label">Fuente</label><select [(ngModel)]="c.theme.navFooterFont" style="font-size:12px;"><option value="">Hereda</option><option value="sans">Lato</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant</option><option value="cinzel">Cinzel</option><option value="baskerville">Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      </div>
     </div>
     <div class="field mb-16">
       <label class="form-label">Fondo de botones</label>
-      <app-color-picker [value]="c.theme.buttonBg" (valueChange)="c.theme.buttonBg = $event"></app-color-picker>
+      <app-color-picker [value]="c.theme.buttonBg" [showOpacity]="true" (valueChange)="c.theme.buttonBg = $event"></app-color-picker>
     </div>
     <div class="field mb-16">
       <label class="form-label">Texto de botones</label>
-      <app-color-picker [value]="c.theme.buttonText" (valueChange)="c.theme.buttonText = $event"></app-color-picker>
+      <app-color-picker [value]="c.theme.buttonText" [showOpacity]="true" (valueChange)="c.theme.buttonText = $event"></app-color-picker>
+      <div class="field-row" style="margin-top:8px;align-items:center;">
+        <div class="field" style="max-width:180px;"><label class="form-label">Fuente</label><select [(ngModel)]="c.theme.buttonFont" style="font-size:12px;"><option value="">Hereda</option><option value="sans">Lato</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant</option><option value="cinzel">Cinzel</option><option value="baskerville">Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option></select></div>
+      </div>
     </div>
   </div>
 </div>
@@ -130,13 +142,15 @@
   <div class="section-card-header"><span>Vista previa</span></div>
   <div class="section-card-body" style="padding:24px;">
     <div style="border-radius:12px;padding:20px;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.cardBorder">
-      <p [style.color]="c.theme.textPrimary" style="font-size:16px;margin-bottom:8px;font-weight:600;">Título de ejemplo</p>
-      <p [style.color]="c.theme.textSecondary" style="font-size:14px;margin-bottom:12px;">Texto secundario dentro de una card.</p>
-      <button style="border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" [style.background]="c.theme.buttonBg" [style.color]="c.theme.buttonText">Botón ejemplo</button>
+      <p [style.color]="c.theme.textPrimary" [style.fontFamily]="getFontPreview(c.theme.textPrimaryFont)" style="font-size:16px;margin-bottom:8px;font-weight:600;">Título de ejemplo</p>
+      <p [style.color]="c.theme.textSecondary" [style.fontFamily]="getFontPreview(c.theme.textSecondaryFont)" style="font-size:14px;margin-bottom:12px;">Texto secundario dentro de una card.</p>
+      <div style="margin-bottom:12px;border-radius:8px;padding:10px 14px;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.cardBorder" [style.color]="c.theme.textPrimary" [style.fontFamily]="getFontPreview(c.theme.textPrimaryFont)">4545 4545 4545 4545</div>
+      <div style="margin-bottom:12px;border-radius:8px;padding:10px 14px;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.textPrimary" [style.color]="c.theme.textSecondary" [style.fontFamily]="getFontPreview(c.theme.textSecondaryFont)" [style.box-shadow]="'0 0 0 2px ' + c.theme.textPrimary + '26'">Placeholder (con focus)</div>
+      <button style="border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" [style.background]="c.theme.buttonBg" [style.color]="c.theme.buttonText" [style.fontFamily]="getFontPreview(c.theme.buttonFont)">Botón ejemplo</button>
     </div>
     <div style="margin-top:16px;padding:12px 20px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.cardBorder">
-      <span [style.color]="c.theme.navFooterText" style="font-size:14px;">Navbar / Footer</span>
-      <span [style.color]="c.theme.navFooterText" style="font-size:14px;">↑ Volver</span>
+      <span [style.color]="c.theme.navFooterText" [style.fontFamily]="getFontPreview(c.theme.navFooterFont)" style="font-size:14px;">Navbar / Footer</span>
+      <span [style.color]="c.theme.navFooterText" [style.fontFamily]="getFontPreview(c.theme.navFooterFont)" style="font-size:14px;">↑ Volver</span>
     </div>
   </div>
 </div>
@@ -282,13 +296,35 @@
     @for (card of c.details.cards; track card.id; let i = $index) {
     <div class="venue-card">
       <div class="venue-header"><strong>Tarjeta {{ i + 1 }}</strong><button class="btn btn-sm btn-danger" (click)="removeDetailCard(i)">Eliminar</button></div>
+      <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="card.iconType === 'emoji'" (click)="card.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="card.iconType === 'image'" (click)="card.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
+      </div>
+      @if (card.iconType === 'emoji') {
+      <div class="field mb-12" style="position:relative;">
+        <button class="emoji-trigger" (click)="toggleDetailEmojiPicker(card)">
+          <span class="emoji-trigger-icon">{{ card.icon || '💒' }}</span>
+          <span class="emoji-trigger-text">Cambiar emoji</span>
+          <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+        </button>
+        @if (detailEmojiPickerOpen === card.id) {
+          <div class="emoji-dropdown">
+            <div class="emoji-grid">@for (emoji of detailEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="card.icon === emoji" (click)="card.icon = emoji; detailEmojiPickerOpen = null">{{ emoji }}</button> }</div>
+          </div>
+        }
+      </div>
+      } @else {
       <div class="field-row mb-12">
         <div class="venue-icon-preview">@if (card.iconUrl) { <img [src]="card.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
-        <div class="field"><label class="form-label">Icono</label><input type="file" accept="image/*" (change)="uploadDetailIcon($event, card)"></div>
+        <div class="field">
+          <label class="form-label">Icono (imagen)</label>
+          <input type="file" accept="image/*" (change)="uploadDetailIcon($event, card)">
+          @if (card.iconUrl) { <small class="text-muted" style="margin-top:4px;display:block;">Imagen cargada ✔</small> }
+        </div>
       </div>
+      }
       <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="card.title"></div>
-      <div class="field mb-12"><label class="form-label">Contenido</label><textarea class="form-control" [(ngModel)]="card.content" rows="3"></textarea></div>
-      <div class="field"><label class="form-label">Alineación</label><select class="form-control" [(ngModel)]="card.textAlign" style="max-width:200px;"><option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option></select></div>
+      <div class="field mb-12"><label class="form-label">Contenido</label><quill-editor [(ngModel)]="card.content" [modules]="quillModules" [styles]="{minHeight:'120px',color:'white',fontSize:'14px'}" placeholder="Escribe el contenido..." (onEditorCreated)="onEditorCreated($event)"></quill-editor></div>
     </div>
     }
     <button class="btn btn-outline" (click)="addDetailCard()">+ Agregar tarjeta</button>
@@ -352,12 +388,23 @@
         <button class="btn btn-sm btn-danger" (click)="removeItinerary(item)">Eliminar</button>
       </div>
       <div class="flex gap-12 mb-12">
-        <label class="radio-label"><input type="radio" value="emoji" [(ngModel)]="item.iconType" [name]="'iconType'+item.id"> Emoji</label>
-        <label class="radio-label"><input type="radio" value="custom" [(ngModel)]="item.iconType" [name]="'iconType'+item.id"> Imagen</label>
+        <button class="icon-type-btn" [class.active]="item.iconType === 'emoji'" (click)="item.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="item.iconType === 'custom'" (click)="item.iconType = 'custom'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
       @if (item.iconType === 'emoji') {
-      <div class="emoji-grid mb-12">@for (emoji of emojiOptions; track emoji) { <button class="emoji-btn" [class.active]="item.icon === emoji" (click)="item.icon = emoji">{{ emoji }}</button> }</div>
-      } @else { <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadItineraryIcon($event, item)"></div> }
+      <div class="field mb-12" style="position:relative;">
+        <button class="emoji-trigger" (click)="toggleEmojiPicker(item)">
+          <span class="emoji-trigger-icon">{{ item.icon || '🎉' }}</span>
+          <span class="emoji-trigger-text">Cambiar emoji</span>
+          <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+        </button>
+        @if (emojiPickerOpen === item.id) {
+          <div class="emoji-dropdown">
+            <div class="emoji-grid">@for (emoji of emojiOptions; track emoji) { <button class="emoji-btn" [class.active]="item.icon === emoji" (click)="item.icon = emoji; emojiPickerOpen = null">{{ emoji }}</button> }</div>
+          </div>
+        }
+      </div>
+      } @else { <div class="field mb-12"><input type="file" accept="image/png,image/svg+xml" (change)="uploadItineraryIcon($event, item)"><small class="text-muted" style="margin-top:4px;display:block">PNG o SVG, 128x128px recomendado</small></div> }
       <div class="field mb-12"><label class="form-label">Hora</label>
         <div class="time-inputs">
           <div class="time-field"><button (click)="adjustItineraryTime(item,'h',1)"><span class="material-icons">expand_less</span></button><span class="time-val">{{ itineraryHour(item) }}</span><button (click)="adjustItineraryTime(item,'h',-1)"><span class="material-icons">expand_more</span></button><small>HR</small></div>

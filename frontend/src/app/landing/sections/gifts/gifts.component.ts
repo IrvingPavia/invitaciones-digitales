@@ -100,7 +100,7 @@ import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px; margin-bottom: 20px;
     }
-    .gifts-icon { font-size: 56px; color: var(--gold); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
     .gifts-desc { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.7; margin-bottom: 24px; }
     .gifts-btn {
       display: inline-flex; align-items: center; gap: 10px;
@@ -135,29 +135,29 @@ import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
     }
 
     .transfer-content { position: relative; z-index: 1; }
-    .transfer-icon { font-size: 48px; color: var(--gold); opacity: 0.8; margin-bottom: 12px; display: block; }
-    .transfer-title { font-family: var(--font-serif); font-size: 22px; color: var(--gold); margin-bottom: 8px; }
-    .transfer-desc { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+    .transfer-icon { font-size: 48px; color: var(--theme-text-primary, var(--gold)); opacity: 0.8; margin-bottom: 12px; display: block; }
+    .transfer-title { font-family: var(--font-serif); font-size: 22px; color: var(--theme-nav-text, var(--gold)); margin-bottom: 8px; }
+    .transfer-desc { color: var(--theme-text-secondary, rgba(255,255,255,0.6)); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
 
     .transfer-data {
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(212,160,23,0.2);
+      background: var(--theme-card-bg, rgba(255,255,255,0.03)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       border-radius: 12px; padding: 20px; text-align: left;
     }
     .transfer-row {
       padding: 12px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--theme-card-border, rgba(255,255,255,0.06));
       &:last-child { border-bottom: none; }
     }
-    .transfer-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .transfer-value { font-size: 15px; color: rgba(255,255,255,0.9); }
+    .transfer-label { font-size: 11px; color: var(--theme-text-secondary, rgba(255,255,255,0.4)); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .transfer-value { font-size: 15px; color: var(--theme-text-primary, rgba(255,255,255,0.9)); }
     .transfer-value-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .transfer-number { font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 1px; color: var(--gold); font-weight: 600; }
+    .transfer-number { font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 1px; color: var(--theme-text-primary, var(--gold)); font-weight: 600; }
     .copy-btn {
-      background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(212,160,23,0.15)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 8px; padding: 6px 10px; cursor: pointer;
-      color: var(--gold); transition: all 0.2s; display: flex; align-items: center;
+      color: var(--theme-text-primary, var(--gold)); transition: all 0.2s; display: flex; align-items: center;
       .material-icons { font-size: 16px; }
-      &:hover { background: rgba(212,160,23,0.3); }
+      &:hover { background: var(--theme-card-border, rgba(212,160,23,0.3)); }
       &:active { transform: scale(0.95); }
     }
 

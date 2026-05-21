@@ -99,7 +99,7 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
     .venue-time {
       display: inline-flex; align-items: center; gap: 6px;
       color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 16px;
-      .material-icons { font-size: 16px; color: var(--gold); }
+      .material-icons { font-size: 16px; color: var(--theme-text-primary, var(--gold)); }
     }
     .venue-maps-btn {
       display: flex; align-items: center; justify-content: center; gap: 8px;

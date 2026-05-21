@@ -27,7 +27,7 @@ import { IntroConfig } from '../../../core/models/models';
            [style.font-weight]="config.phraseStyle?.fontWeight || 400"
         >{{ config.phrase }}</p>
         <div class="intro-progress">
-          <div class="intro-progress-bar" [style.animation-duration]="config.duration + 's'"></div>
+          <div class="intro-progress-bar" [style.background]="themeColor" [style.animation-duration]="config.duration + 's'"></div>
         </div>
       </div>
     </div>
@@ -68,7 +68,6 @@ import { IntroConfig } from '../../../core/models/models';
     }
     .intro-progress-bar {
       height: 100%; width: 0;
-      background: var(--gold);
       animation: progressFill linear forwards;
     }
     .intro-particles { position: absolute; inset: 0; pointer-events: none; }
@@ -93,6 +92,7 @@ import { IntroConfig } from '../../../core/models/models';
 })
 export class LandingIntroComponent implements OnInit, OnDestroy {
   @Input() config!: IntroConfig;
+  @Input() themeColor: string = '#d4a017';
   @Output() done = new EventEmitter<void>();
   fading = false;
   particles: string[] = [];

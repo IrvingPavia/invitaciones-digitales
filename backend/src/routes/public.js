@@ -14,7 +14,7 @@ router.get('/invitation/:slug', async (req, res) => {
     res.json({
       event,
       config: configs[0] ? JSON.parse(configs[0].config_json) : {},
-      itinerary,
+      itinerary: itinerary.map(i => ({ ...i, iconType: i.icon_type || 'emoji', iconUrl: i.icon_url || '' })),
       photos
     });
   } catch (err) {

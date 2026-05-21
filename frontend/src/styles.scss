@@ -734,3 +734,63 @@ textarea {
   .material-icons { font-size: 48px; color: var(--gold); opacity: 0.5; }
   p { color: rgba(255,255,255,0.5); margin-top: 8px; font-size: 14px; }
 }
+
+
+/* Quill Editor Dark Theme Override */
+.ql-toolbar.ql-snow {
+  border-color: rgba(212,160,23,0.2) !important;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px 8px 0 0;
+  .ql-stroke { stroke: rgba(255,255,255,0.6) !important; }
+  .ql-fill { fill: rgba(255,255,255,0.6) !important; }
+  .ql-picker-label { color: rgba(255,255,255,0.6) !important; }
+  .ql-picker-options {
+    background: #1a1a2e !important;
+    border-color: rgba(212,160,23,0.3) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+    padding: 8px !important;
+    .ql-picker-item { color: rgba(255,255,255,0.7) !important; }
+  }
+  .ql-color-picker .ql-picker-options {
+    width: 220px !important;
+    padding: 10px !important;
+    .ql-picker-item {
+      width: 22px !important; height: 22px !important;
+      border-radius: 4px !important; margin: 2px !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      transition: transform 0.15s, box-shadow 0.15s;
+      &:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 8px rgba(212,160,23,0.4);
+        border-color: var(--gold) !important;
+      }
+      &.ql-selected {
+        border-color: var(--gold) !important;
+        box-shadow: 0 0 0 2px rgba(212,160,23,0.3);
+      }
+    }
+  }
+  .ql-color-picker .ql-picker-label {
+    .ql-stroke { stroke: rgba(255,255,255,0.6) !important; }
+  }
+  .ql-color-picker .ql-picker-label svg .ql-color-label {
+    opacity: 1 !important;
+  }
+  button:hover .ql-stroke { stroke: #d4a017 !important; }
+  button:hover .ql-fill { fill: #d4a017 !important; }
+  button.ql-active .ql-stroke { stroke: #d4a017 !important; }
+  button.ql-active .ql-fill { fill: #d4a017 !important; }
+  .ql-picker-label:hover { color: #d4a017 !important; }
+  .ql-picker-label:hover .ql-stroke { stroke: #d4a017 !important; }
+}
+.ql-container.ql-snow {
+  border-color: rgba(212,160,23,0.2) !important;
+  border-radius: 0 0 8px 8px;
+  background: rgba(255,255,255,0.02);
+  font-family: var(--font-sans);
+}
+.ql-editor {
+  color: white;
+  &.ql-blank::before { color: rgba(255,255,255,0.3) !important; font-style: normal !important; }
+}

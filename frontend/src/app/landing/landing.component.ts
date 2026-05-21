@@ -74,11 +74,11 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
 
       <!-- Intro -->
       @if (showIntro() && data()!.config.intro?.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" (done)="showIntro.set(false)" />
+        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme?.navFooterText || '#d4a017'" (done)="showIntro.set(false)" />
       }
 
       @if (!showIntro()) {
-        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme?.buttonText || '#1a1a2e'">
+        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme?.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme?.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme?.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme?.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme?.buttonFont)">
         <!-- Sticky nav -->
         <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" />
 
@@ -165,10 +165,10 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
       font-size: 12px;
     }
     .footer-title {
-      font-family: var(--font-script); font-size: 20px;
+      font-family: var(--theme-nav-font, var(--font-script)); font-size: 20px;
       color: var(--theme-nav-text, var(--gold)); margin-bottom: 8px;
     }
-    .footer-sub { color: var(--theme-nav-text, rgba(255,255,255,0.3)); opacity: 0.6; }
+    .footer-sub { color: var(--theme-nav-text, rgba(255,255,255,0.3)); opacity: 0.6; font-family: var(--theme-nav-font, inherit); }
     .back-to-top {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
       background: var(--theme-card-bg, rgba(13,17,23,0.85));
@@ -193,7 +193,7 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     .back-arrow:nth-child(2) { animation-delay: 0.15s; margin-right: 8px; }
     .back-arrow:nth-child(4) { animation-delay: 0.15s; margin-left: 8px; }
     .back-text {
-      font-family: var(--font-script); font-size: 20px;
+      font-family: var(--theme-nav-font, var(--font-script)); font-size: 20px;
       color: var(--theme-nav-text, var(--gold)); letter-spacing: 2px;
     }
     @keyframes arrowPulse {
@@ -257,5 +257,17 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.scrollbarStyle = document.createElement('style');
     this.scrollbarStyle.textContent = `::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${color};border-radius:3px}html{scrollbar-color:${color} transparent}`;
     document.head.appendChild(this.scrollbarStyle);
+  }
+
+  getThemeFont(key?: string): string {
+    if (!key) return 'inherit';
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key] || 'inherit';
   }
 }

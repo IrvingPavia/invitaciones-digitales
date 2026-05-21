@@ -61,7 +61,7 @@ import { inject } from '@angular/core';
             <!-- Individual: companion selection -->
             @if (guest.guest_type === 'individual' && guest.max_companions > 0) {
               <div class="rsvp-companions">
-                <label style="font-size:14px;color:rgba(255,255,255,0.7);display:block;margin-bottom:12px">
+                <label style="font-size:14px;color:var(--theme-text-secondary, rgba(255,255,255,0.7));display:block;margin-bottom:12px">
                   ¿Cuántos asistirán? (tú + acompañantes)
                 </label>
                 <div class="companion-selector">
@@ -72,12 +72,12 @@ import { inject } from '@angular/core';
 
                 @if (selectedCount() > 1) {
                   <div style="margin-top:16px">
-                    <label style="font-size:13px;color:rgba(255,255,255,0.5);display:block;margin-bottom:8px">
+                    <label style="font-size:13px;color:var(--theme-text-secondary, rgba(255,255,255,0.5));display:block;margin-bottom:8px">
                       Nombres de acompañantes (opcional)
                     </label>
                     @for (i of companionInputs(); track i) {
                       <input type="text" [(ngModel)]="companionNames[i]" [placeholder]="'Acompañante ' + (i+1)"
-                             style="width:100%;margin-bottom:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:white;font-size:14px">
+                             class="rsvp-input">
                     }
                   </div>
                 }
@@ -107,28 +107,38 @@ import { inject } from '@angular/core';
       background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 20px; padding: 40px;
     }
-    .rsvp-for { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-bottom: 8px; }
-    .rsvp-name { font-family: var(--font-serif); font-size: clamp(22px, 4vw, 30px); color: white; margin-bottom: 16px; }
+    .rsvp-for { font-size: 13px; color: var(--theme-text-secondary, rgba(255,255,255,0.5)); letter-spacing: 1px; margin-bottom: 8px; }
+    .rsvp-name { font-family: var(--font-serif); font-size: clamp(22px, 4vw, 30px); color: var(--theme-text-primary, white); margin-bottom: 16px; }
     .rsvp-seats {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(212,160,23,0.1); border: 1px solid rgba(212,160,23,0.3);
-      border-radius: 20px; padding: 6px 16px; color: var(--gold); font-size: 14px; margin-bottom: 24px;
+      background: var(--theme-card-bg, rgba(212,160,23,0.1)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      border-radius: 20px; padding: 6px 16px; color: var(--theme-nav-text, var(--gold)); font-size: 14px; margin-bottom: 24px;
       .material-icons { font-size: 16px; }
     }
     .rsvp-family-names { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
     .rsvp-name-chip {
       display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 10px 16px; font-size: 14px; color: rgba(255,255,255,0.8);
+      background: var(--theme-card-bg, rgba(255,255,255,0.05)); border: 1px solid var(--theme-card-border, rgba(255,255,255,0.1));
+      border-radius: 8px; padding: 10px 16px; font-size: 14px; color: var(--theme-text-primary, rgba(255,255,255,0.8));
     }
     .rsvp-companions { margin-bottom: 24px; }
     .companion-selector { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
     .companion-btn {
       width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
-      color: white; font-size: 16px; cursor: pointer; transition: all 0.2s;
-      &.active { background: var(--gold); border-color: var(--gold); color: #1a1a2e; font-weight: 700; }
-      &:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+      background: var(--theme-card-bg, rgba(255,255,255,0.05)); border: 1px solid var(--theme-card-border, rgba(255,255,255,0.2));
+      color: var(--theme-text-primary, white); font-size: 16px; cursor: pointer; transition: all 0.2s;
+      &.active { background: var(--theme-btn-bg, var(--gold)); border-color: var(--theme-btn-bg, var(--gold)); color: var(--theme-btn-text, #1a1a2e); font-weight: 700; }
+      &:hover:not(.active) { border-color: var(--theme-card-border, var(--gold)); color: var(--theme-nav-text, var(--gold)); }
+    }
+    .rsvp-input {
+      width: 100%; margin-bottom: 8px;
+      background: var(--theme-card-bg, rgba(255,255,255,0.05));
+      border: 1px solid var(--theme-card-border, rgba(255,255,255,0.15));
+      border-radius: 8px; padding: 10px 14px;
+      color: var(--theme-text-primary, white); font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      &::placeholder { color: var(--theme-text-secondary, rgba(255,255,255,0.5)); }
+      &:focus { outline: none; border-color: var(--theme-text-primary, white); box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-text-primary, white) 15%, transparent); background: var(--theme-card-bg, rgba(255,255,255,0.05)); }
     }
     .rsvp-confirm-btn {
       display: inline-flex; align-items: center; gap: 10px;

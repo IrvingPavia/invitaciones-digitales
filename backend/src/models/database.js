@@ -95,6 +95,8 @@ async function initDB() {
       id INT AUTO_INCREMENT PRIMARY KEY,
       event_id INT NOT NULL,
       icon VARCHAR(100) DEFAULT 'event',
+      icon_type VARCHAR(20) DEFAULT 'emoji',
+      icon_url VARCHAR(1000),
       time VARCHAR(50) NOT NULL,
       title VARCHAR(255) NOT NULL,
       description TEXT,

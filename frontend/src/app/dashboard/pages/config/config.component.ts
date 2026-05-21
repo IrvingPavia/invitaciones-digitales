@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   OnInit,
+  AfterViewChecked,
   signal,
   ViewChild,
   ElementRef,
@@ -9,6 +10,7 @@ import {
 import { CommonModule, DecimalPipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
+import { QuillModule } from 'ngx-quill';
 import { ApiService } from "../../../core/services/api.service";
 import { ColorPickerComponent } from "../../../core/components/color-picker.component";
 import {
@@ -40,7 +42,7 @@ const FONT_OPTIONS = `
 @Component({
   selector: "app-config",
   standalone: true,
-  imports: [CommonModule, DecimalPipe, FormsModule, RouterLink, ColorPickerComponent],
+  imports: [CommonModule, DecimalPipe, FormsModule, RouterLink, ColorPickerComponent, QuillModule],
   styles: [
     `
       .venue-card {
@@ -232,6 +234,7 @@ const FONT_OPTIONS = `
         cursor: pointer;
         color: var(--gold);
         transition: all 0.2s;
+        user-select: none;
         .material-icons {
           font-size: 20px;
         }
@@ -444,6 +447,11 @@ const FONT_OPTIONS = `
       .photo-item:hover .photo-delete {
         opacity: 1;
       }
+      .theme-font-preview {
+        font-size: 16px;
+        opacity: 0.8;
+        white-space: nowrap;
+      }
       .radio-label {
         display: flex;
         align-items: center;
@@ -452,13 +460,37 @@ const FONT_OPTIONS = `
         color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
       }
+      .icon-type-btn {
+        display: flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px; padding: 8px 14px; font-size: 13px;
+        color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s;
+        &.active { background: rgba(212,160,23,0.15); border-color: var(--gold); color: var(--gold); }
+        &:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
+      }
+      .emoji-trigger {
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px; padding: 10px 16px; cursor: pointer;
+        transition: all 0.2s; width: 100%;
+        &:hover { border-color: var(--gold); background: rgba(212,160,23,0.05); }
+      }
+      .emoji-trigger-icon { font-size: 24px; }
+      .emoji-trigger-text { flex: 1; font-size: 13px; color: rgba(255,255,255,0.5); text-align: left; }
+      .emoji-dropdown {
+        position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+        background: #1a1a2e; border: 1px solid rgba(212,160,23,0.3);
+        border-radius: 12px; padding: 12px; margin-top: 4px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      }
     `,
   ],
   templateUrl: "./config.component.html",
 })
-export class ConfigComponent implements OnInit {
+export class ConfigComponent implements OnInit, AfterViewChecked {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+  private quillCustomColorInjected = false;
   eventId = 0;
   config = signal<EventConfig | null>(null);
   itinerary = signal<ItineraryItem[]>([]);
@@ -467,6 +499,18 @@ export class ConfigComponent implements OnInit {
   activeTab = "styles";
   @ViewChild("tabsEl") tabsEl!: ElementRef<HTMLElement>;
   savedItems: Record<number, boolean> = {};
+  emojiPickerOpen: number | null = null;
+  quillModules = {
+    toolbar: [
+      [{ 'font': [] }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'color': ['#ffffff','#f5f5f5','#c0c0c0','#9e9e9e','#607d8b','#000000','#d4a017','#f0c040','#b8860b','#ff0000','#e91e63','#9c27b0','#673ab7','#3f51b5','#2196f3','#00bcd4','#009688','#4caf50','#8bc34a','#ff9800','#ff5722','#795548'] },
+       { 'background': ['transparent','#ffffff','#000000','#d4a017','#f0c040','#ff0000','#e91e63','#9c27b0','#3f51b5','#2196f3','#00bcd4','#4caf50','#ffeb3b','#ff9800','#ff5722','#795548'] }],
+      [{ 'align': [] }],
+      ['clean']
+    ]
+  };
   emojiOptions = [
     "\u26ea",
     "\ud83c\udfdb\ufe0f",
@@ -554,6 +598,47 @@ export class ConfigComponent implements OnInit {
     });
     this.api.getItinerary(this.eventId).subscribe((i) => this.itinerary.set(i));
     this.api.getPhotos(this.eventId).subscribe((p) => this.photos.set(p));
+  }
+
+  ngAfterViewChecked() {
+    if (this.quillCustomColorInjected) return;
+    const pickers = document.querySelectorAll('.ql-color-picker .ql-picker-options');
+    if (!pickers.length) return;
+    this.quillCustomColorInjected = true;
+    pickers.forEach(picker => {
+      if (picker.querySelector('.custom-color-input')) return;
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'width:100%;margin-top:6px;padding-top:6px;border-top:1px solid rgba(212,160,23,0.2);display:flex;align-items:center;gap:8px;';
+      const input = document.createElement('input');
+      input.type = 'color';
+      input.value = '#d4a017';
+      input.className = 'custom-color-input';
+      input.style.cssText = 'width:28px;height:28px;border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;background:none;padding:2px;';
+      const label = document.createElement('span');
+      label.textContent = 'Personalizado';
+      label.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.5);';
+      wrapper.appendChild(input);
+      wrapper.appendChild(label);
+      picker.appendChild(wrapper);
+
+      const isBackground = picker.closest('.ql-background') !== null;
+      input.addEventListener('input', () => {
+        if (this.quillEditors.length > 0) {
+          this.quillEditors.forEach(q => {
+            const sel = q.getSelection();
+            if (sel && sel.length > 0) {
+              q.format(isBackground ? 'background' : 'color', input.value);
+            }
+          });
+        }
+      });
+    });
+  }
+
+  quillEditors: any[] = [];
+  onEditorCreated(editor: any) {
+    this.quillEditors.push(editor);
+    this.quillCustomColorInjected = false; // re-inject for new editors
   }
 
   save() {
@@ -705,9 +790,22 @@ export class ConfigComponent implements OnInit {
   }
 
   // Details
+  detailEmojiPickerOpen: string | null = null;
+  detailEmojiOptions = [
+    '💒', '⛪', '🏛️', '💍', '👰', '🤵', '👪', '🙏',
+    '✝️', '🕊️', '💐', '🌹', '🎊', '🎉', '💝', '❤️',
+    '🥂', '🍾', '🎂', '🎵', '📸', '🌟', '👑', '🦋',
+  ];
+
+  toggleDetailEmojiPicker(card: DetailCard) {
+    this.detailEmojiPickerOpen = this.detailEmojiPickerOpen === card.id ? null : card.id;
+  }
+
   addDetailCard() {
     this.config()!.details.cards.push({
       id: Date.now().toString(),
+      iconType: 'image',
+      icon: '',
       iconUrl: "",
       title: "",
       content: "",
@@ -726,6 +824,9 @@ export class ConfigComponent implements OnInit {
   }
 
   // Itinerary
+  toggleEmojiPicker(item: ItineraryItem) {
+    this.emojiPickerOpen = this.emojiPickerOpen === item.id! ? null : item.id!;
+  }
   uploadItineraryIcon(event: any, item: ItineraryItem) {
     const file = event.target.files[0];
     if (!file) return;
@@ -855,7 +956,13 @@ export class ConfigComponent implements OnInit {
       details: {
         enabled: cfg?.details?.enabled ?? true,
         title: cfg?.details?.title || "Detalles del Evento",
-        cards: cfg?.details?.cards || this.migrateDetails(cfg?.details),
+        cards: (cfg?.details?.cards || this.migrateDetails(cfg?.details)).map((c: any) => ({
+          ...c,
+          iconType: c.iconType || (c.iconUrl ? 'image' : 'emoji'),
+          icon: c.icon || '',
+          iconUrl: c.iconUrl || '',
+          content: this.ensureHtmlContent(c.content || ''),
+        })),
       },
       venues: cfg?.venues || { enabled: true, items: [] },
       itinerary: cfg?.itinerary || {
@@ -953,19 +1060,29 @@ export class ConfigComponent implements OnInit {
     if (old.parents?.enabled && old.parents.content)
       cards.push({
         id: "1",
+        iconType: 'image',
+        icon: '',
         iconUrl: "",
         title: old.parents.title || "Padres",
-        content: old.parents.content,
+        content: this.ensureHtmlContent(old.parents.content),
         textAlign: "center",
       });
     if (old.godparents?.enabled && old.godparents.content)
       cards.push({
         id: "2",
+        iconType: 'image',
+        icon: '',
         iconUrl: "",
         title: old.godparents.title || "Padrinos",
-        content: old.godparents.content,
+        content: this.ensureHtmlContent(old.godparents.content),
         textAlign: "center",
       });
     return cards;
+  }
+
+  private ensureHtmlContent(content: string): string {
+    if (!content) return '';
+    if (content.includes('<p>') || content.includes('<br>') || content.includes('<span>')) return content;
+    return content.split(/\\n|\n/).map(line => `<p>${line.trim() || '<br>'}</p>`).join('');
   }
 }
