@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const { initDB } = require('./models/database');
+const { fixUrls } = require('./migrations/fix-urls');
 
 const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
@@ -45,6 +46,7 @@ app.use((err, req, res, next) => {
 
 (async () => {
   await initDB();
+  await fixUrls();
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 })();
 

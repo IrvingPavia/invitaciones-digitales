@@ -1,6 +1,6 @@
 # 📋 DEVELOPMENT LOG - Gestor de Invitaciones Digitales
 
-> Última actualización: 2026-05-21
+> Última actualización: 2025-05-22
 > Este archivo sirve como contexto para retomar el desarrollo. Compártelo con `@DEVELOPMENT_LOG.md` al iniciar una nueva sesión.
 
 ---
@@ -70,7 +70,65 @@ Portafolio/                         ← Workspace
 
 ---
 
-## 🔧 Cambios Realizados en Esta Sesión (2026-05-21)
+## 🔧 Cambios Realizados en Esta Sesión (2025-05-22)
+
+### Fix URLs de uploads (imágenes/assets)
+
+63b. **Problema**: Las URLs de imágenes subidas se guardaban con ruta absoluta (`http://localhost/uploads/...` o `https://109.199.111.200/uploads/...`), causando que no cargaran en producción ni en mobile
+64b. **Solución**: Modificado backend para guardar rutas relativas (`/uploads/...`) en vez de absolutas
+65b. **Migración**: Creado script `backend/src/fix-urls.js` para corregir URLs existentes en BD
+66b. **Resultado**: Imágenes cargan correctamente en todos los entornos (local, servidor, mobile)
+
+### Fix Quill Editor — `getSemanticHTML is not a function`
+
+67b. **Problema**: Error en el editor Quill del tab Detalles en config. `ngx-quill` llama `getSemanticHTML()` que no existe en el build UMD de quill v2.0.3
+68b. **Causa raíz**: El paquete npm `quill@2.0.3` tiene un bug de empaquetado — su UMD build (`dist/quill.js`, 217KB) NO incluye `getSemanticHTML`, pero el ESM source (`core/quill.js`) SÍ lo tiene
+69b. **Agravante npm**: Con `legacy-peer-deps=true`, npm instalaba silenciosamente quill v1.3.7 aunque package.json decía v2.0.3. `npm ls` reportaba v2 pero el código era v1
+70b. **Upgrade ngx-quill**: De `25.3.3` (Angular 17) a `^26.0.0` (Angular 18) para resolver conflictos de peer deps
+71b. **Fix .npmrc**: Cambiado a `legacy-peer-deps=false`
+72b. **Fix package.json**: Agregado `overrides: { "quill": "2.0.3" }` + versión exacta `"quill": "2.0.3"`
+73b. **Fix Dockerfile**: Fuerza instalación correcta de quill + parchea package.json para usar ESM:
+    - `rm -rf node_modules/quill && npm install quill@2.0.3 --save --legacy-peer-deps`
+    - Parchea `main: "quill.js"` y `type: "module"` en quill/package.json
+    - Elimina `dist/quill.js`, `dist/quill.core.js`, `dist/quill.min.js` (fuerza esbuild a usar ESM)
+74b. **Estado**: Build exitoso, container corriendo. **Pendiente verificar en browser** con hard refresh (Ctrl+Shift+R)
+
+### Reemplazo de Quill por Editor Propio
+
+75b. **Decisión**: Eliminar Quill completamente y crear `RichTextEditorComponent` propio con `contenteditable`
+76b. **Nuevo componente**: `core/components/rich-text-editor.component.ts` — soporta:
+    - Negrita, cursiva, subrayado
+    - Alineación (izquierda, centro, derecha)
+    - Selector de fuente (las 14 fuentes del proyecto)
+    - Tamaño de texto (4 niveles)
+    - Color de texto por sección (color picker nativo)
+    - Implementa `ControlValueAccessor` para funcionar con `[(ngModel)]`
+77b. **Eliminado**: `ngx-quill`, `quill` de package.json + overrides + angular.json CSS + tsconfig paths
+78b. **Dockerfile limpio**: Sin hacks de Quill (solo `npm install` + `npm run build`)
+79b. **Build exitoso**: 388KB initial bundle (antes ~450KB con Quill). Sin errores
+80b. **Estado**: ✅ Verificado en browser, funciona correctamente
+
+### Iconos configurables en Vestimenta, Regalos y Confirmaciones
+
+81b. **Modelo `SectionIconConfig`**: nueva interfaz con `iconType: 'material' | 'emoji' | 'image'`, `icon`, `iconUrl`
+82b. **Modelos actualizados**: `DresscodeConfig`, `GiftsConfig`, `TransferConfig`, `RsvpConfig` ahora tienen `sectionIcon?: SectionIconConfig`
+83b. **Dashboard config**: Controles de icono (Default/Emoji/Imagen) en tabs Vestimenta, Regalos (mesa + transferencia) y Confirmaciones
+84b. **Landing dresscode**: Renderiza icono configurado o fallback a `checkroom` (Material Icon)
+85b. **Landing gifts**: Renderiza icono configurado o fallback a `card_giftcard` / `account_balance`
+86b. **Landing rsvp**: Renderiza icono configurado o fallback a `check_circle`
+87b. **Renombrado**: Tab "RSVP" → "Confirmaciones" en dashboard
+88b. **Build exitoso**: Sin errores. Container corriendo
+
+### Fixes post-implementación de iconos
+
+89b. **Fix emoji dropdown cortado**: `.emoji-dropdown` ahora tiene `max-height: 220px; overflow-y: auto;` + `.section-card` y `.section-card-body` con `overflow: visible`
+90b. **Iconos sin contorno circular**: Eliminado `border-radius: 50%`, `border` y `background` de iconos en landing (details, dresscode, gifts, rsvp). Itinerario mantiene su estilo circular
+91b. **Emojis itinerario expandidos**: De 24 a ~70 emojis organizados por temática (ceremonia, comida, música, fotos, transporte, naturaleza, regalos, juegos, tiempo)
+92b. **Estado**: ✅ Build exitoso, container corriendo. Pendiente verificar en browser con Ctrl+Shift+R
+
+---
+
+## 🔧 Cambios Realizados en Sesión (2025-05-21)
 
 ### Detalles — Selector de Icono (Emoji/Imagen)
 
@@ -269,7 +327,7 @@ interface DetailCard {
   icon: string;
   iconUrl: string;
   title: string;
-  content: string;          // HTML (Quill editor)
+  content: string;          // HTML (RichTextEditor contenteditable)
   textAlign: 'left' | 'center' | 'right';
 }
 
@@ -316,6 +374,30 @@ interface ItineraryItem {
 - [x] `IntroConfig.phraseStyle` agregado (fontFamily, fontSize, color, fontWeight)
 - [x] Controles en dashboard: fuente, tamaño, color, grosor
 - [x] Aplicado en intro.component.ts con bindings dinámicos
+
+### Prioridad 8 — Fix BASE_URL en servidor Contabo
+- [x] ~~Variable `BASE_URL` en `.env` del servidor tiene valor incorrecto~~ → Resuelto con rutas relativas
+- [x] Backend ahora guarda `/uploads/...` (relativo) en vez de URL absoluta
+- [ ] Verificar que QR sigue generándose correctamente con `BASE_URL` actual del servidor
+
+### Prioridad 9 — Imágenes no cargan en mobile (servidor) ✅
+- [x] Causa: URLs absolutas guardadas en BD (`http://localhost/uploads/...`)
+- [x] Fix: Backend modificado para guardar rutas relativas + script migración `fix-urls.js`
+- [x] Resultado: Imágenes cargan en todos los entornos
+
+### Prioridad 10 — Quill Editor `getSemanticHTML` error ✅
+- [x] Identificado: bug de empaquetado en quill@2.0.3 (UMD vs ESM)
+- [x] **Solución final**: Eliminado Quill completamente, reemplazado por editor propio (`RichTextEditorComponent`)
+- [x] Editor propio soporta: negrita, cursiva, subrayado, alineación, fuentes, tamaño, color por sección
+- [x] Build exitoso, bundle más ligero (sin ~200KB de Quill)
+
+### Prioridad 11 — Iconos configurables en secciones + Renombrar RSVP ✅
+- [x] Nueva interfaz `SectionIconConfig` (material/emoji/image)
+- [x] Vestimenta: icono configurable (default: `checkroom`)
+- [x] Regalos - Mesa: icono configurable (default: `card_giftcard`)
+- [x] Regalos - Transferencia: icono configurable (default: `account_balance`)
+- [x] Confirmaciones: icono configurable (default: `check_circle`)
+- [x] Tab renombrado: "RSVP" → "Confirmaciones"
 
 ### Prioridad 5 — Otros pendientes
 - [x] Selectores de color: `ColorPickerComponent` con hex input + copiar (implementado)
@@ -369,16 +451,16 @@ interface ItineraryItem {
 #### P7.10 — Galería: controles de navegación
 - [x] Flechas y dots del carrusel: `--theme-card-bg/border/text-primary`
 
-#### P7.11 — Card Código de Vestimenta
+#### P7.11 — Card Código de Vestimenta ✅
 - [x] Icono default: `--theme-text-primary`
-- [ ] Agregar en configuración: opción de seleccionar icono personalizado
+- [x] Agregar en configuración: opción de seleccionar icono personalizado (emoji/imagen)
 - [ ] Agregar mini cards con ejemplos de imágenes de vestimenta (pendiente: esperar imágenes de referencia)
 
-#### P7.12 — Card Regalos
+#### P7.12 — Card Regalos ✅
 - [x] Mesa de Regalos: icono respeta tema
 - [x] Transferencia Bancaria: icono, título, desc, labels, values, botones copiado respetan tema
 - [x] Número cuenta/tarjeta unificado con mismo estilo que titular
-- [ ] Agregar config para seleccionar/subir icono personalizado en Mesa de Regalos y Transferencia
+- [x] Agregar config para seleccionar/subir icono personalizado en Mesa de Regalos y Transferencia
 
 #### Ajustes adicionales
 - [x] RSVP card: textos, badges, chips, botones selección, inputs, placeholders respetan tema

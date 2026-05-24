@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RsvpConfig, Guest, GlobalTextStyles } from '../../../core/models/models';
+import { RsvpConfig, Guest, GlobalTextStyles, SectionIconConfig } from '../../../core/models/models';
 import { ApiService } from '../../../core/services/api.service';
 import { inject } from '@angular/core';
 
@@ -25,14 +25,30 @@ import { inject } from '@angular/core';
         <div class="rsvp-card reveal">
           @if (confirmed()) {
             <div class="rsvp-success">
-              <span class="material-icons rsvp-success-icon">check_circle</span>
+              @if (getIcon(); as icon) {
+                @if (icon.type === 'material') {
+                  <span class="material-icons rsvp-success-icon">{{ icon.value }}</span>
+                } @else if (icon.type === 'emoji') {
+                  <span class="rsvp-success-icon emoji">{{ icon.value }}</span>
+                } @else {
+                  <img [src]="icon.value" class="rsvp-success-icon-img" alt="">
+                }
+              }
               <h3>¡Asistencia Confirmada!</h3>
               <p>{{ successMsg() }}</p>
               <p class="rsvp-count">Total confirmados: <strong>{{ guest.confirmed_count || confirmedCount() }}</strong></p>
             </div>
           } @else if (guest.confirmed) {
             <div class="rsvp-success">
-              <span class="material-icons rsvp-success-icon">check_circle</span>
+              @if (getIcon(); as icon) {
+                @if (icon.type === 'material') {
+                  <span class="material-icons rsvp-success-icon">{{ icon.value }}</span>
+                } @else if (icon.type === 'emoji') {
+                  <span class="rsvp-success-icon emoji">{{ icon.value }}</span>
+                } @else {
+                  <img [src]="icon.value" class="rsvp-success-icon-img" alt="">
+                }
+              }
               <h3>Ya confirmaste tu asistencia</h3>
               <p>Total confirmados: <strong>{{ guest.confirmed_count }}</strong></p>
             </div>
@@ -152,6 +168,8 @@ import { inject } from '@angular/core';
     }
     .rsvp-success { padding: 20px 0; }
     .rsvp-success-icon { font-size: 64px; color: #5cb85c; display: block; margin-bottom: 16px; }
+    .rsvp-success-icon.emoji { font-size: 64px; font-style: normal; }
+    .rsvp-success-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .rsvp-success h3 { font-family: var(--font-serif); font-size: 24px; color: white; margin-bottom: 8px; }
     .rsvp-success p { color: rgba(255,255,255,0.6); font-size: 15px; }
     .rsvp-count { margin-top: 12px; color: var(--gold) !important; font-size: 16px !important; }
@@ -186,6 +204,14 @@ export class LandingRsvpComponent {
   selectedCount = signal(1);
   confirmedCount = signal(0);
   companionNames: string[] = [];
+
+  getIcon(): { type: string; value: string } {
+    const si = this.config.sectionIcon;
+    if (!si || si.iconType === 'material') return { type: 'material', value: 'check_circle' };
+    if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
+    if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };
+    return { type: 'material', value: 'check_circle' };
+  }
 
   guestNames() { return this.guest.guest_names.split(','); }
 

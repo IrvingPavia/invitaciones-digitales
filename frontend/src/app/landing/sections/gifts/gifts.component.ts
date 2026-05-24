@@ -1,6 +1,6 @@
 import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
+import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-gifts',
@@ -19,7 +19,15 @@ import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
         <div class="gifts-card reveal">
-          <span class="material-icons gifts-icon">card_giftcard</span>
+          @if (getGiftsIcon(); as icon) {
+            @if (icon.type === 'material') {
+              <span class="material-icons gifts-icon">{{ icon.value }}</span>
+            } @else if (icon.type === 'emoji') {
+              <span class="gifts-icon emoji">{{ icon.value }}</span>
+            } @else {
+              <img [src]="icon.value" class="gifts-icon-img" alt="">
+            }
+          }
           @if (config.description) {
             <p class="gifts-desc"
                [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
@@ -49,7 +57,15 @@ import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
             }
 
             <div class="transfer-content">
-              <span class="material-icons transfer-icon">account_balance</span>
+              @if (getTransferIcon(); as icon) {
+                @if (icon.type === 'material') {
+                  <span class="material-icons transfer-icon">{{ icon.value }}</span>
+                } @else if (icon.type === 'emoji') {
+                  <span class="transfer-icon emoji">{{ icon.value }}</span>
+                } @else {
+                  <img [src]="icon.value" class="transfer-icon-img" alt="">
+                }
+              }
               <h3 class="transfer-title">{{ config.transfer.title }}</h3>
               @if (config.transfer.description) {
                 <p class="transfer-desc">{{ config.transfer.description }}</p>
@@ -101,6 +117,8 @@ import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
       border-radius: 16px; padding: 40px; margin-bottom: 20px;
     }
     .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .gifts-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
+    .gifts-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .gifts-desc { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.7; margin-bottom: 24px; }
     .gifts-btn {
       display: inline-flex; align-items: center; gap: 10px;
@@ -136,6 +154,8 @@ import { GiftsConfig, GlobalTextStyles } from '../../../core/models/models';
 
     .transfer-content { position: relative; z-index: 1; }
     .transfer-icon { font-size: 48px; color: var(--theme-text-primary, var(--gold)); opacity: 0.8; margin-bottom: 12px; display: block; }
+    .transfer-icon.emoji { font-size: 48px; opacity: 1; font-style: normal; }
+    .transfer-icon-img { width: 60px; height: 60px; object-fit: contain; margin: 0 auto 12px; display: block; }
     .transfer-title { font-family: var(--font-serif); font-size: 22px; color: var(--theme-nav-text, var(--gold)); margin-bottom: 8px; }
     .transfer-desc { color: var(--theme-text-secondary, rgba(255,255,255,0.6)); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
 
@@ -197,6 +217,22 @@ export class LandingGiftsComponent {
   particleLeft(i: number): number { return 5 + (i * 6.2) % 90; }
   particleDelay(i: number): number { return (i * 1.3) % 8; }
   particleDuration(i: number): number { return 8 + (i % 5) * 2; }
+
+  getGiftsIcon(): { type: string; value: string } {
+    const si = this.config.sectionIcon;
+    if (!si || si.iconType === 'material') return { type: 'material', value: 'card_giftcard' };
+    if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
+    if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };
+    return { type: 'material', value: 'card_giftcard' };
+  }
+
+  getTransferIcon(): { type: string; value: string } {
+    const si = this.config.transfer?.sectionIcon;
+    if (!si || si.iconType === 'material') return { type: 'material', value: 'account_balance' };
+    if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
+    if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };
+    return { type: 'material', value: 'account_balance' };
+  }
 
   copyToClipboard(text: string, key = 'name') {
     navigator.clipboard.writeText(text).then(() => {

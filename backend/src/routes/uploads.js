@@ -34,7 +34,7 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 102
 
 router.post('/:type', auth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Archivo no válido o no proporcionado' });
-  const url = `${process.env.BASE_URL}/uploads/${req.params.type}/${req.file.filename}`;
+  const url = `/uploads/${req.params.type}/${req.file.filename}`;
   res.json({ url, filename: `${req.params.type}/${req.file.filename}` });
 });
 
@@ -46,7 +46,7 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     const photos = [];
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
-      const url = `${process.env.BASE_URL}/uploads/images/${file.filename}`;
+      const url = `/uploads/images/${file.filename}`;
       const [r] = await conn.query(
         'INSERT INTO photos (event_id, filename, url, sort_order) VALUES (?, ?, ?, ?)',
         [req.params.eventId, `images/${file.filename}`, url, i]

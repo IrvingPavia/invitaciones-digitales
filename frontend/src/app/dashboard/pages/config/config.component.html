@@ -324,7 +324,7 @@
       </div>
       }
       <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="card.title"></div>
-      <div class="field mb-12"><label class="form-label">Contenido</label><quill-editor [(ngModel)]="card.content" [modules]="quillModules" [styles]="{minHeight:'120px',color:'white',fontSize:'14px'}" placeholder="Escribe el contenido..." (onEditorCreated)="onEditorCreated($event)"></quill-editor></div>
+      <div class="field mb-12"><label class="form-label">Contenido</label><app-rich-text-editor [(ngModel)]="card.content" [contentStyles]="{minHeight:'120px',color: c.globalStyles.contentStyle.color || 'white',fontSize: (c.globalStyles.contentStyle.fontSize || 14) + 'px', fontFamily: getFontPreview(c.globalStyles.contentStyle.fontFamily), background: c.theme.cardBg || 'rgba(0,0,0,0.45)', borderRadius:'0 0 8px 8px'}" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor></div>
     </div>
     }
     <button class="btn btn-outline" (click)="addDetailCard()">+ Agregar tarjeta</button>
@@ -457,7 +457,33 @@
   </div>
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.dresscode.title"></div>
-    <div class="field"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
+    <div class="field mb-16"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
+    <div class="field mb-12"><label class="form-label">Icono de sección</label>
+      <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'material'" (click)="c.dresscode.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">checkroom</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'emoji'" (click)="c.dresscode.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'image'" (click)="c.dresscode.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
+      </div>
+      @if (c.dresscode.sectionIcon!.iconType === 'emoji') {
+        <div style="position:relative;">
+          <button class="emoji-trigger" (click)="toggleSectionEmojiPicker('dresscode')">
+            <span class="emoji-trigger-icon">{{ c.dresscode.sectionIcon!.icon || '👗' }}</span>
+            <span class="emoji-trigger-text">Cambiar emoji</span>
+            <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+          </button>
+          @if (sectionEmojiPickerOpen === 'dresscode') {
+            <div class="emoji-dropdown">
+              <div class="emoji-grid">@for (emoji of sectionEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="c.dresscode.sectionIcon!.icon === emoji" (click)="c.dresscode.sectionIcon!.icon = emoji; sectionEmojiPickerOpen = null">{{ emoji }}</button> }</div>
+            </div>
+          }
+        </div>
+      } @else if (c.dresscode.sectionIcon!.iconType === 'image') {
+        <div class="field-row">
+          <div class="venue-icon-preview">@if (c.dresscode.sectionIcon!.iconUrl) { <img [src]="c.dresscode.sectionIcon!.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
+          <div class="field"><input type="file" accept="image/*" (change)="uploadSectionIcon($event, c.dresscode)"></div>
+        </div>
+      }
+    </div>
   </div>
 </div>
 }
@@ -474,6 +500,32 @@
     <div class="field-row mb-12">
       <div class="field"><label class="form-label">Link externo</label><input class="form-control" [(ngModel)]="c.gifts.link" placeholder="https://..."></div>
       <div class="field" style="max-width:200px;"><label class="form-label">Texto del botón</label><input class="form-control" [(ngModel)]="c.gifts.buttonText"></div>
+    </div>
+    <div class="field mb-12"><label class="form-label">Icono de sección</label>
+      <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts).iconType === 'material'" (click)="c.gifts.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">card_giftcard</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'image'" (click)="c.gifts.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
+      </div>
+      @if (c.gifts.sectionIcon!.iconType === 'emoji') {
+        <div style="position:relative;">
+          <button class="emoji-trigger" (click)="toggleSectionEmojiPicker('gifts')">
+            <span class="emoji-trigger-icon">{{ c.gifts.sectionIcon!.icon || '🎁' }}</span>
+            <span class="emoji-trigger-text">Cambiar emoji</span>
+            <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+          </button>
+          @if (sectionEmojiPickerOpen === 'gifts') {
+            <div class="emoji-dropdown">
+              <div class="emoji-grid">@for (emoji of sectionEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="c.gifts.sectionIcon!.icon === emoji" (click)="c.gifts.sectionIcon!.icon = emoji; sectionEmojiPickerOpen = null">{{ emoji }}</button> }</div>
+            </div>
+          }
+        </div>
+      } @else if (c.gifts.sectionIcon!.iconType === 'image') {
+        <div class="field-row">
+          <div class="venue-icon-preview">@if (c.gifts.sectionIcon!.iconUrl) { <img [src]="c.gifts.sectionIcon!.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
+          <div class="field"><input type="file" accept="image/*" (change)="uploadSectionIcon($event, c.gifts)"></div>
+        </div>
+      }
     </div>
   </div>
 </div>
@@ -495,7 +547,33 @@
       <div class="field"><label class="form-label">Tipo de cuenta</label><select class="form-control" [(ngModel)]="c.gifts.transfer.accountType"><option value="tarjeta">Tarjeta</option><option value="cuenta">Cuenta</option><option value="clabe">CLABE</option></select></div>
       <div class="field"><label class="form-label">Número</label><input class="form-control" [(ngModel)]="c.gifts.transfer.accountNumber"></div>
     </div>
-    <div class="field"><label class="form-label">Animación</label><select class="form-control" [(ngModel)]="c.gifts.transfer.animation" style="max-width:200px;"><option value="coins">Monedas</option><option value="bills">Billetes</option><option value="none">Ninguna</option></select></div>
+    <div class="field mb-12"><label class="form-label">Animación</label><select class="form-control" [(ngModel)]="c.gifts.transfer.animation" style="max-width:200px;"><option value="coins">Monedas</option><option value="bills">Billetes</option><option value="none">Ninguna</option></select></div>
+    <div class="field mb-12"><label class="form-label">Icono de sección</label>
+      <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts.transfer).iconType === 'material'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">account_balance</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.gifts.transfer.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="c.gifts.transfer.sectionIcon!.iconType === 'image'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
+      </div>
+      @if (c.gifts.transfer.sectionIcon!.iconType === 'emoji') {
+        <div style="position:relative;">
+          <button class="emoji-trigger" (click)="toggleSectionEmojiPicker('transfer')">
+            <span class="emoji-trigger-icon">{{ c.gifts.transfer.sectionIcon!.icon || '🏦' }}</span>
+            <span class="emoji-trigger-text">Cambiar emoji</span>
+            <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+          </button>
+          @if (sectionEmojiPickerOpen === 'transfer') {
+            <div class="emoji-dropdown">
+              <div class="emoji-grid">@for (emoji of sectionEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="c.gifts.transfer.sectionIcon!.icon === emoji" (click)="c.gifts.transfer.sectionIcon!.icon = emoji; sectionEmojiPickerOpen = null">{{ emoji }}</button> }</div>
+            </div>
+          }
+        </div>
+      } @else if (c.gifts.transfer.sectionIcon!.iconType === 'image') {
+        <div class="field-row">
+          <div class="venue-icon-preview">@if (c.gifts.transfer.sectionIcon!.iconUrl) { <img [src]="c.gifts.transfer.sectionIcon!.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
+          <div class="field"><input type="file" accept="image/*" (change)="uploadSectionIcon($event, c.gifts.transfer)"></div>
+        </div>
+      }
+    </div>
   </div>
   }
 </div>
@@ -508,7 +586,33 @@
     <label class="toggle-pill" (click)="c.rsvp.enabled = !c.rsvp.enabled"><span class="toggle-pill-dot" [class.active]="c.rsvp.enabled"></span>{{ c.rsvp.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
-    <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.rsvp.title"></div>
+    <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.rsvp.title"></div>
+    <div class="field mb-12"><label class="form-label">Icono de sección (éxito)</label>
+      <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.rsvp).iconType === 'material'" (click)="c.rsvp.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">check_circle</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'emoji'" (click)="c.rsvp.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'image'" (click)="c.rsvp.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
+      </div>
+      @if (c.rsvp.sectionIcon!.iconType === 'emoji') {
+        <div style="position:relative;">
+          <button class="emoji-trigger" (click)="toggleSectionEmojiPicker('rsvp')">
+            <span class="emoji-trigger-icon">{{ c.rsvp.sectionIcon!.icon || '✅' }}</span>
+            <span class="emoji-trigger-text">Cambiar emoji</span>
+            <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+          </button>
+          @if (sectionEmojiPickerOpen === 'rsvp') {
+            <div class="emoji-dropdown">
+              <div class="emoji-grid">@for (emoji of sectionEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="c.rsvp.sectionIcon!.icon === emoji" (click)="c.rsvp.sectionIcon!.icon = emoji; sectionEmojiPickerOpen = null">{{ emoji }}</button> }</div>
+            </div>
+          }
+        </div>
+      } @else if (c.rsvp.sectionIcon!.iconType === 'image') {
+        <div class="field-row">
+          <div class="venue-icon-preview">@if (c.rsvp.sectionIcon!.iconUrl) { <img [src]="c.rsvp.sectionIcon!.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
+          <div class="field"><input type="file" accept="image/*" (change)="uploadSectionIcon($event, c.rsvp)"></div>
+        </div>
+      }
+    </div>
   </div>
 </div>
 }

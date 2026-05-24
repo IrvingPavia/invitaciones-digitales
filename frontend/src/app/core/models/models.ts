@@ -177,10 +177,17 @@ export interface GalleryConfig {
   description: string;
 }
 
+export interface SectionIconConfig {
+  iconType: 'material' | 'emoji' | 'image';
+  icon: string;
+  iconUrl: string;
+}
+
 export interface DresscodeConfig {
   enabled: boolean;
   title: string;
   description: string;
+  sectionIcon?: SectionIconConfig;
 }
 
 export interface GiftsConfig {
@@ -189,6 +196,7 @@ export interface GiftsConfig {
   description: string;
   link: string;
   buttonText: string;
+  sectionIcon?: SectionIconConfig;
   transfer: TransferConfig;
 }
 
@@ -201,11 +209,13 @@ export interface TransferConfig {
   accountType: 'tarjeta' | 'cuenta' | 'clabe';
   accountNumber: string;
   animation: 'coins' | 'bills' | 'none';
+  sectionIcon?: SectionIconConfig;
 }
 
 export interface RsvpConfig {
   enabled: boolean;
   title: string;
+  sectionIcon?: SectionIconConfig;
 }
 
 export interface KPIs {

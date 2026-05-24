@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   OnInit,
-  AfterViewChecked,
   signal,
   ViewChild,
   ElementRef,
@@ -10,7 +9,7 @@ import {
 import { CommonModule, DecimalPipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { QuillModule } from 'ngx-quill';
+import { RichTextEditorComponent } from "../../../core/components/rich-text-editor.component";
 import { ApiService } from "../../../core/services/api.service";
 import { ColorPickerComponent } from "../../../core/components/color-picker.component";
 import {
@@ -20,6 +19,7 @@ import {
   DetailTextStyle,
   GlobalTextStyles,
   ThemeConfig,
+  SectionIconConfig,
 } from "../../../core/models/models";
 
 const FONT_OPTIONS = `
@@ -42,7 +42,7 @@ const FONT_OPTIONS = `
 @Component({
   selector: "app-config",
   standalone: true,
-  imports: [CommonModule, DecimalPipe, FormsModule, RouterLink, ColorPickerComponent, QuillModule],
+  imports: [CommonModule, DecimalPipe, FormsModule, RouterLink, ColorPickerComponent, RichTextEditorComponent],
   styles: [
     `
       .venue-card {
@@ -323,7 +323,7 @@ const FONT_OPTIONS = `
         border: 1px solid rgba(212, 160, 23, 0.15);
         border-radius: 12px;
         margin-bottom: 20px;
-        overflow: hidden;
+        overflow: visible;
         background: rgba(255, 255, 255, 0.02);
       }
       .section-card-header {
@@ -341,6 +341,7 @@ const FONT_OPTIONS = `
       }
       .section-card-body {
         padding: 20px;
+        overflow: visible;
       }
       .preview-card {
         background: rgba(0, 0, 0, 0.2);
@@ -482,15 +483,15 @@ const FONT_OPTIONS = `
         background: #1a1a2e; border: 1px solid rgba(212,160,23,0.3);
         border-radius: 12px; padding: 12px; margin-top: 4px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        max-height: 220px; overflow-y: auto;
       }
     `,
   ],
   templateUrl: "./config.component.html",
 })
-export class ConfigComponent implements OnInit, AfterViewChecked {
+export class ConfigComponent implements OnInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
-  private quillCustomColorInjected = false;
   eventId = 0;
   config = signal<EventConfig | null>(null);
   itinerary = signal<ItineraryItem[]>([]);
@@ -500,42 +501,26 @@ export class ConfigComponent implements OnInit, AfterViewChecked {
   @ViewChild("tabsEl") tabsEl!: ElementRef<HTMLElement>;
   savedItems: Record<number, boolean> = {};
   emojiPickerOpen: number | null = null;
-  quillModules = {
-    toolbar: [
-      [{ 'font': [] }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      ['bold', 'italic', 'underline'],
-      [{ 'color': ['#ffffff','#f5f5f5','#c0c0c0','#9e9e9e','#607d8b','#000000','#d4a017','#f0c040','#b8860b','#ff0000','#e91e63','#9c27b0','#673ab7','#3f51b5','#2196f3','#00bcd4','#009688','#4caf50','#8bc34a','#ff9800','#ff5722','#795548'] },
-       { 'background': ['transparent','#ffffff','#000000','#d4a017','#f0c040','#ff0000','#e91e63','#9c27b0','#3f51b5','#2196f3','#00bcd4','#4caf50','#ffeb3b','#ff9800','#ff5722','#795548'] }],
-      [{ 'align': [] }],
-      ['clean']
-    ]
-  };
+
   emojiOptions = [
-    "\u26ea",
-    "\ud83c\udfdb\ufe0f",
-    "\ud83c\udf7d\ufe0f",
-    "\ud83c\udf82",
-    "\ud83c\udfb6",
-    "\ud83d\udc83",
-    "\ud83c\udf78",
-    "\ud83d\udcf8",
-    "\ud83d\udc92",
-    "\ud83c\udf89",
-    "\ud83c\udf1f",
-    "\ud83d\ude97",
-    "\ud83c\udfa4",
-    "\ud83c\udfb5",
-    "\ud83e\udd42",
-    "\ud83c\udf39",
-    "\ud83d\udc8d",
-    "\ud83c\udf70",
-    "\ud83c\udf7e",
-    "\ud83c\udfa0",
-    "\ud83c\udf86",
-    "\ud83d\udc51",
-    "\ud83c\udfc6",
-    "\ud83c\udf1c",
+    // Ceremonia / Religión
+    "\u26ea", "\ud83c\udfdb\ufe0f", "\ud83d\udc92", "\ud83d\ude4f", "\u271d\ufe0f", "\ud83d\udd4a\ufe0f", "\ud83d\udc8d", "\ud83d\udc70", "\ud83e\udd35",
+    // Comida / Bebida
+    "\ud83c\udf7d\ufe0f", "\ud83c\udf70", "\ud83c\udf82", "\ud83c\udf78", "\ud83c\udf7e", "\ud83e\udd42", "\ud83c\udf77", "\ud83c\udf7a", "\ud83e\udd43",
+    // Música / Baile / Fiesta
+    "\ud83c\udfb6", "\ud83c\udfb5", "\ud83c\udfa4", "\ud83d\udc83", "\ud83d\udd7a", "\ud83c\udf89", "\ud83c\udf8a", "\ud83c\udfa0", "\ud83c\udf86",
+    // Fotos / Recuerdos
+    "\ud83d\udcf8", "\ud83c\udfa5", "\ud83d\udcf7", "\ud83c\udf1f", "\u2728", "\ud83d\udcab",
+    // Transporte / Llegada
+    "\ud83d\ude97", "\ud83d\ude8c", "\ud83d\ude95", "\ud83d\udeb6", "\u2708\ufe0f", "\ud83d\udea2",
+    // Naturaleza / Exterior
+    "\ud83c\udf39", "\ud83c\udf3b", "\ud83c\udf3a", "\ud83c\udf38", "\ud83c\udf3f", "\ud83c\udf43", "\ud83c\udf1c", "\u2600\ufe0f",
+    // Regalos / Especial
+    "\ud83c\udf81", "\ud83d\udc51", "\ud83c\udfc6", "\ud83d\udc9d", "\u2764\ufe0f", "\ud83d\udc96",
+    // Juegos / Actividades
+    "\ud83c\udfb2", "\ud83c\udfaf", "\ud83c\udfa8", "\ud83c\udfad", "\ud83e\udde9", "\ud83c\udfc3",
+    // Hora / Tiempo
+    "\u23f0", "\ud83d\udd50", "\ud83c\udf05", "\ud83c\udf07", "\ud83c\udf03",
   ];
 
   countdownDate = "";
@@ -576,7 +561,7 @@ export class ConfigComponent implements OnInit, AfterViewChecked {
     { key: "gallery", label: "Galer\u00eda" },
     { key: "dresscode", label: "Vestimenta" },
     { key: "gifts", label: "Regalos" },
-    { key: "rsvp", label: "RSVP" },
+    { key: "rsvp", label: "Confirmaciones" },
   ];
 
   scrollTabs(delta: number) {
@@ -600,46 +585,7 @@ export class ConfigComponent implements OnInit, AfterViewChecked {
     this.api.getPhotos(this.eventId).subscribe((p) => this.photos.set(p));
   }
 
-  ngAfterViewChecked() {
-    if (this.quillCustomColorInjected) return;
-    const pickers = document.querySelectorAll('.ql-color-picker .ql-picker-options');
-    if (!pickers.length) return;
-    this.quillCustomColorInjected = true;
-    pickers.forEach(picker => {
-      if (picker.querySelector('.custom-color-input')) return;
-      const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'width:100%;margin-top:6px;padding-top:6px;border-top:1px solid rgba(212,160,23,0.2);display:flex;align-items:center;gap:8px;';
-      const input = document.createElement('input');
-      input.type = 'color';
-      input.value = '#d4a017';
-      input.className = 'custom-color-input';
-      input.style.cssText = 'width:28px;height:28px;border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;background:none;padding:2px;';
-      const label = document.createElement('span');
-      label.textContent = 'Personalizado';
-      label.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.5);';
-      wrapper.appendChild(input);
-      wrapper.appendChild(label);
-      picker.appendChild(wrapper);
 
-      const isBackground = picker.closest('.ql-background') !== null;
-      input.addEventListener('input', () => {
-        if (this.quillEditors.length > 0) {
-          this.quillEditors.forEach(q => {
-            const sel = q.getSelection();
-            if (sel && sel.length > 0) {
-              q.format(isBackground ? 'background' : 'color', input.value);
-            }
-          });
-        }
-      });
-    });
-  }
-
-  quillEditors: any[] = [];
-  onEditorCreated(editor: any) {
-    this.quillEditors.push(editor);
-    this.quillCustomColorInjected = false; // re-inject for new editors
-  }
 
   save() {
     if (!this.config()) return;
@@ -1082,7 +1028,37 @@ export class ConfigComponent implements OnInit, AfterViewChecked {
 
   private ensureHtmlContent(content: string): string {
     if (!content) return '';
-    if (content.includes('<p>') || content.includes('<br>') || content.includes('<span>')) return content;
+    // Ya es HTML
+    if (content.includes('<p>') || content.includes('<br>') || content.includes('<span>') || content.includes('<div>')) return content;
+    // Texto plano: convertir \n literales y newlines reales a párrafos
     return content.split(/\\n|\n/).map(line => `<p>${line.trim() || '<br>'}</p>`).join('');
+  }
+
+  // Section Icons
+  sectionEmojiPickerOpen: string | null = null;
+  sectionEmojiOptions = [
+    '\uD83D\uDC57', '\uD83D\uDC54', '\uD83C\uDFA9', '\uD83D\uDC60', '\uD83D\uDC83', '\uD83D\uDD7A', '\uD83E\uDD35', '\uD83D\uDC70',
+    '\uD83C\uDF81', '\uD83D\uDC9D', '\uD83C\uDF80', '\uD83D\uDCB0', '\uD83C\uDFE6', '\uD83D\uDCB3', '\uD83E\uDE99', '\uD83D\uDCB5',
+    '\u2705', '\uD83D\uDCCB', '\uD83D\uDC8C', '\uD83D\uDCE9', '\uD83D\uDE4B', '\uD83D\uDE4F', '\uD83C\uDF89', '\u2764\uFE0F',
+  ];
+
+  toggleSectionEmojiPicker(key: string) {
+    this.sectionEmojiPickerOpen = this.sectionEmojiPickerOpen === key ? null : key;
+  }
+
+  ensureSectionIcon(obj: any): SectionIconConfig {
+    if (!obj.sectionIcon) {
+      obj.sectionIcon = { iconType: 'material', icon: '', iconUrl: '' };
+    }
+    return obj.sectionIcon;
+  }
+
+  uploadSectionIcon(event: any, obj: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    this.ensureSectionIcon(obj);
+    this.api.uploadFile('images', file).subscribe(r => {
+      obj.sectionIcon.iconUrl = r.url;
+    });
   }
 }

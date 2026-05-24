@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DresscodeConfig, GlobalTextStyles } from '../../../core/models/models';
+import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-dresscode',
@@ -19,7 +19,15 @@ import { DresscodeConfig, GlobalTextStyles } from '../../../core/models/models';
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
         <div class="dresscode-card reveal">
-          <span class="material-icons dresscode-icon">checkroom</span>
+          @if (getIcon(); as icon) {
+            @if (icon.type === 'material') {
+              <span class="material-icons dresscode-icon">{{ icon.value }}</span>
+            } @else if (icon.type === 'emoji') {
+              <span class="dresscode-icon emoji">{{ icon.value }}</span>
+            } @else {
+              <img [src]="icon.value" class="dresscode-icon-img" alt="">
+            }
+          }
           <p class="dresscode-desc"
              [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
              [style.font-size.px]="styles?.contentStyle?.fontSize || 16"
@@ -40,6 +48,8 @@ import { DresscodeConfig, GlobalTextStyles } from '../../../core/models/models';
       border-radius: 16px; padding: 40px;
     }
     .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .dresscode-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
+    .dresscode-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .dresscode-desc { color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.8; white-space: pre-line; }
     .reveal { animation: revealUp 0.8s ease both; }
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -60,5 +70,13 @@ export class LandingDresscodeComponent {
   getSeparatorHeight(): string {
     const t=this.styles?.separatorStyle?.type||'elegant';
     switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
+  }
+
+  getIcon(): { type: string; value: string } {
+    const si = this.config.sectionIcon;
+    if (!si || si.iconType === 'material') return { type: 'material', value: 'checkroom' };
+    if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
+    if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };
+    return { type: 'material', value: 'checkroom' };
   }
 }

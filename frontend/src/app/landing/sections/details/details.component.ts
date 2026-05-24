@@ -41,6 +41,9 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
               }
               <div [style.text-align]="card.textAlign"
                  class="detail-content"
+                 [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
+                 [style.font-size.px]="styles?.contentStyle?.fontSize || 14"
+                 [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'"
                  [innerHTML]="card.content"
               ></div>
             </div>
@@ -63,15 +66,14 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
     }
     .detail-icon {
-      width: 72px; height: 72px; border-radius: 50%;
+      width: 72px; height: 72px;
       overflow: hidden; margin: 0 auto 16px;
-      border: 1px solid rgba(212,160,23,0.3);
-      img { width: 100%; height: 100%; object-fit: cover; }
+      display: flex; align-items: center; justify-content: center;
+      img { width: 100%; height: 100%; object-fit: contain; }
     }
     .detail-icon.emoji-icon {
       display: flex; align-items: center; justify-content: center;
-      background: var(--theme-card-bg, rgba(0,0,0,0.3));
-      span { font-size: 36px; }
+      span { font-size: 48px; }
     }
     h3 { margin-bottom: 12px; line-height: 1.4; padding: 0.1em 0; }
     h3.gradient-text {
@@ -81,7 +83,7 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
       display: inline-block;
     }
     p { line-height: 1.7; white-space: pre-line; }
-    .detail-content { line-height: 1.7; color: var(--theme-text-secondary, rgba(255,255,255,0.7)); }
+    .detail-content { line-height: 1.7; }
     .detail-content p { margin: 0 0 8px; }
     .detail-content p:last-child { margin-bottom: 0; }
     .reveal { animation: revealUp 0.8s ease both; }
