@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IntroConfig } from '../../../core/models/models';
+import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-intro',
@@ -12,14 +12,16 @@ import { IntroConfig } from '../../../core/models/models';
         <div class="intro-bg" [style.backgroundImage]="'url(' + config.background + ')'"></div>
         <div class="intro-bg-overlay"></div>
       } @else {
-        <div class="intro-bg intro-bg-default"></div>
+        <div class="intro-bg" [style.background]="defaultBg"></div>
       }
-      <div class="intro-content">
-        <div class="intro-particles">
-          @for (p of particles; track p) {
+      @if (particlesConfig.enabled) {
+        <div class="intro-particles" [attr.data-type]="particlesConfig.type" [attr.data-dir]="particlesConfig.direction">
+          @for (p of particles; track $index) {
             <div class="particle" [style]="p"></div>
           }
         </div>
+      }
+      <div class="intro-content">
         <p class="intro-phrase"
            [style.font-family]="getFontFamily(config.phraseStyle?.fontFamily)"
            [style.font-size.px]="config.phraseStyle?.fontSize || 42"
@@ -45,14 +47,11 @@ import { IntroConfig } from '../../../core/models/models';
       background-size: cover; background-position: center;
       animation: introBgZoom 5s ease forwards;
     }
-    .intro-bg-default {
-      background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%);
-    }
     .intro-bg-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%);
     }
-    .intro-content { position: relative; z-index: 1; text-align: center; width: 100%; padding: 0 20px; }
+    .intro-content { position: relative; z-index: 2; text-align: center; width: 100%; padding: 0 20px; }
     .intro-phrase {
       font-family: var(--font-script);
       font-size: clamp(28px, 6vw, 52px);
@@ -70,33 +69,136 @@ import { IntroConfig } from '../../../core/models/models';
       height: 100%; width: 0;
       animation: progressFill linear forwards;
     }
-    .intro-particles { position: absolute; inset: 0; pointer-events: none; }
+    .intro-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
     .particle {
       position: absolute;
-      width: 4px; height: 4px;
-      background: var(--gold);
       border-radius: 50%;
-      animation: particleFloat linear infinite;
       opacity: 0;
     }
+    /* Sparkles */
+    [data-type="sparkles"] .particle { animation: particleUp linear infinite; }
+    /* Snow */
+    [data-type="snow"] .particle { animation: particleDown linear infinite; }
+    /* Fireflies */
+    [data-type="fireflies"] .particle { animation: particleFirefly ease-in-out infinite; }
+    /* Bubbles */
+    [data-type="bubbles"] .particle { animation: particleBubble ease-in-out infinite; }
+    /* Stars */
+    [data-type="stars"] .particle { animation: particleStar ease-in-out infinite; }
+    /* Confetti */
+    [data-type="confetti"] .particle { border-radius: 2px; animation: particleConfetti linear infinite; }
+
     @keyframes introBgZoom { from { transform: scale(1); } to { transform: scale(1.08); } }
     @keyframes phraseIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes progressFill { from { width: 0; } to { width: 100%; } }
-    @keyframes particleFloat {
-      0% { opacity: 0; transform: translateY(0) scale(0); }
-      20% { opacity: 1; }
-      80% { opacity: 0.5; }
-      100% { opacity: 0; transform: translateY(-100vh) scale(1); }
+
+    @keyframes particleUp {
+      0% { opacity: 0; transform: translateY(0) translateX(0) scale(0.5); }
+      5% { opacity: var(--particle-opacity, 0.8); }
+      80% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); }
+      100% { opacity: 0; transform: translateY(-100vh) translateX(var(--drift, 0px)) scale(1); }
+    }
+    @keyframes particleDown {
+      0% { opacity: 0; transform: translateY(0) translateX(0) scale(0.5); }
+      5% { opacity: var(--particle-opacity, 0.8); }
+      80% { opacity: calc(var(--particle-opacity, 0.8) * 0.5); }
+      100% { opacity: 0; transform: translateY(100vh) translateX(var(--drift, 20px)) scale(1); }
+    }
+    @keyframes particleFirefly {
+      0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+      10% { opacity: var(--particle-opacity, 0.8); }
+      25% { transform: translate(var(--drift, 30px), -15vh) scale(1); }
+      50% { opacity: calc(var(--particle-opacity, 0.8) * 0.4); transform: translate(calc(var(--drift, 30px) * -1), -30vh) scale(0.7); }
+      75% { opacity: var(--particle-opacity, 0.8); transform: translate(var(--drift, 30px), -45vh) scale(1); }
+      100% { opacity: 0; transform: translate(0, -60vh) scale(0.5); }
+    }
+    @keyframes particleBubble {
+      0% { opacity: 0; transform: translateY(0) translateX(0) scale(0.4); }
+      10% { opacity: var(--particle-opacity, 0.8); transform: translateY(-8vh) translateX(var(--drift, 10px)) scale(0.8); }
+      40% { opacity: var(--particle-opacity, 0.8); transform: translateY(-35vh) translateX(calc(var(--drift, 10px) * -0.5)) scale(1); }
+      70% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); transform: translateY(-60vh) translateX(var(--drift, 10px)) scale(0.9); }
+      100% { opacity: 0; transform: translateY(-90vh) translateX(calc(var(--drift, 10px) * -1)) scale(0.6); }
+    }
+    @keyframes particleStar {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: var(--particle-opacity, 0.8); transform: scale(1.2); }
+    }
+    @keyframes particleConfetti {
+      0% { opacity: 0; transform: translateY(0) rotate(0deg) scale(1); }
+      10% { opacity: var(--particle-opacity, 0.8); }
+      90% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); }
+      100% { opacity: 0; transform: translateY(100vh) rotate(var(--rotation, 720deg)) scale(0.5); }
+    }
+
+    /* Direction overrides for left/right */
+    [data-dir="left"] [data-type="sparkles"] .particle,
+    [data-dir="left"][data-type="sparkles"] .particle { animation-name: particleLeft; }
+    [data-dir="right"] [data-type="sparkles"] .particle,
+    [data-dir="right"][data-type="sparkles"] .particle { animation-name: particleRight; }
+    [data-dir="left"][data-type="snow"] .particle { animation-name: particleLeft; }
+    [data-dir="right"][data-type="snow"] .particle { animation-name: particleRight; }
+    [data-dir="left"][data-type="bubbles"] .particle { animation-name: particleLeft; }
+    [data-dir="right"][data-type="bubbles"] .particle { animation-name: particleRight; }
+    [data-dir="left"][data-type="confetti"] .particle { animation-name: particleConfettiLeft; }
+    [data-dir="right"][data-type="confetti"] .particle { animation-name: particleConfettiRight; }
+    [data-dir="down"][data-type="sparkles"] .particle { animation-name: particleDown; }
+
+    @keyframes particleLeft {
+      0% { opacity: 0; transform: translateX(0) translateY(0) scale(0); }
+      15% { opacity: 1; }
+      85% { opacity: 0.5; }
+      100% { opacity: 0; transform: translateX(-100vw) translateY(var(--drift, 0px)) scale(1); }
+    }
+    @keyframes particleRight {
+      0% { opacity: 0; transform: translateX(0) translateY(0) scale(0); }
+      15% { opacity: 1; }
+      85% { opacity: 0.5; }
+      100% { opacity: 0; transform: translateX(100vw) translateY(var(--drift, 0px)) scale(1); }
+    }
+    @keyframes particleConfettiLeft {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(1); }
+      10% { opacity: 1; }
+      90% { opacity: 0.6; }
+      100% { opacity: 0; transform: translateX(-100vw) rotate(var(--rotation, 720deg)) scale(0.5); }
+    }
+    @keyframes particleConfettiRight {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(1); }
+      10% { opacity: 1; }
+      90% { opacity: 0.6; }
+      100% { opacity: 0; transform: translateX(100vw) rotate(var(--rotation, 720deg)) scale(0.5); }
     }
   `]
 })
 export class LandingIntroComponent implements OnInit, OnDestroy {
   @Input() config!: IntroConfig;
   @Input() themeColor: string = '#d4a017';
+  @Input() themeBg: string = '';
+  @Input() themeBorder: string = '';
   @Output() done = new EventEmitter<void>();
   fading = false;
   particles: string[] = [];
   private timer: any;
+
+  get defaultBg(): string {
+    const c1 = this.themeBg || 'rgba(13,17,23,1)';
+    const c2 = this.themeBorder || 'rgba(212,160,23,0.3)';
+    const c3 = this.themeColor || '#d4a017';
+    return `radial-gradient(ellipse at center, color-mix(in srgb, ${c3} 8%, #0d1117) 0%, #0d1117 70%)`;
+  }
+
+  get particlesConfig(): IntroParticlesConfig {
+    return this.config.particles || {
+      enabled: true,
+      type: 'sparkles',
+      color1: '#d4a017',
+      color2: '#ffffff',
+      direction: 'up',
+      quantity: 20,
+      speed: 5,
+      size: 4,
+      opacity: 0.8
+    };
+  }
 
   getFontFamily(key?: string): string {
     const map: Record<string, string> = {
@@ -110,13 +212,10 @@ export class LandingIntroComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.particles = Array.from({ length: 20 }, () => {
-      const left = Math.random() * 100;
-      const delay = Math.random() * 3;
-      const dur = 3 + Math.random() * 4;
-      const size = 2 + Math.random() * 4;
-      return `left:${left}%;bottom:0;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:${delay}s`;
-    });
+    const pc = this.particlesConfig;
+    if (pc.enabled) {
+      this.particles = this.generateParticles(pc);
+    }
 
     const dur = Math.min(this.config.duration || 4, 5) * 1000;
     this.timer = setTimeout(() => {
@@ -126,4 +225,59 @@ export class LandingIntroComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() { clearTimeout(this.timer); }
+
+  private generateParticles(pc: IntroParticlesConfig): string[] {
+    const count = pc.quantity || 20;
+    const baseSpeed = pc.speed || 5;
+    const type = pc.type || 'sparkles';
+    const dir = pc.direction || 'up';
+    const baseSize = pc.size || 4;
+    const baseOpacity = pc.opacity ?? 0.8;
+
+    return Array.from({ length: count }, () => {
+      const color = Math.random() > 0.5 ? pc.color1 : pc.color2;
+      const delay = Math.random() * 1.5;
+      const dur = (4 - baseSpeed * 0.3) + Math.random() * 2;
+      const sizeVariation = baseSize * (0.6 + Math.random() * 0.8);
+      const drift = (Math.random() - 0.5) * 60;
+      const rotation = 360 + Math.random() * 720;
+
+      let position = '';
+      if (type === 'stars' || type === 'fireflies') {
+        position = `left:${Math.random() * 100}%;top:${Math.random() * 100}%;`;
+      } else {
+        switch (dir) {
+          case 'up': position = `left:${Math.random() * 100}%;bottom:-5%;`; break;
+          case 'down': position = `left:${Math.random() * 100}%;top:-5%;`; break;
+          case 'left': position = `top:${Math.random() * 100}%;right:-5%;`; break;
+          case 'right': position = `top:${Math.random() * 100}%;left:-5%;`; break;
+        }
+      }
+
+      let width = sizeVariation;
+      let height = sizeVariation;
+      let extra = '';
+
+      if (type === 'confetti') {
+        width = sizeVariation * 0.5;
+        height = sizeVariation;
+      } else if (type === 'bubbles') {
+        // Burbujas: más grandes, transparentes con borde
+        const bubbleSize = sizeVariation * 2.5;
+        width = bubbleSize;
+        height = bubbleSize;
+        extra = `;background:transparent;border:1px solid ${color};box-shadow:inset 0 0 ${bubbleSize * 0.3}px ${color}40, 0 0 ${bubbleSize * 0.5}px ${color}20`;
+      } else if (type === 'sparkles' || type === 'stars') {
+        // Efecto astigmatismo: puntas de luz con box-shadow
+        const glowSize = sizeVariation * 1.5;
+        extra = `;box-shadow:0 0 ${glowSize}px ${glowSize * 0.3}px ${color}, ${glowSize * 0.8}px 0 ${glowSize * 0.5}px 0 ${color}80, -${glowSize * 0.8}px 0 ${glowSize * 0.5}px 0 ${color}80, 0 ${glowSize * 0.8}px ${glowSize * 0.5}px 0 ${color}80, 0 -${glowSize * 0.8}px ${glowSize * 0.5}px 0 ${color}80`;
+        width = sizeVariation * 0.4;
+        height = sizeVariation * 0.4;
+      } else if (type === 'fireflies') {
+        extra = `;box-shadow:0 0 ${sizeVariation * 2}px ${color}`;
+      }
+
+      return `${position}width:${width}px;height:${height}px;background:${type === 'bubbles' ? 'transparent' : color};animation-duration:${dur}s;animation-delay:${delay}s;--drift:${drift}px;--rotation:${rotation}deg;--particle-opacity:${baseOpacity}${extra}`;
+    });
+  }
 }

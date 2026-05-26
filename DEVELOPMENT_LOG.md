@@ -70,6 +70,20 @@ Portafolio/                         ← Workspace
 
 ---
 
+## ✅ Fix aplicado (2025-05-26): Imágenes en producción
+
+- **Causa raíz**: Nginx del host no tenía `location /uploads/`
+- **Fix**: Agregado `location /uploads/` + `client_max_body_size 50m` en `/etc/nginx/sites-enabled/invitaciones`
+- **Resultado**: Imágenes se suben y cargan correctamente en `https://invitaciones.jbdev.pro/uploads/...`
+- **Nota**: Archivos anteriores al fix se perdieron (volumen recreado vacío), se re-subieron
+
+**Puertos en producción (referencia):**
+- Frontend container: `0.0.0.0:4200->80/tcp`
+- Backend container: `0.0.0.0:3001->3000/tcp`
+- Dominio: `invitaciones.jbdev.pro` (SSL via Let's Encrypt, cert en `/etc/letsencrypt/live/pos.jbdev.pro/`)
+
+---
+
 ## 🔧 Cambios Realizados en Esta Sesión (2025-05-22)
 
 ### Fix URLs de uploads (imágenes/assets)

@@ -26,6 +26,7 @@ export class ScrollRevealDirective implements OnInit, OnDestroy {
   ngOnDestroy() { this.observer?.disconnect(); }
 }
 import { LandingIntroComponent } from './sections/intro/intro.component';
+import { LandingEnvelopeComponent } from './sections/envelope/envelope.component';
 import { LandingHeroComponent } from './sections/hero/hero.component';
 import { LandingInvitationComponent } from './sections/invitation/invitation.component';
 import { LandingDetailsComponent } from './sections/details/details.component';
@@ -41,7 +42,7 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
   standalone: true,
   imports: [
     CommonModule, ScrollRevealDirective,
-    LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
+    LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
     LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent
   ],
@@ -67,17 +68,22 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
 
     @if (data() && !loading()) {
       <!-- Fixed background -->
-      @if (data()!.config.hero?.backgroundGif) {
+      @if (!showEnvelope() && data()!.config.hero?.backgroundGif) {
         <div class="landing-bg" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
         <div class="landing-bg-overlay"></div>
       }
 
-      <!-- Intro -->
-      @if (showIntro() && data()!.config.intro?.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme?.navFooterText || '#d4a017'" (done)="showIntro.set(false)" />
+      <!-- Envelope -->
+      @if (showEnvelope() && data()!.config.envelope?.enabled) {
+        <app-landing-envelope [config]="data()!.config.envelope" (done)="onEnvelopeOpened()" />
       }
 
-      @if (!showIntro()) {
+      <!-- Intro -->
+      @if (showIntro() && !showEnvelope() && data()!.config.intro?.enabled) {
+        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme?.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme?.cardBg || ''" [themeBorder]="data()!.config.theme?.cardBorder || ''" (done)="showIntro.set(false)" />
+      }
+
+      @if (!showIntro() && !showEnvelope()) {
         <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme?.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme?.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme?.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme?.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme?.buttonFont)">
         <!-- Sticky nav -->
         <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" />
@@ -141,17 +147,30 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     }
   `,
   styles: [`
-    :host { display: block; }
+    :host { display: block; overscroll-behavior: none; }
     .landing-bg {
       position: fixed; inset: 0; z-index: -2;
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
       width: 100%; height: 100%;
+      /* Fix mobile: prevent gap when address bar hides/shows */
+      height: 100vh;
+      height: 100dvh;
+      /* Extend beyond viewport to cover rubber-band scroll */
+      top: -5vh;
+      bottom: -5vh;
+      height: 110vh;
+      height: 110dvh;
     }
     .landing-bg-overlay {
       position: fixed; inset: 0; z-index: -1;
       background: rgba(0,0,0,0.55);
+      /* Match bg extension */
+      top: -5vh;
+      bottom: -5vh;
+      height: 110vh;
+      height: 110dvh;
     }
     .landing-wrapper {
       max-width: 520px;
@@ -220,6 +239,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal(false);
   showIntro = signal(false);
+  showEnvelope = signal(false);
   scrolled = false;
   slug = '';
 
@@ -227,6 +247,22 @@ export class LandingComponent implements OnInit, OnDestroy {
   onScroll() { this.scrolled = window.scrollY > 300; }
 
   scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+  onEnvelopeOpened() {
+    this.showEnvelope.set(false);
+    // Start audio (user interaction satisfied by envelope click)
+    if (this.data()?.config.hero?.audioUrl) {
+      const audio = new Audio(this.data()!.config.hero.audioUrl);
+      audio.loop = true;
+      audio.play().catch(() => {});
+      // Store reference so hero component can control it
+      (window as any).__landingAudio = audio;
+    }
+    // Show intro if enabled, otherwise go straight to landing
+    if (this.data()?.config.intro?.enabled) {
+      this.showIntro.set(true);
+    }
+  }
 
   ngOnInit() {
     this.slug = this.route.snapshot.params['slug'];
@@ -236,7 +272,11 @@ export class LandingComponent implements OnInit, OnDestroy {
       next: (d) => {
         this.data.set(d);
         this.loading.set(false);
-        if (d.config.intro?.enabled) this.showIntro.set(true);
+        if (d.config.envelope?.enabled) {
+          this.showEnvelope.set(true);
+        } else if (d.config.intro?.enabled) {
+          this.showIntro.set(true);
+        }
         this.applyScrollbarColor(d.config.theme?.cardBorder || '#d4a017');
         if (code) {
           this.api.getGuestByCode(this.slug, code).subscribe({

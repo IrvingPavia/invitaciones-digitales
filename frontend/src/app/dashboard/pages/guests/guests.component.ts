@@ -36,6 +36,42 @@ import { environment } from '../../../../environments/environment';
       .material-icons { font-size: 16px; }
       &:hover { color: white; background: rgba(255,255,255,0.1); }
     }
+    /* Mobile cards */
+    .guest-cards { display: none; }
+    .guest-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .guest-card:hover { border-color: rgba(212,160,23,0.4); }
+    .guest-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; gap: 8px;
+    }
+    .guest-card-name {
+      font-size: 15px; font-weight: 600; color: white;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1; min-width: 0;
+    }
+    .guest-card-body {
+      display: grid; grid-template-columns: auto 1fr; gap: 6px 12px;
+      font-size: 13px; margin-bottom: 12px;
+    }
+    .guest-card-label { color: rgba(255,255,255,0.4); white-space: nowrap; }
+    .guest-card-value { color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; }
+    .guest-card-actions {
+      display: flex; gap: 8px; justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .desktop-table { display: block; }
+    @media (max-width: 768px) {
+      .desktop-table { display: none; }
+      .guest-cards { display: block; }
+    }
   `],
   template: `
     <div>
@@ -71,7 +107,7 @@ import { environment } from '../../../../environments/environment';
         </div>
       </div>
 
-      <div class="card" style="overflow:auto">
+      <div class="card desktop-table" style="overflow:auto">
         <table class="data-table">
           <thead>
             <tr><th>Código</th><th>Tipo</th><th>Familia/Nombre</th><th>Invitados</th><th>Acompañantes</th><th>Estado</th><th>Acciones</th></tr>
@@ -109,6 +145,53 @@ import { environment } from '../../../../environments/environment';
             }
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="guest-cards">
+        @for (g of filtered(); track g.id) {
+          <div class="guest-card">
+            <div class="guest-card-header">
+              <span class="guest-card-name">
+                @if (g.family_name) { {{ g.family_name }} } @else { {{ g.guest_names }} }
+              </span>
+              <span class="badge" [class.badge-info]="g.guest_type==='family'" [class.badge-warning]="g.guest_type==='individual'">{{ g.guest_type === 'family' ? 'Familia' : 'Individual' }}</span>
+            </div>
+            <div class="guest-card-body">
+              <span class="guest-card-label">Código</span>
+              <span class="guest-card-value"><code style="color:var(--gold);font-size:12px">{{ g.unique_code }}</code></span>
+              @if (g.family_name) {
+                <span class="guest-card-label">Invitados</span>
+                <span class="guest-card-value">{{ g.guest_names }}</span>
+              }
+              <span class="guest-card-label">Total</span>
+              <span class="guest-card-value">{{ guestCount(g) }} persona{{ guestCount(g) > 1 ? 's' : '' }}</span>
+              @if (g.guest_type === 'individual' && g.max_companions > 0) {
+                <span class="guest-card-label">Acompañantes</span>
+                <span class="guest-card-value">{{ g.max_companions }}</span>
+              }
+              <span class="guest-card-label">Estado</span>
+              <span class="guest-card-value">
+                @if (g.confirmed) {
+                  <span class="badge badge-success">✓ Confirmado ({{ g.confirmed_count }})</span>
+                } @else {
+                  <span class="badge badge-warning">Pendiente</span>
+                }
+              </span>
+            </div>
+            <div class="guest-card-actions">
+              <a [href]="landingUrl(g)" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Invitación"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
+              <button class="btn btn-secondary btn-sm btn-icon" (click)="showQR(g)" title="QR"><span class="material-icons" style="font-size:16px">qr_code</span></button>
+              <button class="btn btn-secondary btn-sm btn-icon" (click)="editGuest(g)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
+              <button class="btn btn-danger btn-sm btn-icon" (click)="deleteGuest(g)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
+            </div>
+          </div>
+        }
+        @empty {
+          <div class="card" style="padding:40px;text-align:center">
+            <p class="text-muted">No hay invitados. Importa desde Excel o agrega manualmente.</p>
+          </div>
+        }
       </div>
     </div>
 

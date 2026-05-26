@@ -25,7 +25,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
       @if (menuOpen) {
         <div class="nav-menu">
           @for (item of navItems; track item.id) {
-            <a [href]="'#' + item.id" (click)="menuOpen = false" class="nav-menu-item">{{ item.label }}</a>
+            <a (click)="scrollTo(item.id); menuOpen = false" class="nav-menu-item">{{ item.label }}</a>
           }
         </div>
       }
@@ -124,9 +124,10 @@ import { HeroConfig, Event } from '../../../core/models/models';
       border-radius: 50%; width: 48px; height: 48px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: var(--theme-text-primary, white); transition: all 0.3s;
+      outline: none; -webkit-tap-highlight-color: transparent;
       .material-icons { font-size: 26px; }
-      &:hover { background: rgba(212,160,23,0.2); border-color: var(--theme-card-border, var(--gold)); color: var(--theme-nav-text, var(--gold)); }
-      &:focus, &:active { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-btn-bg, #d4a017) 30%, transparent); }
+      &:hover { background: rgba(255,255,255,0.15); border-color: var(--theme-card-border, rgba(255,255,255,0.3)); }
+      &:focus, &:active { outline: none; box-shadow: none; border-color: var(--theme-card-border, rgba(255,255,255,0.3)); }
     }
     .nav-menu {
       background: var(--theme-card-bg, rgba(13,17,23,0.95)); backdrop-filter: blur(12px);
@@ -202,11 +203,12 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   navItems = [
     { id: 'invitation', label: 'Invitación' },
     { id: 'details', label: 'Detalles' },
+    { id: 'venues', label: 'Lugares' },
     { id: 'itinerary', label: 'Itinerario' },
     { id: 'gallery', label: 'Galería' },
     { id: 'dresscode', label: 'Vestimenta' },
     { id: 'gifts', label: 'Regalos' },
-    { id: 'rsvp', label: 'RSVP' }
+    { id: 'rsvp', label: 'Confirmaciones' }
   ];
 
   @HostListener('window:scroll')
@@ -216,6 +218,10 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     if (this.config.countdownDate) {
       this.updateCountdown();
       this.timer = setInterval(() => this.updateCountdown(), 1000);
+    }
+    // If envelope already started audio, reflect playing state
+    if ((window as any).__landingAudio) {
+      this.playing = true;
     }
   }
 
@@ -237,10 +243,24 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   }
 
   toggleAudio() {
+    // Check if audio was started by envelope
+    const envelopeAudio = (window as any).__landingAudio as HTMLAudioElement | undefined;
+    if (envelopeAudio) {
+      if (this.playing) { envelopeAudio.pause(); this.playing = false; }
+      else { envelopeAudio.play(); this.playing = true; }
+      return;
+    }
     const audio = this.audioEl?.nativeElement;
     if (!audio) return;
     if (this.playing) { audio.pause(); this.playing = false; }
     else { audio.play(); this.playing = true; }
+  }
+
+  scrollTo(id: string) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   getFontFamily(key?: string): string {

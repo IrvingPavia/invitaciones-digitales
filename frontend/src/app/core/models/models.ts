@@ -26,6 +26,7 @@ export interface Guest {
 }
 
 export interface EventConfig {
+  envelope: EnvelopeConfig;
   intro: IntroConfig;
   hero: HeroConfig;
   invitation: InvitationConfig;
@@ -67,6 +68,32 @@ export interface SeparatorStyle {
   color: string;
 }
 
+export interface EnvelopeConfig {
+  enabled: boolean;
+  style: 'classic' | 'elegant' | 'vertical' | 'minimal' | 'wax';
+  sealStyle: 'wax-circle' | 'wax-heart' | 'ribbon' | 'stamp' | 'monogram';
+  envelopeColor: string;
+  sealColor: string;
+  sealText: string;
+  sealImage: string;
+  instructionText: string;
+  bgColor: string;
+  bgColor2: string;
+  textColor: string;
+}
+
+export interface IntroParticlesConfig {
+  enabled: boolean;
+  type: 'sparkles' | 'snow' | 'fireflies' | 'bubbles' | 'stars' | 'confetti';
+  color1: string;
+  color2: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+  quantity: number;   // 5-80
+  speed: number;      // 1-10
+  size: number;       // 1-20
+  opacity: number;    // 0.1-1
+}
+
 export interface IntroConfig {
   enabled: boolean;
   background: string;
@@ -78,6 +105,7 @@ export interface IntroConfig {
     color: string;
     fontWeight?: number;
   };
+  particles?: IntroParticlesConfig;
 }
 
 export interface HeroTextStyle {
@@ -141,6 +169,7 @@ export interface DetailCard {
 
 export interface VenuesConfig {
   enabled: boolean;
+  iconStyle?: 'circle' | 'plain';
   items: VenueItem[];
 }
 

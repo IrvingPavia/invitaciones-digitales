@@ -156,6 +156,67 @@
 </div>
 }
 
+@if (activeTab === 'envelope') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Sobre de Invitación</span>
+    <label class="toggle-pill" (click)="c.envelope.enabled = !c.envelope.enabled"><span class="toggle-pill-dot" [class.active]="c.envelope.enabled"></span>{{ c.envelope.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    @if (c.envelope.enabled) {
+    <p class="style-desc mb-16">El invitado verá un sobre con sello antes de la intro. Al tocar el sello se abre y reproduce el audio.</p>
+    <div class="field mb-16">
+      <label class="form-label">Estilo de sobre</label>
+      <select [(ngModel)]="c.envelope.style">
+        <option value="classic">📨 Clásico (solapa triangular)</option>
+        <option value="elegant">💌 Elegante (solapa redondeada)</option>
+        <option value="vertical">📖 Vertical (puertas)</option>
+        <option value="minimal">⭕ Minimal (solo sello)</option>
+        <option value="wax">🕯️ Lacre (sello se rompe)</option>
+      </select>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Estilo de sello</label>
+      <select [(ngModel)]="c.envelope.sealStyle">
+        <option value="wax-circle">🔴 Cera circular</option>
+        <option value="wax-heart">❤️ Cera corazón</option>
+        <option value="ribbon">🎀 Cinta/Lazo</option>
+        <option value="stamp">📮 Estampilla</option>
+        <option value="monogram">✒️ Monograma</option>
+      </select>
+    </div>
+    <div class="field-row mb-16">
+      <div class="field field-xs"><label class="form-label">Color sobre</label><app-color-picker [value]="c.envelope.envelopeColor" (valueChange)="c.envelope.envelopeColor = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Color sello</label><app-color-picker [value]="c.envelope.sealColor" (valueChange)="c.envelope.sealColor = $event"></app-color-picker></div>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Texto del sello (iniciales, emoji o texto corto)</label>
+      <input class="form-control" [(ngModel)]="c.envelope.sealText" placeholder="♡" style="max-width:200px;">
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Imagen del sello (opcional, reemplaza texto)</label>
+      <input type="file" accept="image/*" (change)="uploadFile($event, 'images', 'envelope.sealImage')">
+      @if (c.envelope.sealImage) {
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <img [src]="c.envelope.sealImage" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid rgba(212,160,23,0.3);">
+          <button class="btn-remove-file" (click)="c.envelope.sealImage = ''">✕ Quitar</button>
+        </div>
+      }
+    </div>
+    <div class="field">
+      <label class="form-label">Texto de instrucción</label>
+      <input class="form-control" [(ngModel)]="c.envelope.instructionText" placeholder="Toca para abrir">
+    </div>
+    <div class="field-row mb-16" style="margin-top:16px;">
+      <div class="field field-xs"><label class="form-label">Fondo color 1</label><app-color-picker [value]="c.envelope.bgColor" (valueChange)="c.envelope.bgColor = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Fondo color 2</label><app-color-picker [value]="c.envelope.bgColor2" (valueChange)="c.envelope.bgColor2 = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Color de texto</label><app-color-picker [value]="c.envelope.textColor" (valueChange)="c.envelope.textColor = $event"></app-color-picker></div>
+    </div>
+    }
+  </div>
+</div>
+}
+
 @if (activeTab === 'intro') {
 <div class="section-card">
   <div class="section-card-header">
@@ -174,10 +235,74 @@
       <div class="field slider-field"><label class="form-label">Grosor: {{ c.intro.phraseStyle!.fontWeight }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.intro.phraseStyle!.fontWeight"></div>
     </div>
     <div class="field"><label class="form-label">Imagen/GIF de fondo</label><input type="file" accept="image/*,.gif" (change)="uploadFile($event, 'gifs', 'intro.background')">
-      @if (c.intro.background) { <img [src]="c.intro.background" class="upload-preview"> }
+      @if (c.intro.background) { <img [src]="c.intro.background" class="upload-preview"> <button class="btn-remove-file" (click)="c.intro.background = ''">✕ Quitar imagen</button> }
     </div>
   </div>
 </div>
+
+<!-- Partículas / Animación -->
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Animación de Partículas</span>
+    <label class="toggle-pill" (click)="c.intro.particles!.enabled = !c.intro.particles!.enabled"><span class="toggle-pill-dot" [class.active]="c.intro.particles!.enabled"></span>{{ c.intro.particles!.enabled ? 'ON' : 'OFF' }}</label>
+  </div>
+  <div class="section-card-body">
+    @if (c.intro.particles!.enabled) {
+    <div class="field mb-16">
+      <label class="form-label">Tipo de animación</label>
+      <select [(ngModel)]="c.intro.particles!.type">
+        <option value="sparkles">✨ Brillos</option>
+        <option value="snow">❄️ Nieve</option>
+        <option value="fireflies">🪲 Luciérnagas</option>
+        <option value="bubbles">🫧 Burbujas</option>
+        <option value="stars">⭐ Estrellas</option>
+        <option value="confetti">🎊 Confeti</option>
+      </select>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Dirección</label>
+      <select [(ngModel)]="c.intro.particles!.direction">
+        <option value="up">↑ Arriba</option>
+        <option value="down">↓ Abajo</option>
+        <option value="left">← Izquierda</option>
+        <option value="right">→ Derecha</option>
+      </select>
+    </div>
+    <div class="field-row mb-16">
+      <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.intro.particles!.color1" (valueChange)="c.intro.particles!.color1 = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.intro.particles!.color2" (valueChange)="c.intro.particles!.color2 = $event"></app-color-picker></div>
+    </div>
+    <div class="field-row mb-16">
+      <div class="field slider-field"><label class="form-label">Cantidad: {{ c.intro.particles!.quantity }}</label><input type="range" min="5" max="80" [(ngModel)]="c.intro.particles!.quantity"></div>
+      <div class="field slider-field"><label class="form-label">Velocidad: {{ c.intro.particles!.speed }}</label><input type="range" min="1" max="10" [(ngModel)]="c.intro.particles!.speed"></div>
+    </div>
+    <div class="field-row">
+      <div class="field slider-field"><label class="form-label">Tamaño: {{ c.intro.particles!.size || 4 }}px</label><input type="range" min="1" max="20" [(ngModel)]="c.intro.particles!.size"></div>
+      <div class="field slider-field"><label class="form-label">Opacidad: {{ (c.intro.particles!.opacity || 0.8) * 100 | number:'1.0-0' }}%</label><input type="range" min="10" max="100" [ngModel]="(c.intro.particles!.opacity || 0.8) * 100" (ngModelChange)="c.intro.particles!.opacity = $event / 100"></div>
+    </div>
+    }
+  </div>
+</div>
+
+<!-- Preview animación -->
+@if (c.intro.particles!.enabled) {
+<div class="section-card preview-card">
+  <div class="section-card-header"><span>Vista previa</span></div>
+  <div class="section-card-body" style="padding:0;overflow:hidden;border-radius:0 0 12px 12px;">
+    <div class="particles-preview" [style.background]="c.intro.background ? 'url(' + c.intro.background + ') center/cover no-repeat' : 'radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%)'">
+      <div class="particles-preview-overlay" *ngIf="c.intro.background"></div>
+      <div class="particles-preview-container" [attr.data-type]="c.intro.particles!.type" [attr.data-dir]="c.intro.particles!.direction">
+        @for (p of getPreviewParticles(c.intro.particles!); track $index) {
+          <div class="preview-particle" [style]="p"></div>
+        }
+      </div>
+      <p class="particles-preview-phrase"
+         [style.font-family]="getFontPreview(c.intro.phraseStyle!.fontFamily)"
+         [style.color]="c.intro.phraseStyle!.color">{{ c.intro.phrase || 'Frase de ejemplo' }}</p>
+    </div>
+  </div>
+</div>
+}
 }
 
 @if (activeTab === 'hero') {
@@ -265,10 +390,10 @@
   <div class="section-card-header"><span>Multimedia</span></div>
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">GIF de fondo</label><input type="file" accept=".gif,image/*" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')">
-      @if (c.hero.backgroundGif) { <img [src]="c.hero.backgroundGif" class="upload-preview"> }
+      @if (c.hero.backgroundGif) { <img [src]="c.hero.backgroundGif" class="upload-preview"> <button class="btn-remove-file" (click)="c.hero.backgroundGif = ''">✕ Quitar imagen</button> }
     </div>
     <div class="field"><label class="form-label">Audio MP3</label><input type="file" accept="audio/*" (change)="uploadFile($event, 'audio', 'hero.audioUrl')">
-      @if (c.hero.audioUrl) { <audio [src]="c.hero.audioUrl" controls style="margin-top:8px;width:100%;border-radius:8px;"></audio> }
+      @if (c.hero.audioUrl) { <audio [src]="c.hero.audioUrl" controls style="margin-top:8px;width:100%;border-radius:8px;"></audio> <button class="btn-remove-file" (click)="c.hero.audioUrl = ''">✕ Quitar audio</button> }
     </div>
   </div>
 </div>
@@ -297,7 +422,7 @@
     <div class="venue-card">
       <div class="venue-header"><strong>Tarjeta {{ i + 1 }}</strong><button class="btn btn-sm btn-danger" (click)="removeDetailCard(i)">Eliminar</button></div>
       <div class="flex gap-12 mb-12">
-        <button class="icon-type-btn" [class.active]="card.iconType === 'emoji'" (click)="card.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="card.iconType === 'emoji'" (click)="card.iconType = 'emoji'; card.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="card.iconType === 'image'" (click)="card.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
       @if (card.iconType === 'emoji') {
@@ -339,6 +464,13 @@
     <label class="toggle-pill" (click)="c.venues.enabled = !c.venues.enabled"><span class="toggle-pill-dot" [class.active]="c.venues.enabled"></span>{{ c.venues.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
+    <div class="field mb-16">
+      <label class="form-label">Estilo de icono</label>
+      <div class="flex gap-12">
+        <button class="icon-type-btn" [class.active]="(c.venues.iconStyle || 'circle') === 'circle'" (click)="c.venues.iconStyle = 'circle'"><span class="material-icons" style="font-size:16px">radio_button_unchecked</span> Con contorno</button>
+        <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'plain'" (click)="c.venues.iconStyle = 'plain'"><span class="material-icons" style="font-size:16px">image</span> Sin contorno</button>
+      </div>
+    </div>
     @for (venue of c.venues.items; track venue.id; let i = $index) {
     <div class="venue-card">
       <div class="venue-header"><strong>{{ venue.title || 'Evento ' + (i+1) }}</strong><button class="btn btn-sm btn-danger" (click)="removeVenue(i)">Eliminar</button></div>
@@ -347,8 +479,15 @@
         <div class="field"><label class="form-label">Nombre del lugar</label><input class="form-control" [(ngModel)]="venue.name"></div>
       </div>
       <div class="field-row mb-12">
-        <div class="venue-icon-preview">@if (venue.icon) { <img [src]="venue.icon" style="width:100%;height:100%;object-fit:cover;"> }</div>
-        <div class="field"><label class="form-label">Icono</label><input type="file" accept="image/*" (change)="uploadVenueIcon($event, venue)"></div>
+        <div class="venue-icon-preview">
+          @if (venue.icon) { <img [src]="venue.icon" style="width:100%;height:100%;object-fit:cover;"> }
+          @else { <span class="material-icons" style="font-size:28px;color:rgba(212,160,23,0.5)">place</span> }
+        </div>
+        <div class="field">
+          <label class="form-label">Icono</label>
+          <input type="file" accept="image/*" (change)="uploadVenueIcon($event, venue)">
+          @if (venue.icon) { <button class="btn-remove-file" (click)="venue.icon = ''">✕ Quitar</button> }
+        </div>
       </div>
       <div class="field mb-12"><label class="form-label">Dirección</label><input class="form-control" [(ngModel)]="venue.address"></div>
       <div class="field mb-12"><label class="form-label">URL Google Maps</label><input class="form-control" [(ngModel)]="venue.mapsUrl"></div>
@@ -460,8 +599,8 @@
     <div class="field mb-16"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
     <div class="field mb-12"><label class="form-label">Icono de sección</label>
       <div class="flex gap-12 mb-12">
-        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'material'" (click)="c.dresscode.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">checkroom</span> Default</button>
-        <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'emoji'" (click)="c.dresscode.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'material'" (click)="c.dresscode.sectionIcon!.iconType = 'material'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">checkroom</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'emoji'" (click)="c.dresscode.sectionIcon!.iconType = 'emoji'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'image'" (click)="c.dresscode.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
       @if (c.dresscode.sectionIcon!.iconType === 'emoji') {
@@ -503,8 +642,8 @@
     </div>
     <div class="field mb-12"><label class="form-label">Icono de sección</label>
       <div class="flex gap-12 mb-12">
-        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts).iconType === 'material'" (click)="c.gifts.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">card_giftcard</span> Default</button>
-        <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts).iconType === 'material'" (click)="c.gifts.sectionIcon!.iconType = 'material'; c.gifts.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">card_giftcard</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.sectionIcon!.iconType = 'emoji'; c.gifts.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'image'" (click)="c.gifts.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
       @if (c.gifts.sectionIcon!.iconType === 'emoji') {
@@ -550,8 +689,8 @@
     <div class="field mb-12"><label class="form-label">Animación</label><select class="form-control" [(ngModel)]="c.gifts.transfer.animation" style="max-width:200px;"><option value="coins">Monedas</option><option value="bills">Billetes</option><option value="none">Ninguna</option></select></div>
     <div class="field mb-12"><label class="form-label">Icono de sección</label>
       <div class="flex gap-12 mb-12">
-        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts.transfer).iconType === 'material'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">account_balance</span> Default</button>
-        <button class="icon-type-btn" [class.active]="c.gifts.transfer.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts.transfer).iconType === 'material'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'material'; c.gifts.transfer.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">account_balance</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.gifts.transfer.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'emoji'; c.gifts.transfer.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.gifts.transfer.sectionIcon!.iconType === 'image'" (click)="c.gifts.transfer.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
       @if (c.gifts.transfer.sectionIcon!.iconType === 'emoji') {
@@ -589,8 +728,8 @@
     <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.rsvp.title"></div>
     <div class="field mb-12"><label class="form-label">Icono de sección (éxito)</label>
       <div class="flex gap-12 mb-12">
-        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.rsvp).iconType === 'material'" (click)="c.rsvp.sectionIcon!.iconType = 'material'"><span class="material-icons" style="font-size:16px">check_circle</span> Default</button>
-        <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'emoji'" (click)="c.rsvp.sectionIcon!.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.rsvp).iconType === 'material'" (click)="c.rsvp.sectionIcon!.iconType = 'material'; c.rsvp.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">check_circle</span> Default</button>
+        <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'emoji'" (click)="c.rsvp.sectionIcon!.iconType = 'emoji'; c.rsvp.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'image'" (click)="c.rsvp.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
       @if (c.rsvp.sectionIcon!.iconType === 'emoji') {

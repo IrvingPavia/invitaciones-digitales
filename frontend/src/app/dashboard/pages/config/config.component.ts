@@ -20,6 +20,8 @@ import {
   GlobalTextStyles,
   ThemeConfig,
   SectionIconConfig,
+  IntroParticlesConfig,
+  EnvelopeConfig,
 } from "../../../core/models/models";
 
 const FONT_OPTIONS = `
@@ -411,6 +413,25 @@ const FONT_OPTIONS = `
         border-radius: 10px;
         border: 1px solid rgba(212, 160, 23, 0.2);
       }
+      .btn-remove-file {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        margin-left: 8px;
+        background: rgba(220, 53, 69, 0.15);
+        border: 1px solid rgba(220, 53, 69, 0.4);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 12px;
+        color: #dc3545;
+        cursor: pointer;
+        transition: all 0.2s;
+        &:hover {
+          background: rgba(220, 53, 69, 0.3);
+          border-color: #dc3545;
+        }
+      }
       .photo-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -485,6 +506,100 @@ const FONT_OPTIONS = `
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         max-height: 220px; overflow-y: auto;
       }
+      .particles-preview {
+        position: relative;
+        height: 200px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 30px;
+        overflow: hidden;
+      }
+      .particles-preview-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+      }
+      .particles-preview-container {
+        position: absolute; inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .preview-particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0;
+      }
+      [data-type="sparkles"] .preview-particle { animation: pvUp linear infinite; }
+      [data-type="snow"] .preview-particle { animation: pvDown linear infinite; }
+      [data-type="fireflies"] .preview-particle { animation: pvFirefly ease-in-out infinite; }
+      [data-type="bubbles"] .preview-particle { animation: pvBubble ease-in-out infinite; }
+      [data-type="stars"] .preview-particle { animation: pvStar ease-in-out infinite; }
+      [data-type="confetti"] .preview-particle { border-radius: 2px; animation: pvConfetti linear infinite; }
+      [data-dir="down"][data-type="sparkles"] .preview-particle { animation-name: pvDown; }
+      [data-dir="left"][data-type="sparkles"] .preview-particle { animation-name: pvLeft; }
+      [data-dir="right"][data-type="sparkles"] .preview-particle { animation-name: pvRight; }
+      [data-dir="left"][data-type="snow"] .preview-particle { animation-name: pvLeft; }
+      [data-dir="right"][data-type="snow"] .preview-particle { animation-name: pvRight; }
+      [data-dir="left"][data-type="bubbles"] .preview-particle { animation-name: pvLeft; }
+      [data-dir="right"][data-type="bubbles"] .preview-particle { animation-name: pvRight; }
+      [data-dir="down"][data-type="bubbles"] .preview-particle { animation-name: pvDown; }
+      [data-dir="left"][data-type="confetti"] .preview-particle { animation-name: pvLeft; }
+      [data-dir="right"][data-type="confetti"] .preview-particle { animation-name: pvRight; }
+      .particles-preview-phrase {
+        position: relative;
+        z-index: 1;
+        font-size: 20px;
+        text-shadow: 0 0 20px rgba(212,160,23,0.4);
+      }
+      @keyframes pvUp {
+        0% { opacity: 0; transform: translateY(0) scale(0.5); }
+        5% { opacity: var(--particle-opacity, 0.8); }
+        80% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); }
+        100% { opacity: 0; transform: translateY(-200px) translateX(var(--drift, 0px)) scale(1); }
+      }
+      @keyframes pvDown {
+        0% { opacity: 0; transform: translateY(0) scale(0.5); }
+        5% { opacity: var(--particle-opacity, 0.8); }
+        80% { opacity: calc(var(--particle-opacity, 0.8) * 0.5); }
+        100% { opacity: 0; transform: translateY(200px) translateX(var(--drift, 0px)) scale(1); }
+      }
+      @keyframes pvLeft {
+        0% { opacity: 0; transform: translateX(0) scale(0.5); }
+        5% { opacity: var(--particle-opacity, 0.8); }
+        80% { opacity: calc(var(--particle-opacity, 0.8) * 0.5); }
+        100% { opacity: 0; transform: translateX(-300px) translateY(var(--drift, 0px)) scale(1); }
+      }
+      @keyframes pvRight {
+        0% { opacity: 0; transform: translateX(0) scale(0.5); }
+        5% { opacity: var(--particle-opacity, 0.8); }
+        80% { opacity: calc(var(--particle-opacity, 0.8) * 0.5); }
+        100% { opacity: 0; transform: translateX(300px) translateY(var(--drift, 0px)) scale(1); }
+      }
+      @keyframes pvFirefly {
+        0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+        10% { opacity: var(--particle-opacity, 0.8); }
+        25% { transform: translate(var(--drift, 20px), -30px) scale(1); }
+        50% { opacity: calc(var(--particle-opacity, 0.8) * 0.4); transform: translate(calc(var(--drift, 20px) * -1), -60px) scale(0.7); }
+        75% { opacity: var(--particle-opacity, 0.8); transform: translate(var(--drift, 20px), -90px) scale(1); }
+        100% { opacity: 0; transform: translate(0, -120px) scale(0.5); }
+      }
+      @keyframes pvBubble {
+        0% { opacity: 0; transform: translateY(0) scale(0.4); }
+        10% { opacity: var(--particle-opacity, 0.8); transform: translateY(-15px) translateX(var(--drift, 10px)) scale(0.8); }
+        40% { opacity: var(--particle-opacity, 0.8); transform: translateY(-70px) translateX(calc(var(--drift, 10px) * -0.5)) scale(1); }
+        70% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); transform: translateY(-120px) translateX(var(--drift, 10px)) scale(0.9); }
+        100% { opacity: 0; transform: translateY(-180px) translateX(calc(var(--drift, 10px) * -1)) scale(0.6); }
+      }
+      @keyframes pvStar {
+        0%, 100% { opacity: 0; transform: scale(0.5); }
+        50% { opacity: var(--particle-opacity, 0.8); transform: scale(1.2); }
+      }
+      @keyframes pvConfetti {
+        0% { opacity: 0; transform: translateY(0) rotate(0deg); }
+        10% { opacity: var(--particle-opacity, 0.8); }
+        90% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); }
+        100% { opacity: 0; transform: translateY(200px) rotate(var(--rotation, 720deg)) scale(0.5); }
+      }
     `,
   ],
   templateUrl: "./config.component.html",
@@ -552,6 +667,7 @@ export class ConfigComponent implements OnInit {
   tabs = [
     { key: "styles", label: "Estilos" },
     { key: "theme", label: "Tema" },
+    { key: "envelope", label: "Sobre" },
     { key: "intro", label: "Intro" },
     { key: "hero", label: "Car\u00e1tula" },
     { key: "invitation", label: "Invitaci\u00f3n" },
@@ -848,6 +964,20 @@ export class ConfigComponent implements OnInit {
 
   private ensureDefaults(cfg: any): EventConfig {
     return {
+      envelope: {
+        enabled: false,
+        style: 'classic',
+        sealStyle: 'wax-circle',
+        envelopeColor: '#1a1a2e',
+        sealColor: '#8b0000',
+        sealText: '♡',
+        sealImage: '',
+        instructionText: 'Toca para abrir',
+        bgColor: '#0a0a14',
+        bgColor2: '#1a1a2e',
+        textColor: 'rgba(255,255,255,0.5)',
+        ...(cfg?.envelope || {}),
+      },
       intro: {
         enabled: cfg?.intro?.enabled ?? true,
         background: cfg?.intro?.background || '',
@@ -859,6 +989,18 @@ export class ConfigComponent implements OnInit {
           color: '#d4a017',
           fontWeight: 400,
           ...(cfg?.intro?.phraseStyle || {}),
+        },
+        particles: {
+          enabled: true,
+          type: 'sparkles',
+          color1: '#d4a017',
+          color2: '#ffffff',
+          direction: 'up',
+          quantity: 20,
+          speed: 5,
+          size: 4,
+          opacity: 0.8,
+          ...(cfg?.intro?.particles || {}),
         },
       },
       hero: {
@@ -932,6 +1074,7 @@ export class ConfigComponent implements OnInit {
         description: cfg?.gifts?.description || "",
         link: cfg?.gifts?.link || "",
         buttonText: cfg?.gifts?.buttonText || "Ver Lista",
+        sectionIcon: cfg?.gifts?.sectionIcon || undefined,
         transfer: {
           enabled: false,
           title: "\u00bfPrefieres hacer una transferencia?",
@@ -1032,6 +1175,68 @@ export class ConfigComponent implements OnInit {
     if (content.includes('<p>') || content.includes('<br>') || content.includes('<span>') || content.includes('<div>')) return content;
     // Texto plano: convertir \n literales y newlines reales a párrafos
     return content.split(/\\n|\n/).map(line => `<p>${line.trim() || '<br>'}</p>`).join('');
+  }
+
+  // Particles preview
+  private _previewParticlesCache: { key: string; particles: string[] } = { key: '', particles: [] };
+
+  getPreviewParticles(pc: IntroParticlesConfig): string[] {
+    const key = `${pc.type}-${pc.direction}-${pc.color1}-${pc.color2}-${pc.quantity}-${pc.speed}-${pc.size}-${pc.opacity}`;
+    if (this._previewParticlesCache.key === key) return this._previewParticlesCache.particles;
+
+    const count = Math.min(pc.quantity || 15, 40);
+    const baseSpeed = pc.speed || 5;
+    const type = pc.type || 'sparkles';
+    const dir = pc.direction || 'up';
+    const baseSize = pc.size || 4;
+    const baseOpacity = pc.opacity ?? 0.8;
+
+    const particles = Array.from({ length: count }, () => {
+      const color = Math.random() > 0.5 ? pc.color1 : pc.color2;
+      const delay = Math.random() * 1.5;
+      const dur = (4 - baseSpeed * 0.3) + Math.random() * 2;
+      const sizeVariation = baseSize * (0.6 + Math.random() * 0.8);
+      const drift = (Math.random() - 0.5) * 40;
+      const rotation = 360 + Math.random() * 720;
+
+      let position = '';
+      if (type === 'stars' || type === 'fireflies') {
+        position = `left:${Math.random() * 100}%;top:${Math.random() * 100}%;`;
+      } else {
+        switch (dir) {
+          case 'up': position = `left:${Math.random() * 100}%;bottom:-5%;`; break;
+          case 'down': position = `left:${Math.random() * 100}%;top:-5%;`; break;
+          case 'left': position = `top:${Math.random() * 100}%;right:-5%;`; break;
+          case 'right': position = `top:${Math.random() * 100}%;left:-5%;`; break;
+        }
+      }
+
+      let width = sizeVariation;
+      let height = sizeVariation;
+      let extra = '';
+
+      if (type === 'confetti') {
+        width = sizeVariation * 0.5;
+        height = sizeVariation;
+      } else if (type === 'bubbles') {
+        const bubbleSize = sizeVariation * 2.5;
+        width = bubbleSize;
+        height = bubbleSize;
+        extra = `;background:transparent;border:1px solid ${color};box-shadow:inset 0 0 ${bubbleSize * 0.3}px ${color}40, 0 0 ${bubbleSize * 0.5}px ${color}20`;
+      } else if (type === 'sparkles' || type === 'stars') {
+        const glowSize = sizeVariation * 1.5;
+        extra = `;box-shadow:0 0 ${glowSize}px ${glowSize * 0.3}px ${color}, ${glowSize * 0.8}px 0 ${glowSize * 0.5}px 0 ${color}80, -${glowSize * 0.8}px 0 ${glowSize * 0.5}px 0 ${color}80, 0 ${glowSize * 0.8}px ${glowSize * 0.5}px 0 ${color}80, 0 -${glowSize * 0.8}px ${glowSize * 0.5}px 0 ${color}80`;
+        width = sizeVariation * 0.4;
+        height = sizeVariation * 0.4;
+      } else if (type === 'fireflies') {
+        extra = `;box-shadow:0 0 ${sizeVariation * 2}px ${color}`;
+      }
+
+      return `${position}width:${width}px;height:${height}px;background:${type === 'bubbles' ? 'transparent' : color};animation-duration:${dur}s;animation-delay:${delay}s;--drift:${drift}px;--rotation:${rotation}deg;--particle-opacity:${baseOpacity}${extra}`;
+    });
+
+    this._previewParticlesCache = { key, particles };
+    return particles;
   }
 
   // Section Icons

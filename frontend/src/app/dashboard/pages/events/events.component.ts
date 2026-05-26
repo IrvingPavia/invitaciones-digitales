@@ -10,6 +10,43 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-events',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
+  styles: [`
+    .event-cards { display: none; }
+    .event-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .event-card:hover { border-color: rgba(212,160,23,0.4); }
+    .event-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; gap: 8px;
+    }
+    .event-card-name {
+      font-size: 15px; font-weight: 600; color: white;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1; min-width: 0;
+    }
+    .event-card-body {
+      display: grid; grid-template-columns: auto 1fr; gap: 6px 12px;
+      font-size: 13px; margin-bottom: 12px;
+    }
+    .event-card-label { color: rgba(255,255,255,0.4); white-space: nowrap; }
+    .event-card-value { color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; }
+    .event-card-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .desktop-table { display: block; }
+    @media (max-width: 768px) {
+      .desktop-table { display: none; }
+      .event-cards { display: block; }
+    }
+  `],
   template: `
     <div>
       <div class="flex-between mb-24">
@@ -22,7 +59,7 @@ import { environment } from '../../../../environments/environment';
         </button>
       </div>
 
-      <div class="card" style="overflow:auto">
+      <div class="card desktop-table" style="overflow:auto">
         <table class="data-table">
           <thead>
             <tr>
@@ -55,6 +92,41 @@ import { environment } from '../../../../environments/environment';
             }
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="event-cards">
+        @for (e of events(); track e.id) {
+          <div class="event-card">
+            <div class="event-card-header">
+              <span class="event-card-name">{{ e.name }}</span>
+              <span class="badge" [class.badge-success]="e.active" [class.badge-danger]="!e.active">{{ e.active ? 'Activo' : 'Inactivo' }}</span>
+            </div>
+            <div class="event-card-body">
+              <span class="event-card-label">Tipo</span>
+              <span class="event-card-value"><span class="badge badge-info">{{ e.event_type }}</span></span>
+              <span class="event-card-label">Fecha</span>
+              <span class="event-card-value">{{ e.event_date | date:'dd/MM/yyyy' }}</span>
+              <span class="event-card-label">Invitados</span>
+              <span class="event-card-value">{{ e.total_guests || 0 }} total · {{ e.confirmed_guests || 0 }} confirmados</span>
+              <span class="event-card-label">URL</span>
+              <span class="event-card-value" style="font-size:11px;color:var(--gold);">/invitacion/{{ e.slug }}</span>
+            </div>
+            <div class="event-card-actions">
+              <a [routerLink]="['/dashboard/guests', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Invitados"><span class="material-icons" style="font-size:16px">people</span></a>
+              <a [routerLink]="['/dashboard/config', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Configurar"><span class="material-icons" style="font-size:16px">settings</span></a>
+              <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
+              <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
+              <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
+              <button class="btn btn-danger btn-sm btn-icon" (click)="deleteEvent(e)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
+            </div>
+          </div>
+        }
+        @empty {
+          <div class="card" style="padding:40px;text-align:center">
+            <p class="text-muted">No hay eventos. Crea el primero.</p>
+          </div>
+        }
       </div>
     </div>
 

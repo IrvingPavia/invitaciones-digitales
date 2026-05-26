@@ -22,7 +22,7 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
         <div class="venues-grid">
           @for (venue of config.items; track venue.id) {
             <div class="venue-card reveal">
-              <div class="venue-icon">
+              <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
                 @if (venue.icon) {
                   <img [src]="venue.icon" [alt]="venue.title">
                 } @else {
@@ -80,11 +80,16 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
     }
     .venue-icon {
       width: 72px; height: 72px; border-radius: 50%;
-      background: rgba(212,160,23,0.1); border: 1px solid rgba(212,160,23,0.3);
+      background: var(--theme-card-bg, rgba(0,0,0,0.3)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 16px; overflow: hidden;
       img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-      .material-icons { font-size: 32px; color: var(--gold); }
+      .material-icons { font-size: 32px; color: var(--theme-text-primary, var(--gold)); }
+    }
+    .venue-icon.icon-plain {
+      background: none; border: none; border-radius: 12px;
+      width: 80px; height: 80px;
+      img { border-radius: 12px; }
     }
     .venue-title {
       font-family: var(--font-serif); font-size: 18px;

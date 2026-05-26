@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const fs = require('fs');
+const path = require('path');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
 
@@ -15,8 +17,21 @@ router.get('/:eventId', auth, async (req, res) => {
 router.put('/:eventId', auth, async (req, res) => {
   try {
     const { config_json } = req.body;
-    const [existing] = await getDB().query('SELECT id FROM event_config WHERE event_id = ?', [req.params.eventId]);
+    const [existing] = await getDB().query('SELECT id, config_json FROM event_config WHERE event_id = ?', [req.params.eventId]);
+    
     if (existing.length) {
+      // Cleanup orphaned upload files
+      try {
+        const oldJson = existing[0].config_json;
+        const oldUrls = extractUploadUrls(oldJson);
+        const newUrls = extractUploadUrls(JSON.stringify(config_json));
+        const orphaned = oldUrls.filter(u => !newUrls.includes(u));
+        for (const url of orphaned) {
+          const filePath = path.join(__dirname, '../..', url);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+      } catch (e) { /* non-critical, don't block save */ }
+
       await getDB().query('UPDATE event_config SET config_json=? WHERE event_id=?',
         [JSON.stringify(config_json), req.params.eventId]);
     } else {
@@ -28,6 +43,12 @@ router.put('/:eventId', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+function extractUploadUrls(jsonStr) {
+  if (!jsonStr) return [];
+  const matches = jsonStr.match(/\/uploads\/[^"'\s,}]+/g);
+  return matches ? [...new Set(matches)] : [];
+}
 
 // Itinerary
 router.get('/:eventId/itinerary', auth, async (req, res) => {
