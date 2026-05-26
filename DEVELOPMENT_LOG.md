@@ -70,6 +70,66 @@ Portafolio/                         ← Workspace
 
 ---
 
+## 🔧 Pendiente para próxima sesión (2025-05-26)
+
+### Rediseño tema del Dashboard con paleta Vitely
+- [ ] Cambiar paleta de colores del dashboard de dorado (#d4a017) a púrpura Vitely (#7c5cbf / #9d6ee7)
+- [ ] Implementar toggle dark/light mode
+- [ ] Actualizar login component con branding Vitely (logo en login, colores púrpura)
+- [ ] Refactorizar `styles.scss`: reemplazar `--gold` por variables de tema switcheables
+- [ ] Actualizar sidebar, cards, buttons, badges, modals, tabs con nueva paleta
+- [ ] Colores propuestos:
+  - Fondo dark: `#12121a` / `#1a1a2a`
+  - Acento: `#7c5cbf` / `#9d6ee7`
+  - Texto: `#b8a5e3` (lavanda)
+  - Fondo light: `#f8f7fc` / `#ffffff`
+
+### Bugs pendientes de verificar
+- [ ] Burbujas en landing (se ven en preview pero verificar en landing real)
+- [ ] Sobre: verificar que no hay flash de fondo entre sobre e intro en mobile real
+- [ ] Fondo mobile: verificar fix de scroll en dispositivo real (110dvh + overscroll-behavior)
+- [ ] QR: verificar que se genera correctamente con BASE_URL actual del servidor
+
+### Features pendientes menores
+- [ ] Warnings de `?.` innecesarios en templates (no afectan funcionalidad)
+- [ ] Mini cards con ejemplos de vestimenta (pendiente: esperar imágenes de referencia)
+- [ ] Agregar sistema emoji/imagen para venues (como itinerario)
+
+---
+
+## ✅ Deploy realizado (2025-05-26): Sesión de mejoras
+
+### Cambios desplegados:
+- **Sobre de invitación**: Nueva sección pre-intro con 5 estilos (classic, elegant, vertical, minimal, wax), sello configurable, colores degradado, reproduce audio al abrir
+- **Partículas intro**: Controles de tamaño, opacidad, cantidad hasta 80, efecto astigmatismo en sparkles/stars, burbujas transparentes con borde
+- **Preview de partículas**: Cuadro de vista previa en vivo en el dashboard
+- **Mobile responsive**: Cards para eventos e invitados en ≤768px (oculta tabla)
+- **Venues**: Toggle estilo de icono (con contorno / sin contorno), colores del tema
+- **Navegación**: Scroll funcional con scrollIntoView, agregado "Lugares", renombrado RSVP→Confirmaciones
+- **Fixes**: Persistencia sectionIcon en gifts, limpieza iconUrl al cambiar tipo, botones "Quitar" en uploads
+- **Backend**: Limpieza automática de archivos huérfanos al guardar config
+- **Landing**: Fondo oculto durante sobre, intro bg adapta al tema sin imagen
+- **Hero nav buttons**: Sin glow dorado, integración audio con sobre
+- **CSS budget**: Aumentado a 16kb
+- **Fondo mobile**: Fix scroll con extensión 110dvh + overscroll-behavior
+- **Branding Vitely**: Favicon (.ico), logo en sidebar del dashboard, título "Vitely" en pestaña
+- **Favicon dinámico**: Configurable por evento para la landing page
+
+### Branding
+- **Nombre**: Vitely
+- **Logo**: `frontend/src/assets/icons/vitely-logo.png` (texto con estrella en la "i")
+- **Favicon**: `frontend/src/assets/icons/vitely-favicon.ico` (sobre estilizado púrpura)
+- **Paleta objetivo**: Púrpura (#7c5cbf / #9d6ee7) sobre dark (#1a1a2a / #12121a)
+
+### Comando deploy en server:
+```bash
+cd ~/projects/invitaciones-digitales
+git pull origin int-001
+docker compose up -d --build
+```
+
+---
+
 ## ✅ Fix aplicado (2025-05-26): Imágenes en producción
 
 - **Causa raíz**: Nginx del host no tenía `location /uploads/`

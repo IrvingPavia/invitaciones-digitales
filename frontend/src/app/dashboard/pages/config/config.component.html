@@ -154,6 +154,23 @@
     </div>
   </div>
 </div>
+
+<!-- Favicon de la landing -->
+<div class="section-card">
+  <div class="section-card-header"><span>Favicon de la Landing</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Icono que se muestra en la pestaña del navegador cuando un invitado abre la landing. Si no se configura, se usa el icono por defecto de Vitely.</p>
+    <div class="field">
+      <input type="file" accept="image/png,image/x-icon,image/svg+xml" (change)="uploadFile($event, 'images', 'favicon')">
+      @if (c.favicon) {
+        <div style="margin-top:8px;display:flex;align-items:center;gap:12px;">
+          <img [src]="c.favicon" style="width:32px;height:32px;border-radius:4px;border:1px solid rgba(212,160,23,0.3);">
+          <button class="btn-remove-file" (click)="c.favicon = ''">✕ Quitar</button>
+        </div>
+      }
+    </div>
+  </div>
+</div>
 }
 
 @if (activeTab === 'envelope') {

@@ -278,6 +278,8 @@ export class LandingComponent implements OnInit, OnDestroy {
           this.showIntro.set(true);
         }
         this.applyScrollbarColor(d.config.theme?.cardBorder || '#d4a017');
+        this.applyFavicon(d.config.favicon);
+        this.applyTitle(d.event.name);
         if (code) {
           this.api.getGuestByCode(this.slug, code).subscribe({
             next: (g) => this.guest.set(g),
@@ -291,12 +293,36 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.scrollbarStyle?.remove();
+    // Restore default favicon and title when leaving landing
+    this.restoreFavicon();
   }
 
   private applyScrollbarColor(color: string) {
     this.scrollbarStyle = document.createElement('style');
     this.scrollbarStyle.textContent = `::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${color};border-radius:3px}html{scrollbar-color:${color} transparent}`;
     document.head.appendChild(this.scrollbarStyle);
+  }
+
+  private applyFavicon(favicon?: string) {
+    if (!favicon) return;
+    const link = document.getElementById('app-favicon') as HTMLLinkElement;
+    if (link) {
+      link.href = favicon;
+      link.type = favicon.endsWith('.ico') ? 'image/x-icon' : 'image/png';
+    }
+  }
+
+  private restoreFavicon() {
+    const link = document.getElementById('app-favicon') as HTMLLinkElement;
+    if (link) {
+      link.href = 'assets/icons/vitely-favicon.ico';
+      link.type = 'image/x-icon';
+    }
+    document.title = 'Vitely';
+  }
+
+  private applyTitle(eventName: string) {
+    document.title = eventName || 'Invitación';
   }
 
   getThemeFont(key?: string): string {

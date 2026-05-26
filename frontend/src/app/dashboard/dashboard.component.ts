@@ -17,8 +17,8 @@ import { AuthService } from '../core/services/auth.service';
       <!-- Sidebar -->
       <aside class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
         <div class="sidebar-logo">
-          <span class="material-icons logo-icon">auto_awesome</span>
-          @if (!collapsed()) { <span class="logo-text">Invitaciones</span> }
+          @if (!collapsed()) { <img src="assets/icons/vitely-logo.png" class="logo-text-img" alt="Vitely"> }
+          @else { <img src="assets/icons/vitely-favicon.ico" class="logo-icon-img" alt="V"> }
         </div>
         <nav>
           <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMobile()">
@@ -60,8 +60,14 @@ import { AuthService } from '../core/services/auth.service';
     </div>
   `,
   styles: [`
+    .logo-icon-img {
+      width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;
+    }
+    .logo-text-img {
+      height: 32px; object-fit: contain;
+    }
     .sidebar-footer {
-      padding: 16px; border-top: 1px solid rgba(212,160,23,0.2);
+      padding: 16px; border-top: 1px solid rgba(124,92,191,0.2);
       display: flex; flex-direction: column; gap: 12px;
     }
     .sidebar-user {
@@ -77,22 +83,22 @@ import { AuthService } from '../core/services/auth.service';
       position: absolute; top: 50%; right: -14px;
       transform: translateY(-50%);
       width: 28px; height: 48px;
-      background: linear-gradient(180deg, #1a1a2e, #16213e);
-      border: 1px solid rgba(212,160,23,0.3);
+      background: linear-gradient(180deg, #1a1a2a, #12121a);
+      border: 1px solid rgba(124,92,191,0.3);
       border-left: none;
       border-radius: 0 8px 8px 0;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: var(--gold); transition: all 0.2s;
       .material-icons { font-size: 18px; }
-      &:hover { background: rgba(212,160,23,0.15); }
+      &:hover { background: rgba(124,92,191,0.15); }
     }
     .mobile-menu-btn {
       display: none;
       position: fixed; top: 50%; left: 0; z-index: 50;
       transform: translateY(-50%);
       width: 24px; height: 56px;
-      background: linear-gradient(180deg, #1a1a2e, #16213e);
-      border: 1px solid rgba(212,160,23,0.3);
+      background: linear-gradient(180deg, #1a1a2a, #12121a);
+      border: 1px solid rgba(124,92,191,0.3);
       border-left: none;
       border-radius: 0 8px 8px 0;
       align-items: center; justify-content: center;

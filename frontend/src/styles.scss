@@ -11,11 +11,11 @@
 
 /* ===== GLOBAL STYLES ===== */
 :root {
-  --gold: #d4a017;
-  --gold-light: #f0c040;
-  --dark: #1a1a2e;
-  --dark-2: #16213e;
-  --dark-3: #0f3460;
+  --gold: #7c5cbf;
+  --gold-light: #9d6ee7;
+  --dark: #1a1a2a;
+  --dark-2: #12121a;
+  --dark-3: #2d2b55;
   --white: #ffffff;
   --gray-light: #f8f9fa;
   --text-muted: #6c757d;
@@ -66,15 +66,15 @@ body {
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: #0d1117;
+  background: #0e0e18;
   overflow-x: hidden;
   width: 100%;
 }
 
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  border-right: 1px solid rgba(212,160,23,0.2);
+  background: linear-gradient(180deg, #1a1a2a 0%, #12121a 100%);
+  border-right: 1px solid rgba(124,92,191,0.2);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -86,7 +86,7 @@ body {
 
   .sidebar-logo {
     padding: 24px 20px;
-    border-bottom: 1px solid rgba(212,160,23,0.2);
+    border-bottom: 1px solid rgba(124,92,191,0.2);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -119,8 +119,8 @@ body {
       .material-icons { font-size: 20px; }
 
       &:hover, &.active {
-        color: var(--gold);
-        background: rgba(212,160,23,0.1);
+        color: var(--gold-light);
+        background: rgba(124,92,191,0.1);
         border-left-color: var(--gold);
       }
     }
@@ -144,16 +144,16 @@ body {
 
 /* ===== CARDS ===== */
 .card {
-  background: #1a1a2e;
-  border: 1px solid rgba(212,160,23,0.15);
+  background: #1a1a2a;
+  border: 1px solid rgba(124,92,191,0.15);
   border-radius: var(--radius);
   padding: 24px;
   box-shadow: var(--shadow);
 }
 
 .kpi-card {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border: 1px solid rgba(212,160,23,0.3);
+  background: linear-gradient(135deg, #1a1a2a, #1e1e35);
+  border: 1px solid rgba(124,92,191,0.3);
   border-radius: var(--radius);
   padding: 20px;
   display: flex;
@@ -165,12 +165,12 @@ body {
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 24px;
-    background: rgba(212,160,23,0.15);
-    color: var(--gold);
+    background: rgba(124,92,191,0.15);
+    color: var(--gold-light);
     flex-shrink: 0;
   }
 
-  .kpi-value { font-size: 32px; font-weight: 700; color: var(--gold); }
+  .kpi-value { font-size: 32px; font-weight: 700; color: var(--gold-light); }
   .kpi-label { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
 }
 
@@ -192,8 +192,8 @@ body {
 
   &.btn-primary {
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--dark);
-    &:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(212,160,23,0.4); }
+    color: #ffffff;
+    &:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(124,92,191,0.4); }
   }
 
   &.btn-secondary {
@@ -205,9 +205,9 @@ body {
 
   &.btn-outline {
     background: transparent;
-    color: var(--gold);
-    border: 1px solid rgba(212,160,23,0.4);
-    &:hover { background: rgba(212,160,23,0.1); border-color: var(--gold); }
+    color: var(--gold-light);
+    border: 1px solid rgba(124,92,191,0.4);
+    &:hover { background: rgba(124,92,191,0.1); border-color: var(--gold); }
   }
 
   &.btn-danger {
@@ -255,7 +255,7 @@ body {
     &:focus {
       outline: none;
       border-color: var(--gold);
-      background: rgba(212,160,23,0.05);
+      background: rgba(124,92,191,0.05);
     }
 
     &::placeholder { color: rgba(255,255,255,0.3); }
@@ -270,7 +270,7 @@ body {
 
   textarea { resize: vertical; min-height: 80px; }
 
-  select option { background: #1a1a2e; }
+  select option { background: #1a1a2a; }
 }
 
 .toggle-switch {
@@ -314,14 +314,14 @@ body {
   -webkit-overflow-scrolling: touch;
 
   th {
-    background: rgba(212,160,23,0.1);
-    color: var(--gold);
+    background: rgba(124,92,191,0.1);
+    color: var(--gold-light);
     padding: 12px 16px;
     text-align: left;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(212,160,23,0.2);
+    border-bottom: 1px solid rgba(124,92,191,0.2);
   }
 
   td {
@@ -363,8 +363,8 @@ body {
 }
 
 .modal {
-  background: #1a1a2e;
-  border: 1px solid rgba(212,160,23,0.3);
+  background: #1a1a2a;
+  border: 1px solid rgba(124,92,191,0.3);
   border-radius: var(--radius);
   padding: 28px;
   width: 100%;
@@ -379,7 +379,7 @@ body {
     justify-content: space-between;
     margin-bottom: 20px;
 
-    h3 { font-size: 18px; color: var(--gold); }
+    h3 { font-size: 18px; color: var(--gold-light); }
   }
 
   .modal-footer {
@@ -493,13 +493,13 @@ body {
   &:focus {
     outline: none;
     border-color: var(--gold);
-    background: rgba(212,160,23,0.05);
+    background: rgba(124,92,191,0.05);
   }
 
   &::placeholder { color: rgba(255,255,255,0.3); }
 }
 
-select.form-control option { background: #1a1a2e; }
+select.form-control option { background: #1a1a2a; }
 textarea.form-control { resize: vertical; min-height: 80px; }
 
 /* ===== GLOBAL FORM ELEMENTS (dark theme for all inputs) ===== */
@@ -518,11 +518,11 @@ input[type="text"]:not(.picker-input) {
   &:focus {
     outline: none;
     border-color: var(--gold);
-    background: rgba(212,160,23,0.05);
+    background: rgba(124,92,191,0.05);
   }
 }
 
-select option { background: #1a1a2e; color: var(--white); }
+select option { background: #1a1a2a; color: var(--white); }
 
 input[type="color"] {
   width: 48px; height: 38px;
@@ -548,7 +548,7 @@ input[type="checkbox"] {
 
 input[type="file"] {
   background: rgba(255,255,255,0.03);
-  border: 1px dashed rgba(212,160,23,0.3);
+  border: 1px dashed rgba(124,92,191,0.3);
   border-radius: 8px;
   padding: 12px 16px;
   color: rgba(255,255,255,0.6);
@@ -559,12 +559,12 @@ input[type="file"] {
 
   &:hover {
     border-color: var(--gold);
-    background: rgba(212,160,23,0.05);
+    background: rgba(124,92,191,0.05);
   }
 
   &::file-selector-button {
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--dark);
+    color: #ffffff;
     border: none;
     border-radius: 6px;
     padding: 6px 14px;
@@ -576,7 +576,7 @@ input[type="file"] {
   }
 
   &::file-selector-button:hover {
-    box-shadow: 0 2px 8px rgba(212,160,23,0.4);
+    box-shadow: 0 2px 8px rgba(124,92,191,0.4);
   }
 }
 
@@ -596,7 +596,7 @@ textarea {
   &:focus {
     outline: none;
     border-color: var(--gold);
-    background: rgba(212,160,23,0.05);
+    background: rgba(124,92,191,0.05);
   }
 
   &::placeholder { color: rgba(255,255,255,0.3); }
@@ -605,22 +605,22 @@ textarea {
 /* ===== BACK LINK ===== */
 .back-link {
   display: inline-flex; align-items: center; gap: 6px;
-  color: var(--gold); font-size: 14px; font-weight: 500;
+  color: var(--gold-light); font-size: 14px; font-weight: 500;
   text-decoration: none; margin-bottom: 12px;
   padding: 6px 12px; border-radius: 8px;
-  border: 1px solid rgba(212,160,23,0.3);
-  background: rgba(212,160,23,0.05);
+  border: 1px solid rgba(124,92,191,0.3);
+  background: rgba(124,92,191,0.05);
   transition: all 0.2s;
   float: right;
   .material-icons { font-size: 18px; }
-  &:hover { background: rgba(212,160,23,0.15); border-color: var(--gold); }
+  &:hover { background: rgba(124,92,191,0.15); border-color: var(--gold); }
 }
 
 /* ===== SECTION TITLE ===== */
 .section-title {
   font-family: var(--font-serif);
   font-size: 28px;
-  color: var(--gold);
+  color: var(--gold-light);
   margin-bottom: 8px;
 }
 
@@ -638,7 +638,7 @@ textarea {
 /* ===== LOADING ===== */
 .spinner {
   width: 40px; height: 40px;
-  border: 3px solid rgba(212,160,23,0.2);
+  border: 3px solid rgba(124,92,191,0.2);
   border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -719,7 +719,7 @@ textarea {
 
 /* ===== FILE UPLOAD ===== */
 .file-drop-zone {
-  border: 2px dashed rgba(212,160,23,0.3);
+  border: 2px dashed rgba(124,92,191,0.3);
   border-radius: var(--radius);
   padding: 32px;
   text-align: center;
@@ -728,7 +728,7 @@ textarea {
 
   &:hover, &.drag-over {
     border-color: var(--gold);
-    background: rgba(212,160,23,0.05);
+    background: rgba(124,92,191,0.05);
   }
 
   .material-icons { font-size: 48px; color: var(--gold); opacity: 0.5; }

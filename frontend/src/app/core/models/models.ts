@@ -39,6 +39,7 @@ export interface EventConfig {
   rsvp: RsvpConfig;
   globalStyles: GlobalTextStyles;
   theme: ThemeConfig;
+  favicon?: string;
 }
 
 export interface ThemeConfig {

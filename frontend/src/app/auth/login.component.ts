@@ -12,8 +12,7 @@ import { AuthService } from '../core/services/auth.service';
     <div class="login-page">
       <div class="login-card">
         <div class="login-logo">
-          <span class="material-icons">auto_awesome</span>
-          <h1>Invitaciones</h1>
+          <img src="assets/icons/vitely-logo.png" alt="Vitely" style="height:40px;margin-bottom:8px;">
           <p>Panel Administrativo</p>
         </div>
         <form (ngSubmit)="login()" #f="ngForm">
@@ -39,13 +38,13 @@ import { AuthService } from '../core/services/auth.service';
   styles: [`
     .login-page {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 50%, #16213e 100%);
+      background: linear-gradient(135deg, #0e0e18 0%, #1a1a2a 50%, #12121a 100%);
       display: flex; align-items: center; justify-content: center;
       padding: 20px;
     }
     .login-card {
-      background: rgba(26,26,46,0.9);
-      border: 1px solid rgba(212,160,23,0.3);
+      background: rgba(26,26,42,0.9);
+      border: 1px solid rgba(124,92,191,0.3);
       border-radius: 16px;
       padding: 40px;
       width: 100%; max-width: 400px;
@@ -54,9 +53,7 @@ import { AuthService } from '../core/services/auth.service';
     }
     .login-logo {
       text-align: center; margin-bottom: 32px;
-      .material-icons { font-size: 48px; color: var(--gold); }
-      h1 { font-family: var(--font-script); font-size: 32px; color: var(--gold); margin: 8px 0 4px; }
-      p { color: rgba(255,255,255,0.5); font-size: 13px; }
+      p { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 8px; }
     }
     .error-msg { color: #ff6b7a; font-size: 13px; margin-bottom: 12px; text-align: center; }
   `]
