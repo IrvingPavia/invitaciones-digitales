@@ -618,10 +618,11 @@ textarea {
 
 /* ===== SECTION TITLE ===== */
 .section-title {
-  font-family: var(--font-serif);
+  font-family: var(--font-montserrat);
   font-size: 28px;
   color: var(--gold-light);
   margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .section-subtitle {

@@ -2,7 +2,10 @@
 <div class="config-header"><h2>Configuración de Landing</h2></div>
 <div class="config-toolbar">
   <a routerLink="/dashboard" class="btn btn-outline">← Volver</a>
-  <button class="btn btn-primary" (click)="save()" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+  <button class="btn" [class.btn-primary]="saveStatus() === 'idle' || saveStatus() === 'saving'" [class.btn-success]="saveStatus() === 'saved'" [class.btn-danger]="saveStatus() === 'error'" (click)="save()" [disabled]="saving()">
+    <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : saveStatus() === 'error' ? 'error' : 'save' }}</span>
+    {{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado ✓' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}
+  </button>
 </div>
 <div class="tabs-wrapper">
   <div class="tabs-arrow" (click)="scrollTabs(-200)"><span class="material-icons">chevron_left</span></div>

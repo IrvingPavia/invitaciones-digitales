@@ -206,8 +206,9 @@ const FONT_OPTIONS = `
       .config-header {
         margin-bottom: 16px;
         h2 {
-          font-family: var(--font-serif);
+          font-family: var(--font-montserrat);
           font-size: 24px;
+          font-weight: 600;
           color: var(--gold);
         }
       }
@@ -703,12 +704,15 @@ export class ConfigComponent implements OnInit {
 
 
 
+  saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
   save() {
     if (!this.config()) return;
     this.saving.set(true);
+    this.saveStatus.set('saving');
     this.api.saveConfig(this.eventId, this.config()!).subscribe({
-      next: () => this.saving.set(false),
-      error: () => this.saving.set(false),
+      next: () => { this.saving.set(false); this.saveStatus.set('saved'); setTimeout(() => this.saveStatus.set('idle'), 3000); },
+      error: () => { this.saving.set(false); this.saveStatus.set('error'); setTimeout(() => this.saveStatus.set('idle'), 3000); },
     });
   }
 
