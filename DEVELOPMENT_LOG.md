@@ -72,17 +72,45 @@ Portafolio/                         ← Workspace
 
 ## 🔧 Pendiente para próxima sesión (2025-05-26)
 
+### Deploy pendiente en server (rama int-002)
+- [ ] Ejecutar scripts SQL en DBeaver (ver abajo)
+- [ ] Respaldar docker-compose.yml del server
+- [ ] `git pull origin int-002` en server
+- [ ] Restaurar docker-compose.yml
+- [ ] `docker compose up -d --build backend frontend`
+
+**Scripts SQL para el server (ejecutar en DBeaver uno por uno):**
+```sql
+ALTER TABLE users MODIFY COLUMN role ENUM('root','admin','client') DEFAULT 'admin';
+ALTER TABLE users ADD COLUMN can_manage_users TINYINT(1) DEFAULT 0;
+ALTER TABLE users ADD COLUMN plain_password VARCHAR(255) DEFAULT NULL;
+UPDATE users SET can_manage_users = 1 WHERE username = 'admin';
+UPDATE users SET plain_password = 'admin123' WHERE username = 'admin';
+
+CREATE TABLE IF NOT EXISTS user_events (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  event_id INT NOT NULL,
+  UNIQUE KEY unique_user_event (user_id, event_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO users (username, password, role, can_manage_users, plain_password) 
+VALUES ('root', '$2a$10$YSK9IOtLkOru4GPIm2Pl9.zR6AacmlFxRlVETo3MxO02elzRKS6V6', 'root', 1, 'admin123');
+
+INSERT INTO users (username, password, role, can_manage_users, plain_password) 
+VALUES ('KarlaAzarcoya', '$2a$10$nwUbUPt8VU7uzT6hc3I3cOvN0ToF0AeKIDHE.EmnLld1VGDVsEtSu', 'client', 0, 'KarlaAzarcoya');
+
+-- Verificar event_id con: SELECT id, name FROM events;
+INSERT INTO user_events (user_id, event_id) 
+VALUES ((SELECT id FROM users WHERE username = 'KarlaAzarcoya'), 1);
+```
+
 ### Rediseño tema del Dashboard con paleta Vitely
-- [ ] Cambiar paleta de colores del dashboard de dorado (#d4a017) a púrpura Vitely (#7c5cbf / #9d6ee7)
+- [ ] Cambiar paleta de colores del dashboard de dorado (#d4a017) a púrpura Vitely (#7c5cbf / #9d6ee7) — **HECHO parcialmente en int-001**
 - [ ] Implementar toggle dark/light mode
-- [ ] Actualizar login component con branding Vitely (logo en login, colores púrpura)
-- [ ] Refactorizar `styles.scss`: reemplazar `--gold` por variables de tema switcheables
-- [ ] Actualizar sidebar, cards, buttons, badges, modals, tabs con nueva paleta
-- [ ] Colores propuestos:
-  - Fondo dark: `#12121a` / `#1a1a2a`
-  - Acento: `#7c5cbf` / `#9d6ee7`
-  - Texto: `#b8a5e3` (lavanda)
-  - Fondo light: `#f8f7fc` / `#ffffff`
+- [ ] Verificar que todos los componentes del config (section-cards, toggle-pills, etc.) usen la nueva paleta
 
 ### Bugs pendientes de verificar
 - [ ] Burbujas en landing (se ven en preview pero verificar en landing real)
@@ -94,6 +122,25 @@ Portafolio/                         ← Workspace
 - [ ] Warnings de `?.` innecesarios en templates (no afectan funcionalidad)
 - [ ] Mini cards con ejemplos de vestimenta (pendiente: esperar imágenes de referencia)
 - [ ] Agregar sistema emoji/imagen para venues (como itinerario)
+- [ ] Vista de client: sidebar simplificado, dashboard directo a su evento
+
+---
+
+## ✅ Cambios sesión (2025-05-26) — Rama int-002
+
+### Sistema de usuarios y roles
+- **Modelo BD**: `users` con `role` (root/admin/client), `can_manage_users`, `plain_password`
+- **Tabla `user_events`**: Relación muchos-a-muchos para asignar eventos a clients
+- **Middleware `roles.js`**: `requireRole()`, `requireUserManagement()`, `requireEventAccess()`
+- **Ruta `/api/users`**: CRUD completo con protección por rol
+- **Reset password**: Genera contraseña random de 8 chars, la almacena en `plain_password`
+- **Import dedup**: Al importar invitados, se saltan duplicados por nombre+familia
+- **Events filtrados**: Clients solo ven sus eventos asignados
+- **Protección de rutas**: Clients no pueden crear/eliminar eventos
+- **Frontend**: Página de Usuarios con tabla/cards, modal crear/editar, toggle permisos
+- **Contraseña visible**: Enmascarada por defecto, se revela al mantener presionado el ojo
+- **Visibilidad por rol**: Root ve todas, admin ve suya + clients, client no ve nada
+- **Sidebar condicional**: Usuarios solo visible para root/admins con permiso, Eventos oculto para clients
 
 ---
 
