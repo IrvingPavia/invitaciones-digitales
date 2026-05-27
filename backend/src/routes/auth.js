@@ -53,7 +53,7 @@ router.put('/change-password', auth, async (req, res) => {
       return res.status(400).json({ error: 'Contraseña actual incorrecta' });
 
     const hash = bcrypt.hashSync(newPassword, 10);
-    await getDB().query('UPDATE users SET password = ? WHERE id = ?', [hash, req.user.id]);
+    await getDB().query('UPDATE users SET password = ?, plain_password = ? WHERE id = ?', [hash, newPassword, req.user.id]);
     res.json({ message: 'Contraseña actualizada' });
   } catch (err) {
     res.status(500).json({ error: err.message });

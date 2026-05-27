@@ -46,6 +46,18 @@ import { Event } from '../../../core/models/models';
     }
     .toggle-pill-dot-sm.active { background: var(--gold); }
     .toggle-pill-dot-sm.active::after { left: 18px; background: white; }
+    .pwd-cell {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pwd-masked { color: rgba(255,255,255,0.3); font-size: 12px; letter-spacing: 2px; }
+    .pwd-visible { color: var(--gold-light); font-size: 12px; font-family: monospace; letter-spacing: 1px; }
+    .pwd-toggle {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: rgba(255,255,255,0.4); display: flex; align-items: center;
+      border-radius: 4px; transition: all 0.2s;
+      .material-icons { font-size: 16px; }
+      &:hover { color: var(--gold-light); background: rgba(124,92,191,0.1); }
+    }
     @media (max-width: 768px) { .desktop-table { display: none; } .user-cards { display: block; } }
   `],
   template: `
@@ -75,13 +87,29 @@ import { Event } from '../../../core/models/models';
       <div class="card desktop-table" style="overflow:auto">
         <table class="data-table">
           <thead>
-            <tr><th>Usuario</th><th>Rol</th><th>Gestión</th><th>Eventos</th><th>Creado</th><th>Acciones</th></tr>
+            <tr><th>Usuario</th><th>Rol</th><th>Contraseña</th><th>Gestión</th><th>Eventos</th><th>Creado</th><th>Acciones</th></tr>
           </thead>
           <tbody>
             @for (u of users(); track u.id) {
               <tr>
                 <td><strong>{{ u.username }}</strong></td>
                 <td><span class="badge" [class.badge-danger]="u.role==='root'" [class.badge-info]="u.role==='admin'" [class.badge-warning]="u.role==='client'">{{ u.role }}</span></td>
+                <td>
+                  @if (u.plain_password) {
+                    <div class="pwd-cell">
+                      @if (visiblePwd === u.id) {
+                        <span class="pwd-visible">{{ u.plain_password }}</span>
+                      } @else {
+                        <span class="pwd-masked">••••••••</span>
+                      }
+                      <button class="pwd-toggle" (mousedown)="visiblePwd = u.id" (mouseup)="visiblePwd = 0" (mouseleave)="visiblePwd = 0" (touchstart)="visiblePwd = u.id" (touchend)="visiblePwd = 0" title="Mantener para ver">
+                        <span class="material-icons">{{ visiblePwd === u.id ? 'visibility' : 'visibility_off' }}</span>
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
                 <td>{{ u.can_manage_users ? 'Sí' : '—' }}</td>
                 <td>
                   <div class="event-chips">
@@ -117,6 +145,21 @@ import { Event } from '../../../core/models/models';
               <span class="badge" [class.badge-danger]="u.role==='root'" [class.badge-info]="u.role==='admin'" [class.badge-warning]="u.role==='client'">{{ u.role }}</span>
             </div>
             <div class="user-card-body">
+              <span class="user-card-label">Contraseña</span>
+              <span class="user-card-value">
+                @if (u.plain_password) {
+                  <div class="pwd-cell">
+                    @if (visiblePwd === u.id) {
+                      <span class="pwd-visible">{{ u.plain_password }}</span>
+                    } @else {
+                      <span class="pwd-masked">••••••••</span>
+                    }
+                    <button class="pwd-toggle" (mousedown)="visiblePwd = u.id" (mouseup)="visiblePwd = 0" (mouseleave)="visiblePwd = 0" (touchstart)="visiblePwd = u.id" (touchend)="visiblePwd = 0">
+                      <span class="material-icons">{{ visiblePwd === u.id ? 'visibility' : 'visibility_off' }}</span>
+                    </button>
+                  </div>
+                } @else { <span class="text-muted">—</span> }
+              </span>
               <span class="user-card-label">Gestión</span>
               <span class="user-card-value">{{ u.can_manage_users ? 'Sí' : '—' }}</span>
               <span class="user-card-label">Eventos</span>
@@ -214,6 +257,7 @@ export class UsersComponent implements OnInit {
   editing = false;
   editId = 0;
   currentUser: any;
+  visiblePwd = 0;
   form: any = { username: '', password: '', role: 'admin', can_manage_users: false, event_ids: [] };
 
   ngOnInit() {

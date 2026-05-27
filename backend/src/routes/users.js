@@ -8,15 +8,29 @@ const { requireUserManagement } = require('../middleware/roles');
 router.get('/', auth, requireUserManagement, async (req, res) => {
   try {
     const [users] = await getDB().query(
-      'SELECT id, username, role, can_manage_users, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, username, role, can_manage_users, plain_password, created_at FROM users ORDER BY created_at DESC'
     );
-    // Get assigned events for each user
+    // Filter plain_password visibility based on requester role
     for (const user of users) {
       const [events] = await getDB().query(
         'SELECT e.id, e.name, e.slug FROM user_events ue JOIN events e ON ue.event_id = e.id WHERE ue.user_id = ?',
         [user.id]
       );
       user.events = events;
+
+      // Password visibility rules
+      if (req.user.role === 'root') {
+        // Root sees all passwords
+      } else if (req.user.role === 'admin') {
+        // Admin sees own + client passwords only
+        if (user.id === req.user.id || user.role === 'client') {
+          // keep plain_password
+        } else {
+          user.plain_password = null;
+        }
+      } else {
+        user.plain_password = null;
+      }
     }
     res.json(users);
   } catch (err) {
@@ -52,8 +66,8 @@ router.post('/', auth, requireUserManagement, async (req, res) => {
 
     const hash = bcrypt.hashSync(password, 10);
     const [result] = await getDB().query(
-      'INSERT INTO users (username, password, role, can_manage_users) VALUES (?, ?, ?, ?)',
-      [username, hash, role || 'admin', can_manage_users ? 1 : 0]
+      'INSERT INTO users (username, password, role, can_manage_users, plain_password) VALUES (?, ?, ?, ?, ?)',
+      [username, hash, role || 'admin', can_manage_users ? 1 : 0, password]
     );
 
     // Assign events if provided (for clients)
@@ -91,8 +105,9 @@ router.put('/:id', auth, requireUserManagement, async (req, res) => {
     let params = [username, role, can_manage_users ? 1 : 0];
 
     if (password) {
-      query += ', password=?';
+      query += ', password=?, plain_password=?';
       params.push(bcrypt.hashSync(password, 10));
+      params.push(password);
     }
 
     query += ' WHERE id=?';
@@ -151,7 +166,7 @@ router.post('/:id/reset-password', auth, requireUserManagement, async (req, res)
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
     const newPassword = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     const hash = bcrypt.hashSync(newPassword, 10);
-    await getDB().query('UPDATE users SET password = ? WHERE id = ?', [hash, userId]);
+    await getDB().query('UPDATE users SET password = ?, plain_password = ? WHERE id = ?', [hash, newPassword, userId]);
 
     res.json({ password: newPassword });
   } catch (err) {

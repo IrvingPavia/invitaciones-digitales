@@ -147,12 +147,16 @@ async function initDB() {
   try {
     await db.query("ALTER TABLE users ADD COLUMN can_manage_users TINYINT(1) DEFAULT 0");
   } catch(e) { /* column already exists */ }
+  try {
+    await db.query("ALTER TABLE users ADD COLUMN plain_password VARCHAR(255) DEFAULT NULL");
+  } catch(e) { /* column already exists */ }
 
   // Seed root user
   const [rows] = await db.query('SELECT id FROM users WHERE username = ?', ['root']);
   if (rows.length === 0) {
-    const hash = bcrypt.hashSync('admin123', 10);
-    await db.query('INSERT INTO users (username, password, role, can_manage_users) VALUES (?, ?, ?, ?)', ['root', hash, 'root', 1]);
+    const plainPwd = 'admin123';
+    const hash = bcrypt.hashSync(plainPwd, 10);
+    await db.query('INSERT INTO users (username, password, role, can_manage_users, plain_password) VALUES (?, ?, ?, ?, ?)', ['root', hash, 'root', 1, plainPwd]);
     console.log('Root user created: root / admin123');
   }
 
