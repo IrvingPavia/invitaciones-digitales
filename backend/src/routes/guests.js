@@ -126,20 +126,39 @@ router.post('/import/:eventId', auth, upload.single('file'), async (req, res) =>
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
+    // Get existing guests for dedup
+    const [existing] = await conn.query(
+      'SELECT guest_names, family_name FROM guests WHERE event_id = ?',
+      [req.params.eventId]
+    );
+    const existingSet = new Set(existing.map(g => 
+      `${(g.family_name || '').toLowerCase().trim()}|${(g.guest_names || '').toLowerCase().trim()}`
+    ));
+
     await conn.beginTransaction();
     const results = [];
+    let skipped = 0;
     for (const row of rows) {
+      const guestNames = (row.guest_names || row.nombre || '').trim();
+      const familyName = (row.family_name || '').trim();
+      if (!guestNames) continue;
+
+      // Check for duplicate
+      const key = `${familyName.toLowerCase()}|${guestNames.toLowerCase()}`;
+      if (existingSet.has(key)) { skipped++; continue; }
+      existingSet.add(key);
+
       const code = uuidv4().split('-')[0].toUpperCase();
       const [r] = await conn.query(
         'INSERT INTO guests (event_id, unique_code, guest_type, family_name, guest_names, max_companions, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [req.params.eventId, code, row.guest_type || 'individual', row.family_name || '',
-          row.guest_names || row.nombre || '', parseInt(row.max_companions || row.acompanantes || 0),
+        [req.params.eventId, code, row.guest_type || 'individual', familyName,
+          guestNames, parseInt(row.max_companions || row.acompanantes || 0),
           row.notes || row.notas || '']
       );
       results.push({ id: r.insertId, code });
     }
     await conn.commit();
-    res.json({ imported: results.length, guests: results });
+    res.json({ imported: results.length, skipped, guests: results });
   } catch (err) {
     await conn.rollback();
     res.status(500).json({ error: err.message });

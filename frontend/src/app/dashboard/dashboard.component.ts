@@ -25,10 +25,18 @@ import { AuthService } from '../core/services/auth.service';
             <span class="material-icons">dashboard</span>
             @if (!collapsed()) { <span>Dashboard</span> }
           </a>
-          <a routerLink="/dashboard/events" routerLinkActive="active" (click)="closeMobile()">
-            <span class="material-icons">event</span>
-            @if (!collapsed()) { <span>Eventos</span> }
-          </a>
+          @if (user?.role !== 'client') {
+            <a routerLink="/dashboard/events" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">event</span>
+              @if (!collapsed()) { <span>Eventos</span> }
+            </a>
+          }
+          @if (user?.role === 'root' || user?.can_manage_users) {
+            <a routerLink="/dashboard/users" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">people</span>
+              @if (!collapsed()) { <span>Usuarios</span> }
+            </a>
+          }
         </nav>
         <div class="sidebar-footer">
           <div class="sidebar-user">

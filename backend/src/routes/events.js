@@ -1,22 +1,33 @@
 const router = require('express').Router();
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { requireRole, requireEventAccess } = require('../middleware/roles');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const [events] = await getDB().query(`
+    let query = `
       SELECT e.*,
         (SELECT COUNT(*) FROM guests WHERE event_id = e.id) as total_guests,
         (SELECT COUNT(*) FROM guests WHERE event_id = e.id AND confirmed = 1) as confirmed_guests
-      FROM events e ORDER BY e.created_at DESC
-    `);
+      FROM events e
+    `;
+    let params = [];
+
+    // Client users only see their assigned events
+    if (req.user.role === 'client') {
+      query += ' JOIN user_events ue ON ue.event_id = e.id WHERE ue.user_id = ?';
+      params.push(req.user.id);
+    }
+
+    query += ' ORDER BY e.created_at DESC';
+    const [events] = await getDB().query(query, params);
     res.json(events);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, requireEventAccess, async (req, res) => {
   try {
     const [rows] = await getDB().query('SELECT * FROM events WHERE id = ?', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ error: 'Evento no encontrado' });
@@ -26,7 +37,7 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, requireRole('root', 'admin'), async (req, res) => {
   try {
     const { name, event_type, event_date, slug } = req.body;
     if (!name || !event_type || !event_date || !slug)
@@ -51,7 +62,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, requireEventAccess, async (req, res) => {
   try {
     const { name, event_type, event_date, active } = req.body;
     await getDB().query(
@@ -64,7 +75,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, requireRole('root', 'admin'), async (req, res) => {
   try {
     await getDB().query('DELETE FROM events WHERE id = ?', [req.params.id]);
     res.json({ message: 'Evento eliminado' });

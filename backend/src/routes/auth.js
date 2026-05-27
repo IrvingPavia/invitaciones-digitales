@@ -15,11 +15,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciales incorrectas' });
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, username: user.username, role: user.role, can_manage_users: user.can_manage_users },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
-    res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+    res.json({ token, user: { id: user.id, username: user.username, role: user.role, can_manage_users: user.can_manage_users } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -27,8 +27,18 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', auth, async (req, res) => {
   try {
-    const [rows] = await getDB().query('SELECT id, username, role, created_at FROM users WHERE id = ?', [req.user.id]);
-    res.json(rows[0]);
+    const [rows] = await getDB().query('SELECT id, username, role, can_manage_users, created_at FROM users WHERE id = ?', [req.user.id]);
+    const user = rows[0];
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    // Get assigned events for client users
+    if (user.role === 'client') {
+      const [events] = await getDB().query(
+        'SELECT e.id, e.name, e.slug FROM user_events ue JOIN events e ON ue.event_id = e.id WHERE ue.user_id = ?',
+        [user.id]
+      );
+      user.events = events;
+    }
+    res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

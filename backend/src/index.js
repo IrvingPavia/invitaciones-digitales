@@ -15,6 +15,7 @@ const uploadRoutes = require('./routes/uploads');
 const rsvpRoutes = require('./routes/rsvp');
 const cardRoutes = require('./routes/cards');
 const publicRoutes = require('./routes/public');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/rsvp', rsvpRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

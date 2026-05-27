@@ -16,7 +16,8 @@ export const routes: Routes = [
       { path: 'events', loadComponent: () => import('./dashboard/pages/events/events.component').then(m => m.EventsComponent) },
       { path: 'guests/:eventId', loadComponent: () => import('./dashboard/pages/guests/guests.component').then(m => m.GuestsComponent) },
       { path: 'config/:eventId', loadComponent: () => import('./dashboard/pages/config/config.component').then(m => m.ConfigComponent) },
-      { path: 'cards/:eventId', loadComponent: () => import('./dashboard/pages/cards/cards.component').then(m => m.CardsComponent) }
+      { path: 'cards/:eventId', loadComponent: () => import('./dashboard/pages/cards/cards.component').then(m => m.CardsComponent) },
+      { path: 'users', loadComponent: () => import('./dashboard/pages/users/users.component').then(m => m.UsersComponent) }
     ]
   },
   {

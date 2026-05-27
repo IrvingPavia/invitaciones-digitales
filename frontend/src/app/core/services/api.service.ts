@@ -84,4 +84,11 @@ export class ApiService {
   // RSVP
   getRsvpGuest(code: string) { return this.http.get<any>(`${this.api}/rsvp/${code}`); }
   confirmRsvp(code: string, data: any) { return this.http.post<any>(`${this.api}/rsvp/${code}/confirm`, data); }
+
+  // Users
+  getUsers() { return this.http.get<any[]>(`${this.api}/users`); }
+  createUser(data: any) { return this.http.post<any>(`${this.api}/users`, data); }
+  updateUser(id: number, data: any) { return this.http.put<any>(`${this.api}/users/${id}`, data); }
+  deleteUser(id: number) { return this.http.delete<any>(`${this.api}/users/${id}`); }
+  resetUserPassword(id: number) { return this.http.post<{ password: string }>(`${this.api}/users/${id}/reset-password`, {}); }
 }

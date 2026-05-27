@@ -44,8 +44,20 @@ async function initDB() {
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(100) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
-      role VARCHAR(50) DEFAULT 'admin',
+      role ENUM('root','admin','client') DEFAULT 'admin',
+      can_manage_users TINYINT(1) DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS user_events (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      event_id INT NOT NULL,
+      UNIQUE KEY unique_user_event (user_id, event_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
@@ -128,13 +140,24 @@ async function initDB() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
-  // Seed admin user
-  const [rows] = await db.query('SELECT id FROM users WHERE username = ?', ['admin']);
+  // Ensure users table has new columns (migration for existing DBs)
+  try {
+    await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('root','admin','client') DEFAULT 'admin'");
+  } catch(e) { /* column already correct */ }
+  try {
+    await db.query("ALTER TABLE users ADD COLUMN can_manage_users TINYINT(1) DEFAULT 0");
+  } catch(e) { /* column already exists */ }
+
+  // Seed root user
+  const [rows] = await db.query('SELECT id FROM users WHERE username = ?', ['root']);
   if (rows.length === 0) {
     const hash = bcrypt.hashSync('admin123', 10);
-    await db.query('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['admin', hash, 'admin']);
-    console.log('Admin user created: admin / admin123');
+    await db.query('INSERT INTO users (username, password, role, can_manage_users) VALUES (?, ?, ?, ?)', ['root', hash, 'root', 1]);
+    console.log('Root user created: root / admin123');
   }
+
+  // Migrate existing admin user to have proper role and permissions
+  await db.query("UPDATE users SET can_manage_users = 1 WHERE username = 'admin'");
 
   console.log('Database initialized');
 }
