@@ -9,7 +9,34 @@
 
 ---
 
-## Última sesión: 2025-05-27
+## Última sesión: 2025-05-27 (sesión 2)
+
+### Vista simplificada para rol Client
+- **Home client**: Cards de acceso rápido (Invitados, Configurar, Tarjetas, Ver Landing) en vez del selector genérico
+- **Sidebar dinámico**: Para clients con 1 evento muestra links directos a sus secciones
+- **Sin acceso a Eventos/Usuarios**: Ocultos en sidebar y sin botón "Nuevo Evento"
+- **Mensaje vacío personalizado**: Si no tiene eventos asignados, indica contactar al admin
+
+### Módulo de Sugerencias
+- **Backend**: Tabla `suggestions` + CRUD en `/api/suggestions` (filtrado por rol)
+- **Frontend**: Componente con formulario (categoría + texto) + lista con estados
+- **Client**: Envía sugerencias, ve estado y respuesta del admin
+- **Admin/Root**: Ve todas, filtra por estado, cambia estado, responde con nota, elimina
+- **Categorías**: Landing, Tarjetas, Invitados, General
+- **Estados**: nueva → leída → implementada/descartada
+
+### Bug fixes
+- **Editor tarjetas**: Nuevos elementos ya no se superponen (offset 12% vertical + 4% horizontal)
+- **Landing bg flash**: Gif de fondo hace fade-in (1.2s) solo después de sobre+intro (fondo sólido como fallback)
+- **Landing scroll mobile**: `overscroll-behavior-y: contain` en `:host` del landing
+
+### Rama: `int-003`
+- Push a GitHub: `origin/int-003`
+- Migración pendiente: tabla `suggestions` (ver `docs/MIGRATIONS.md`)
+
+---
+
+## Sesión anterior: 2025-05-27
 
 ### Módulo de Tarjetas de Invitación (Rediseño completo)
 - **Arquitectura**: Eliminado fabric.js + PDFKit, reemplazado por HTML/CSS editor + Puppeteer
