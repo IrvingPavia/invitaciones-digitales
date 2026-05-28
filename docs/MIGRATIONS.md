@@ -1,5 +1,27 @@
 # 🗄️ Migraciones de Base de Datos
 
+## Sesión 2025-05-27 — Vista Client + Módulo Sugerencias
+
+**Ejecutar en DBeaver antes del deploy de `int-003`:**
+
+```sql
+-- Tabla de sugerencias (módulo de retroalimentación de clientes)
+CREATE TABLE IF NOT EXISTS suggestions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  event_id INT DEFAULT NULL,
+  category ENUM('landing','tarjetas','invitados','general') DEFAULT 'general',
+  text TEXT NOT NULL,
+  status ENUM('nueva','leida','implementada','descartada') DEFAULT 'nueva',
+  admin_note TEXT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+---
+
 ## Sesión 2025-05-27 — Módulo de Tarjetas con Puppeteer
 
 **No requiere cambios en BD.** Las tarjetas usan la tabla `card_templates` existente con JSON (front_config, back_config). El nuevo modelo de elementos se guarda en el mismo JSON.
