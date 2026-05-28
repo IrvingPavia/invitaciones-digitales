@@ -450,11 +450,16 @@ export class CardsComponent implements OnInit {
   }
 
   addElement(type: CardElement['type']) {
-    const el: CardElement = { id: Date.now().toString(), type, x: 10, y: 10, width: 80 };
-    if (type === 'text') { el.content = '{nombre}'; el.fontSize = 14; el.fontFamily = 'sans'; el.color = '#333'; el.textAlign = 'center'; }
-    if (type === 'qr') { el.width = 40; el.height = 60; el.x = 30; el.y = 10; el.qrColor = '#000'; el.qrBgColor = 'transparent'; el.showLabel = true; el.labelColor = '#999'; }
-    if (type === 'separator') { el.y = 50; el.width = 80; el.x = 10; el.shapeColor = '#d4a017'; }
-    if (type === 'image') { el.width = 30; el.height = 40; el.x = 35; el.y = 5; }
+    // Calculate offset to avoid stacking on existing elements
+    const existingCount = this.currentSide().elements.length;
+    const offsetY = (existingCount * 12) % 60; // 12% vertical offset per element, wrap at 60%
+    const offsetX = (existingCount * 4) % 20;  // slight horizontal stagger
+
+    const el: CardElement = { id: Date.now().toString(), type, x: 5 + offsetX, y: 5 + offsetY, width: 80 };
+    if (type === 'text') { el.content = '{nombre}'; el.fontSize = 14; el.fontFamily = 'sans'; el.color = '#333'; el.textAlign = 'center'; el.x = 10 + offsetX; el.y = 5 + offsetY; }
+    if (type === 'qr') { el.width = 40; el.height = 60; el.x = 30 + offsetX; el.y = 5 + offsetY; el.qrColor = '#000'; el.qrBgColor = 'transparent'; el.showLabel = true; el.labelColor = '#999'; }
+    if (type === 'separator') { el.y = 10 + offsetY; el.width = 80; el.x = 10 + offsetX; el.shapeColor = '#d4a017'; }
+    if (type === 'image') { el.width = 30; el.height = 40; el.x = 5 + offsetX; el.y = 5 + offsetY; }
     this.currentSide().elements.push(el);
     this.selectedEl = el;
   }

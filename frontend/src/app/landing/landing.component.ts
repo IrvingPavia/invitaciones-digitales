@@ -67,10 +67,11 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     }
 
     @if (data() && !loading()) {
-      <!-- Fixed background -->
-      @if (!showEnvelope() && data()!.config.hero?.backgroundGif) {
-        <div class="landing-bg" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
-        <div class="landing-bg-overlay"></div>
+      <!-- Fixed background: solid color always, gif fades in after intro -->
+      @if (data()!.config.hero?.backgroundGif) {
+        <div class="landing-bg-solid"></div>
+        <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro()" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro()"></div>
       }
 
       <!-- Envelope -->
@@ -147,7 +148,11 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     }
   `,
   styles: [`
-    :host { display: block; overscroll-behavior: none; }
+    :host { display: block; overscroll-behavior-y: contain; }
+    .landing-bg-solid {
+      position: fixed; inset: 0; z-index: -3;
+      background: #0d1117;
+    }
     .landing-bg {
       position: fixed; inset: 0; z-index: -2;
       background-size: cover;
@@ -162,7 +167,11 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
       bottom: -5vh;
       height: 110vh;
       height: 110dvh;
+      /* Hidden by default, fades in after intro */
+      opacity: 0;
+      transition: opacity 1.2s ease;
     }
+    .landing-bg.visible { opacity: 1; }
     .landing-bg-overlay {
       position: fixed; inset: 0; z-index: -1;
       background: rgba(0,0,0,0.55);
@@ -171,7 +180,11 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
       bottom: -5vh;
       height: 110vh;
       height: 110dvh;
+      /* Hidden by default, fades in with bg */
+      opacity: 0;
+      transition: opacity 1.2s ease;
     }
+    .landing-bg-overlay.visible { opacity: 1; }
     .landing-wrapper {
       max-width: 520px;
       margin: 0 auto;

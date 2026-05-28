@@ -140,6 +140,21 @@ async function initDB() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS suggestions (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      event_id INT DEFAULT NULL,
+      category ENUM('landing','tarjetas','invitados','general') DEFAULT 'general',
+      text TEXT NOT NULL,
+      status ENUM('nueva','leida','implementada','descartada') DEFAULT 'nueva',
+      admin_note TEXT DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // Ensure users table has new columns (migration for existing DBs)
   try {
     await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('root','admin','client') DEFAULT 'admin'");

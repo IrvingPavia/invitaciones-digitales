@@ -1,24 +1,16 @@
 # 📋 Pendientes y Mejoras — Vitely
 
-## Pendientes de deploy
+## Bugs por verificar en dispositivo móvil físico
 
-- [ ] Ejecutar scripts SQL de `MIGRATIONS.md` en server (sistema de usuarios)
-- [ ] Deploy rama `int-002` al server
-- [ ] Verificar Puppeteer funciona en server (Dockerfile con Chromium)
-
-## Bugs por verificar en producción
-
-- [ ] Burbujas en landing (se ven en preview pero verificar en landing real)
-- [ ] Sobre: verificar que no hay flash de fondo entre sobre e intro en mobile real
-- [ ] Fondo mobile: verificar fix de scroll en dispositivo real (110dvh + overscroll-behavior)
-- [ ] QR invitados: verificar que se genera correctamente con BASE_URL del servidor
-- [ ] PDF tarjetas: verificar que Puppeteer genera correctamente en el server (Chromium Alpine)
+- [ ] Sobre → Intro: verificar que no hay flash de fondo entre sobre e intro en mobile real
+    > Fix aplicado: el gif de fondo ahora hace fade-in (1.2s) solo después de que sobre+intro terminan. Fondo sólido oscuro como fallback.
+- [ ] Fondo mobile: verificar fix de scroll en dispositivo real
+    > Fix aplicado: `overscroll-behavior-y: contain` en `:host` del landing + bg extendido ±5vh.
 
 ## Features pendientes
 
 ### Alta prioridad
 - [ ] Vista simplificada para rol `client` (dashboard directo a su evento)
-- [ ] Cambio de contraseña desde el perfil del usuario logueado
 - [ ] Templates predefinidos para tarjetas (diseños base que el usuario personaliza)
 
 ### Media prioridad
@@ -60,3 +52,17 @@
 - [ ] Backups automáticos de BD
 - [ ] Monitoreo con healthchecks y alertas
 - [ ] Dominio propio para Vitely (vitely.app o similar)
+
+---
+
+## ✅ Completados (eliminar después de 1 semana sin regresión)
+
+### 2025-05-27
+- [x] Ejecutar scripts SQL de `MIGRATIONS.md` en server (sistema de usuarios)
+- [x] Deploy rama `int-002` al server
+- [x] Verificar Puppeteer funciona en server (Dockerfile con Chromium)
+- [x] Burbujas en landing (se ven en preview y en landing real)
+- [x] QR invitados: se genera correctamente con BASE_URL del servidor
+- [x] PDF tarjetas: Puppeteer genera correctamente en el server (Chromium Alpine)
+- [x] Cambio de contraseña desde el perfil del usuario logueado
+- [x] Editor de tarjetas: nuevos items ya no se superponen (offset incremental de 12% vertical + 4% horizontal)

@@ -1,7 +1,8 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { ApiService } from '../core/services/api.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,12 +32,30 @@ import { AuthService } from '../core/services/auth.service';
               @if (!collapsed()) { <span>Eventos</span> }
             </a>
           }
+          @if (user?.role === 'client' && clientEventId) {
+            <a [routerLink]="['/dashboard/guests', clientEventId]" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">people</span>
+              @if (!collapsed()) { <span>Invitados</span> }
+            </a>
+            <a [routerLink]="['/dashboard/config', clientEventId]" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">settings</span>
+              @if (!collapsed()) { <span>Configurar</span> }
+            </a>
+            <a [routerLink]="['/dashboard/cards', clientEventId]" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">style</span>
+              @if (!collapsed()) { <span>Tarjetas</span> }
+            </a>
+          }
           @if (user?.role === 'root' || user?.can_manage_users) {
             <a routerLink="/dashboard/users" routerLinkActive="active" (click)="closeMobile()">
               <span class="material-icons">people</span>
               @if (!collapsed()) { <span>Usuarios</span> }
             </a>
           }
+          <a routerLink="/dashboard/suggestions" routerLinkActive="active" (click)="closeMobile()">
+            <span class="material-icons">lightbulb</span>
+            @if (!collapsed()) { <span>Sugerencias</span> }
+          </a>
         </nav>
         <div class="sidebar-footer">
           <div class="sidebar-user">
@@ -121,11 +140,24 @@ import { AuthService } from '../core/services/auth.service';
     }
   `]
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private auth = inject(AuthService);
+  private api = inject(ApiService);
   collapsed = signal(false);
   mobileOpen = signal(false);
   user = this.auth.getUser();
+  clientEventId: number | null = null;
+
+  ngOnInit() {
+    // For client users with a single event, load their event ID for direct sidebar links
+    if (this.user?.role === 'client') {
+      this.api.getEvents().subscribe(events => {
+        if (events.length === 1) {
+          this.clientEventId = events[0].id;
+        }
+      });
+    }
+  }
 
   closeMobile() { this.mobileOpen.set(false); }
   logout() { this.auth.logout(); }

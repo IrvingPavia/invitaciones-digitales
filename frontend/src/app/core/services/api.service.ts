@@ -91,4 +91,14 @@ export class ApiService {
   updateUser(id: number, data: any) { return this.http.put<any>(`${this.api}/users/${id}`, data); }
   deleteUser(id: number) { return this.http.delete<any>(`${this.api}/users/${id}`); }
   resetUserPassword(id: number) { return this.http.post<{ password: string }>(`${this.api}/users/${id}/reset-password`, {}); }
+
+  // Suggestions
+  getSuggestions() { return this.http.get<any[]>(`${this.api}/suggestions`); }
+  createSuggestion(data: { text: string; category?: string; event_id?: number }) {
+    return this.http.post<any>(`${this.api}/suggestions`, data);
+  }
+  updateSuggestion(id: number, data: { status?: string; admin_note?: string }) {
+    return this.http.put<any>(`${this.api}/suggestions/${id}`, data);
+  }
+  deleteSuggestion(id: number) { return this.http.delete<any>(`${this.api}/suggestions/${id}`); }
 }
