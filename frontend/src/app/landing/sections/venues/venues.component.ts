@@ -21,7 +21,7 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
 
         <div class="venues-grid">
           @for (venue of config.items; track venue.id) {
-            <div class="venue-card reveal" [class.no-bg]="config.showCardBg === false">
+            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)">
               @if (config.iconStyle !== 'none') {
                 <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
                   @if (venue.icon) {
@@ -126,6 +126,12 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
 export class LandingVenuesComponent {
   @Input() config!: VenuesConfig;
   @Input() styles?: GlobalTextStyles;
+
+  getItemNoBg(venue: any): boolean {
+    // Per-item override takes priority, then section-level global
+    if (venue.showCardBg !== undefined) return venue.showCardBg === false;
+    return this.config.showCardBg === false;
+  }
 
   formatTime(time: string): string {
     if (!time) return '';

@@ -207,11 +207,13 @@ export interface VenueItem {
   address: string;
   time: string;
   mapsUrl: string;
+  showCardBg?: boolean;
 }
 
 export interface ItineraryConfig {
   enabled: boolean;
   title: string;
+  showCardBg?: boolean;
   items: ItineraryItem[];
 }
 
@@ -224,6 +226,7 @@ export interface ItineraryItem {
   title: string;
   description: string;
   sort_order: number;
+  showCardBg?: boolean;
 }
 
 export interface GalleryConfig {
@@ -242,6 +245,7 @@ export interface DresscodeConfig {
   enabled: boolean;
   title: string;
   description: string;
+  showCardBg?: boolean;
   sectionIcon?: SectionIconConfig;
 }
 
@@ -251,6 +255,7 @@ export interface GiftsConfig {
   description: string;
   link: string;
   buttonText: string;
+  showCardBg?: boolean;
   sectionIcon?: SectionIconConfig;
   transfer: TransferConfig;
 }
@@ -270,6 +275,7 @@ export interface TransferConfig {
 export interface RsvpConfig {
   enabled: boolean;
   title: string;
+  showCardBg?: boolean;
   sectionIcon?: SectionIconConfig;
   registrationFields?: RegistrationFieldConfig[];
 }

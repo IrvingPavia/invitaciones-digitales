@@ -22,7 +22,7 @@ import { inject } from '@angular/core';
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
 
-        <div class="rsvp-card reveal">
+        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false">
           @if (confirmed()) {
             <div class="rsvp-success">
               @if (getIcon(); as icon) {
@@ -122,6 +122,7 @@ import { inject } from '@angular/core';
     .rsvp-card {
       background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 20px; padding: 40px;
+      &.no-bg { background: transparent; border-color: transparent; }
     }
     .rsvp-for { font-size: 13px; color: var(--theme-text-secondary, rgba(255,255,255,0.5)); letter-spacing: 1px; margin-bottom: 8px; }
     .rsvp-name { font-family: var(--font-serif); font-size: clamp(22px, 4vw, 30px); color: var(--theme-text-primary, white); margin-bottom: 16px; }

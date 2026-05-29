@@ -18,7 +18,7 @@ import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../c
           >{{ config.title }}</h2>
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
-        <div class="dresscode-card reveal">
+        <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false">
           @if (getIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons dresscode-icon">{{ icon.value }}</span>
@@ -46,6 +46,7 @@ import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../c
     .dresscode-card {
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px;
+      &.no-bg { background: transparent; border-color: transparent; }
     }
     .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
     .dresscode-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }

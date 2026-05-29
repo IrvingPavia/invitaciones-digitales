@@ -22,7 +22,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
         <div class="timeline">
           @for (item of items; track item.id; let i = $index) {
             <div class="timeline-item" [class.right]="i % 2 !== 0" [style.transition-delay.ms]="i * 100">
-              <div class="timeline-content reveal">
+              <div class="timeline-content reveal" [class.no-bg]="getItemNoBg(item)">
                 @if (item.iconType !== 'none') {
                 <div class="timeline-icon">
                   @if (item.iconType === 'custom' && item.iconUrl) {
@@ -97,6 +97,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
       border-radius: 12px; padding: 20px; max-width: 340px;
       transition: transform 0.3s;
       &:hover { transform: translateY(-2px); }
+      &.no-bg { background: transparent; border-color: transparent; }
     }
     .timeline-icon {
       width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
@@ -130,6 +131,11 @@ export class LandingItineraryComponent implements AfterViewInit, OnDestroy {
   @Input() styles?: GlobalTextStyles;
   private el = inject(ElementRef);
   private observer!: IntersectionObserver;
+
+  getItemNoBg(item: ItineraryItem): boolean {
+    if (item.showCardBg !== undefined) return item.showCardBg === false;
+    return this.config.showCardBg === false;
+  }
 
   ngAfterViewInit() {
     this.observer = new IntersectionObserver((entries) => {

@@ -18,7 +18,7 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
           >{{ config.title }}</h2>
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
-        <div class="gifts-card reveal">
+        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false">
           @if (getGiftsIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons gifts-icon">{{ icon.value }}</span>
@@ -115,6 +115,7 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
     .gifts-card {
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px; margin-bottom: 20px;
+      &.no-bg { background: transparent; border-color: transparent; }
     }
     .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
     .gifts-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
