@@ -33,32 +33,11 @@
 > - Flujo actual: Admin crea invitados → cada uno recibe QR único → landing personalizada con su nombre → confirma asistencia
 > - Flujo nuevo: Admin configura evento abierto con cupo → comparte link genérico → cualquiera se registra con sus datos → cuando se llena el cupo, se cierra el registro
 
-**Concepto A — Invitación abierta con cupo:**
-- Evento tipo conferencia/taller sin invitados predefinidos
-- Se configura un número máximo de asistentes (cupo)
-- Landing y tarjetas se diseñan sin variables de invitado ({nombre}, {familia}, etc.)
-- El RSVP funciona como formulario de registro público (sin código de invitado)
-- Campos del formulario configurables: nombre completo, email, teléfono, empresa, etc.
-- Cuando se llena el cupo → la landing muestra "Registro cerrado / Cupo lleno"
-
-**Concepto B — Invitación genérica con cupo limitado:**
-- Similar al A pero con una URL genérica compartible (sin código único por invitado)
-- El registro es first-come-first-served hasta llenar cupo
-- Dashboard muestra lista de registrados (en vez de invitados)
-
 **Versionamiento propuesto:**
 
 - **v1 — Base**: ✅ Completo. Backend (event_mode, max_capacity, tabla registrations, endpoints registro/status/CRUD) + Frontend (landing con formulario de registro dinámico, mensaje "cupo lleno", vista de registrados en dashboard, KPIs adaptados, selector de lada con dropdown custom).
 - **v2 — Campos dinámicos**: ✅ Completo. Campos configurables desde la pestaña Confirmaciones en config (nombre, email, teléfono, empresa, cargo). Cada campo puede activarse/desactivarse y marcarse como obligatorio. Selector de lada con banderas para teléfono.
-- **v3 — Tarjetas genéricas**: Tarjetas sin variables de invitado + QR que apunta a la landing genérica (sin `?t=code`) + landing sin sección de invitación personalizada (oculta nombres, muestra solo info del evento)
-
-**Impacto técnico estimado (v1):**
-- BD: ALTER TABLE events ADD `event_mode` ENUM('private','open'), ADD `max_capacity` INT DEFAULT NULL
-- BD: CREATE TABLE registrations (id, event_id, name, email, created_at)
-- Backend: nueva ruta POST /api/public/register/:slug + validación de cupo
-- Backend: GET /api/registrations/:eventId (dashboard)
-- Frontend landing: detectar event_mode, mostrar formulario de registro en vez de RSVP con código, mostrar "cupo lleno" si aplica
-- Frontend dashboard: nueva vista de "Registrados" para eventos abiertos (similar a invitados pero sin QR/código)
+- **v3 — Tarjetas genéricas**: ✅ Completo. Tarjetas sin variables de invitado + QR que apunta a la landing genérica (sin `?t=code`). Dos modos de impresión: "Hoja única" (folleto/flyer centrado en página, tamaño configurable) y "Múltiples copias" (N tarjetas idénticas maximizando espacio por hoja). Variables de texto filtradas (solo {evento}, {fecha}, {tipo}). Vista previa proporcional al tamaño real.
 
 ### Media prioridad
 - [ ] **Fondo de tarjetas individual**: La opción "Fondo de tarjetas" debe estar en TODAS las secciones que usen cards (detalles, lugares, itinerario, vestimenta, regalos, RSVP). Además, en las secciones donde hay múltiples items (lugares, itinerario, vestimenta), el toggle debe ser **por cada tarjeta individual**, no global. Actualmente es global por sección.
@@ -139,6 +118,7 @@
 - [x] Spellcheck habilitado globalmente (lang="es" + spellcheck="true")
 - [x] Dashboard: botón Invitados/Registrados contextual según event_mode
 - [x] Fix NaN% en progreso cuando evento no tiene invitados
+- [x] **Eventos abiertos v3 — Tarjetas genéricas**: Tarjetas sin variables de invitado, QR apunta a landing genérica. Dos modos: "Hoja única" (folleto centrado, tamaño configurable) y "Múltiples copias" (N copias, maximiza espacio por hoja). Variables filtradas para eventos abiertos. Vista previa proporcional.
 
 ### 2025-05-27
 - [x] Ejecutar scripts SQL de `MIGRATIONS.md` en server (sistema de usuarios)

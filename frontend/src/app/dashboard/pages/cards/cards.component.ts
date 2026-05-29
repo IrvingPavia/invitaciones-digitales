@@ -238,8 +238,47 @@ interface CardSide {
               </label>
             </div>
           </div>
-          <p class="text-muted" style="font-size:12px;margin-top:12px;">Total invitados: {{ guests().length }} → {{ getPageCount() }} páginas</p>
+          <p class="text-muted" style="font-size:12px;margin-top:12px;">
+            @if (eventMode === 'open') {
+              Modo: {{ pdfLayout.genericMode === 'single-page' ? 'Hoja única (folleto)' : pdfLayout.copyCount + ' copias' }} → {{ getPageCount() }} {{ getPageCount() === 1 ? 'página' : 'páginas' }}
+            } @else {
+              Total invitados: {{ guests().length }} → {{ getPageCount() }} páginas
+            }
+          </p>
         </div>
+
+        <!-- Generic mode controls (open events only) -->
+        @if (eventMode === 'open') {
+          <div class="card" style="margin-top:16px;">
+            <h4 style="color:var(--gold-light);margin-bottom:12px;">
+              <span class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">public</span>
+              Modo de impresión (evento abierto)
+            </h4>
+            <p class="text-muted" style="font-size:12px;margin-bottom:12px;">Las tarjetas genéricas no usan variables de invitado. El QR apunta a la landing pública del evento.</p>
+            <div class="prop-row">
+              <div class="prop-field"><label>Modo</label>
+                <select [(ngModel)]="pdfLayout.genericMode" (ngModelChange)="clampCardSize()">
+                  <option value="single-page">Hoja única (folleto/flyer)</option>
+                  <option value="multiple">Múltiples copias (mini tarjetas)</option>
+                </select>
+              </div>
+            </div>
+            @if (pdfLayout.genericMode === 'single-page') {
+              <p class="text-muted" style="font-size:11px;margin-top:8px;">
+                <span class="material-icons" style="font-size:14px;vertical-align:middle;">info</span>
+                El diseño se centra en la hoja con el tamaño configurado arriba. Ajusta ancho/alto para definir el tamaño del folleto.
+              </p>
+            }
+            @if (pdfLayout.genericMode === 'multiple') {
+              <div class="prop-row" style="margin-top:8px;">
+                <div class="prop-field"><label>Cantidad de copias</label><input type="number" [(ngModel)]="pdfLayout.copyCount" min="1" max="500"></div>
+              </div>
+              <p class="text-muted" style="font-size:11px;margin-top:4px;">
+                {{ getCardsPerPage() }} tarjetas por hoja → {{ getGenericPageCount() }} páginas para {{ pdfLayout.copyCount }} copias
+              </p>
+            }
+          </div>
+        }
 
         <!-- Layout preview -->
         <div class="card" style="margin-top:16px;">
@@ -249,14 +288,20 @@ interface CardSide {
               @for (i of getLayoutSlots(); track i) {
                 <div class="layout-slot" [style.width.%]="getSlotWidth()" [style.height.%]="getSlotHeight()" [style.flex-direction]="isSideBySide() ? 'row' : 'column'">
                   <div class="layout-slot-front">F</div>
-                  @if (pdfLayout.sides !== 'front-only') {
+                  @if (pdfLayout.sides !== 'front-only' && !(eventMode === 'open' && pdfLayout.genericMode === 'single-page')) {
                     <div class="layout-slot-back">R</div>
                   }
                 </div>
               }
             </div>
           </div>
-          <p class="text-muted" style="font-size:11px;margin-top:8px;text-align:center;">{{ getCardsPerPage() }} {{ pdfLayout.sides === 'front-only' ? 'tarjetas' : 'pares (frente+reverso)' }} por página</p>
+          <p class="text-muted" style="font-size:11px;margin-top:8px;text-align:center;">
+            @if (eventMode === 'open' && pdfLayout.genericMode === 'single-page') {
+              1 diseño a página completa{{ pdfLayout.sides !== 'front-only' ? ' (reverso en página 2)' : '' }}
+            } @else {
+              {{ getCardsPerPage() }} {{ pdfLayout.sides === 'front-only' ? 'tarjetas' : 'pares (frente+reverso)' }} por página
+            }
+          </p>
         </div>
       }
 
@@ -303,10 +348,13 @@ interface CardSide {
               @if (snapGuides.h !== null) { <div class="snap-guide-h" [style.top.%]="snapGuides.h"></div> }
             </div>
             <!-- Guest selector -->
-            @if (guests().length) {
+            @if (guests().length && eventMode !== 'open') {
               <select (change)="selectPreview($event)" style="font-size:12px;max-width:200px;">
                 @for (g of guests(); track g.id) { <option [value]="g.id">{{ g.family_name || g.guest_names }}</option> }
               </select>
+            }
+            @if (eventMode === 'open') {
+              <p style="font-size:11px;color:rgba(255,255,255,0.4);"><span class="material-icons" style="font-size:14px;vertical-align:middle;">public</span> Tarjeta genérica — sin datos de invitado</p>
             }
           </div>
 
@@ -389,13 +437,17 @@ interface CardSide {
                       <label>Tipo de contenido</label>
                       <select (change)="applyTextPreset($event)">
                         <option value="">— Seleccionar variable —</option>
-                        <option value="{nombre}">Nombre principal (invitado/familia)</option>
-                        <option value="{invitados}">Lista de nombres</option>
+                        @if (eventMode !== 'open') {
+                          <option value="{nombre}">Nombre principal (invitado/familia)</option>
+                          <option value="{invitados}">Lista de nombres</option>
+                        }
                         <option value="{evento}">Nombre del evento</option>
                         <option value="{fecha}">Fecha del evento</option>
                         <option value="{tipo}">Tipo de evento</option>
-                        <option value="{asistentes}">Número de asistentes</option>
-                        <option value="{codigo}">Código único</option>
+                        @if (eventMode !== 'open') {
+                          <option value="{asistentes}">Número de asistentes</option>
+                          <option value="{codigo}">Código único</option>
+                        }
                         <option value="__custom__">✏️ Texto fijo (igual en todas)</option>
                       </select>
                     </div>
@@ -492,7 +544,7 @@ export class CardsComponent implements OnInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   Math = Math;
-  eventId = 0; eventName = ''; eventDate = ''; eventType = '';
+  eventId = 0; eventName = ''; eventDate = ''; eventType = ''; eventMode = 'private';
   guests = signal<Guest[]>([]);
   previewGuest = signal<Guest | null>(null);
   saving = signal(false); downloading = signal(false); previewing = signal(false);
@@ -507,7 +559,7 @@ export class CardsComponent implements OnInit {
   back: CardSide = { bgColor: '#ffffff', bgColor2: '', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#d4a017', borderWidth: 1, borderRadius: 4, elements: [] };
   cardWidth = 90;
   cardHeight = 50;
-  pdfLayout = { orientation: 'portrait' as string, cardsPerPage: 6, showCutMarks: true, margin: 10, pageSize: 'letter' as string, gap: 3, sides: 'both' as string };
+  pdfLayout = { orientation: 'portrait' as string, cardsPerPage: 6, showCutMarks: true, margin: 10, pageSize: 'letter' as string, gap: 3, sides: 'both' as string, genericMode: 'multiple' as string, copyCount: 10 };
 
   cardTemplates = [
     {
@@ -588,7 +640,7 @@ export class CardsComponent implements OnInit {
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
-    this.api.getEvent(this.eventId).subscribe(e => { this.eventName = e.name; this.eventDate = e.event_date; this.eventType = e.event_type; });
+    this.api.getEvent(this.eventId).subscribe(e => { this.eventName = e.name; this.eventDate = e.event_date; this.eventType = e.event_type; this.eventMode = e.event_mode || 'private'; });
     this.api.getGuests(this.eventId).subscribe(g => { this.guests.set(g); if (g.length) this.previewGuest.set(g[0]); });
     this.api.getCardTemplate(this.eventId).subscribe(t => {
       if (t.front_config && Object.keys(t.front_config).length) {
@@ -650,6 +702,19 @@ export class CardsComponent implements OnInit {
 
   replaceVarsPreview(content?: string): string {
     if (!content) return '';
+    if (this.eventMode === 'open') {
+      // For open events, only replace generic vars
+      const vars: Record<string, string> = {
+        '{nombre}': '', '{familia}': '', '{invitados}': '', '{codigo}': '',
+        '{evento}': this.eventName || 'Mi Evento',
+        '{fecha}': this.eventDate ? new Date(this.eventDate).toLocaleDateString('es-MX') : '01/01/2025',
+        '{tipo}': this.eventType || 'Evento',
+        '{asistentes}': ''
+      };
+      let result = content;
+      for (const [k, v] of Object.entries(vars)) result = result.replace(new RegExp(k.replace(/[{}]/g, '\\$&'), 'g'), v);
+      return result;
+    }
     const g = this.previewGuest();
     const vars: Record<string, string> = {
       '{nombre}': g?.family_name || g?.guest_names || 'Familia García',
@@ -818,17 +883,33 @@ export class CardsComponent implements OnInit {
   }
 
   getPageCount(): number {
+    if (this.eventMode === 'open') return this.getGenericPageCount();
     const perPage = this.getCardsPerPage();
     return Math.ceil(this.guests().length / perPage) || 1;
   }
 
+  getGenericPageCount(): number {
+    if (this.pdfLayout.genericMode === 'single-page') return 1;
+    const perPage = this.getCardsPerPage();
+    return Math.ceil((this.pdfLayout.copyCount || 10) / perPage) || 1;
+  }
+
   getLayoutSlots(): number[] {
+    if (this.eventMode === 'open' && this.pdfLayout.genericMode === 'single-page') {
+      return [0]; // Single page mode: only 1 card fills the page
+    }
     const perPage = this.getCardsPerPage();
     const total = Math.min(perPage, this.guests().length || perPage);
     return Array.from({ length: total }, (_, i) => i);
   }
 
   getSlotWidth(): number {
+    if (this.eventMode === 'open' && this.pdfLayout.genericMode === 'single-page') {
+      // Show proportional size of card vs page
+      const { w } = this.getPageDimensions();
+      const usableW = w - this.pdfLayout.margin * 2;
+      return (this.cardWidth / usableW) * 96;
+    }
     const { w } = this.getPageDimensions();
     const m = this.pdfLayout.margin;
     const gap = this.pdfLayout.gap ?? 3;
@@ -840,6 +921,12 @@ export class CardsComponent implements OnInit {
   }
 
   getSlotHeight(): number {
+    if (this.eventMode === 'open' && this.pdfLayout.genericMode === 'single-page') {
+      // Show proportional size of card vs page
+      const { h } = this.getPageDimensions();
+      const usableH = h - this.pdfLayout.margin * 2;
+      return (this.cardHeight / usableH) * 94;
+    }
     const { h } = this.getPageDimensions();
     const m = this.pdfLayout.margin;
     const gap = this.pdfLayout.gap ?? 3;
@@ -863,6 +950,9 @@ export class CardsComponent implements OnInit {
   getMaxCardWidth(): number {
     const { w } = this.getPageDimensions();
     const usableW = w - this.pdfLayout.margin * 2;
+    if (this.eventMode === 'open' && this.pdfLayout.genericMode === 'single-page') {
+      return Math.floor(usableW);
+    }
     if (this.pdfLayout.sides === 'front-only') {
       return Math.floor(usableW);
     }
@@ -872,6 +962,9 @@ export class CardsComponent implements OnInit {
   getMaxCardHeight(): number {
     const { h } = this.getPageDimensions();
     const usableH = h - this.pdfLayout.margin * 2;
+    if (this.eventMode === 'open' && this.pdfLayout.genericMode === 'single-page') {
+      return Math.floor(usableH);
+    }
     if (this.pdfLayout.sides === 'front-only') {
       return Math.floor(usableH);
     }

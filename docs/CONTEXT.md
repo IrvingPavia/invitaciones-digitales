@@ -49,6 +49,11 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - PDF generado con Puppeteer (fidelidad 100% al preview)
 - Vista previa PDF en modal (sin descarga)
 - Layout configurable: tamaño tarjeta, página (Carta/A4/Oficio), orientación, márgenes, gap, marcas de corte
+- **Tarjetas genéricas (eventos abiertos)**: Dos modos de impresión:
+  - "Hoja única" (folleto/flyer): diseño centrado en página, tamaño configurable
+  - "Múltiples copias": N tarjetas idénticas, maximiza espacio por hoja
+  - QR apunta a landing genérica (sin código de invitado)
+  - Variables de texto filtradas: solo {evento}, {fecha}, {tipo}
 
 ### Eventos abiertos (v1 + v2 completos)
 - Campo `event_mode` (private/open) + `max_capacity` en eventos
