@@ -4,68 +4,118 @@
 
 ## ¿Qué es Vitely?
 
-Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, cumpleaños, etc.) con landing pages personalizables y tarjetas físicas imprimibles.
+Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, cumpleaños, conferencias, etc.) con landing pages personalizables y tarjetas físicas imprimibles. Soporta eventos privados (con lista de invitados) y eventos abiertos (registro público con cupo).
 
 ## Funcionalidades principales
 
 ### Landing Page (público)
 - Sobre animado con sello (pre-intro)
 - Intro con partículas configurables (6 tipos, dirección, colores, opacidad)
-- Hero con countdown, nombres con degradado, audio
-- Secciones: Invitación, Detalles, Lugares, Itinerario, Galería, Vestimenta, Regalos, RSVP
+- Hero con countdown, nombres con degradado (ocultables), descripción opcional, audio
+- Secciones: Invitación, Detalles, Lugares, Itinerario, Galería, Vestimenta, Regalos, RSVP/Registro
 - Tema global configurable (colores, fuentes, 15 tipografías)
+- 5 templates de landing predefinidos (Elegante, Moderno, Romántico, Festivo, Corporativo)
+- Menú de navegación dinámico (solo muestra secciones habilitadas)
+- Formulario de registro público para eventos abiertos (campos configurables + selector de lada)
+- Opciones por sección: ocultar icono, quitar fondo de card
 - Mobile-first (520px max-width)
 - Favicon dinámico por evento
+- Spellcheck habilitado globalmente (lang="es")
 
 ### Dashboard (admin)
-- Gestión de eventos (CRUD)
-- Gestión de invitados (CRUD, import/export Excel, QR)
-- Configuración visual completa de la landing (12+ tabs)
+- Gestión de eventos (CRUD, tipos: Boda, Cumpleaños, XV Años, Bautizo, Graduación, Empresarial, Conferencia)
+- Selector de template al crear evento
+- Modo de evento: privado (invitados) / abierto (registro con cupo)
+- Gestión de invitados (CRUD, import/export Excel, QR) — solo eventos privados
+- Vista de registrados (lista, stats, eliminar) — solo eventos abiertos
+- KPIs adaptados según tipo de evento (invitados vs registrados)
+- Configuración visual completa de la landing (13 tabs)
+- Campos de registro configurables (nombre, email, teléfono con lada, empresa, cargo)
 - Editor de tarjetas físicas (drag & drop, elementos posicionables, PDF con Puppeteer)
 - Gestión de usuarios (root/admin/client con permisos)
+- Diálogos personalizados (sin confirm/alert nativos del navegador)
+- Selector de hora personalizado (sin datetime-local nativo)
 - Responsive (cards en mobile, tabla en desktop)
 - Branding Vitely (púrpura, logo, favicon)
+- Módulo de sugerencias (retroalimentación de clientes)
 
-### Tarjetas de invitación (nuevo)
+### Tarjetas de invitación
 - Editor visual con canvas WYSIWYG
 - Elementos: texto (con variables dinámicas), imagen, QR, separador
 - Drag & drop con guías de alineación (snap)
 - Resize con handle
 - Fondo: color sólido, degradado bicolor (ángulo + intensidad), imagen
+- 4 templates predefinidos (Elegante, Moderno, Floral, Infantil)
 - PDF generado con Puppeteer (fidelidad 100% al preview)
-- Layout configurable: tamaño tarjeta, página (Carta/A4/Oficio), orientación, márgenes, marcas de corte
+- Vista previa PDF en modal (sin descarga)
+- Layout configurable: tamaño tarjeta, página (Carta/A4/Oficio), orientación, márgenes, gap, marcas de corte
+
+### Eventos abiertos (v1 + v2 completos)
+- Campo `event_mode` (private/open) + `max_capacity` en eventos
+- Tabla `registrations` (name, email, phone, company, position)
+- Endpoints públicos de registro con validación de cupo + duplicados
+- Landing con formulario dinámico (campos configurables desde dashboard)
+- Selector de lada con dropdown custom y banderas (22 países)
+- Dashboard: vista de registrados con stats de cupo
+- KPIs: registrados / lugares disponibles / cupo total + barra de progreso
 
 ## GitHub
 
 - **Repo**: https://github.com/IrvingPavia/invitaciones-digitales
-- **Rama activa**: `int-002`
+- **Rama activa**: `int-004`
 - **Cuenta**: IrvingPavia
 
 ## Comandos útiles (local)
 
 ```bash
-# Levantar todo
+# Levantar todo (rebuild)
 cd c:\Portafolio\invitaciones-digitales
-docker-compose up -d --build
+docker-compose up -d --build --force-recreate frontend backend
 
 # Solo frontend
-docker-compose up -d --build frontend
+docker-compose up -d --build --force-recreate frontend
 
 # Solo backend
-docker-compose up -d --build backend
+docker-compose up -d --build --force-recreate backend
 
 # Ver logs
 docker-compose logs -f backend
 
 # Acceso local
 # Dashboard: http://localhost (login: root / admin123)
-# Landing: http://localhost/invitacion/{slug}?t={codigo}
+# Landing privada: http://localhost/invitacion/{slug}?t={codigo}
+# Landing abierta: http://localhost/invitacion/{slug}
 ```
 
 ## Decisiones de diseño clave
 
 - **Config como JSON**: Toda la configuración visual en `event_config.config_json` (flexibilidad sin migraciones)
+- **Templates como objetos JS**: Definidos en backend (`events.js`) y frontend (`config.component.ts`). No requieren BD.
+- **Campos de registro en config JSON**: `rsvp.registrationFields` dentro del config_json del evento (sin tabla extra)
 - **Puppeteer para PDF**: HTML → PDF garantiza fidelidad visual
 - **Roles en JWT**: Token incluye role + can_manage_users para decisiones en frontend
 - **Uploads relativos**: Rutas `/uploads/...` en BD, resueltas por Nginx proxy
 - **Volúmenes Docker nombrados**: Datos persistentes entre rebuilds
+- **Secciones apagadas por defecto**: Eventos nuevos inician con todas las secciones en `enabled: false`
+- **DialogService global**: Reemplaza confirm()/alert() nativos en todo el dashboard
+
+## Base de datos (8 tablas)
+
+| Tabla | Propósito |
+|-------|-----------|
+| `users` | Autenticación con roles (root/admin/client) |
+| `user_events` | Relación muchos-a-muchos usuario↔evento |
+| `events` | Eventos con slug, tipo, fecha, event_mode, max_capacity |
+| `event_config` | JSON blob con toda la configuración visual |
+| `guests` | Invitados con código único, tipo, confirmación |
+| `registrations` | Registros públicos para eventos abiertos (name, email, phone, company, position) |
+| `itinerary` | Items del itinerario (normalizado) |
+| `photos` | Galería de fotos por evento |
+| `card_templates` | Plantillas de tarjetas (front/back JSON) |
+| `suggestions` | Sugerencias/retroalimentación de clientes |
+
+## Notas para desarrollo local
+
+- Cualquier cambio en código requiere rebuild de Docker (`docker-compose up -d --build --force-recreate frontend backend`)
+- Después del rebuild, hacer Ctrl+Shift+R en el navegador para limpiar cache
+- El steering file `.kiro/steering/docker-rebuild.md` instruye al agente a hacer rebuilds automáticamente
