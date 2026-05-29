@@ -20,15 +20,17 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
         </div>
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal">
-              @if (card.iconType === 'emoji' && card.icon) {
-                <div class="detail-icon emoji-icon">
-                  <span>{{ card.icon }}</span>
-                </div>
-              } @else if (card.iconUrl) {
-                <div class="detail-icon">
-                  <img [src]="card.iconUrl" [alt]="card.title">
-                </div>
+            <div class="detail-card reveal" [class.no-bg]="config.showCardBg === false">
+              @if (card.iconType !== 'none') {
+                @if (card.iconType === 'emoji' && card.icon) {
+                  <div class="detail-icon emoji-icon">
+                    <span>{{ card.icon }}</span>
+                  </div>
+                } @else if (card.iconUrl) {
+                  <div class="detail-icon">
+                    <img [src]="card.iconUrl" [alt]="card.title">
+                  </div>
+                }
               }
               @if (card.title) {
                 <h3 [style.font-family]="getFontFamily(styles?.titleStyle?.fontFamily)"
@@ -64,6 +66,7 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
+      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
     }
     .detail-icon {
       width: 72px; height: 72px;

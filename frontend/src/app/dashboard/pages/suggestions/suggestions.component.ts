@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -57,7 +58,7 @@ import { AuthService } from '../../../core/services/auth.service';
     <div class="card text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div></div>
   } @else if (filtered.length === 0) {
     <div class="card text-center" style="padding:40px">
-      <span class="material-icons" style="font-size:48px;color:rgba(212,160,23,0.3)">forum</span>
+      <span class="material-icons" style="font-size:48px;color:rgba(124,92,191,0.3)">forum</span>
       <p class="text-muted" style="margin-top:12px;">No hay sugerencias {{ filterStatus ? 'con este filtro' : 'aún' }}</p>
     </div>
   } @else {
@@ -114,13 +115,13 @@ import { AuthService } from '../../../core/services/auth.service';
 `,
   styles: [`.suggestion-card {
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(212,160,23,0.15);
+  border: 1px solid rgba(124,92,191,0.15);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
   transition: border-color 0.2s;
 }
-.suggestion-card:hover { border-color: rgba(212,160,23,0.3); }
+.suggestion-card:hover { border-color: rgba(124,92,191,0.3); }
 .suggestion-header {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   margin-bottom: 10px; font-size: 12px;
@@ -145,6 +146,7 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class SuggestionsComponent implements OnInit {
   private api = inject(ApiService);
+  private dialog = inject(DialogService);
   private auth = inject(AuthService);
   user = this.auth.getUser();
   suggestions = signal<any[]>([]);
@@ -203,8 +205,9 @@ export class SuggestionsComponent implements OnInit {
     });
   }
 
-  deleteSuggestion(id: number) {
-    if (!confirm('¿Eliminar esta sugerencia?')) return;
+  async deleteSuggestion(id: number) {
+    const ok = await this.dialog.confirm('Eliminar sugerencia', '¿Eliminar esta sugerencia?');
+    if (!ok) return;
     this.api.deleteSuggestion(id).subscribe(() => this.load());
   }
 

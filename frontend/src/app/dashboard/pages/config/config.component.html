@@ -1,7 +1,9 @@
 @if (config(); as c) {
-<div class="config-header"><h2>Configuración de Landing</h2></div>
 <div class="config-toolbar">
-  <a routerLink="/dashboard" class="btn btn-outline">← Volver</a>
+  <div>
+    <a routerLink="/dashboard" class="back-link"><span class="material-icons">arrow_back</span> Volver</a>
+    <h2 class="section-title">Configuración de Landing</h2>
+  </div>
   <button class="btn" [class.btn-primary]="saveStatus() === 'idle' || saveStatus() === 'saving'" [class.btn-success]="saveStatus() === 'saved'" [class.btn-danger]="saveStatus() === 'error'" (click)="save()" [disabled]="saving()">
     <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : saveStatus() === 'error' ? 'error' : 'save' }}</span>
     {{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado ✓' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}
@@ -94,6 +96,29 @@
 }
 
 @if (activeTab === 'theme') {
+<!-- Template selector -->
+<div class="section-card">
+  <div class="section-card-header"><span>Aplicar Template</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Selecciona un template para reemplazar todos los colores y fuentes. Los contenidos no se modifican.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;">
+      @for (tpl of landingTemplates; track tpl.key) {
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:10px;border:2px solid transparent;transition:all 0.2s;" [style.border-color]="pendingTemplate === tpl.key ? 'var(--gold)' : 'transparent'" [style.background]="pendingTemplate === tpl.key ? 'rgba(124,92,191,0.08)' : 'transparent'" (click)="pendingTemplate = tpl.key">
+          <div [style.background]="tpl.bg" style="width:100%;aspect-ratio:9/14;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <span [style.color]="tpl.accent" style="font-size:24px;font-weight:700;">Aa</span>
+          </div>
+          <span style="font-size:11px;color:rgba(255,255,255,0.7);text-align:center;">{{ tpl.name }}</span>
+        </div>
+      }
+    </div>
+    @if (pendingTemplate) {
+      <button class="btn btn-primary btn-sm" style="margin-top:12px;" (click)="applyLandingTemplate()">
+        <span class="material-icons">palette</span> Aplicar "{{ pendingTemplate }}"
+      </button>
+    }
+  </div>
+</div>
+
 <div class="section-card">
   <div class="section-card-header"><span>Colores del Tema</span></div>
   <div class="section-card-body">
@@ -309,7 +334,7 @@
 <div class="section-card preview-card">
   <div class="section-card-header"><span>Vista previa</span></div>
   <div class="section-card-body" style="padding:0;overflow:hidden;border-radius:0 0 12px 12px;">
-    <div class="particles-preview" [style.background]="c.intro.background ? 'url(' + c.intro.background + ') center/cover no-repeat' : 'radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%)'">
+    <div class="particles-preview" [style.background]="c.intro.background ? 'url(' + c.intro.background + ') center/cover no-repeat' : 'radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%)'" style="aspect-ratio: 9/16; height: auto; max-height: 400px; max-width: 225px; margin: 0 auto; border-radius: 12px;">
       <div class="particles-preview-overlay" *ngIf="c.intro.background"></div>
       <div class="particles-preview-container" [attr.data-type]="c.intro.particles!.type" [attr.data-dir]="c.intro.particles!.direction">
         @for (p of getPreviewParticles(c.intro.particles!); track $index) {
@@ -351,7 +376,11 @@
 </div>
 
 <div class="section-card">
-  <div class="section-card-header"><span>Nombres de celebrantes</span></div>
+  <div class="section-card-header">
+    <span>Nombres de celebrantes</span>
+    <label class="toggle-pill"><span>{{ c.hero.showCelebrantNames !== false ? 'Visible' : 'Oculto' }}</span><div class="toggle-pill-dot" [class.active]="c.hero.showCelebrantNames !== false" (click)="c.hero.showCelebrantNames = c.hero.showCelebrantNames === false ? true : false"></div></label>
+  </div>
+  @if (c.hero.showCelebrantNames !== false) {
   <div class="section-card-body">
     <div class="field mb-12"><input class="form-control" [(ngModel)]="c.hero.celebrantNames" placeholder="Ej: María & Juan"></div>
     <div class="field-row mb-12">
@@ -372,6 +401,20 @@
       <span [style.fontFamily]="getFontPreview(c.hero.celebrantNamesStyle.fontFamily)" [style.fontSize.px]="c.hero.celebrantNamesStyle.fontSize > 60 ? 48 : c.hero.celebrantNamesStyle.fontSize" [style.fontWeight]="c.hero.celebrantNamesStyle.fontWeight" [style.backgroundImage]="getCelebrantGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;line-height:1.4;padding:0.1em 0.2em;">{{ c.hero.celebrantNames || 'Nombre' }}</span>
     </div>
   </div>
+  }
+</div>
+
+<!-- Descripción adicional (opcional) -->
+<div class="section-card">
+  <div class="section-card-header">
+    <span>Descripción adicional</span>
+    <label class="toggle-pill"><span>{{ c.hero.showDescription ? 'Visible' : 'Oculto' }}</span><div class="toggle-pill-dot" [class.active]="c.hero.showDescription" (click)="c.hero.showDescription = !c.hero.showDescription"></div></label>
+  </div>
+  @if (c.hero.showDescription) {
+  <div class="section-card-body">
+    <div class="field"><textarea class="form-control" [(ngModel)]="c.hero.description" placeholder="Descripción breve del evento (se muestra debajo de los nombres)" rows="3" style="resize:vertical;min-height:60px;"></textarea></div>
+  </div>
+  }
 </div>
 
 <div class="section-card">
@@ -438,10 +481,17 @@
   </div>
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">Título de sección</label><input class="form-control" [(ngModel)]="c.details.title"></div>
+    <div class="flex gap-12 mb-16">
+      <label class="toggle-pill" (click)="c.details.showCardBg = c.details.showCardBg !== false ? false : true">
+        <div class="toggle-pill-dot" [class.active]="c.details.showCardBg !== false"></div>
+        <span>Fondo de tarjetas</span>
+      </label>
+    </div>
     @for (card of c.details.cards; track card.id; let i = $index) {
     <div class="venue-card">
       <div class="venue-header"><strong>Tarjeta {{ i + 1 }}</strong><button class="btn btn-sm btn-danger" (click)="removeDetailCard(i)">Eliminar</button></div>
       <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="card.iconType === 'none'" (click)="card.iconType = 'none'; card.iconUrl = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="card.iconType === 'emoji'" (click)="card.iconType = 'emoji'; card.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="card.iconType === 'image'" (click)="card.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
@@ -484,9 +534,16 @@
     <label class="toggle-pill" (click)="c.venues.enabled = !c.venues.enabled"><span class="toggle-pill-dot" [class.active]="c.venues.enabled"></span>{{ c.venues.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
+    <div class="flex gap-12 mb-16">
+      <label class="toggle-pill" (click)="c.venues.showCardBg = c.venues.showCardBg !== false ? false : true">
+        <div class="toggle-pill-dot" [class.active]="c.venues.showCardBg !== false"></div>
+        <span>Fondo de tarjetas</span>
+      </label>
+    </div>
     <div class="field mb-16">
       <label class="form-label">Estilo de icono</label>
       <div class="flex gap-12">
+        <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'none'" (click)="c.venues.iconStyle = 'none'"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="(c.venues.iconStyle || 'circle') === 'circle'" (click)="c.venues.iconStyle = 'circle'"><span class="material-icons" style="font-size:16px">radio_button_unchecked</span> Con contorno</button>
         <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'plain'" (click)="c.venues.iconStyle = 'plain'"><span class="material-icons" style="font-size:16px">image</span> Sin contorno</button>
       </div>
@@ -547,6 +604,7 @@
         <button class="btn btn-sm btn-danger" (click)="removeItinerary(item)">Eliminar</button>
       </div>
       <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="item.iconType === 'none'" (click)="item.iconType = 'none'"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="item.iconType === 'emoji'" (click)="item.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="item.iconType === 'custom'" (click)="item.iconType = 'custom'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
       </div>
@@ -619,6 +677,7 @@
     <div class="field mb-16"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
     <div class="field mb-12"><label class="form-label">Icono de sección</label>
       <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'none'" (click)="c.dresscode.sectionIcon!.iconType = 'none'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'material'" (click)="c.dresscode.sectionIcon!.iconType = 'material'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">checkroom</span> Default</button>
         <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'emoji'" (click)="c.dresscode.sectionIcon!.iconType = 'emoji'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'image'" (click)="c.dresscode.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
@@ -662,6 +721,7 @@
     </div>
     <div class="field mb-12"><label class="form-label">Icono de sección</label>
       <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts).iconType === 'none'" (click)="c.gifts.sectionIcon!.iconType = 'none'; c.gifts.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.gifts).iconType === 'material'" (click)="c.gifts.sectionIcon!.iconType = 'material'; c.gifts.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">card_giftcard</span> Default</button>
         <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'emoji'" (click)="c.gifts.sectionIcon!.iconType = 'emoji'; c.gifts.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.gifts.sectionIcon!.iconType === 'image'" (click)="c.gifts.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
@@ -748,6 +808,7 @@
     <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.rsvp.title"></div>
     <div class="field mb-12"><label class="form-label">Icono de sección (éxito)</label>
       <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.rsvp).iconType === 'none'" (click)="c.rsvp.sectionIcon!.iconType = 'none'; c.rsvp.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.rsvp).iconType === 'material'" (click)="c.rsvp.sectionIcon!.iconType = 'material'; c.rsvp.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">check_circle</span> Default</button>
         <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'emoji'" (click)="c.rsvp.sectionIcon!.iconType = 'emoji'; c.rsvp.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
         <button class="icon-type-btn" [class.active]="c.rsvp.sectionIcon!.iconType === 'image'" (click)="c.rsvp.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
@@ -772,6 +833,29 @@
         </div>
       }
     </div>
+  </div>
+</div>
+
+<!-- Registration fields config (for open events) -->
+<div class="section-card">
+  <div class="section-card-header"><span>Campos del formulario de registro</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Configura qué información solicitar a los asistentes en eventos abiertos. El nombre siempre es obligatorio.</p>
+    @for (field of getRegistrationFields(); track field.key) {
+      <div class="field-row mb-12" style="align-items:center;">
+        <label class="toggle-pill" style="min-width:44px;" (click)="field.key !== 'name' && (field.enabled = !field.enabled)">
+          <div class="toggle-pill-dot" [class.active]="field.enabled" [style.opacity]="field.key === 'name' ? 0.5 : 1"></div>
+        </label>
+        <div class="field" style="flex:1;"><input class="form-control" [(ngModel)]="field.label" [disabled]="!field.enabled"></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label class="toggle-pill" style="font-size:11px;" (click)="field.key !== 'name' && (field.required = !field.required)">
+            <span style="opacity:0.6">{{ field.required ? 'Obligatorio' : 'Opcional' }}</span>
+            <div class="toggle-pill-dot" [class.active]="field.required" style="width:28px;height:16px;" [style.opacity]="field.key === 'name' ? 0.5 : 1"></div>
+          </label>
+        </div>
+        <span class="badge badge-info" style="font-size:11px;">{{ field.type }}</span>
+      </div>
+    }
   </div>
 </div>
 }

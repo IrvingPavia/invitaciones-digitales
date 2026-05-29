@@ -166,6 +166,32 @@ async function initDB() {
     await db.query("ALTER TABLE users ADD COLUMN plain_password VARCHAR(255) DEFAULT NULL");
   } catch(e) { /* column already exists */ }
 
+  // Migration: events open mode
+  try {
+    await db.query("ALTER TABLE events ADD COLUMN event_mode ENUM('private','open') DEFAULT 'private'");
+  } catch(e) { /* column already exists */ }
+  try {
+    await db.query("ALTER TABLE events ADD COLUMN max_capacity INT DEFAULT NULL");
+  } catch(e) { /* column already exists */ }
+
+  // Table: registrations (for open events)
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS registrations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      event_id INT NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255),
+      phone VARCHAR(50),
+      company VARCHAR(255),
+      position VARCHAR(255),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // Add company/position columns if they don't exist (migration for existing DBs)
+  try { await db.query('ALTER TABLE registrations ADD COLUMN company VARCHAR(255) DEFAULT NULL'); } catch(e) {}
+  try { await db.query('ALTER TABLE registrations ADD COLUMN position VARCHAR(255) DEFAULT NULL'); } catch(e) {}
   // Seed root user
   const [rows] = await db.query('SELECT id FROM users WHERE username = ?', ['root']);
   if (rows.length === 0) {

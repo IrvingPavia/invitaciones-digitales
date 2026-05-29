@@ -48,6 +48,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
            [style.background-clip]="'text'"
            [style.-webkit-text-fill-color]="'transparent'"
         >{{ config.eventDescription }}</p>
+        @if (config.showCelebrantNames !== false && config.celebrantNames) {
         <h1 class="hero-names animate-in" style="animation-delay:0.5s"
             [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
             [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
@@ -57,6 +58,11 @@ import { HeroConfig, Event } from '../../../core/models/models';
             [style.background-clip]="'text'"
             [style.-webkit-text-fill-color]="'transparent'"
         >{{ config.celebrantNames }}</h1>
+        }
+
+        @if (config.showDescription && config.description) {
+          <p class="hero-description animate-in" style="animation-delay:0.55s">{{ config.description }}</p>
+        }
 
         @if (config.heroPhrase) {
           <p class="hero-phrase animate-in" style="animation-delay:0.65s"
@@ -161,6 +167,12 @@ import { HeroConfig, Event } from '../../../core/models/models';
       line-height: 1.5; letter-spacing: 0.5px;
       text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
+    .hero-description {
+      color: var(--theme-text-secondary, rgba(255,255,255,0.7));
+      font-size: 16px; line-height: 1.6; margin-bottom: 24px;
+      max-width: 400px; margin-left: auto; margin-right: auto;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+    }
     .countdown {
       display: flex; align-items: center; justify-content: center; gap: 8px;
       margin-bottom: 50px; flex-wrap: nowrap;
@@ -192,6 +204,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
 export class LandingHeroComponent implements OnInit, OnDestroy {
   @Input() config!: HeroConfig;
   @Input() event!: Event;
+  @Input() enabledSections: string[] = [];
   @ViewChild('audioEl') audioEl?: ElementRef<HTMLAudioElement>;
 
   scrolled = false;
@@ -200,7 +213,7 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   countdown = { days: '00', hours: '00', minutes: '00', seconds: '00' };
   private timer: any;
 
-  navItems = [
+  allNavItems = [
     { id: 'invitation', label: 'Invitación' },
     { id: 'details', label: 'Detalles' },
     { id: 'venues', label: 'Lugares' },
@@ -210,6 +223,11 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     { id: 'gifts', label: 'Regalos' },
     { id: 'rsvp', label: 'Confirmaciones' }
   ];
+
+  get navItems() {
+    if (!this.enabledSections.length) return this.allNavItems;
+    return this.allNavItems.filter(item => this.enabledSections.includes(item.id));
+  }
 
   @HostListener('window:scroll')
   onScroll() { this.scrolled = window.scrollY > 50; }

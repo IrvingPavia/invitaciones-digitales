@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { Guest } from '../../../core/models/models';
 import { environment } from '../../../../environments/environment';
 
@@ -14,16 +15,16 @@ import { environment } from '../../../../environments/environment';
     .search-box {
       display: flex; align-items: center; gap: 12px;
       background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(212,160,23,0.25);
+      border: 1px solid rgba(124,92,191,0.25);
       border-radius: 12px; padding: 10px 16px;
       transition: all 0.3s;
       &:focus-within {
         border-color: var(--gold);
-        background: rgba(212,160,23,0.05);
-        box-shadow: 0 0 0 3px rgba(212,160,23,0.1);
+        background: rgba(124,92,191,0.05);
+        box-shadow: 0 0 0 3px rgba(124,92,191,0.1);
       }
     }
-    .search-icon { color: rgba(212,160,23,0.6); font-size: 20px; flex-shrink: 0; }
+    .search-icon { color: rgba(124,92,191,0.6); font-size: 20px; flex-shrink: 0; }
     .search-input {
       flex: 1; background: none; border: none; outline: none;
       color: white; font-size: 14px; font-family: var(--font-sans);
@@ -40,13 +41,13 @@ import { environment } from '../../../../environments/environment';
     .guest-cards { display: none; }
     .guest-card {
       background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(212,160,23,0.2);
+      border: 1px solid rgba(124,92,191,0.2);
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 12px;
       transition: border-color 0.2s;
     }
-    .guest-card:hover { border-color: rgba(212,160,23,0.4); }
+    .guest-card:hover { border-color: rgba(124,92,191,0.4); }
     .guest-card-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 12px; gap: 8px;
@@ -258,6 +259,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class GuestsComponent implements OnInit {
   private api = inject(ApiService);
+  private dialog = inject(DialogService);
   private route = inject(ActivatedRoute);
   eventId = 0;
   eventSlug = '';
@@ -309,8 +311,9 @@ export class GuestsComponent implements OnInit {
     obs.subscribe({ next: () => { this.load(); this.closeModal(); this.saving.set(false); }, error: () => this.saving.set(false) });
   }
 
-  deleteGuest(g: Guest) {
-    if (!confirm('¿Eliminar este invitado?')) return;
+  async deleteGuest(g: Guest) {
+    const ok = await this.dialog.confirm('Eliminar invitado', '¿Eliminar este invitado?');
+    if (!ok) return;
     this.api.deleteGuest(g.id).subscribe(() => this.load());
   }
 
@@ -324,8 +327,8 @@ export class GuestsComponent implements OnInit {
   importExcel(e: any) {
     const file = e.target.files[0]; if (!file) return;
     this.api.importGuests(this.eventId, file).subscribe({
-      next: (r) => { alert(`${r.imported} invitados importados`); this.load(); e.target.value = ''; },
-      error: () => alert('Error al importar')
+      next: (r) => { this.dialog.success('Importación exitosa', `${r.imported} invitados importados`); this.load(); e.target.value = ''; },
+      error: () => this.dialog.alert('Error', 'Error al importar el archivo')
     });
   }
 

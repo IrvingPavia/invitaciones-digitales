@@ -218,16 +218,18 @@ export class LandingGiftsComponent {
   particleDelay(i: number): number { return (i * 1.3) % 8; }
   particleDuration(i: number): number { return 8 + (i % 5) * 2; }
 
-  getGiftsIcon(): { type: string; value: string } {
+  getGiftsIcon(): { type: string; value: string } | null {
     const si = this.config.sectionIcon;
+    if (si?.iconType === 'none') return null;
     if (!si || si.iconType === 'material') return { type: 'material', value: 'card_giftcard' };
     if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
     if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };
     return { type: 'material', value: 'card_giftcard' };
   }
 
-  getTransferIcon(): { type: string; value: string } {
+  getTransferIcon(): { type: string; value: string } | null {
     const si = this.config.transfer?.sectionIcon;
+    if (si?.iconType === 'none') return null;
     if (!si || si.iconType === 'material') return { type: 'material', value: 'account_balance' };
     if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
     if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };

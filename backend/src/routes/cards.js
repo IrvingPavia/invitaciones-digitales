@@ -69,11 +69,15 @@ router.get('/:eventId/pdf', auth, async (req, res) => {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
 
+    // Page size mapping
+    const pageSizeMap = { letter: 'Letter', a4: 'A4', legal: 'Legal' };
+    const pdfFormat = pageSizeMap[layout.pageSize] || 'Letter';
+
     const pdfBuffer = await page.pdf({
-      format: layout.orientation === 'landscape' ? 'Letter' : 'Letter',
+      format: pdfFormat,
       landscape: layout.orientation === 'landscape',
       printBackground: true,
-      margin: { top: '5mm', bottom: '5mm', left: '5mm', right: '5mm' }
+      margin: { top: '0mm', bottom: '0mm', left: '0mm', right: '0mm' }
     });
 
     await browser.close();
@@ -87,57 +91,157 @@ router.get('/:eventId/pdf', auth, async (req, res) => {
   }
 });
 
+// Preview: generate only first page, return inline (no download)
+router.get('/:eventId/pdf/preview', auth, async (req, res) => {
+  try {
+    const [events] = await getDB().query('SELECT * FROM events WHERE id = ?', [req.params.eventId]);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado' });
+    const event = events[0];
+
+    let [guests] = await getDB().query('SELECT * FROM guests WHERE event_id = ? LIMIT 4', [req.params.eventId]);
+    if (!guests.length) {
+      // Use sample guests for preview when no real guests exist
+      guests = [
+        { id: 0, family_name: 'Familia García', guest_names: 'Juan, María', unique_code: 'DEMO01', guest_type: 'family', max_companions: 2 },
+        { id: 0, family_name: 'Pedro López', guest_names: 'Pedro López', unique_code: 'DEMO02', guest_type: 'individual', max_companions: 0 }
+      ];
+    }
+
+    const [templates] = await getDB().query('SELECT * FROM card_templates WHERE event_id = ?', [req.params.eventId]);
+    const frontConfig = templates[0] ? JSON.parse(templates[0].front_config || '{}') : {};
+    const backConfig = templates[0] ? JSON.parse(templates[0].back_config || '{}') : {};
+
+    const layout = frontConfig.pdfLayout || { orientation: 'portrait', cardsPerPage: 6, showCutMarks: true, margin: 10 };
+    const cardWidth = frontConfig.width || 90;
+    const cardHeight = frontConfig.height || 50;
+
+    // Generate HTML for only the first page worth of cards
+    const html = await generateCardsHTML(event, guests, frontConfig, backConfig, layout, cardWidth, cardHeight);
+
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+    });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
+
+    const pageSizeMap = { letter: 'Letter', a4: 'A4', legal: 'Legal' };
+    const pdfFormat = pageSizeMap[layout.pageSize] || 'Letter';
+
+    const pdfBuffer = await page.pdf({
+      format: pdfFormat,
+      landscape: layout.orientation === 'landscape',
+      printBackground: true,
+      margin: { top: '0mm', bottom: '0mm', left: '0mm', right: '0mm' },
+      pageRanges: '1'
+    });
+
+    await browser.close();
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('PDF preview error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 async function generateCardsHTML(event, guests, frontConfig, backConfig, layout, cardWidth, cardHeight) {
   const cardsPerPage = layout.cardsPerPage || 6;
   const margin = layout.margin || 10;
   const showCutMarks = layout.showCutMarks !== false;
+  const gap = layout.gap !== undefined ? layout.gap : 3;
+  const frontOnly = layout.sides === 'front-only';
 
-  // Calculate grid: how many columns/rows fit
-  const pageW = layout.orientation === 'landscape' ? 279 : 216; // mm (Letter)
-  const pageH = layout.orientation === 'landscape' ? 216 : 279;
+  // Page dimensions
+  const pageSizes = { letter: [216, 279], a4: [210, 297], legal: [216, 356] };
+  const [baseW, baseH] = pageSizes[layout.pageSize] || pageSizes['letter'];
+  const pageW = layout.orientation === 'landscape' ? baseH : baseW;
+  const pageH = layout.orientation === 'landscape' ? baseW : baseH;
   const usableW = pageW - margin * 2;
   const usableH = pageH - margin * 2;
 
-  // Each card pair (front + back) side by side
-  const pairWidth = cardWidth * 2 + 4; // 4mm gap between front and back
-  const cols = Math.floor(usableW / pairWidth) || 1;
-  const rows = Math.floor(usableH / (cardHeight + 3)) || 1;
+  // Clamp card dimensions to usable area
+  if (frontOnly) {
+    if (cardWidth > usableW) cardWidth = usableW;
+    if (cardHeight > usableH) cardHeight = usableH;
+  } else {
+    const maxW = Math.floor(usableW / 2 - gap);
+    if (cardWidth > maxW) cardWidth = maxW;
+    if (cardHeight > usableH) cardHeight = usableH;
+  }
+
+  // Determine layout mode: side-by-side, stacked, or front-only
+  let sideBySide = false;
+  let pairW, pairH;
+  if (frontOnly) {
+    pairW = cardWidth;
+    pairH = cardHeight;
+  } else {
+    const pairWidthSideBySide = cardWidth * 2 + gap;
+    sideBySide = pairWidthSideBySide <= usableW;
+    if (sideBySide) {
+      pairW = pairWidthSideBySide;
+      pairH = cardHeight;
+    } else {
+      pairW = cardWidth;
+      pairH = cardHeight * 2 + gap;
+    }
+  }
+
+  // Calculate how many cards fit per page
+  const cols = Math.floor((usableW + gap) / (pairW + gap)) || 1;
+  const rows = Math.floor((usableH + gap) / (pairH + gap)) || 1;
   const actualPerPage = Math.min(cols * rows, cardsPerPage);
 
   let pages = '';
   for (let i = 0; i < guests.length; i += actualPerPage) {
     const pageGuests = guests.slice(i, i + actualPerPage);
     let cardsHtml = '';
+    const frontOnly = layout.sides === 'front-only';
 
     for (const guest of pageGuests) {
       const vars = getVariables(event, guest);
-      const frontHtml = renderCardSide(frontConfig, vars, cardWidth, cardHeight);
-      const backHtml = await renderBackSide(backConfig, vars, cardWidth, cardHeight, event, guest);
+      const frontHtml = await renderCardSide(frontConfig, vars, cardWidth, cardHeight, event, guest);
 
-      cardsHtml += `<div class="card-pair">
-        <div class="card-front">${frontHtml}</div>
-        <div class="card-back">${backHtml}</div>
-      </div>`;
+      if (frontOnly) {
+        cardsHtml += `<div class="card-pair">
+          <div class="card-front">${frontHtml}</div>
+        </div>`;
+      } else {
+        const backHtml = await renderBackSide(backConfig, vars, cardWidth, cardHeight, event, guest);
+        cardsHtml += `<div class="card-pair">
+          <div class="card-front">${frontHtml}</div>
+          <div class="card-back">${backHtml}</div>
+        </div>`;
+      }
     }
 
     pages += `<div class="page">${cardsHtml}</div>`;
   }
+
+  const pairDirection = sideBySide ? 'row' : 'column';
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&family=Great+Vibes&family=Montserrat:wght@300;400;600;700&family=Raleway:wght@300;400;600&family=Cinzel:wght@400;700&family=Dancing+Script:wght@400;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  @page { margin: 5mm; }
+  @page { margin: 0; size: ${pageW}mm ${pageH}mm; }
   body { font-family: 'Lato', sans-serif; }
   .page {
-    width: ${usableW}mm; min-height: ${usableH}mm;
-    display: flex; flex-wrap: wrap; align-content: flex-start;
-    gap: 3mm; padding: ${margin}mm;
+    width: ${pageW}mm; height: ${pageH}mm;
+    padding: ${margin}mm;
+    display: flex; flex-wrap: wrap;
+    align-content: center; justify-content: center;
+    gap: ${gap}mm;
     page-break-after: always;
   }
   .page:last-child { page-break-after: auto; }
-  .card-pair { display: flex; gap: 4mm; margin-bottom: 3mm; }
+  .card-pair { display: flex; flex-direction: ${pairDirection}; gap: ${gap}mm; }
   .card-front, .card-back {
     width: ${cardWidth}mm; height: ${cardHeight}mm;
     border-radius: 2mm; overflow: hidden; position: relative;
@@ -195,7 +299,7 @@ function getFontFamily(key) {
   return map[key] || map.sans;
 }
 
-function renderCardSide(config, vars, width, height) {
+async function renderCardSide(config, vars, width, height, event, guest) {
   const bgColor = config.bgColor || '#fff8f0';
   const bgColor2 = config.bgColor2 || '';
   const bgImage = config.bgImage || '';
@@ -225,6 +329,18 @@ function renderCardSide(config, vars, width, height) {
       } else if (el.type === 'image' && el.imageUrl) {
         const imgUrl = el.imageUrl.startsWith('/uploads/') ? `http://localhost:3000${el.imageUrl}` : el.imageUrl;
         elementsHtml += `<div style="${posStyle}"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:${el.objectFit || 'contain'};"></div>`;
+      } else if (el.type === 'qr' && event && guest) {
+        const url = `${process.env.BASE_URL}/invitacion/${event.slug}?t=${guest.unique_code}`;
+        const qrColor = el.qrColor || '#000000';
+        const qrBg = el.qrBgColor || 'transparent';
+        const qrSvg = await QRCode.toString(url, { type: 'svg', width: 200, margin: 1, color: { dark: rgbaToHex(qrColor), light: qrBg === 'transparent' ? '#00000000' : rgbaToHex(qrBg) } });
+        const qrDataUrl = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString('base64')}`;
+        const showLabel = el.showLabel !== false;
+        const labelColor = el.labelColor || '#999';
+        elementsHtml += `<div style="${posStyle}display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2%;">
+          <img src="${qrDataUrl}" style="width:auto;height:${showLabel ? '80' : '95'}%;aspect-ratio:1;border-radius:3px;max-width:50mm;max-height:50mm;">
+          ${showLabel ? `<div style="font-size:7px;color:${labelColor};margin-top:2px;letter-spacing:0.5px;">${vars['{codigo}']}</div>` : ''}
+        </div>`;
       } else if (el.type === 'separator') {
         const lineStyle = el.lineStyle || 'solid';
         const lineWidth = el.lineWidth || 2;
@@ -290,7 +406,7 @@ async function renderBackSide(config, vars, width, height, event, guest) {
         const showLabel = el.showLabel !== false;
         const labelColor = el.labelColor || '#999';
         elementsHtml += `<div style="${posStyle}display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2%;">
-          <img src="${qrDataUrl}" style="width:auto;height:${showLabel ? '80' : '95'}%;aspect-ratio:1;border-radius:3px;">
+          <img src="${qrDataUrl}" style="width:auto;height:${showLabel ? '80' : '95'}%;aspect-ratio:1;border-radius:3px;max-width:50mm;max-height:50mm;">
           ${showLabel ? `<div style="font-size:7px;color:${labelColor};margin-top:2px;letter-spacing:0.5px;">${vars['{codigo}']}</div>` : ''}
         </div>`;
       } else if (el.type === 'separator') {
@@ -313,7 +429,7 @@ async function renderBackSide(config, vars, width, height, event, guest) {
     const qrDataUrl = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString('base64')}`;
     elementsHtml = `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2mm;padding:3mm;">
       ${config.topText ? `<div style="font-size:2.5mm;color:#666;text-align:center;">${replaceVars(config.topText, vars)}</div>` : ''}
-      <img src="${qrDataUrl}" style="height:60%;aspect-ratio:1;">
+      <img src="${qrDataUrl}" style="height:60%;aspect-ratio:1;max-width:50mm;max-height:50mm;">
       <div style="font-size:2mm;color:#999;">${vars['{codigo}']}</div>
     </div>`;
   }

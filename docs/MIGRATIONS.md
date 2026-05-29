@@ -1,5 +1,19 @@
 # 🗄️ Migraciones de Base de Datos
 
+## Sesión 2025-05-29 — Eventos Abiertos v1/v2 + Campos dinámicos
+
+**Ejecutar en DBeaver antes del deploy de `int-004`:**
+
+```sql
+-- Agregar columnas company y position a registrations (campos dinámicos de registro)
+ALTER TABLE registrations ADD COLUMN company VARCHAR(255) DEFAULT NULL;
+ALTER TABLE registrations ADD COLUMN position VARCHAR(255) DEFAULT NULL;
+```
+
+> **Nota**: Las columnas `event_mode` y `max_capacity` en `events`, y la tabla `registrations` ya fueron creadas en sesiones anteriores. Si es una BD nueva, el backend las crea automáticamente al iniciar.
+
+---
+
 ## Sesión 2025-05-27 — Vista Client + Módulo Sugerencias
 
 **Ejecutar en DBeaver antes del deploy de `int-003`:**

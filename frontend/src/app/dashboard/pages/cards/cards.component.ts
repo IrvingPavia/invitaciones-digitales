@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, ViewChild, ElementRef } from '@angul
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ApiService } from '../../../core/services/api.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
 import { Guest } from '../../../core/models/models';
@@ -118,11 +119,11 @@ interface CardSide {
     .layout-preview-container { display: flex; justify-content: center; }
     .layout-preview {
       width: 100%; max-width: 240px; background: white; border-radius: 4px;
-      padding: 4%; display: flex; flex-wrap: wrap; gap: 2%; align-content: flex-start;
+      display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
       box-shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
     .layout-slot {
-      display: flex; gap: 1%; margin-bottom: 2%;
+      display: flex; gap: 1%;
     }
     .layout-slot-front, .layout-slot-back {
       flex: 1; border-radius: 2px; display: flex; align-items: center; justify-content: center;
@@ -130,6 +131,25 @@ interface CardSide {
     }
     .layout-slot-front { background: rgba(124,92,191,0.2); border: 1px dashed rgba(124,92,191,0.5); color: #7c5cbf; }
     .layout-slot-back { background: rgba(40,167,69,0.15); border: 1px dashed rgba(40,167,69,0.4); color: #28a745; }
+    .template-card {
+      border: 1px solid rgba(124,92,191,0.2); border-radius: 12px;
+      overflow: hidden; cursor: pointer; transition: all 0.2s;
+      &:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(124,92,191,0.2); }
+    }
+    .template-preview {
+      height: 120px; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .template-preview-label {
+      font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.8);
+      background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 4px;
+    }
+    .template-info {
+      padding: 12px; display: flex; flex-direction: column; gap: 4px;
+      background: rgba(255,255,255,0.02);
+    }
+    .template-name { font-size: 13px; font-weight: 600; color: var(--gold-light); }
+    .template-desc { font-size: 11px; color: rgba(255,255,255,0.5); }
   `],
     template: `
     <div>
@@ -144,36 +164,72 @@ interface CardSide {
             <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : saveStatus() === 'error' ? 'error' : 'save' }}</span>
             {{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado ✓' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}
           </button>
+          <button class="btn btn-outline" (click)="previewPDF()" [disabled]="previewing()"><span class="material-icons">visibility</span> {{ previewing() ? 'Cargando...' : 'Vista previa' }}</button>
           <button class="btn btn-primary" (click)="downloadPDF()" [disabled]="downloading()"><span class="material-icons">picture_as_pdf</span> {{ downloading() ? 'Generando...' : 'PDF' }}</button>
         </div>
       </div>
 
       <!-- Side tabs -->
       <div class="tabs mb-16">
+        <div class="tab" [class.active]="side === 'templates'" (click)="side = 'templates'; selectedEl = null">Templates</div>
         <div class="tab" [class.active]="side === 'layout'" (click)="side = 'layout'; selectedEl = null">Tamaño / Layout</div>
         <div class="tab" [class.active]="side === 'front'" (click)="side = 'front'; selectedEl = null">Frente</div>
-        <div class="tab" [class.active]="side === 'back'" (click)="side = 'back'; selectedEl = null">Reverso</div>
+        @if (pdfLayout.sides !== 'front-only') {
+          <div class="tab" [class.active]="side === 'back'" (click)="side = 'back'; selectedEl = null">Reverso</div>
+        }
       </div>
+
+      @if (side === 'templates') {
+        <div class="card">
+          <h4 style="color:var(--gold-light);margin-bottom:8px;">Plantillas prediseñadas</h4>
+          <p class="text-muted" style="font-size:12px;margin-bottom:20px;">Selecciona un template como punto de partida. Puedes personalizarlo después.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:16px;">
+            @for (tpl of cardTemplates; track tpl.id) {
+              <div class="template-card" (click)="applyTemplate(tpl)">
+                <div class="template-preview" [style.background]="tpl.preview.bg">
+                  <div class="template-preview-label">{{ tpl.preview.label }}</div>
+                </div>
+                <div class="template-info">
+                  <span class="template-name">{{ tpl.name }}</span>
+                  <span class="template-desc">{{ tpl.description }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
 
       @if (side === 'layout') {
         <div class="card">
           <h4 style="color:var(--gold-light);margin-bottom:16px;">Configuración del PDF</h4>
           <div class="prop-row">
             <div class="prop-field"><label>Tamaño de página</label>
-              <select [(ngModel)]="pdfLayout.pageSize">
+              <select [(ngModel)]="pdfLayout.pageSize" (ngModelChange)="clampCardSize()">
                 <option value="letter">Carta (216×279mm)</option>
                 <option value="a4">A4 (210×297mm)</option>
                 <option value="legal">Oficio (216×356mm)</option>
               </select>
             </div>
             <div class="prop-field"><label>Orientación</label>
-              <select [(ngModel)]="pdfLayout.orientation"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select>
+              <select [(ngModel)]="pdfLayout.orientation" (ngModelChange)="clampCardSize()"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select>
+            </div>
+            <div class="prop-field"><label>Caras</label>
+              <select [(ngModel)]="pdfLayout.sides" (ngModelChange)="clampCardSize()">
+                <option value="both">Frente + Reverso</option>
+                <option value="front-only">Solo Frente</option>
+              </select>
             </div>
           </div>
           <div class="prop-row">
-            <div class="prop-field prop-field-sm"><label>Ancho tarjeta (mm)</label><input type="number" [(ngModel)]="cardWidth" min="50" max="150"></div>
-            <div class="prop-field prop-field-sm"><label>Alto tarjeta (mm)</label><input type="number" [(ngModel)]="cardHeight" min="30" max="100"></div>
+            <div class="prop-field prop-field-sm"><label>Ancho tarjeta (mm)</label><input type="number" [(ngModel)]="cardWidth" min="30" [max]="getMaxCardWidth()"></div>
+            <div class="prop-field prop-field-sm"><label>Alto tarjeta (mm)</label><input type="number" [(ngModel)]="cardHeight" min="30" [max]="getMaxCardHeight()"></div>
             <div class="prop-field prop-field-sm"><label>Margen: {{ pdfLayout.margin }}mm</label><input type="range" [(ngModel)]="pdfLayout.margin" min="5" max="25"></div>
+          </div>
+          <div class="prop-row">
+            <div class="prop-field prop-field-sm"><label>Separación: {{ pdfLayout.gap }}mm</label><input type="range" [(ngModel)]="pdfLayout.gap" min="0" max="10"></div>
+            <div class="prop-field">
+              <label style="font-size:11px;color:rgba(255,255,255,0.5);">{{ pdfLayout.gap === 0 ? '✂️ Sin separación (corte con guillotina)' : 'Espacio entre tarjetas' }}</label>
+            </div>
           </div>
           <div class="prop-row">
             <div class="prop-field">
@@ -189,20 +245,22 @@ interface CardSide {
         <div class="card" style="margin-top:16px;">
           <h4 style="color:var(--gold-light);margin-bottom:12px;">Vista previa de página</h4>
           <div class="layout-preview-container">
-            <div class="layout-preview" [style.aspect-ratio]="getPageAspect()" [style.padding.%]="getMarginPercent()">>
+            <div class="layout-preview" [style.aspect-ratio]="getPageAspect()" [style.padding.%]="getMarginPercent()" [style.gap.%]="getGapPercent()">
               @for (i of getLayoutSlots(); track i) {
-                <div class="layout-slot" [style.width.%]="getSlotWidth()" [style.height.%]="getSlotHeight()">
+                <div class="layout-slot" [style.width.%]="getSlotWidth()" [style.height.%]="getSlotHeight()" [style.flex-direction]="isSideBySide() ? 'row' : 'column'">
                   <div class="layout-slot-front">F</div>
-                  <div class="layout-slot-back">R</div>
+                  @if (pdfLayout.sides !== 'front-only') {
+                    <div class="layout-slot-back">R</div>
+                  }
                 </div>
               }
             </div>
           </div>
-          <p class="text-muted" style="font-size:11px;margin-top:8px;text-align:center;">{{ getCardsPerPage() }} pares (frente+reverso) por página</p>
+          <p class="text-muted" style="font-size:11px;margin-top:8px;text-align:center;">{{ getCardsPerPage() }} {{ pdfLayout.sides === 'front-only' ? 'tarjetas' : 'pares (frente+reverso)' }} por página</p>
         </div>
       }
 
-      @if (side !== 'layout') {
+      @if (side !== 'layout' && side !== 'templates') {
         <div class="editor-layout">
           <!-- Preview area -->
           <div class="card-preview-area">
@@ -258,7 +316,7 @@ interface CardSide {
             <div class="add-element-bar">
               <button class="add-el-btn" (click)="addElement('text')"><span class="material-icons">text_fields</span> Texto</button>
               <button class="add-el-btn" (click)="addElement('image')"><span class="material-icons">image</span> Imagen</button>
-              @if (side === 'back') { <button class="add-el-btn" (click)="addElement('qr')"><span class="material-icons">qr_code</span> QR</button> }
+              <button class="add-el-btn" (click)="addElement('qr')"><span class="material-icons">qr_code</span> QR</button>
               <button class="add-el-btn" (click)="addElement('separator')"><span class="material-icons">horizontal_rule</span> Línea</button>
             </div>
 
@@ -397,6 +455,36 @@ interface CardSide {
         </div>
       }
     </div>
+
+    <!-- PDF Preview Modal -->
+    @if (previewUrl) {
+      <div class="modal-overlay" (click)="closePreview()">
+        <div class="modal" style="max-width:90vw;width:900px;max-height:95vh;padding:16px;" (click)="$event.stopPropagation()">
+          <div class="modal-header" style="margin-bottom:12px;">
+            <h3>Vista previa PDF (primera página)</h3>
+            <button class="btn btn-secondary btn-sm" (click)="closePreview()"><span class="material-icons">close</span></button>
+          </div>
+          <iframe [src]="previewUrl" style="width:100%;height:75vh;border:1px solid rgba(124,92,191,0.2);border-radius:8px;background:white;"></iframe>
+        </div>
+      </div>
+    }
+
+    <!-- Template confirm modal -->
+    @if (pendingTemplate) {
+      <div class="modal-overlay" (click)="pendingTemplate = null">
+        <div class="modal" style="max-width:440px;" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Reemplazar diseño</h3>
+          </div>
+          <p style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:8px;">¿Aplicar el template <strong style="color:var(--gold-light)">{{ pendingTemplate.name }}</strong>?</p>
+          <p style="color:rgba(255,255,255,0.5);font-size:13px;">Se reemplazará tu configuración actual de frente y reverso. Esta acción no se puede deshacer.</p>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="pendingTemplate = null">Cancelar</button>
+            <button class="btn btn-primary" (click)="confirmApplyTemplate()">Sí, aplicar template</button>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 
@@ -407,16 +495,94 @@ export class CardsComponent implements OnInit {
   eventId = 0; eventName = ''; eventDate = ''; eventType = '';
   guests = signal<Guest[]>([]);
   previewGuest = signal<Guest | null>(null);
-  saving = signal(false); downloading = signal(false);
+  saving = signal(false); downloading = signal(false); previewing = signal(false);
   saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  side: 'front' | 'back' | 'layout' = 'layout';
+  previewUrl: SafeResourceUrl | null = null;
+  private sanitizer = inject(DomSanitizer);
+  pendingTemplate: any = null;
+  side: 'front' | 'back' | 'layout' | 'templates' = 'layout';
   selectedEl: CardElement | null = null;
 
   front: CardSide = { bgColor: '#fff8f0', bgColor2: '', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#d4a017', borderWidth: 1, borderRadius: 4, elements: [] };
   back: CardSide = { bgColor: '#ffffff', bgColor2: '', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#d4a017', borderWidth: 1, borderRadius: 4, elements: [] };
   cardWidth = 90;
   cardHeight = 50;
-  pdfLayout = { orientation: 'portrait' as string, cardsPerPage: 6, showCutMarks: true, margin: 10, pageSize: 'letter' as string };
+  pdfLayout = { orientation: 'portrait' as string, cardsPerPage: 6, showCutMarks: true, margin: 10, pageSize: 'letter' as string, gap: 3, sides: 'both' as string };
+
+  cardTemplates = [
+    {
+      id: 'elegant',
+      name: 'Elegante',
+      description: 'Diseño clásico con degradado dorado y tipografía serif',
+      preview: { bg: 'linear-gradient(135deg, #fff8f0 0%, #f5e6d3 100%)', label: 'Elegante' },
+      front: { bgColor: '#fff8f0', bgColor2: '#f5e6d3', bgGradientAngle: 135, bgGradientIntensity: 60, bgImage: '', bgImageOpacity: 1, borderColor: '#c9a96e', borderWidth: 1, borderRadius: 6, elements: [
+        { id: '1', type: 'text' as const, x: 10, y: 8, width: 80, content: '{evento}', fontFamily: 'serif', fontSize: 12, fontWeight: 400, color: '#8b6914', textAlign: 'center' },
+        { id: '2', type: 'text' as const, x: 10, y: 25, width: 80, content: '{nombre}', fontFamily: 'serif', fontSize: 22, fontWeight: 700, color: '#2c1810', textAlign: 'center' },
+        { id: '3', type: 'separator' as const, x: 20, y: 48, width: 60, shapeColor: '#c9a96e', lineStyle: 'gradient', lineWidth: 2 },
+        { id: '4', type: 'text' as const, x: 10, y: 58, width: 80, content: '{fecha}', fontFamily: 'sans', fontSize: 11, fontWeight: 300, color: '#5a4a3a', textAlign: 'center' },
+      ]},
+      back: { bgColor: '#fff8f0', bgColor2: '#f5e6d3', bgGradientAngle: 135, bgGradientIntensity: 60, bgImage: '', bgImageOpacity: 1, borderColor: '#c9a96e', borderWidth: 1, borderRadius: 6, elements: [
+        { id: '5', type: 'text' as const, x: 10, y: 6, width: 80, content: 'Escanea con tu móvil', fontFamily: 'sans', fontSize: 10, fontWeight: 600, color: '#8b6914', textAlign: 'center' },
+        { id: '6', type: 'qr' as const, x: 25, y: 18, width: 50, height: 65, qrColor: '#2c1810', qrBgColor: 'transparent', showLabel: true, labelColor: '#8b6914' },
+      ]},
+      layout: { orientation: 'portrait', pageSize: 'letter', margin: 10, gap: 3, showCutMarks: true, sides: 'both' },
+      cardWidth: 90, cardHeight: 55
+    },
+    {
+      id: 'modern',
+      name: 'Moderno',
+      description: 'Minimalista con colores púrpura y tipografía sans-serif',
+      preview: { bg: 'linear-gradient(135deg, #1a1a2e 0%, #3d2066 100%)', label: 'Moderno' },
+      front: { bgColor: '#1a1a2e', bgColor2: '#3d2066', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#7c5cbf', borderWidth: 1, borderRadius: 8, elements: [
+        { id: '1', type: 'text' as const, x: 10, y: 10, width: 80, content: '{evento}', fontFamily: 'montserrat', fontSize: 11, fontWeight: 300, color: '#b39ddb', textAlign: 'center' },
+        { id: '2', type: 'text' as const, x: 5, y: 30, width: 90, content: '{nombre}', fontFamily: 'montserrat', fontSize: 20, fontWeight: 700, color: '#ffffff', textAlign: 'center' },
+        { id: '3', type: 'separator' as const, x: 30, y: 52, width: 40, shapeColor: '#7c5cbf', lineStyle: 'solid', lineWidth: 2 },
+        { id: '4', type: 'text' as const, x: 10, y: 62, width: 80, content: '{fecha}', fontFamily: 'montserrat', fontSize: 11, fontWeight: 400, color: '#b39ddb', textAlign: 'center' },
+      ]},
+      back: { bgColor: '#1a1a2e', bgColor2: '#3d2066', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#7c5cbf', borderWidth: 1, borderRadius: 8, elements: [
+        { id: '5', type: 'text' as const, x: 10, y: 6, width: 80, content: 'Escanea para confirmar', fontFamily: 'montserrat', fontSize: 10, fontWeight: 600, color: '#b39ddb', textAlign: 'center' },
+        { id: '6', type: 'qr' as const, x: 25, y: 18, width: 50, height: 65, qrColor: '#7c5cbf', qrBgColor: 'transparent', showLabel: true, labelColor: '#b39ddb' },
+      ]},
+      layout: { orientation: 'portrait', pageSize: 'letter', margin: 10, gap: 3, showCutMarks: true, sides: 'both' },
+      cardWidth: 90, cardHeight: 55
+    },
+    {
+      id: 'floral',
+      name: 'Floral / Romántico',
+      description: 'Tonos rosados con degradado suave, ideal para bodas y XV años',
+      preview: { bg: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #e1bee7 100%)', label: 'Floral' },
+      front: { bgColor: '#fce4ec', bgColor2: '#e1bee7', bgGradientAngle: 160, bgGradientIntensity: 55, bgImage: '', bgImageOpacity: 1, borderColor: '#ce93d8', borderWidth: 1, borderRadius: 10, elements: [
+        { id: '1', type: 'text' as const, x: 10, y: 8, width: 80, content: '{tipo}', fontFamily: 'script', fontSize: 14, fontWeight: 400, color: '#ad1457', textAlign: 'center' },
+        { id: '2', type: 'text' as const, x: 5, y: 28, width: 90, content: '{nombre}', fontFamily: 'dancing', fontSize: 24, fontWeight: 700, color: '#4a148c', textAlign: 'center' },
+        { id: '3', type: 'separator' as const, x: 15, y: 50, width: 70, shapeColor: '#ce93d8', lineStyle: 'gradient', lineWidth: 2 },
+        { id: '4', type: 'text' as const, x: 10, y: 60, width: 80, content: '{fecha}', fontFamily: 'raleway', fontSize: 11, fontWeight: 400, color: '#6a1b9a', textAlign: 'center' },
+      ]},
+      back: { bgColor: '#fce4ec', bgColor2: '#e1bee7', bgGradientAngle: 160, bgGradientIntensity: 55, bgImage: '', bgImageOpacity: 1, borderColor: '#ce93d8', borderWidth: 1, borderRadius: 10, elements: [
+        { id: '5', type: 'text' as const, x: 10, y: 6, width: 80, content: 'Confirma tu asistencia', fontFamily: 'raleway', fontSize: 10, fontWeight: 600, color: '#ad1457', textAlign: 'center' },
+        { id: '6', type: 'qr' as const, x: 25, y: 18, width: 50, height: 65, qrColor: '#4a148c', qrBgColor: 'transparent', showLabel: true, labelColor: '#ad1457' },
+      ]},
+      layout: { orientation: 'portrait', pageSize: 'letter', margin: 10, gap: 3, showCutMarks: true, sides: 'both' },
+      cardWidth: 90, cardHeight: 55
+    },
+    {
+      id: 'infantil',
+      name: 'Infantil',
+      description: 'Colores vivos y divertidos para fiestas infantiles',
+      preview: { bg: 'linear-gradient(135deg, #fff9c4 0%, #b3e5fc 50%, #c8e6c9 100%)', label: 'Infantil' },
+      front: { bgColor: '#fff9c4', bgColor2: '#b3e5fc', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#ff8a65', borderWidth: 2, borderRadius: 12, elements: [
+        { id: '1', type: 'text' as const, x: 10, y: 6, width: 80, content: '{tipo}', fontFamily: 'dancing', fontSize: 14, fontWeight: 400, color: '#e65100', textAlign: 'center' },
+        { id: '2', type: 'text' as const, x: 5, y: 25, width: 90, content: '{nombre}', fontFamily: 'montserrat', fontSize: 18, fontWeight: 700, color: '#1565c0', textAlign: 'center' },
+        { id: '3', type: 'text' as const, x: 10, y: 50, width: 80, content: '{fecha}', fontFamily: 'sans', fontSize: 12, fontWeight: 400, color: '#2e7d32', textAlign: 'center' },
+        { id: '4', type: 'text' as const, x: 10, y: 70, width: 80, content: '{asistentes} invitados', fontFamily: 'sans', fontSize: 11, fontWeight: 600, color: '#ff6f00', textAlign: 'center' },
+      ]},
+      back: { bgColor: '#b3e5fc', bgColor2: '#c8e6c9', bgGradientAngle: 135, bgGradientIntensity: 50, bgImage: '', bgImageOpacity: 1, borderColor: '#ff8a65', borderWidth: 2, borderRadius: 12, elements: [
+        { id: '5', type: 'text' as const, x: 10, y: 6, width: 80, content: '¡Te esperamos!', fontFamily: 'dancing', fontSize: 14, fontWeight: 400, color: '#e65100', textAlign: 'center' },
+        { id: '6', type: 'qr' as const, x: 25, y: 18, width: 50, height: 65, qrColor: '#1565c0', qrBgColor: 'transparent', showLabel: true, labelColor: '#2e7d32' },
+      ]},
+      layout: { orientation: 'landscape', pageSize: 'letter', margin: 10, gap: 3, showCutMarks: true, sides: 'both' },
+      cardWidth: 100, cardHeight: 60
+    }
+  ];
 
   currentSide(): CardSide { return this.side === 'front' ? this.front : this.back; }
 
@@ -535,6 +701,55 @@ export class CardsComponent implements OnInit {
     });
   }
 
+  previewPDF() {
+    this.previewing.set(true);
+    // Auto-save before generating preview
+    const frontData = { ...this.front, width: this.cardWidth, height: this.cardHeight, pdfLayout: this.pdfLayout };
+    this.api.saveCardTemplate(this.eventId, { front_config: frontData, back_config: this.back }).subscribe({
+      next: () => {
+        this.api.previewCardsPDF(this.eventId).subscribe({
+          next: (blob) => {
+            const url = URL.createObjectURL(blob);
+            this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+            this.previewing.set(false);
+          },
+          error: () => this.previewing.set(false)
+        });
+      },
+      error: () => this.previewing.set(false)
+    });
+  }
+
+  closePreview() {
+    this.previewUrl = null;
+  }
+
+  applyTemplate(tpl: any) {
+    const hasCustomConfig = this.front.elements.length > 0 || this.back.elements.length > 0 || this.front.bgImage;
+    if (hasCustomConfig) {
+      this.pendingTemplate = tpl;
+      return;
+    }
+    this.doApplyTemplate(tpl);
+  }
+
+  confirmApplyTemplate() {
+    if (this.pendingTemplate) {
+      this.doApplyTemplate(this.pendingTemplate);
+      this.pendingTemplate = null;
+    }
+  }
+
+  private doApplyTemplate(tpl: any) {
+    this.front = { ...tpl.front, elements: tpl.front.elements.map((e: any) => ({ ...e, id: Date.now().toString() + Math.random().toString(36).slice(2, 6) })) };
+    this.back = { ...tpl.back, elements: tpl.back.elements.map((e: any) => ({ ...e, id: Date.now().toString() + Math.random().toString(36).slice(2, 6) })) };
+    this.cardWidth = tpl.cardWidth;
+    this.cardHeight = tpl.cardHeight;
+    this.pdfLayout = { ...this.pdfLayout, ...tpl.layout };
+    this.side = 'front';
+    this.selectedEl = null;
+  }
+
   uploadBg(event: any) {
     const file = event.target.files[0]; if (!file) return;
     this.api.uploadFile('images', file).subscribe(r => { this.currentSide().bgImage = r.url; });
@@ -568,12 +783,38 @@ export class CardsComponent implements OnInit {
   getCardsPerPage(): number {
     const { w, h } = this.getPageDimensions();
     const m = this.pdfLayout.margin;
+    const gap = this.pdfLayout.gap ?? 3;
     const usableW = w - m * 2;
     const usableH = h - m * 2;
-    const pairW = this.cardWidth * 2 + 4;
-    const cols = Math.floor(usableW / pairW) || 1;
-    const rows = Math.floor(usableH / (this.cardHeight + 3)) || 1;
+    const frontOnly = this.pdfLayout.sides === 'front-only';
+
+    let pairW: number, pairH: number;
+    if (frontOnly) {
+      pairW = this.cardWidth;
+      pairH = this.cardHeight;
+    } else {
+      const pairWSideBySide = this.cardWidth * 2 + gap;
+      const sideBySide = pairWSideBySide <= usableW;
+      if (sideBySide) {
+        pairW = pairWSideBySide;
+        pairH = this.cardHeight;
+      } else {
+        pairW = this.cardWidth;
+        pairH = this.cardHeight * 2 + gap;
+      }
+    }
+    const cols = Math.floor((usableW + gap) / (pairW + gap)) || 1;
+    const rows = Math.floor((usableH + gap) / (pairH + gap)) || 1;
     return cols * rows;
+  }
+
+  isSideBySide(): boolean {
+    if (this.pdfLayout.sides === 'front-only') return true;
+    const { w } = this.getPageDimensions();
+    const m = this.pdfLayout.margin;
+    const gap = this.pdfLayout.gap ?? 3;
+    const usableW = w - m * 2;
+    return (this.cardWidth * 2 + gap) <= usableW;
   }
 
   getPageCount(): number {
@@ -582,29 +823,69 @@ export class CardsComponent implements OnInit {
   }
 
   getLayoutSlots(): number[] {
-    return Array.from({ length: this.getCardsPerPage() }, (_, i) => i);
+    const perPage = this.getCardsPerPage();
+    const total = Math.min(perPage, this.guests().length || perPage);
+    return Array.from({ length: total }, (_, i) => i);
   }
 
   getSlotWidth(): number {
     const { w } = this.getPageDimensions();
     const m = this.pdfLayout.margin;
+    const gap = this.pdfLayout.gap ?? 3;
     const usableW = w - m * 2;
-    const pairW = this.cardWidth * 2 + 4;
-    const cols = Math.floor(usableW / pairW) || 1;
+    const frontOnly = this.pdfLayout.sides === 'front-only';
+    const pairW = frontOnly ? this.cardWidth : (this.isSideBySide() ? this.cardWidth * 2 + gap : this.cardWidth);
+    const cols = Math.floor((usableW + gap) / (pairW + gap)) || 1;
     return (100 / cols) - 2;
   }
 
   getSlotHeight(): number {
     const { h } = this.getPageDimensions();
     const m = this.pdfLayout.margin;
+    const gap = this.pdfLayout.gap ?? 3;
     const usableH = h - m * 2;
-    const rows = Math.floor(usableH / (this.cardHeight + 3)) || 1;
+    const frontOnly = this.pdfLayout.sides === 'front-only';
+    const pairH = frontOnly ? this.cardHeight : (this.isSideBySide() ? this.cardHeight : this.cardHeight * 2 + gap);
+    const rows = Math.floor((usableH + gap) / (pairH + gap)) || 1;
     return (100 / rows) - 3;
   }
 
   getMarginPercent(): number {
     const { w } = this.getPageDimensions();
     return (this.pdfLayout.margin / w) * 100;
+  }
+
+  getGapPercent(): number {
+    const { w } = this.getPageDimensions();
+    return ((this.pdfLayout.gap ?? 3) / w) * 100;
+  }
+
+  getMaxCardWidth(): number {
+    const { w } = this.getPageDimensions();
+    const usableW = w - this.pdfLayout.margin * 2;
+    if (this.pdfLayout.sides === 'front-only') {
+      return Math.floor(usableW);
+    }
+    return Math.floor(usableW / 2 - (this.pdfLayout.gap ?? 3));
+  }
+
+  getMaxCardHeight(): number {
+    const { h } = this.getPageDimensions();
+    const usableH = h - this.pdfLayout.margin * 2;
+    if (this.pdfLayout.sides === 'front-only') {
+      return Math.floor(usableH);
+    }
+    if (this.isSideBySide()) {
+      return Math.floor(usableH);
+    }
+    return Math.floor((usableH - (this.pdfLayout.gap ?? 3)) / 2);
+  }
+
+  clampCardSize(): void {
+    const maxW = this.getMaxCardWidth();
+    const maxH = this.getMaxCardHeight();
+    if (this.cardWidth > maxW) this.cardWidth = maxW;
+    if (this.cardHeight > maxH) this.cardHeight = maxH;
   }
 
   // --- Drag & Resize ---

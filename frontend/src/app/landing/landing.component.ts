@@ -36,6 +36,7 @@ import { LandingGalleryComponent } from './sections/gallery/gallery.component';
 import { LandingDresscodeComponent } from './sections/dresscode/dresscode.component';
 import { LandingGiftsComponent } from './sections/gifts/gifts.component';
 import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
+import { LandingRegisterComponent } from './sections/register/register.component';
 
 @Component({
   selector: 'app-landing',
@@ -44,7 +45,7 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
     CommonModule, ScrollRevealDirective,
     LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
-    LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent
+    LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent, LandingRegisterComponent
   ],
   template: `
     @if (loading()) {
@@ -87,7 +88,7 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
       @if (!showIntro() && !showEnvelope()) {
         <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme?.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme?.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme?.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme?.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme?.buttonFont)">
         <!-- Sticky nav -->
-        <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" />
+        <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
         <!-- Sections -->
         <div appScrollReveal>
@@ -126,6 +127,11 @@ import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
         @if (data()!.config.rsvp?.enabled && guest()) {
           <div appScrollReveal>
             <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" [styles]="data()!.config.globalStyles" />
+          </div>
+        }
+        @if (isOpenEvent() && !guest()) {
+          <div appScrollReveal>
+            <app-landing-register [config]="data()!.config.rsvp" [slug]="slug" [styles]="data()!.config.globalStyles" />
           </div>
         }
 
@@ -255,6 +261,26 @@ export class LandingComponent implements OnInit, OnDestroy {
   showEnvelope = signal(false);
   scrolled = false;
   slug = '';
+
+  isOpenEvent(): boolean {
+    return this.data()?.event?.event_mode === 'open';
+  }
+
+  getEnabledSections(): string[] {
+    const d = this.data();
+    if (!d) return [];
+    const sections: string[] = [];
+    // Invitation is always shown (it's the main content)
+    sections.push('invitation');
+    if (d.config.details?.enabled && d.config.details.cards?.length > 0) sections.push('details');
+    if (d.config.venues?.enabled && d.config.venues.items?.length > 0) sections.push('venues');
+    if (d.config.itinerary?.enabled) sections.push('itinerary');
+    if (d.config.gallery?.enabled) sections.push('gallery');
+    if (d.config.dresscode?.enabled) sections.push('dresscode');
+    if (d.config.gifts?.enabled) sections.push('gifts');
+    if ((d.config.rsvp?.enabled && this.guest()) || this.isOpenEvent()) sections.push('rsvp');
+    return sections;
+  }
 
   @HostListener('window:scroll')
   onScroll() { this.scrolled = window.scrollY > 300; }

@@ -707,6 +707,14 @@ textarea {
     border-top: none;
     border-left: none;
     border-right: none;
+    outline: none;
+
+    &:focus, &:focus-visible {
+      outline: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
 
     &.active {
       color: var(--gold);
@@ -739,7 +747,7 @@ textarea {
 
 /* Quill Editor Dark Theme Override */
 .ql-toolbar.ql-snow {
-  border-color: rgba(212,160,23,0.2) !important;
+  border-color: rgba(124,92,191,0.2) !important;
   background: rgba(255,255,255,0.03);
   border-radius: 8px 8px 0 0;
   .ql-stroke { stroke: rgba(255,255,255,0.6) !important; }
@@ -747,7 +755,7 @@ textarea {
   .ql-picker-label { color: rgba(255,255,255,0.6) !important; }
   .ql-picker-options {
     background: #1a1a2e !important;
-    border-color: rgba(212,160,23,0.3) !important;
+    border-color: rgba(124,92,191,0.3) !important;
     border-radius: 8px !important;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
     padding: 8px !important;
@@ -763,12 +771,12 @@ textarea {
       transition: transform 0.15s, box-shadow 0.15s;
       &:hover {
         transform: scale(1.2);
-        box-shadow: 0 0 8px rgba(212,160,23,0.4);
+        box-shadow: 0 0 8px rgba(124,92,191,0.4);
         border-color: var(--gold) !important;
       }
       &.ql-selected {
         border-color: var(--gold) !important;
-        box-shadow: 0 0 0 2px rgba(212,160,23,0.3);
+        box-shadow: 0 0 0 2px rgba(124,92,191,0.3);
       }
     }
   }
@@ -778,15 +786,15 @@ textarea {
   .ql-color-picker .ql-picker-label svg .ql-color-label {
     opacity: 1 !important;
   }
-  button:hover .ql-stroke { stroke: #d4a017 !important; }
-  button:hover .ql-fill { fill: #d4a017 !important; }
-  button.ql-active .ql-stroke { stroke: #d4a017 !important; }
-  button.ql-active .ql-fill { fill: #d4a017 !important; }
-  .ql-picker-label:hover { color: #d4a017 !important; }
-  .ql-picker-label:hover .ql-stroke { stroke: #d4a017 !important; }
+  button:hover .ql-stroke { stroke: var(--gold-light) !important; }
+  button:hover .ql-fill { fill: var(--gold-light) !important; }
+  button.ql-active .ql-stroke { stroke: var(--gold-light) !important; }
+  button.ql-active .ql-fill { fill: var(--gold-light) !important; }
+  .ql-picker-label:hover { color: var(--gold-light) !important; }
+  .ql-picker-label:hover .ql-stroke { stroke: var(--gold-light) !important; }
 }
 .ql-container.ql-snow {
-  border-color: rgba(212,160,23,0.2) !important;
+  border-color: rgba(124,92,191,0.2) !important;
   border-radius: 0 0 8px 8px;
   background: rgba(255,255,255,0.02);
   font-family: var(--font-sans);

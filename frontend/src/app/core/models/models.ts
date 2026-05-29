@@ -5,9 +5,29 @@ export interface Event {
   event_type: string;
   event_date: string;
   active: number;
+  event_mode?: 'private' | 'open';
+  max_capacity?: number | null;
   total_guests?: number;
   confirmed_guests?: number;
   created_at?: string;
+}
+
+export interface Registration {
+  id: number;
+  event_id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  created_at: string;
+}
+
+export interface RegistrationStatus {
+  mode: 'private' | 'open';
+  registered?: number;
+  capacity?: number | null;
+  full?: boolean;
 }
 
 export interface Guest {
@@ -131,9 +151,12 @@ export interface HeroConfig {
   eventDescription: string;
   eventDescriptionStyle: HeroGradientStyle;
   celebrantNames: string;
+  showCelebrantNames?: boolean;
   celebrantNamesStyle: HeroGradientStyle;
   heroPhrase: string;
   heroPhraseStyle: HeroTextStyle;
+  showDescription?: boolean;
+  description?: string;
   countdownDate: string;
 }
 
@@ -145,6 +168,7 @@ export interface InvitationConfig {
 export interface DetailsConfig {
   enabled: boolean;
   title: string;
+  showCardBg?: boolean;
   cards: DetailCard[];
 }
 
@@ -160,7 +184,7 @@ export interface DetailTextStyle {
 
 export interface DetailCard {
   id: string;
-  iconType: 'emoji' | 'image';
+  iconType: 'emoji' | 'image' | 'none';
   icon: string;
   iconUrl: string;
   title: string;
@@ -170,7 +194,8 @@ export interface DetailCard {
 
 export interface VenuesConfig {
   enabled: boolean;
-  iconStyle?: 'circle' | 'plain';
+  iconStyle?: 'circle' | 'plain' | 'none';
+  showCardBg?: boolean;
   items: VenueItem[];
 }
 
@@ -193,7 +218,7 @@ export interface ItineraryConfig {
 export interface ItineraryItem {
   id?: number;
   icon: string;
-  iconType: 'emoji' | 'custom';
+  iconType: 'emoji' | 'custom' | 'none';
   iconUrl?: string;
   time: string;
   title: string;
@@ -208,7 +233,7 @@ export interface GalleryConfig {
 }
 
 export interface SectionIconConfig {
-  iconType: 'material' | 'emoji' | 'image';
+  iconType: 'material' | 'emoji' | 'image' | 'none';
   icon: string;
   iconUrl: string;
 }
@@ -246,6 +271,15 @@ export interface RsvpConfig {
   enabled: boolean;
   title: string;
   sectionIcon?: SectionIconConfig;
+  registrationFields?: RegistrationFieldConfig[];
+}
+
+export interface RegistrationFieldConfig {
+  key: string;
+  label: string;
+  type: 'text' | 'email' | 'phone';
+  enabled: boolean;
+  required: boolean;
 }
 
 export interface KPIs {

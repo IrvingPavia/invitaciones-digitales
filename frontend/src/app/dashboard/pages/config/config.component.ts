@@ -48,7 +48,7 @@ const FONT_OPTIONS = `
   styles: [
     `
       .venue-card {
-        border: 1px solid rgba(212, 160, 23, 0.2);
+        border: 1px solid rgba(124, 92, 191, 0.2);
         border-radius: 10px;
         padding: 20px;
         margin-bottom: 16px;
@@ -64,8 +64,8 @@ const FONT_OPTIONS = `
         width: 60px;
         height: 60px;
         border-radius: 10px;
-        background: rgba(212, 160, 23, 0.1);
-        border: 1px solid rgba(212, 160, 23, 0.3);
+        background: rgba(124, 92, 191, 0.1);
+        border: 1px solid rgba(124, 92, 191, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -100,7 +100,7 @@ const FONT_OPTIONS = `
       }
       .countdown-picker {
         background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(212, 160, 23, 0.2);
+        border: 1px solid rgba(124, 92, 191, 0.2);
         border-radius: 10px;
         padding: 20px;
       }
@@ -198,8 +198,8 @@ const FONT_OPTIONS = `
         gap: 10px;
         font-size: 14px;
         color: rgba(255, 255, 255, 0.7);
-        background: rgba(212, 160, 23, 0.08);
-        border: 1px solid rgba(212, 160, 23, 0.2);
+        background: rgba(124, 92, 191, 0.08);
+        border: 1px solid rgba(124, 92, 191, 0.2);
         border-radius: 8px;
         padding: 10px 16px;
       }
@@ -214,9 +214,11 @@ const FONT_OPTIONS = `
       }
       .config-toolbar {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
       }
       .tabs-wrapper {
         display: flex;
@@ -242,7 +244,7 @@ const FONT_OPTIONS = `
           font-size: 20px;
         }
         &:hover {
-          background: rgba(212, 160, 23, 0.15);
+          background: rgba(124, 92, 191, 0.15);
           border-color: var(--gold);
         }
       }
@@ -251,8 +253,23 @@ const FONT_OPTIONS = `
         flex: 1;
         min-width: 0;
       }
+      .tabs-wrapper .tabs .tab {
+        border: none;
+        border-bottom: 2px solid transparent;
+        outline: none;
+        background: transparent;
+        &:focus, &:focus-visible {
+          outline: none;
+          border: none;
+          border-bottom: 2px solid transparent;
+        }
+        &.active {
+          border: none;
+          border-bottom: 2px solid var(--gold);
+        }
+      }
       .itinerary-card {
-        border: 1px solid rgba(212, 160, 23, 0.15);
+        border: 1px solid rgba(124, 92, 191, 0.15);
         border-radius: 8px;
         padding: 16px;
         margin-bottom: 12px;
@@ -269,8 +286,8 @@ const FONT_OPTIONS = `
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(212, 160, 23, 0.1);
-        border: 1px solid rgba(212, 160, 23, 0.3);
+        background: rgba(124, 92, 191, 0.1);
+        border: 1px solid rgba(124, 92, 191, 0.3);
         overflow: hidden;
       }
       .emoji-preview {
@@ -295,17 +312,17 @@ const FONT_OPTIONS = `
         align-items: center;
         justify-content: center;
         &:hover {
-          background: rgba(212, 160, 23, 0.15);
+          background: rgba(124, 92, 191, 0.15);
           border-color: var(--gold);
         }
         &.active {
-          background: rgba(212, 160, 23, 0.2);
+          background: rgba(124, 92, 191, 0.2);
           border-color: var(--gold);
-          box-shadow: 0 0 8px rgba(212, 160, 23, 0.3);
+          box-shadow: 0 0 8px rgba(124, 92, 191, 0.3);
         }
       }
       .style-block {
-        border: 1px solid rgba(212, 160, 23, 0.15);
+        border: 1px solid rgba(124, 92, 191, 0.15);
         border-radius: 8px;
         padding: 16px;
         margin-bottom: 20px;
@@ -323,7 +340,7 @@ const FONT_OPTIONS = `
         margin-bottom: 12px;
       }
       .section-card {
-        border: 1px solid rgba(212, 160, 23, 0.15);
+        border: 1px solid rgba(124, 92, 191, 0.15);
         border-radius: 12px;
         margin-bottom: 20px;
         overflow: visible;
@@ -334,12 +351,12 @@ const FONT_OPTIONS = `
         align-items: center;
         justify-content: space-between;
         padding: 14px 20px;
-        background: rgba(212, 160, 23, 0.05);
-        border-bottom: 1px solid rgba(212, 160, 23, 0.1);
+        background: rgba(124, 92, 191, 0.05);
+        border-bottom: 1px solid rgba(124, 92, 191, 0.1);
         span {
           font-size: 14px;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.9);
+          color: var(--gold-light);
         }
       }
       .section-card-body {
@@ -412,14 +429,13 @@ const FONT_OPTIONS = `
         max-width: 200px;
         margin-top: 10px;
         border-radius: 10px;
-        border: 1px solid rgba(212, 160, 23, 0.2);
+        border: 1px solid rgba(124, 92, 191, 0.2);
       }
       .btn-remove-file {
         display: inline-flex;
         align-items: center;
         gap: 4px;
         margin-top: 8px;
-        margin-left: 8px;
         background: rgba(220, 53, 69, 0.15);
         border: 1px solid rgba(220, 53, 69, 0.4);
         border-radius: 6px;
@@ -428,6 +444,8 @@ const FONT_OPTIONS = `
         color: #dc3545;
         cursor: pointer;
         transition: all 0.2s;
+        width: auto;
+        max-width: fit-content;
         &:hover {
           background: rgba(220, 53, 69, 0.3);
           border-color: #dc3545;
@@ -488,7 +506,7 @@ const FONT_OPTIONS = `
         background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
         border-radius: 8px; padding: 8px 14px; font-size: 13px;
         color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s;
-        &.active { background: rgba(212,160,23,0.15); border-color: var(--gold); color: var(--gold); }
+        &.active { background: rgba(124,92,191,0.15); border-color: var(--gold); color: var(--gold); }
         &:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
       }
       .emoji-trigger {
@@ -496,13 +514,13 @@ const FONT_OPTIONS = `
         background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
         border-radius: 10px; padding: 10px 16px; cursor: pointer;
         transition: all 0.2s; width: 100%;
-        &:hover { border-color: var(--gold); background: rgba(212,160,23,0.05); }
+        &:hover { border-color: var(--gold); background: rgba(124,92,191,0.05); }
       }
       .emoji-trigger-icon { font-size: 24px; }
       .emoji-trigger-text { flex: 1; font-size: 13px; color: rgba(255,255,255,0.5); text-align: left; }
       .emoji-dropdown {
         position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
-        background: #1a1a2e; border: 1px solid rgba(212,160,23,0.3);
+        background: #1a1a2e; border: 1px solid rgba(124,92,191,0.3);
         border-radius: 12px; padding: 12px; margin-top: 4px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         max-height: 220px; overflow-y: auto;
@@ -550,7 +568,7 @@ const FONT_OPTIONS = `
         position: relative;
         z-index: 1;
         font-size: 20px;
-        text-shadow: 0 0 20px rgba(212,160,23,0.4);
+        text-shadow: 0 0 20px rgba(124,92,191,0.4);
       }
       @keyframes pvUp {
         0% { opacity: 0; transform: translateY(0) scale(0.5); }
@@ -1012,7 +1030,10 @@ export class ConfigComponent implements OnInit {
         audioUrl: cfg?.hero?.audioUrl || "",
         eventDescription: cfg?.hero?.eventDescription || "",
         celebrantNames: cfg?.hero?.celebrantNames || "",
+        showCelebrantNames: cfg?.hero?.showCelebrantNames !== false,
         heroPhrase: cfg?.hero?.heroPhrase || "",
+        showDescription: cfg?.hero?.showDescription || false,
+        description: cfg?.hero?.description || "",
         countdownDate: cfg?.hero?.countdownDate || "",
         eventDescriptionStyle: {
           fontFamily: "sans",
@@ -1269,5 +1290,62 @@ export class ConfigComponent implements OnInit {
     this.api.uploadFile('images', file).subscribe(r => {
       obj.sectionIcon.iconUrl = r.url;
     });
+  }
+
+  getRegistrationFields(): any[] {
+    const c = this.config();
+    if (!c) return [];
+    if (!c.rsvp.registrationFields || c.rsvp.registrationFields.length === 0) {
+      c.rsvp.registrationFields = [
+        { key: 'name', label: 'Nombre completo', type: 'text', enabled: true, required: true },
+        { key: 'email', label: 'Email', type: 'email', enabled: true, required: false },
+        { key: 'phone', label: 'Teléfono', type: 'phone', enabled: true, required: false },
+        { key: 'company', label: 'Empresa', type: 'text', enabled: false, required: false },
+        { key: 'position', label: 'Cargo', type: 'text', enabled: false, required: false },
+      ];
+    }
+    return c.rsvp.registrationFields;
+  }
+
+  // Landing templates
+  landingTemplates = [
+    { key: 'elegante', name: 'Elegante', bg: 'linear-gradient(135deg, #1a1a2e, #0d1117)', accent: '#d4a017' },
+    { key: 'moderno', name: 'Moderno', bg: 'linear-gradient(135deg, #1e1e32, #2d2d44)', accent: '#a78bfa' },
+    { key: 'romantico', name: 'Romántico', bg: 'linear-gradient(135deg, #2d1525, #1a0a14)', accent: '#f4a7c1' },
+    { key: 'festivo', name: 'Festivo', bg: 'linear-gradient(135deg, #1a1a2e, #2d2200)', accent: '#fbbf24' },
+    { key: 'corporativo', name: 'Corporativo', bg: 'linear-gradient(135deg, #0f172a, #1e293b)', accent: '#60a5fa' },
+  ];
+  pendingTemplate: string | null = null;
+
+  applyLandingTemplate() {
+    if (!this.pendingTemplate || !this.config()) return;
+    const templates: Record<string, any> = {
+      elegante: {
+        theme: { cardBg: 'rgba(0,0,0,0.5)', cardBorder: 'rgba(212,160,23,0.3)', textPrimary: '#ffffff', textPrimaryFont: 'serif', textSecondary: 'rgba(255,255,255,0.7)', textSecondaryFont: 'sans', navFooterText: '#d4a017', navFooterFont: 'script', buttonBg: '#d4a017', buttonText: '#1a1a2e', buttonFont: 'sans' },
+        globalStyles: { sectionHeadingStyle: { fontFamily: 'script', fontSize: 36, color: '#d4a017' }, titleStyle: { fontFamily: 'serif', fontSize: 20, color: '#ffffff' }, subtitleStyle: { fontFamily: 'sans', fontSize: 14, color: 'rgba(255,255,255,0.7)' }, contentStyle: { fontFamily: 'sans', fontSize: 15, color: 'rgba(255,255,255,0.8)' }, separatorStyle: { type: 'elegant', color: '#d4a017' } }
+      },
+      moderno: {
+        theme: { cardBg: 'rgba(255,255,255,0.03)', cardBorder: 'rgba(255,255,255,0.12)', textPrimary: '#ffffff', textPrimaryFont: 'montserrat', textSecondary: 'rgba(255,255,255,0.6)', textSecondaryFont: 'montserrat', navFooterText: '#a78bfa', navFooterFont: 'montserrat', buttonBg: '#a78bfa', buttonText: '#1a1a2e', buttonFont: 'montserrat' },
+        globalStyles: { sectionHeadingStyle: { fontFamily: 'montserrat', fontSize: 32, color: '#a78bfa' }, titleStyle: { fontFamily: 'montserrat', fontSize: 18, color: '#ffffff' }, subtitleStyle: { fontFamily: 'montserrat', fontSize: 14, color: 'rgba(255,255,255,0.6)' }, contentStyle: { fontFamily: 'montserrat', fontSize: 15, color: 'rgba(255,255,255,0.7)' }, separatorStyle: { type: 'minimal', color: '#a78bfa' } }
+      },
+      romantico: {
+        theme: { cardBg: 'rgba(30,10,20,0.6)', cardBorder: 'rgba(219,112,147,0.3)', textPrimary: '#fff0f5', textPrimaryFont: 'cormorant', textSecondary: 'rgba(255,240,245,0.7)', textSecondaryFont: 'sans', navFooterText: '#f4a7c1', navFooterFont: 'dancing', buttonBg: '#db7093', buttonText: '#ffffff', buttonFont: 'sans' },
+        globalStyles: { sectionHeadingStyle: { fontFamily: 'dancing', fontSize: 38, color: '#f4a7c1' }, titleStyle: { fontFamily: 'cormorant', fontSize: 20, color: '#fff0f5' }, subtitleStyle: { fontFamily: 'sans', fontSize: 14, color: 'rgba(255,240,245,0.7)' }, contentStyle: { fontFamily: 'sans', fontSize: 15, color: 'rgba(255,240,245,0.8)' }, separatorStyle: { type: 'ornamental', color: '#f4a7c1' } }
+      },
+      festivo: {
+        theme: { cardBg: 'rgba(0,0,0,0.4)', cardBorder: 'rgba(255,200,50,0.3)', textPrimary: '#ffffff', textPrimaryFont: 'raleway', textSecondary: 'rgba(255,255,255,0.7)', textSecondaryFont: 'raleway', navFooterText: '#fbbf24', navFooterFont: 'raleway', buttonBg: '#f59e0b', buttonText: '#1a1a2e', buttonFont: 'raleway' },
+        globalStyles: { sectionHeadingStyle: { fontFamily: 'raleway', fontSize: 34, color: '#fbbf24' }, titleStyle: { fontFamily: 'raleway', fontSize: 18, color: '#ffffff' }, subtitleStyle: { fontFamily: 'raleway', fontSize: 14, color: 'rgba(255,255,255,0.7)' }, contentStyle: { fontFamily: 'raleway', fontSize: 15, color: 'rgba(255,255,255,0.8)' }, separatorStyle: { type: 'festive', color: '#fbbf24' } }
+      },
+      corporativo: {
+        theme: { cardBg: 'rgba(15,23,42,0.7)', cardBorder: 'rgba(59,130,246,0.25)', textPrimary: '#f1f5f9', textPrimaryFont: 'josefin', textSecondary: 'rgba(241,245,249,0.6)', textSecondaryFont: 'josefin', navFooterText: '#60a5fa', navFooterFont: 'josefin', buttonBg: '#3b82f6', buttonText: '#ffffff', buttonFont: 'josefin' },
+        globalStyles: { sectionHeadingStyle: { fontFamily: 'josefin', fontSize: 30, color: '#60a5fa' }, titleStyle: { fontFamily: 'josefin', fontSize: 18, color: '#f1f5f9' }, subtitleStyle: { fontFamily: 'josefin', fontSize: 14, color: 'rgba(241,245,249,0.6)' }, contentStyle: { fontFamily: 'josefin', fontSize: 15, color: 'rgba(241,245,249,0.7)' }, separatorStyle: { type: 'formal', color: '#60a5fa' } }
+      }
+    };
+    const tpl = templates[this.pendingTemplate];
+    if (!tpl) return;
+    const c = this.config()!;
+    Object.assign(c.theme, tpl.theme);
+    Object.assign(c.globalStyles, tpl.globalStyles);
+    this.pendingTemplate = null;
   }
 }

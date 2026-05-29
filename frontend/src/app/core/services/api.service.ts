@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Event, Guest, EventConfig, KPIs, LandingData, ItineraryItem } from '../models/models';
+import { Event, Guest, EventConfig, KPIs, LandingData, ItineraryItem, Registration, RegistrationStatus } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -73,6 +73,9 @@ export class ApiService {
   downloadCardsPDF(eventId: number) {
     return this.http.get(`${this.api}/cards/${eventId}/pdf`, { responseType: 'blob' });
   }
+  previewCardsPDF(eventId: number) {
+    return this.http.get(`${this.api}/cards/${eventId}/pdf/preview`, { responseType: 'blob' });
+  }
 
   // Public
   getLandingData(slug: string) { return this.http.get<LandingData>(`${this.api}/public/invitation/${slug}`); }
@@ -91,6 +94,17 @@ export class ApiService {
   updateUser(id: number, data: any) { return this.http.put<any>(`${this.api}/users/${id}`, data); }
   deleteUser(id: number) { return this.http.delete<any>(`${this.api}/users/${id}`); }
   resetUserPassword(id: number) { return this.http.post<{ password: string }>(`${this.api}/users/${id}/reset-password`, {}); }
+
+  // Registrations (dashboard)
+  getRegistrations(eventId: number) { return this.http.get<Registration[]>(`${this.api}/registrations/${eventId}`); }
+  deleteRegistration(eventId: number, id: number) { return this.http.delete<any>(`${this.api}/registrations/${eventId}/${id}`); }
+  getRegistrationStats(eventId: number) { return this.http.get<{ registered: number; capacity: number | null }>(`${this.api}/registrations/${eventId}/stats`); }
+
+  // Registrations (public)
+  getRegistrationStatus(slug: string) { return this.http.get<RegistrationStatus>(`${this.api}/public/register/${slug}/status`); }
+  publicRegister(slug: string, data: { name: string; email?: string; phone?: string }) {
+    return this.http.post<{ message: string; registered: number; capacity: number | null }>(`${this.api}/public/register/${slug}`, data);
+  }
 
   // Suggestions
   getSuggestions() { return this.http.get<any[]>(`${this.api}/suggestions`); }

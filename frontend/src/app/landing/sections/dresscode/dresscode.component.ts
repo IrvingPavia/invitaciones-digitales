@@ -72,8 +72,9 @@ export class LandingDresscodeComponent {
     switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
   }
 
-  getIcon(): { type: string; value: string } {
+  getIcon(): { type: string; value: string } | null {
     const si = this.config.sectionIcon;
+    if (si?.iconType === 'none') return null;
     if (!si || si.iconType === 'material') return { type: 'material', value: 'checkroom' };
     if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
     if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };

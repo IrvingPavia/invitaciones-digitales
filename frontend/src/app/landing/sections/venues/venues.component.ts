@@ -21,14 +21,16 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
 
         <div class="venues-grid">
           @for (venue of config.items; track venue.id) {
-            <div class="venue-card reveal">
-              <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
-                @if (venue.icon) {
-                  <img [src]="venue.icon" [alt]="venue.title">
-                } @else {
-                  <span class="material-icons">place</span>
-                }
-              </div>
+            <div class="venue-card reveal" [class.no-bg]="config.showCardBg === false">
+              @if (config.iconStyle !== 'none') {
+                <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
+                  @if (venue.icon) {
+                    <img [src]="venue.icon" [alt]="venue.title">
+                  } @else {
+                    <span class="material-icons">place</span>
+                  }
+                </div>
+              }
               <h3 class="venue-title"
                   [style.font-family]="getFontFamily(styles?.titleStyle?.fontFamily)"
                   [style.font-size.px]="styles?.titleStyle?.fontSize || 18"
@@ -77,6 +79,7 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
+      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
     }
     .venue-icon {
       width: 72px; height: 72px; border-radius: 50%;

@@ -23,6 +23,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
           @for (item of items; track item.id; let i = $index) {
             <div class="timeline-item" [class.right]="i % 2 !== 0" [style.transition-delay.ms]="i * 100">
               <div class="timeline-content reveal">
+                @if (item.iconType !== 'none') {
                 <div class="timeline-icon">
                   @if (item.iconType === 'custom' && item.iconUrl) {
                     <img [src]="item.iconUrl" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
@@ -32,6 +33,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
                     <span class="material-icons">{{ item.icon || 'event' }}</span>
                   }
                 </div>
+                }
                 <div class="timeline-body">
                   <span class="timeline-time">{{ formatTime(item.time) }}</span>
                   <h4 class="timeline-title"

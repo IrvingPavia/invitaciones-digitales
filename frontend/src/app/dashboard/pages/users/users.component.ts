@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Event } from '../../../core/models/models';
 
@@ -247,6 +248,7 @@ import { Event } from '../../../core/models/models';
 })
 export class UsersComponent implements OnInit {
   private api = inject(ApiService);
+  private dialog = inject(DialogService);
   private auth = inject(AuthService);
   users = signal<any[]>([]);
   allEvents = signal<Event[]>([]);
@@ -314,31 +316,32 @@ export class UsersComponent implements OnInit {
         }
         this.load(); this.closeModal(); this.saving.set(false);
       },
-      error: (e) => { alert(e.error?.error || 'Error'); this.saving.set(false); }
+      error: (e) => { this.dialog.alert('Error', e.error?.error || 'Error al guardar'); this.saving.set(false); }
     });
   }
 
-  resetPassword(u: any) {
-    if (!confirm(`¿Resetear contraseña de "${u.username}"? Se generará una nueva.`)) return;
+  async resetPassword(u: any) {
+    const ok = await this.dialog.confirm('Resetear contraseña', `¿Resetear contraseña de "${u.username}"? Se generará una nueva.`);
+    if (!ok) return;
     this.api.resetUserPassword(u.id).subscribe({
       next: (res) => {
         this.generatedPassword.set(res.password);
         this.generatedForUser.set(u.username);
       },
-      error: (e) => alert(e.error?.error || 'Error')
+      error: (e) => this.dialog.alert('Error', e.error?.error || 'Error al resetear')
     });
   }
 
   copyPassword() {
     navigator.clipboard.writeText(this.generatedPassword());
-    // Brief visual feedback could be added here
   }
 
-  deleteUser(u: any) {
-    if (!confirm(`¿Eliminar usuario "${u.username}"?`)) return;
+  async deleteUser(u: any) {
+    const ok = await this.dialog.confirm('Eliminar usuario', `¿Eliminar usuario "${u.username}"?`);
+    if (!ok) return;
     this.api.deleteUser(u.id).subscribe({
       next: () => this.load(),
-      error: (e) => alert(e.error?.error || 'Error')
+      error: (e) => this.dialog.alert('Error', e.error?.error || 'Error al eliminar')
     });
   }
 }

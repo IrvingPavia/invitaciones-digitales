@@ -36,6 +36,56 @@ router.get('/invitation/:slug/guest/:code', async (req, res) => {
   }
 });
 
+// Public registration for open events
+router.post('/register/:slug', async (req, res) => {
+  try {
+    const { name, email, phone, company, position } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es requerido' });
+
+    const [events] = await getDB().query('SELECT * FROM events WHERE slug = ? AND active = 1 AND event_mode = ?', [req.params.slug, 'open']);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado o no acepta registros' });
+    const event = events[0];
+
+    // Check capacity
+    const [[{ count }]] = await getDB().query('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', [event.id]);
+    if (event.max_capacity && count >= event.max_capacity) {
+      return res.status(409).json({ error: 'Cupo lleno', full: true });
+    }
+
+    // Check duplicate email if provided
+    if (email && email.trim()) {
+      const [existing] = await getDB().query('SELECT id FROM registrations WHERE event_id = ? AND email = ?', [event.id, email.trim()]);
+      if (existing.length) return res.status(409).json({ error: 'Este email ya está registrado' });
+    }
+
+    await getDB().query(
+      'INSERT INTO registrations (event_id, name, email, phone, company, position) VALUES (?, ?, ?, ?, ?, ?)',
+      [event.id, name.trim(), email?.trim() || null, phone?.trim() || null, company?.trim() || null, position?.trim() || null]
+    );
+
+    const [[{ count: newCount }]] = await getDB().query('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', [event.id]);
+    res.json({ message: 'Registro exitoso', registered: newCount, capacity: event.max_capacity });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get registration status for open events (public)
+router.get('/register/:slug/status', async (req, res) => {
+  try {
+    const [events] = await getDB().query('SELECT id, event_mode, max_capacity FROM events WHERE slug = ? AND active = 1', [req.params.slug]);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado' });
+    const event = events[0];
+
+    if (event.event_mode !== 'open') return res.json({ mode: 'private' });
+
+    const [[{ count }]] = await getDB().query('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', [event.id]);
+    res.json({ mode: 'open', registered: count, capacity: event.max_capacity, full: event.max_capacity ? count >= event.max_capacity : false });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/kpis/:eventId', async (req, res) => {
   try {
     const db = getDB();
