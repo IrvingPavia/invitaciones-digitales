@@ -68,11 +68,11 @@ import { LandingRegisterComponent } from './sections/register/register.component
     }
 
     @if (data() && !loading()) {
-      <!-- Fixed background: solid color always, gif fades in after intro -->
+      <!-- Fixed background: solid color always, gif fades in after intro AND after preload -->
       @if (data()!.config.hero?.backgroundGif) {
         <div class="landing-bg-solid"></div>
-        <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro()" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
-        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro()"></div>
+        <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded"></div>
       }
 
       <!-- Envelope -->
@@ -156,36 +156,38 @@ import { LandingRegisterComponent } from './sections/register/register.component
   styles: [`
     :host { display: block; overscroll-behavior-y: contain; }
     .landing-bg-solid {
-      position: fixed; inset: 0; z-index: -3;
+      position: fixed; inset: -10vh -5vw; z-index: -3;
       background: #0d1117;
     }
     .landing-bg {
-      position: fixed; inset: 0; z-index: -2;
+      position: fixed; z-index: -2;
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
-      width: 100%; height: 100%;
-      /* Fix mobile: prevent gap when address bar hides/shows */
-      height: 100vh;
-      height: 100dvh;
-      /* Extend beyond viewport to cover rubber-band scroll */
-      top: -5vh;
-      bottom: -5vh;
-      height: 110vh;
-      height: 110dvh;
+      /* Extend well beyond viewport to cover rubber-band on all devices */
+      top: -15vh;
+      left: -5vw;
+      right: -5vw;
+      bottom: -15vh;
+      width: 110vw;
+      height: 130vh;
+      height: 130dvh;
       /* Hidden by default, fades in after intro */
       opacity: 0;
       transition: opacity 1.2s ease;
     }
     .landing-bg.visible { opacity: 1; }
     .landing-bg-overlay {
-      position: fixed; inset: 0; z-index: -1;
+      position: fixed; z-index: -1;
       background: rgba(0,0,0,0.55);
       /* Match bg extension */
-      top: -5vh;
-      bottom: -5vh;
-      height: 110vh;
-      height: 110dvh;
+      top: -15vh;
+      left: -5vw;
+      right: -5vw;
+      bottom: -15vh;
+      width: 110vw;
+      height: 130vh;
+      height: 130dvh;
       /* Hidden by default, fades in with bg */
       opacity: 0;
       transition: opacity 1.2s ease;
@@ -260,6 +262,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   showIntro = signal(false);
   showEnvelope = signal(false);
   scrolled = false;
+  bgLoaded = false;
   slug = '';
 
   isOpenEvent(): boolean {
@@ -319,6 +322,14 @@ export class LandingComponent implements OnInit, OnDestroy {
         this.applyScrollbarColor(d.config.theme?.cardBorder || '#d4a017');
         this.applyFavicon(d.config.favicon);
         this.applyTitle(d.event.name);
+        // Preload background GIF so it doesn't render partially
+        if (d.config.hero?.backgroundGif) {
+          const img = new Image();
+          img.onload = () => { this.bgLoaded = true; };
+          img.src = d.config.hero.backgroundGif;
+        } else {
+          this.bgLoaded = true;
+        }
         if (code) {
           this.api.getGuestByCode(this.slug, code).subscribe({
             next: (g) => this.guest.set(g),
