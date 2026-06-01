@@ -18,7 +18,7 @@ import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../c
           >{{ config.title }}</h2>
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
-        <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false">
+        <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
           @if (getIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons dresscode-icon">{{ icon.value }}</span>

@@ -18,7 +18,7 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
           >{{ config.title }}</h2>
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
-        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false">
+        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
           @if (getGiftsIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons gifts-icon">{{ icon.value }}</span>
@@ -44,7 +44,7 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
         </div>
 
         @if (config.transfer?.enabled) {
-          <div class="transfer-card reveal" style="animation-delay:0.2s">
+          <div class="transfer-card reveal" [class.no-bg]="config.transfer.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" style="animation-delay:0.2s">
             <!-- Animation overlay -->
             @if (config.transfer.animation !== 'none') {
               <div class="transfer-particles">
@@ -135,6 +135,7 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
       position: relative; overflow: hidden;
       background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 16px; padding: 40px;
+      &.no-bg { background: transparent; border-color: transparent; }
     }
     .transfer-particles {
       position: absolute; inset: 0; pointer-events: none; overflow: hidden;

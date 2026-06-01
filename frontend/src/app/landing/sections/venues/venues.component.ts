@@ -21,7 +21,7 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
 
         <div class="venues-grid">
           @for (venue of config.items; track venue.id) {
-            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)">
+            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)" [style.border-radius.px]="config.cardBorderRadius ?? 16">>
               @if (config.iconStyle !== 'none') {
                 <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
                   @if (venue.icon) {
@@ -128,9 +128,8 @@ export class LandingVenuesComponent {
   @Input() styles?: GlobalTextStyles;
 
   getItemNoBg(venue: any): boolean {
-    // Per-item override takes priority, then section-level global
-    if (venue.showCardBg !== undefined) return venue.showCardBg === false;
-    return this.config.showCardBg === false;
+    // Per-item control only
+    return venue.showCardBg === false;
   }
 
   formatTime(time: string): string {

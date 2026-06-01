@@ -158,17 +158,22 @@ export interface HeroConfig {
   showDescription?: boolean;
   description?: string;
   countdownDate: string;
+  countdownShowCardBg?: boolean;
+  countdownCardBorderRadius?: number;
 }
 
 export interface InvitationConfig {
   title: string;
   subtitle: string;
+  showCardBg?: boolean;
+  cardBorderRadius?: number;
 }
 
 export interface DetailsConfig {
   enabled: boolean;
   title: string;
   showCardBg?: boolean;
+  cardBorderRadius?: number;
   cards: DetailCard[];
 }
 
@@ -190,12 +195,15 @@ export interface DetailCard {
   title: string;
   content: string;
   textAlign: 'left' | 'center' | 'right';
+  showCardBg?: boolean;
+  cardBorderRadius?: number;
 }
 
 export interface VenuesConfig {
   enabled: boolean;
   iconStyle?: 'circle' | 'plain' | 'none';
   showCardBg?: boolean;
+  cardBorderRadius?: number;
   items: VenueItem[];
 }
 
@@ -214,6 +222,7 @@ export interface ItineraryConfig {
   enabled: boolean;
   title: string;
   showCardBg?: boolean;
+  cardBorderRadius?: number;
   items: ItineraryItem[];
 }
 
@@ -246,6 +255,7 @@ export interface DresscodeConfig {
   title: string;
   description: string;
   showCardBg?: boolean;
+  cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
 }
 
@@ -256,6 +266,7 @@ export interface GiftsConfig {
   link: string;
   buttonText: string;
   showCardBg?: boolean;
+  cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   transfer: TransferConfig;
 }
@@ -269,6 +280,8 @@ export interface TransferConfig {
   accountType: 'tarjeta' | 'cuenta' | 'clabe';
   accountNumber: string;
   animation: 'coins' | 'bills' | 'none';
+  showCardBg?: boolean;
+  cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
 }
 
@@ -276,6 +289,7 @@ export interface RsvpConfig {
   enabled: boolean;
   title: string;
   showCardBg?: boolean;
+  cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   registrationFields?: RegistrationFieldConfig[];
 }

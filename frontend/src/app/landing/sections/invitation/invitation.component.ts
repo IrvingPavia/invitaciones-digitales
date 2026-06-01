@@ -27,7 +27,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
         }
 
         @if (guest) {
-          <div class="invitation-card reveal">
+          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño invitamos a</p>
               <h3 class="invitation-name"
@@ -49,7 +49,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
             </div>
           </div>
         } @else {
-          <div class="invitation-card reveal">
+          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño los invitamos a celebrar</p>
               <p style="color:rgba(255,255,255,0.5);font-size:14px;margin-top:8px">Escanea el código QR de tu invitación para ver tu nombre</p>
@@ -85,6 +85,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
       border-radius: 16px; padding: 40px; margin: 32px auto;
       max-width: 500px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+      &.no-bg { background: transparent; border-color: transparent; box-shadow: none; }
     }
     .invitation-for { color: var(--theme-text-secondary, rgba(255,255,255,0.8)); font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
     .invitation-name {

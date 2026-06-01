@@ -21,6 +21,8 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - Mobile-first (520px max-width)
 - Favicon dinámico por evento
 - Spellcheck habilitado globalmente (lang="es")
+- **Fondo de tarjetas configurable**: per-item en Detalles y Venues, global en el resto
+- **Border-radius configurable** (0–24px) en todas las secciones con cards
 
 ### Dashboard (admin)
 - Gestión de eventos (CRUD, tipos: Boda, Cumpleaños, XV Años, Bautizo, Graduación, Empresarial, Conferencia)

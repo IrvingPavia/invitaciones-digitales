@@ -446,6 +446,16 @@
       </div>
       <div class="picker-preview"><span class="material-icons">event</span> {{ countdownPreview }}</div>
     </div>
+    <div class="flex gap-12" style="margin-top:12px;">
+      <label class="toggle-pill" (click)="c.hero.countdownShowCardBg = c.hero.countdownShowCardBg !== false ? false : true">
+        <div class="toggle-pill-dot" [class.active]="c.hero.countdownShowCardBg !== false"></div>
+        <span>Fondo</span>
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.hero.countdownCardBorderRadius ?? 12 }}px</label>
+        <input type="range" [(ngModel)]="c.hero.countdownCardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
+    </div>
   </div>
 </div>
 
@@ -467,6 +477,16 @@
   <div class="section-card-header"><span>Sección de Invitación</span></div>
   <div class="section-card-body">
     <p class="style-desc mb-12">Los estilos de fuente se configuran en la pestaña "Estilos"</p>
+    <div class="flex gap-12 mb-16">
+      <label class="toggle-pill" (click)="c.invitation.showCardBg = c.invitation.showCardBg !== false ? false : true">
+        <div class="toggle-pill-dot" [class.active]="c.invitation.showCardBg !== false"></div>
+        <span>Fondo de tarjeta</span>
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.invitation.cardBorderRadius ?? 16 }}px</label>
+        <input type="range" [(ngModel)]="c.invitation.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
+    </div>
     <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.invitation.title"></div>
     <div class="field"><label class="form-label">Subtítulo</label><input class="form-control" [(ngModel)]="c.invitation.subtitle"></div>
   </div>
@@ -481,15 +501,19 @@
   </div>
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">Título de sección</label><input class="form-control" [(ngModel)]="c.details.title"></div>
-    <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.details.showCardBg = c.details.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.details.showCardBg !== false"></div>
-        <span>Fondo de tarjetas</span>
-      </label>
-    </div>
     @for (card of c.details.cards; track card.id; let i = $index) {
     <div class="venue-card">
       <div class="venue-header"><strong>Tarjeta {{ i + 1 }}</strong><button class="btn btn-sm btn-danger" (click)="removeDetailCard(i)">Eliminar</button></div>
+      <div class="flex gap-12 mb-12">
+        <label class="toggle-pill" style="font-size:11px;" (click)="card.showCardBg = card.showCardBg !== false ? false : true">
+          <div class="toggle-pill-dot" [class.active]="card.showCardBg !== false" style="width:28px;height:16px;"></div>
+          <span>Fondo</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="margin:0;white-space:nowrap;font-size:11px;color:rgba(255,255,255,0.5);">Radio: {{ card.cardBorderRadius ?? 16 }}px</label>
+          <input type="range" [(ngModel)]="card.cardBorderRadius" min="0" max="24" style="width:80px;" [ngModelOptions]="{standalone: true}">
+        </div>
+      </div>
       <div class="flex gap-12 mb-12">
         <button class="icon-type-btn" [class.active]="card.iconType === 'none'" (click)="card.iconType = 'none'; card.iconUrl = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="card.iconType === 'emoji'" (click)="card.iconType = 'emoji'; card.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
@@ -534,18 +558,18 @@
     <label class="toggle-pill" (click)="c.venues.enabled = !c.venues.enabled"><span class="toggle-pill-dot" [class.active]="c.venues.enabled"></span>{{ c.venues.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
-    <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.venues.showCardBg = c.venues.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.venues.showCardBg !== false"></div>
-        <span>Fondo de tarjetas</span>
-      </label>
-    </div>
     <div class="field mb-16">
       <label class="form-label">Estilo de icono</label>
       <div class="flex gap-12">
         <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'none'" (click)="c.venues.iconStyle = 'none'"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
         <button class="icon-type-btn" [class.active]="(c.venues.iconStyle || 'circle') === 'circle'" (click)="c.venues.iconStyle = 'circle'"><span class="material-icons" style="font-size:16px">radio_button_unchecked</span> Con contorno</button>
         <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'plain'" (click)="c.venues.iconStyle = 'plain'"><span class="material-icons" style="font-size:16px">image</span> Sin contorno</button>
+      </div>
+    </div>
+    <div class="flex gap-12 mb-16">
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.venues.cardBorderRadius ?? 16 }}px</label>
+        <input type="range" [(ngModel)]="c.venues.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
     @for (venue of c.venues.items; track venue.id; let i = $index) {
@@ -602,6 +626,10 @@
         <div class="toggle-pill-dot" [class.active]="c.itinerary.showCardBg !== false"></div>
         <span>Fondo de tarjetas</span>
       </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.itinerary.cardBorderRadius ?? 12 }}px</label>
+        <input type="range" [(ngModel)]="c.itinerary.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
     </div>
     @for (item of itinerary(); track item.id; let i = $index) {
     <div class="itinerary-card" [class.saved]="savedItems[item.id!]">
@@ -645,12 +673,6 @@
       <div class="field-row mb-12">
         <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="item.title"></div>
         <div class="field"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="item.description"></div>
-      </div>
-      <div class="flex gap-12 mb-12">
-        <label class="toggle-pill" style="font-size:11px;" (click)="item.showCardBg = item.showCardBg !== false ? false : true">
-          <div class="toggle-pill-dot" [class.active]="item.showCardBg !== false" style="width:28px;height:16px;"></div>
-          <span>Fondo</span>
-        </label>
       </div>
       <button class="btn btn-primary btn-sm" (click)="saveItineraryItem(item)">{{ savedItems[item.id!] ? '✓ Guardado' : 'Guardar actividad' }}</button>
     </div>
@@ -697,6 +719,10 @@
         <div class="toggle-pill-dot" [class.active]="c.dresscode.showCardBg !== false"></div>
         <span>Fondo de tarjeta</span>
       </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.dresscode.cardBorderRadius ?? 16 }}px</label>
+        <input type="range" [(ngModel)]="c.dresscode.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
     </div>
     <div class="field mb-16"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
     <div class="field mb-12"><label class="form-label">Icono de sección</label>
@@ -742,6 +768,10 @@
         <div class="toggle-pill-dot" [class.active]="c.gifts.showCardBg !== false"></div>
         <span>Fondo de tarjeta</span>
       </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.gifts.cardBorderRadius ?? 16 }}px</label>
+        <input type="range" [(ngModel)]="c.gifts.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
     </div>
     <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.gifts.title"></div>
     <div class="field mb-12"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.gifts.description" rows="2"></textarea></div>
@@ -786,6 +816,16 @@
   </div>
   @if (c.gifts.transfer.enabled) {
   <div class="section-card-body">
+    <div class="flex gap-12 mb-16">
+      <label class="toggle-pill" (click)="c.gifts.transfer.showCardBg = c.gifts.transfer.showCardBg !== false ? false : true">
+        <div class="toggle-pill-dot" [class.active]="c.gifts.transfer.showCardBg !== false"></div>
+        <span>Fondo de tarjeta</span>
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.gifts.transfer.cardBorderRadius ?? 16 }}px</label>
+        <input type="range" [(ngModel)]="c.gifts.transfer.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
+    </div>
     <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.gifts.transfer.title"></div>
     <div class="field mb-12"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="c.gifts.transfer.description"></div>
     <div class="field-row mb-12">
@@ -841,6 +881,10 @@
         <div class="toggle-pill-dot" [class.active]="c.rsvp.showCardBg !== false"></div>
         <span>Fondo de tarjeta</span>
       </label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.rsvp.cardBorderRadius ?? 20 }}px</label>
+        <input type="range" [(ngModel)]="c.rsvp.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
+      </div>
     </div>
     <div class="field mb-12"><label class="form-label">Icono de sección (éxito)</label>
       <div class="flex gap-12 mb-12">

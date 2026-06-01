@@ -22,7 +22,7 @@ import { inject } from '@angular/core';
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
 
-        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false">
+        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 20">
           @if (confirmed()) {
             <div class="rsvp-success">
               @if (getIcon(); as icon) {

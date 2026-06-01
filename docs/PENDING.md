@@ -40,8 +40,8 @@
 - **v3 — Tarjetas genéricas**: ✅ Completo. Tarjetas sin variables de invitado + QR que apunta a la landing genérica (sin `?t=code`). Dos modos de impresión: "Hoja única" (folleto/flyer centrado en página, tamaño configurable) y "Múltiples copias" (N tarjetas idénticas maximizando espacio por hoja). Variables de texto filtradas (solo {evento}, {fecha}, {tipo}). Vista previa proporcional al tamaño real.
 
 ### Media prioridad
-- [ ] **Fondo de tarjetas individual**: La opción "Fondo de tarjetas" debe estar en TODAS las secciones que usen cards (detalles, lugares, itinerario, vestimenta, regalos, RSVP). Además, en las secciones donde hay múltiples items (lugares, itinerario, vestimenta), el toggle debe ser **por cada tarjeta individual**, no global. Actualmente es global por sección.
-- [ ] **Border-radius configurable en cards de landing**: Permitir configurar el redondeo de esquinas de las tarjetas en la landing (similar al control de radio en tarjetas PDF). Slider de 0px (esquinas rectas) a 20px+ (redondeadas). Aplica por sección o global en el tema.
+- [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.
+- [x] **Border-radius configurable en cards de landing**: Slider 0–24px en todas las secciones. Per-item en Detalles. Global en el resto.
 - [ ] Toggle dark/light mode para el dashboard
 - [ ] Sistema emoji/imagen para venues (como itinerario)
 - [ ] Drag & drop para reordenar elementos en la lista de tarjetas
@@ -119,6 +119,11 @@
 - [x] Dashboard: botón Invitados/Registrados contextual según event_mode
 - [x] Fix NaN% en progreso cuando evento no tiene invitados
 - [x] **Eventos abiertos v3 — Tarjetas genéricas**: Tarjetas sin variables de invitado, QR apunta a landing genérica. Dos modos: "Hoja única" (folleto centrado, tamaño configurable) y "Múltiples copias" (N copias, maximiza espacio por hoja). Variables filtradas para eventos abiertos. Vista previa proporcional.
+
+### 2025-06-01
+- [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown
+- [x] Border-radius configurable (0–24px) en todas las secciones con cards: per-item en Detalles, global en el resto
+- [x] Transferencia Bancaria: agregado toggle fondo + radius independiente de Mesa de Regalos
 
 ### 2025-05-27
 - [x] Ejecutar scripts SQL de `MIGRATIONS.md` en server (sistema de usuarios)
