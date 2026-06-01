@@ -9,8 +9,13 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
   template: `
     <div class="intro-overlay" [class.fade-out]="fading">
       @if (config.background) {
-        <div class="intro-bg" [style.backgroundImage]="'url(' + config.background + ')'"></div>
-        <div class="intro-bg-overlay"></div>
+        @if (isVideo(config.background)) {
+          <video class="intro-bg-video" autoplay loop muted playsinline [src]="config.background"></video>
+          <div class="intro-bg-overlay"></div>
+        } @else {
+          <div class="intro-bg" [style.backgroundImage]="'url(' + config.background + ')'"></div>
+          <div class="intro-bg-overlay"></div>
+        }
       } @else {
         <div class="intro-bg" [style.background]="defaultBg"></div>
       }
@@ -45,6 +50,12 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
     .intro-bg {
       position: absolute; inset: 0;
       background-size: cover; background-position: center;
+      animation: introBgZoom 5s ease forwards;
+    }
+    .intro-bg-video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
       animation: introBgZoom 5s ease forwards;
     }
     .intro-bg-overlay {
@@ -178,6 +189,12 @@ export class LandingIntroComponent implements OnInit, OnDestroy {
   fading = false;
   particles: string[] = [];
   private timer: any;
+
+  isVideo(url: string): boolean {
+    if (!url) return false;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg'].includes(ext);
+  }
 
   get defaultBg(): string {
     const c1 = this.themeBg || 'rgba(13,17,23,1)';

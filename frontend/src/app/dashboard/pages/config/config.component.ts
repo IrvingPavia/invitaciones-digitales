@@ -47,6 +47,12 @@ const FONT_OPTIONS = `
   imports: [CommonModule, DecimalPipe, FormsModule, RouterLink, ColorPickerComponent, RichTextEditorComponent],
   styles: [
     `
+      .help-box {
+        background: rgba(124,92,191,0.1); border: 1px solid rgba(124,92,191,0.3);
+        border-radius: 8px; padding: 10px 14px; margin: 8px 0;
+        font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.6;
+      }
+      .help-box strong { color: rgba(255,255,255,0.9); }
       .venue-card {
         border: 1px solid rgba(124, 92, 191, 0.2);
         border-radius: 10px;
@@ -635,6 +641,15 @@ export class ConfigComponent implements OnInit {
   @ViewChild("tabsEl") tabsEl!: ElementRef<HTMLElement>;
   savedItems: Record<number, boolean> = {};
   emojiPickerOpen: number | null = null;
+
+  isVideoFile(url: string): boolean {
+    if (!url) return false;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg'].includes(ext);
+  }
+
+  heroMediaHelp = false;
+  introMediaHelp = false;
 
   emojiOptions = [
     // Ceremonia / Religión

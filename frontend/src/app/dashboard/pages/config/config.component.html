@@ -252,7 +252,7 @@
       <label class="form-label">Texto de instrucción</label>
       <input class="form-control" [(ngModel)]="c.envelope.instructionText" placeholder="Toca para abrir">
     </div>
-    <div class="field-row mb-16" style="margin-top:16px;">
+    <div class="field-row mb-16" style="margin-top:16px;flex-wrap:wrap;">
       <div class="field field-xs"><label class="form-label">Fondo color 1</label><app-color-picker [value]="c.envelope.bgColor" (valueChange)="c.envelope.bgColor = $event"></app-color-picker></div>
       <div class="field field-xs"><label class="form-label">Fondo color 2</label><app-color-picker [value]="c.envelope.bgColor2" (valueChange)="c.envelope.bgColor2 = $event"></app-color-picker></div>
       <div class="field field-xs"><label class="form-label">Color de texto</label><app-color-picker [value]="c.envelope.textColor" (valueChange)="c.envelope.textColor = $event"></app-color-picker></div>
@@ -279,8 +279,25 @@
     <div class="field-row mb-16">
       <div class="field slider-field"><label class="form-label">Grosor: {{ c.intro.phraseStyle!.fontWeight }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.intro.phraseStyle!.fontWeight"></div>
     </div>
-    <div class="field"><label class="form-label">Imagen/GIF de fondo</label><input type="file" accept="image/*,.gif" (change)="uploadFile($event, 'gifs', 'intro.background')">
-      @if (c.intro.background) { <img [src]="c.intro.background" class="upload-preview"> <button class="btn-remove-file" (click)="c.intro.background = ''">✕ Quitar imagen</button> }
+    <div class="field">
+      <label class="form-label">Fondo de intro <span class="help-tooltip" (click)="introMediaHelp = !introMediaHelp"><span class="material-icons" style="font-size:14px;vertical-align:middle;opacity:0.5;cursor:pointer;">help_outline</span></span></label>
+      @if (introMediaHelp) {
+        <div class="help-box">
+          <strong>Formatos soportados:</strong> JPG, PNG, GIF, MP4, WebM<br>
+          <strong>Resolución recomendada:</strong> 1080×1920px (vertical, 9:16)<br>
+          <strong>Tamaño máximo:</strong> Imágenes/GIF ≤ 5MB, Video ≤ 15MB<br>
+          <strong>Tip:</strong> Un video MP4 corto (3-5s) carga más rápido y se ve más fluido que un GIF pesado.
+        </div>
+      }
+      <input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadFile($event, 'gifs', 'intro.background')">
+      @if (c.intro.background) {
+        @if (isVideoFile(c.intro.background)) {
+          <video [src]="c.intro.background" class="upload-preview" style="max-height:120px;border-radius:8px;" muted autoplay loop playsinline></video>
+        } @else {
+          <img [src]="c.intro.background" class="upload-preview">
+        }
+        <button class="btn-remove-file" (click)="c.intro.background = ''">✕ Quitar</button>
+      }
     </div>
   </div>
 </div>
@@ -462,8 +479,25 @@
 <div class="section-card">
   <div class="section-card-header"><span>Multimedia</span></div>
   <div class="section-card-body">
-    <div class="field mb-16"><label class="form-label">GIF de fondo</label><input type="file" accept=".gif,image/*" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')">
-      @if (c.hero.backgroundGif) { <img [src]="c.hero.backgroundGif" class="upload-preview"> <button class="btn-remove-file" (click)="c.hero.backgroundGif = ''">✕ Quitar imagen</button> }
+    <div class="field mb-16">
+      <label class="form-label">Fondo de landing <span class="help-tooltip" (click)="heroMediaHelp = !heroMediaHelp"><span class="material-icons" style="font-size:14px;vertical-align:middle;opacity:0.5;cursor:pointer;">help_outline</span></span></label>
+      @if (heroMediaHelp) {
+        <div class="help-box">
+          <strong>Formatos soportados:</strong> JPG, PNG, GIF, MP4, WebM<br>
+          <strong>Resolución recomendada:</strong> 1080×1920px (vertical, 9:16)<br>
+          <strong>Tamaño máximo:</strong> Imágenes/GIF ≤ 5MB, Video ≤ 15MB<br>
+          <strong>Tip:</strong> Un video MP4 de 5-10s es más fluido y ligero que un GIF animado.
+        </div>
+      }
+      <input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')">
+      @if (c.hero.backgroundGif) {
+        @if (isVideoFile(c.hero.backgroundGif)) {
+          <video [src]="c.hero.backgroundGif" class="upload-preview" style="max-height:120px;border-radius:8px;" muted autoplay loop playsinline></video>
+        } @else {
+          <img [src]="c.hero.backgroundGif" class="upload-preview">
+        }
+        <button class="btn-remove-file" (click)="c.hero.backgroundGif = ''">✕ Quitar</button>
+      }
     </div>
     <div class="field"><label class="form-label">Audio MP3</label><input type="file" accept="audio/*" (change)="uploadFile($event, 'audio', 'hero.audioUrl')">
       @if (c.hero.audioUrl) { <audio [src]="c.hero.audioUrl" controls style="margin-top:8px;width:100%;border-radius:8px;"></audio> <button class="btn-remove-file" (click)="c.hero.audioUrl = ''">✕ Quitar audio</button> }

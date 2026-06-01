@@ -68,10 +68,14 @@ import { LandingRegisterComponent } from './sections/register/register.component
     }
 
     @if (data() && !loading()) {
-      <!-- Fixed background: solid color always, gif fades in after intro AND after preload -->
+      <!-- Fixed background: solid color always, media fades in after intro AND after preload -->
       @if (data()!.config.hero?.backgroundGif) {
         <div class="landing-bg-solid"></div>
-        <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+        @if (isVideoBackground()) {
+          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
+        } @else {
+          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+        }
         <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded"></div>
       }
 
@@ -177,6 +181,15 @@ import { LandingRegisterComponent } from './sections/register/register.component
       transition: opacity 1.2s ease;
     }
     .landing-bg.visible { opacity: 1; }
+    .landing-bg-video {
+      position: fixed; z-index: -2;
+      top: -15vh; left: -5vw; right: -5vw; bottom: -15vh;
+      width: 110vw; height: 130vh; height: 130dvh;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    .landing-bg-video.visible { opacity: 1; }
     .landing-bg-overlay {
       position: fixed; z-index: -1;
       background: rgba(0,0,0,0.55);
@@ -269,6 +282,16 @@ export class LandingComponent implements OnInit, OnDestroy {
     return this.data()?.event?.event_mode === 'open';
   }
 
+  isVideoBackground(): boolean {
+    const url = this.data()?.config.hero?.backgroundGif || '';
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg'].includes(ext);
+  }
+
+  onBgLoaded() {
+    this.bgLoaded = true;
+  }
+
   getEnabledSections(): string[] {
     const d = this.data();
     if (!d) return [];
@@ -322,11 +345,18 @@ export class LandingComponent implements OnInit, OnDestroy {
         this.applyScrollbarColor(d.config.theme?.cardBorder || '#d4a017');
         this.applyFavicon(d.config.favicon);
         this.applyTitle(d.event.name);
-        // Preload background GIF so it doesn't render partially
+        // Preload background media so it doesn't render partially
         if (d.config.hero?.backgroundGif) {
-          const img = new Image();
-          img.onload = () => { this.bgLoaded = true; };
-          img.src = d.config.hero.backgroundGif;
+          const url = d.config.hero.backgroundGif;
+          const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+          if (['mp4', 'webm', 'ogg'].includes(ext)) {
+            // Video: bgLoaded will be set by (canplaythrough) event on the <video> element
+          } else {
+            // Image/GIF: preload with Image object
+            const img = new Image();
+            img.onload = () => { this.bgLoaded = true; };
+            img.src = url;
+          }
         } else {
           this.bgLoaded = true;
         }
