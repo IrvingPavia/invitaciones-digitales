@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
 
@@ -7,11 +7,14 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="intro-overlay" [class.fade-out]="fading">
+    <div class="intro-overlay" [class.fade-out]="fading" (click)="onTap()">
       @if (config.background) {
         @if (isVideo(config.background)) {
-          <video class="intro-bg-video" autoplay loop muted playsinline [src]="config.background"></video>
+          <video #introVideo class="intro-bg-video" loop muted playsinline [src]="config.background"></video>
           <div class="intro-bg-overlay"></div>
+          @if (showPlayHint) {
+            <div class="play-hint"><span class="material-icons">touch_app</span><span>Toca para iniciar</span></div>
+          }
         } @else {
           <div class="intro-bg" [style.backgroundImage]="'url(' + config.background + ')'"></div>
           <div class="intro-bg-overlay"></div>
@@ -45,8 +48,10 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       display: flex; align-items: flex-end; justify-content: center;
       padding-bottom: 80px;
       transition: opacity 0.8s ease;
+      animation: introFadeIn 0.8s ease both;
     }
     .intro-overlay.fade-out { opacity: 0; pointer-events: none; }
+    @keyframes introFadeIn { from { opacity: 0; } to { opacity: 1; } }
     .intro-bg {
       position: absolute; inset: 0;
       background-size: cover; background-position: center;
@@ -57,6 +62,13 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       width: 100%; height: 100%;
       object-fit: cover;
       animation: introBgZoom 5s ease forwards;
+    }
+    .play-hint {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      color: rgba(255,255,255,0.7); font-size: 14px;
+      animation: phraseIn 1s ease 0.3s both;
+      .material-icons { font-size: 48px; opacity: 0.6; }
     }
     .intro-bg-overlay {
       position: absolute; inset: 0;
@@ -180,20 +192,53 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
     }
   `]
 })
-export class LandingIntroComponent implements OnInit, OnDestroy {
+export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() config!: IntroConfig;
   @Input() themeColor: string = '#d4a017';
   @Input() themeBg: string = '';
   @Input() themeBorder: string = '';
   @Output() done = new EventEmitter<void>();
+  @ViewChild('introVideo') introVideo?: ElementRef<HTMLVideoElement>;
   fading = false;
   particles: string[] = [];
+  showPlayHint = false;
   private timer: any;
+  private timerStarted = false;
 
   isVideo(url: string): boolean {
     if (!url) return false;
     const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
     return ['mp4', 'webm', 'ogg'].includes(ext);
+  }
+
+  ngAfterViewInit() {
+    if (this.introVideo?.nativeElement) {
+      // Try autoplay — if blocked, show tap hint
+      this.introVideo.nativeElement.play().then(() => {
+        this.startTimer();
+      }).catch(() => {
+        this.showPlayHint = true;
+      });
+    }
+  }
+
+  onTap() {
+    if (this.introVideo?.nativeElement && this.showPlayHint) {
+      this.introVideo.nativeElement.play().then(() => {
+        this.showPlayHint = false;
+        this.startTimer();
+      }).catch(() => {});
+    }
+  }
+
+  private startTimer() {
+    if (this.timerStarted) return;
+    this.timerStarted = true;
+    const dur = Math.min(this.config.duration || 4, 5) * 1000;
+    this.timer = setTimeout(() => {
+      this.fading = true;
+      setTimeout(() => this.done.emit(), 800);
+    }, dur - 800);
   }
 
   get defaultBg(): string {
@@ -234,11 +279,10 @@ export class LandingIntroComponent implements OnInit, OnDestroy {
       this.particles = this.generateParticles(pc);
     }
 
-    const dur = Math.min(this.config.duration || 4, 5) * 1000;
-    this.timer = setTimeout(() => {
-      this.fading = true;
-      setTimeout(() => this.done.emit(), 800);
-    }, dur - 800);
+    // For images/GIF, start timer immediately. For video, timer starts after play succeeds.
+    if (!this.config.background || !this.isVideo(this.config.background)) {
+      this.startTimer();
+    }
   }
 
   ngOnDestroy() { clearTimeout(this.timer); }

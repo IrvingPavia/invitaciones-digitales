@@ -22,7 +22,7 @@ const fileFilter = (req, file, cb) => {
   const allowed = {
     images: /jpeg|jpg|png|gif|webp/,
     audio: /mp3|wav|ogg|m4a/,
-    gifs: /gif|webp/
+    gifs: /gif|webp|mp4|webm|ogg|jpg|jpeg|png/
   };
   const type = req.params.type || 'images';
   const ext = path.extname(file.originalname).toLowerCase().replace('.', '');

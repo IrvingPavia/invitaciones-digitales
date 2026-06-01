@@ -204,12 +204,56 @@
 @if (activeTab === 'envelope') {
 <div class="section-card">
   <div class="section-card-header">
-    <span>Sobre de Invitación</span>
+    <span>Pantalla de Inicio</span>
     <label class="toggle-pill" (click)="c.envelope.enabled = !c.envelope.enabled"><span class="toggle-pill-dot" [class.active]="c.envelope.enabled"></span>{{ c.envelope.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
     @if (c.envelope.enabled) {
-    <p class="style-desc mb-16">El invitado verá un sobre con sello antes de la intro. Al tocar el sello se abre y reproduce el audio.</p>
+    <p class="style-desc mb-16">El invitado verá esta pantalla antes de la intro/landing. Al tocar se abre y habilita audio/video.</p>
+
+    <!-- Template selector as visual cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:12px;margin-bottom:20px;">
+      <div class="start-tpl-card" [class.active]="(c.envelope.template || 'envelope') === 'envelope'" (click)="c.envelope.template = 'envelope'">
+        <div class="start-tpl-preview" style="background:linear-gradient(135deg, #1a1a2e, #2d1b4e);">
+          <div style="width:32px;height:32px;border-radius:50%;background:#8b0000;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;box-shadow:0 2px 8px rgba(0,0,0,0.4);">♡</div>
+        </div>
+        <span class="start-tpl-name">📨 Sobre</span>
+      </div>
+      <div class="start-tpl-card" [class.active]="c.envelope.template === 'ticket'" (click)="c.envelope.template = 'ticket'">
+        <div class="start-tpl-preview" style="background:linear-gradient(135deg, #0a0a14, #1a1a2e);">
+          <div style="width:40px;height:52px;background:white;border-radius:6px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+            <div style="position:absolute;top:0;left:0;right:0;height:10px;background:#d4a017;border-radius:6px 6px 0 0;"></div>
+            <div style="position:absolute;bottom:6px;left:4px;right:4px;height:8px;display:flex;gap:1px;">
+              <div style="flex:1;background:#333;"></div><div style="flex:2;background:#333;"></div><div style="flex:1;background:#333;"></div><div style="flex:1;background:#333;"></div><div style="flex:2;background:#333;"></div>
+            </div>
+          </div>
+        </div>
+        <span class="start-tpl-name">🎫 Ticket</span>
+      </div>
+      <div class="start-tpl-card" [class.active]="c.envelope.template === 'minimal-splash'" (click)="c.envelope.template = 'minimal-splash'">
+        <div class="start-tpl-preview" style="background:linear-gradient(135deg, #0d1117, #1a1a2e);">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:24px;height:24px;border-radius:6px;background:rgba(212,160,23,0.3);border:1px solid rgba(212,160,23,0.5);"></div>
+            <div style="width:36px;height:3px;background:rgba(255,255,255,0.5);border-radius:2px;"></div>
+            <div style="width:28px;height:10px;background:#d4a017;border-radius:10px;margin-top:2px;"></div>
+          </div>
+        </div>
+        <span class="start-tpl-name">✨ Splash</span>
+      </div>
+      <div class="start-tpl-card" [class.active]="c.envelope.template === 'plain'" (click)="c.envelope.template = 'plain'">
+        <div class="start-tpl-preview" style="background:linear-gradient(135deg, #0d1117, #1a1a2e);">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:40px;height:3px;background:rgba(255,255,255,0.6);border-radius:2px;"></div>
+            <div style="width:30px;height:2px;background:rgba(255,255,255,0.3);border-radius:2px;"></div>
+            <div style="width:36px;height:2px;background:rgba(255,255,255,0.2);border-radius:2px;margin-top:2px;"></div>
+          </div>
+        </div>
+        <span class="start-tpl-name">📄 Plano</span>
+      </div>
+    </div>
+
+    <!-- === ENVELOPE OPTIONS === -->
+    @if ((c.envelope.template || 'envelope') === 'envelope') {
     <div class="field mb-16">
       <label class="form-label">Estilo de sobre</label>
       <select [(ngModel)]="c.envelope.style">
@@ -248,11 +292,63 @@
         </div>
       }
     </div>
-    <div class="field">
+    }
+
+    <!-- === TICKET OPTIONS === -->
+    @if (c.envelope.template === 'ticket') {
+    <div class="field mb-16"><label class="form-label">Título del boleto</label><input class="form-control" [(ngModel)]="c.envelope.ticketTitle" placeholder="Nombre del evento"></div>
+    <div class="field mb-16"><label class="form-label">Subtítulo</label><input class="form-control" [(ngModel)]="c.envelope.ticketSubtitle" placeholder="Descripción corta"></div>
+    <div class="field mb-16"><label class="form-label">Fecha (texto)</label><input class="form-control" [(ngModel)]="c.envelope.ticketDate" placeholder="15 de Julio, 2026"></div>
+    <div class="field-row mb-16" style="flex-wrap:wrap;">
+      <div class="field field-xs"><label class="form-label">Color acento</label><app-color-picker [value]="c.envelope.ticketAccentColor || '#d4a017'" (valueChange)="c.envelope.ticketAccentColor = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Fondo boleto</label><app-color-picker [value]="c.envelope.ticketBodyColor || '#ffffff'" (valueChange)="c.envelope.ticketBodyColor = $event"></app-color-picker></div>
+      <div class="field field-xs"><label class="form-label">Texto boleto</label><app-color-picker [value]="c.envelope.ticketTextColor || '#1a1a2e'" (valueChange)="c.envelope.ticketTextColor = $event"></app-color-picker></div>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Logo/Imagen (opcional)</label>
+      <input type="file" accept="image/*" (change)="uploadFile($event, 'images', 'envelope.sealImage')">
+      @if (c.envelope.sealImage) {
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <img [src]="c.envelope.sealImage" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid rgba(212,160,23,0.3);">
+          <button class="btn-remove-file" (click)="c.envelope.sealImage = ''">✕ Quitar</button>
+        </div>
+      }
+    </div>
+    }
+
+    <!-- === MINIMAL SPLASH OPTIONS === -->
+    @if (c.envelope.template === 'minimal-splash') {
+    <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.envelope.splashTitle" placeholder="Bienvenido"></div>
+    <div class="field mb-16"><label class="form-label">Subtítulo</label><input class="form-control" [(ngModel)]="c.envelope.splashSubtitle" placeholder="Descripción opcional"></div>
+    <div class="field mb-16"><label class="form-label">Texto del botón</label><input class="form-control" [(ngModel)]="c.envelope.splashButtonText" placeholder="Entrar" style="max-width:200px;"></div>
+    <div class="field mb-16">
+      <label class="form-label">Logo/Imagen central</label>
+      <input type="file" accept="image/*" (change)="uploadFile($event, 'images', 'envelope.splashImage')">
+      @if (c.envelope.splashImage) {
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <img [src]="c.envelope.splashImage" style="width:64px;height:64px;border-radius:12px;object-fit:cover;border:1px solid rgba(212,160,23,0.3);">
+          <button class="btn-remove-file" (click)="c.envelope.splashImage = ''">✕ Quitar</button>
+        </div>
+      }
+    </div>
+    <div class="field-row mb-16">
+      <div class="field field-xs"><label class="form-label">Color botón</label><app-color-picker [value]="c.envelope.ticketAccentColor || '#d4a017'" (valueChange)="c.envelope.ticketAccentColor = $event"></app-color-picker></div>
+    </div>
+    }
+
+    <!-- === SHARED OPTIONS === -->
+    @if (c.envelope.template === 'plain') {
+    <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.envelope.plainTitle" placeholder="Nombre del evento"></div>
+    <div class="field mb-16"><label class="form-label">Subtítulo</label><input class="form-control" [(ngModel)]="c.envelope.plainSubtitle" placeholder="Subtítulo opcional"></div>
+    <div class="field mb-16"><label class="form-label">Contenido</label><textarea class="form-control" [(ngModel)]="c.envelope.plainContent" rows="2" placeholder="Texto adicional (opcional)"></textarea></div>
+    <p class="style-desc mb-16">Los tipos de letra se toman de la pestaña "Estilos" (Títulos, Subtítulos, Contenido).</p>
+    }
+
+    <div class="field mb-16">
       <label class="form-label">Texto de instrucción</label>
       <input class="form-control" [(ngModel)]="c.envelope.instructionText" placeholder="Toca para abrir">
     </div>
-    <div class="field-row mb-16" style="margin-top:16px;flex-wrap:wrap;">
+    <div class="field-row mb-16" style="flex-wrap:wrap;">
       <div class="field field-xs"><label class="form-label">Fondo color 1</label><app-color-picker [value]="c.envelope.bgColor" (valueChange)="c.envelope.bgColor = $event"></app-color-picker></div>
       <div class="field field-xs"><label class="form-label">Fondo color 2</label><app-color-picker [value]="c.envelope.bgColor2" (valueChange)="c.envelope.bgColor2 = $event"></app-color-picker></div>
       <div class="field field-xs"><label class="form-label">Color de texto</label><app-color-picker [value]="c.envelope.textColor" (valueChange)="c.envelope.textColor = $event"></app-color-picker></div>
@@ -351,7 +447,10 @@
 <div class="section-card preview-card">
   <div class="section-card-header"><span>Vista previa</span></div>
   <div class="section-card-body" style="padding:0;overflow:hidden;border-radius:0 0 12px 12px;">
-    <div class="particles-preview" [style.background]="c.intro.background ? 'url(' + c.intro.background + ') center/cover no-repeat' : 'radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%)'" style="aspect-ratio: 9/16; height: auto; max-height: 400px; max-width: 225px; margin: 0 auto; border-radius: 12px;">
+    <div class="particles-preview" [style.background]="c.intro.background && !isVideoFile(c.intro.background) ? 'url(' + c.intro.background + ') center/cover no-repeat' : 'radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%)'" style="aspect-ratio: 9/16; height: auto; max-height: 400px; max-width: 225px; margin: 0 auto; border-radius: 12px; position: relative; overflow: hidden;">
+      @if (c.intro.background && isVideoFile(c.intro.background)) {
+        <video [src]="c.intro.background" autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;"></video>
+      }
       <div class="particles-preview-overlay" *ngIf="c.intro.background"></div>
       <div class="particles-preview-container" [attr.data-type]="c.intro.particles!.type" [attr.data-dir]="c.intro.particles!.direction">
         @for (p of getPreviewParticles(c.intro.particles!); track $index) {

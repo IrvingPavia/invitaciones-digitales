@@ -124,6 +124,20 @@
 - [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown
 - [x] Border-radius configurable (0–24px) en todas las secciones con cards: per-item en Detalles, global en el resto
 - [x] Transferencia Bancaria: agregado toggle fondo + radius independiente de Mesa de Regalos
+- [x] Fix fondo mobile rubber-band: extensión a ±15vh + precarga de GIF/video antes de mostrar
+- [x] Soporte video MP4/WebM en fondo de landing e intro (detección por extensión, `<video>` con autoplay/loop/muted)
+- [x] Tooltips de ayuda (?) en uploads de media con formatos, resolución y tamaño recomendados
+- [x] Fix upload backend: aceptar MP4/WebM en tipo `gifs`
+- [x] Cache headers en Nginx para `/uploads/` (7 días)
+- [x] Pantalla de inicio: renombrada de "Sobre" a "Inicio", 4 templates (Sobre, Ticket, Splash, Plano)
+- [x] Template Ticket: colores configurables (acento, fondo boleto, texto boleto), sin código de barras
+- [x] Template Splash: logo + título + botón con colores configurables
+- [x] Template Plano: textos que respetan fuentes de pestaña Estilos (título, subtítulo, contenido)
+- [x] Selector de templates como cards visuales (mini preview de cada estilo)
+- [x] Intro: fade-in suave al aparecer (transición desde pantalla de inicio)
+- [x] Intro video: play forzado + hint "Toca para iniciar" si autoplay bloqueado
+- [x] Fix field-row responsive: flex-wrap + min-width en campos de Estilos
+- [x] Fix color texto sobre cortado en mobile (flex-wrap en fila de colores)
 
 ### 2025-05-27
 - [x] Ejecutar scripts SQL de `MIGRATIONS.md` en server (sistema de usuarios)

@@ -91,6 +91,7 @@ export interface SeparatorStyle {
 
 export interface EnvelopeConfig {
   enabled: boolean;
+  template: 'envelope' | 'ticket' | 'minimal-splash' | 'plain';
   style: 'classic' | 'elegant' | 'vertical' | 'minimal' | 'wax';
   sealStyle: 'wax-circle' | 'wax-heart' | 'ribbon' | 'stamp' | 'monogram';
   envelopeColor: string;
@@ -101,6 +102,22 @@ export interface EnvelopeConfig {
   bgColor: string;
   bgColor2: string;
   textColor: string;
+  // Ticket template
+  ticketTitle?: string;
+  ticketSubtitle?: string;
+  ticketDate?: string;
+  ticketAccentColor?: string;
+  ticketBodyColor?: string;
+  ticketTextColor?: string;
+  // Minimal/Splash template
+  splashTitle?: string;
+  splashSubtitle?: string;
+  splashImage?: string;
+  splashButtonText?: string;
+  // Plain template
+  plainTitle?: string;
+  plainSubtitle?: string;
+  plainContent?: string;
 }
 
 export interface IntroParticlesConfig {

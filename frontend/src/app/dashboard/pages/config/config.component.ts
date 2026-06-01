@@ -53,6 +53,20 @@ const FONT_OPTIONS = `
         font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.6;
       }
       .help-box strong { color: rgba(255,255,255,0.9); }
+      .start-tpl-card {
+        border: 2px solid rgba(124,92,191,0.2); border-radius: 12px;
+        overflow: hidden; cursor: pointer; transition: all 0.2s;
+        &:hover { border-color: rgba(124,92,191,0.5); transform: translateY(-2px); }
+        &.active { border-color: var(--gold); box-shadow: 0 0 12px rgba(212,160,23,0.3); }
+      }
+      .start-tpl-preview {
+        height: 80px; display: flex; align-items: center; justify-content: center;
+      }
+      .start-tpl-name {
+        display: block; padding: 8px; text-align: center;
+        font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.8);
+        background: rgba(255,255,255,0.02);
+      }
       .venue-card {
         border: 1px solid rgba(124, 92, 191, 0.2);
         border-radius: 10px;
@@ -377,7 +391,7 @@ const FONT_OPTIONS = `
         flex-direction: column;
         gap: 4px;
         flex: 1;
-        min-width: 0;
+        min-width: 120px;
       }
       .field-sm {
         max-width: 100px;
@@ -391,6 +405,7 @@ const FONT_OPTIONS = `
         display: flex;
         gap: 12px;
         align-items: flex-end;
+        flex-wrap: wrap;
       }
       .slider-field {
         max-width: 200px;
@@ -651,6 +666,13 @@ export class ConfigComponent implements OnInit {
   heroMediaHelp = false;
   introMediaHelp = false;
 
+  ensureEnvelopeTemplate() {
+    // Ensure template field exists for backward compatibility
+    if (!this.config()?.envelope?.template) {
+      this.config()!.envelope.template = 'envelope';
+    }
+  }
+
   emojiOptions = [
     // Ceremonia / Religión
     "\u26ea", "\ud83c\udfdb\ufe0f", "\ud83d\udc92", "\ud83d\ude4f", "\u271d\ufe0f", "\ud83d\udd4a\ufe0f", "\ud83d\udc8d", "\ud83d\udc70", "\ud83e\udd35",
@@ -701,7 +723,7 @@ export class ConfigComponent implements OnInit {
   tabs = [
     { key: "styles", label: "Estilos" },
     { key: "theme", label: "Tema" },
-    { key: "envelope", label: "Sobre" },
+    { key: "envelope", label: "Inicio" },
     { key: "intro", label: "Intro" },
     { key: "hero", label: "Car\u00e1tula" },
     { key: "invitation", label: "Invitaci\u00f3n" },

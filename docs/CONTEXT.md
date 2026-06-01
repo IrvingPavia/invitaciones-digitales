@@ -40,6 +40,8 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - Responsive (cards en mobile, tabla en desktop)
 - Branding Vitely (púrpura, logo, favicon)
 - Módulo de sugerencias (retroalimentación de clientes)
+- **Pantalla de inicio configurable**: 4 templates (Sobre, Ticket, Splash, Plano) con colores y textos personalizables
+- **Soporte video MP4/WebM** en fondo de landing e intro (con precarga y tooltips de ayuda)
 
 ### Tarjetas de invitación
 - Editor visual con canvas WYSIWYG

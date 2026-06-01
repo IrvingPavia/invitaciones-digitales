@@ -81,7 +81,7 @@ import { LandingRegisterComponent } from './sections/register/register.component
 
       <!-- Envelope -->
       @if (showEnvelope() && data()!.config.envelope?.enabled) {
-        <app-landing-envelope [config]="data()!.config.envelope" (done)="onEnvelopeOpened()" />
+        <app-landing-envelope [config]="data()!.config.envelope" [globalStyles]="data()!.config.globalStyles" (done)="onEnvelopeOpened()" />
       }
 
       <!-- Intro -->
