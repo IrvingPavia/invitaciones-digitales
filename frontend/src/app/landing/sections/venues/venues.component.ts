@@ -24,7 +24,9 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
             <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)" [style.border-radius.px]="config.cardBorderRadius ?? 16">>
               @if (config.iconStyle !== 'none') {
                 <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
-                  @if (venue.icon) {
+                  @if (venue.iconType === 'emoji' && venue.iconEmoji) {
+                    <span class="emoji-icon">{{ venue.iconEmoji }}</span>
+                  } @else if (venue.icon) {
                     <img [src]="venue.icon" [alt]="venue.title">
                   } @else {
                     <span class="material-icons">place</span>
@@ -88,6 +90,7 @@ import { VenuesConfig, GlobalTextStyles } from '../../../core/models/models';
       margin: 0 auto 16px; overflow: hidden;
       img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
       .material-icons { font-size: 32px; color: var(--theme-text-primary, var(--gold)); }
+      .emoji-icon { font-size: 32px; }
     }
     .venue-icon.icon-plain {
       background: none; border: none; border-radius: 12px;

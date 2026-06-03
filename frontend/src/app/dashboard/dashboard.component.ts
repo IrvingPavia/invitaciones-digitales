@@ -62,6 +62,10 @@ import { ApiService } from '../core/services/api.service';
             <span class="material-icons" style="color:var(--gold)">account_circle</span>
             @if (!collapsed()) { <span>{{ user?.username }}</span> }
           </div>
+          <button class="btn btn-secondary btn-sm" style="justify-content:center;" (click)="toggleTheme()">
+            <span class="material-icons">{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</span>
+            @if (!collapsed()) { <span>{{ isDarkMode ? 'Modo claro' : 'Modo oscuro' }}</span> }
+          </button>
           <button class="btn btn-secondary btn-sm" (click)="logout()">
             <span class="material-icons">logout</span>
             @if (!collapsed()) { <span>Salir</span> }
@@ -147,8 +151,14 @@ export class DashboardComponent implements OnInit {
   mobileOpen = signal(false);
   user = this.auth.getUser();
   clientEventId: number | null = null;
+  isDarkMode = true;
 
   ngOnInit() {
+    // Load theme preference
+    const saved = localStorage.getItem('vitely-theme');
+    this.isDarkMode = saved !== 'light';
+    this.applyTheme();
+
     // For client users with a single event, load their event ID for direct sidebar links
     if (this.user?.role === 'client') {
       this.api.getEvents().subscribe(events => {
@@ -156,6 +166,20 @@ export class DashboardComponent implements OnInit {
           this.clientEventId = events[0].id;
         }
       });
+    }
+  }
+
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    localStorage.setItem('vitely-theme', this.isDarkMode ? 'dark' : 'light');
+    this.applyTheme();
+  }
+
+  private applyTheme() {
+    if (this.isDarkMode) {
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.add('light-mode');
     }
   }
 

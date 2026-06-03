@@ -57,28 +57,39 @@
 
 ## Mejoras recomendadas
 
+> Documentadas para atender en futuras iteraciones.
+
 ### Seguridad
 - [ ] Rate limiting específico para login (prevenir brute force)
 - [ ] Validación de input con Joi/Zod en backend
 - [ ] Forzar cambio de contraseña en primer login para clients
 - [ ] Expiración de sesión configurable
+- [ ] Sanitización de HTML en campos de texto enriquecido (prevenir XSS)
 
 ### Performance
 - [ ] Lazy loading de imágenes en landing (IntersectionObserver)
-- [ ] Compresión de imágenes al subir (sharp/imagemin)
+- [ ] Compresión de imágenes al subir (sharp/imagemin en backend)
 - [ ] Cache de QR generados (evitar regenerar en cada request)
-- [ ] CDN para assets estáticos
+- [ ] CDN para assets estáticos (imágenes, videos, fuentes)
+- [ ] Service Worker para cache offline de la landing
+- [ ] Optimización de bundle Angular (tree-shaking, code splitting)
 
 ### UX
 - [ ] Notificaciones push cuando un invitado confirma
-- [ ] Dashboard con gráficas de confirmaciones en tiempo real
+- [ ] Dashboard con gráficas de confirmaciones en tiempo real (WebSocket/SSE)
 - [ ] Preview de landing en iframe dentro del dashboard
-- [ ] Exportar landing como imagen/screenshot
-- [ ] Multi-idioma (español/inglés)
+- [ ] Exportar landing como imagen/screenshot (Puppeteer)
+- [ ] Multi-idioma (español/inglés) — landing + dashboard
+- [ ] Historial de cambios por evento (audit log)
+- [ ] Duplicar evento completo (clonar configuración + tarjetas)
 
 ### Infraestructura
-- [ ] CI/CD con GitHub Actions o Jenkins pipeline
-- [ ] Backups automáticos de BD
+- [ ] CI/CD con GitHub Actions (build + test + deploy automático)
+- [ ] Backups automáticos de BD (cron + mysqldump + S3/storage)
+- [ ] Monitoreo con healthchecks y alertas (uptime, errores)
+- [ ] Dominio propio para Vitely (vitely.app o similar)
+- [ ] Staging environment (para probar antes de producción)
+- [ ] Logs centralizados (errores backend, métricas de uso)
 - [ ] Monitoreo con healthchecks y alertas
 - [ ] Dominio propio para Vitely (vitely.app o similar)
 

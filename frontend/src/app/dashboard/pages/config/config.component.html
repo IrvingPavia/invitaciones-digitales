@@ -759,6 +759,26 @@
         <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="venue.title" placeholder="Ej: Ceremonia"></div>
         <div class="field"><label class="form-label">Nombre del lugar</label><input class="form-control" [(ngModel)]="venue.name"></div>
       </div>
+      <div class="flex gap-12 mb-12">
+        <button class="icon-type-btn" [class.active]="venue.iconType === 'none'" (click)="venue.iconType = 'none'; venue.icon = ''; venue.iconEmoji = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
+        <button class="icon-type-btn" [class.active]="(venue.iconType || 'image') === 'emoji'" (click)="venue.iconType = 'emoji'"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
+        <button class="icon-type-btn" [class.active]="(venue.iconType || 'image') === 'image'" (click)="venue.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
+      </div>
+      @if ((venue.iconType || 'image') === 'emoji') {
+        <div class="field mb-12" style="position:relative;">
+          <button class="emoji-trigger" (click)="toggleVenueEmojiPicker(venue)">
+            <span class="emoji-trigger-icon">{{ venue.iconEmoji || '📍' }}</span>
+            <span class="emoji-trigger-text">Cambiar emoji</span>
+            <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
+          </button>
+          @if (venueEmojiPickerOpen === venue.id) {
+            <div class="emoji-dropdown">
+              <div class="emoji-grid">@for (emoji of venueEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="venue.iconEmoji === emoji" (click)="venue.iconEmoji = emoji; venueEmojiPickerOpen = null">{{ emoji }}</button> }</div>
+            </div>
+          }
+        </div>
+      }
+      @if ((venue.iconType || 'image') === 'image') {
       <div class="field-row mb-12">
         <div class="venue-icon-preview">
           @if (venue.icon) { <img [src]="venue.icon" style="width:100%;height:100%;object-fit:cover;"> }
@@ -770,6 +790,7 @@
           @if (venue.icon) { <button class="btn-remove-file" (click)="venue.icon = ''">✕ Quitar</button> }
         </div>
       </div>
+      }
       <div class="field mb-12"><label class="form-label">Dirección</label><input class="form-control" [(ngModel)]="venue.address"></div>
       <div class="field mb-12"><label class="form-label">URL Google Maps</label><input class="form-control" [(ngModel)]="venue.mapsUrl"></div>
       <div class="field"><label class="form-label">Hora</label>

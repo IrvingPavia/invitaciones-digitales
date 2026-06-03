@@ -548,8 +548,9 @@ const FONT_OPTIONS = `
       .icon-type-btn {
         display: flex; align-items: center; gap: 6px;
         background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 8px; padding: 8px 14px; font-size: 13px;
+        border-radius: 8px; padding: 8px 12px; font-size: 12px;
         color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s;
+        white-space: nowrap;
         &.active { background: rgba(124,92,191,0.15); border-color: var(--gold); color: var(--gold); }
         &:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
       }
@@ -1146,6 +1147,18 @@ export class ConfigComponent implements OnInit {
   // Itinerary
   toggleEmojiPicker(item: ItineraryItem) {
     this.emojiPickerOpen = this.emojiPickerOpen === item.id! ? null : item.id!;
+  }
+
+  // Venues emoji
+  venueEmojiPickerOpen: string | null = null;
+  venueEmojiOptions = [
+    '📍', '⛪', '💒', '🏛️', '🏰', '🎪', '🏖️', '🏞️',
+    '🍽️', '🥂', '🎉', '🎊', '🎶', '💃', '🕺', '🌟',
+    '🏨', '🏡', '🌳', '🌊', '⛰️', '🌅', '🎭', '🎬',
+  ];
+
+  toggleVenueEmojiPicker(venue: any) {
+    this.venueEmojiPickerOpen = this.venueEmojiPickerOpen === venue.id ? null : venue.id;
   }
   uploadItineraryIcon(event: any, item: ItineraryItem) {
     const file = event.target.files[0];

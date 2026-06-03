@@ -231,6 +231,8 @@ export interface VenueItem {
   id: string;
   title: string;
   icon: string;
+  iconType?: 'emoji' | 'image' | 'none';
+  iconEmoji?: string;
   name: string;
   address: string;
   time: string;
