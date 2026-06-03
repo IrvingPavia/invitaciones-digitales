@@ -385,16 +385,43 @@
           <strong>Tip:</strong> Un video MP4 corto (3-5s) carga más rápido y se ve más fluido que un GIF pesado.
         </div>
       }
-      <input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadFile($event, 'gifs', 'intro.background')">
+      @if (!c.intro.background) {
+        <input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadIntroMedia($event)">
+      }
       @if (c.intro.background) {
         @if (isVideoFile(c.intro.background)) {
-          <video [src]="c.intro.background" class="upload-preview" style="max-height:120px;border-radius:8px;" muted autoplay loop playsinline></video>
+          <video #introTrimVideo [src]="c.intro.background" class="upload-preview" style="max-height:120px;border-radius:8px;" muted playsinline (loadedmetadata)="onIntroVideoLoaded($event)"></video>
         } @else {
           <img [src]="c.intro.background" class="upload-preview">
         }
-        <button class="btn-remove-file" (click)="c.intro.background = ''">✕ Quitar</button>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <label class="btn-remove-file" style="cursor:pointer;color:var(--gold-light);border-color:rgba(124,92,191,0.4);">✎ Cambiar<input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadIntroMedia($event)" style="display:none;"></label>
+          <button class="btn-remove-file" (click)="c.intro.background = ''; c.intro.videoDuration = undefined; c.intro.videoStart = undefined; c.intro.videoEnd = undefined;">✕ Quitar</button>
+        </div>
       }
     </div>
+
+    <!-- Video Trimmer (only for video files) -->
+    @if (c.intro.background && isVideoFile(c.intro.background) && (c.intro.videoDuration || introVideoDurationLocal)) {
+      <div class="video-trimmer" style="margin-top:16px;">
+        <label class="form-label" style="margin-bottom:8px;">Recortar video (máx {{ maxIntroDuration }}s)</label>
+        <div class="trimmer-container">
+          <div class="trimmer-track" #trimmerTrack (mousedown)="onTrimmerTrackClick($event)" (touchstart)="onTrimmerTrackTouch($event)">
+            <div class="trimmer-selected" [style.left.%]="getTrimLeftPercent()" [style.width.%]="getTrimWidthPercent()"></div>
+            <div class="trimmer-handle trimmer-handle-left" [style.left.%]="getTrimLeftPercent()" (mousedown)="onTrimHandleStart($event, 'start')" (touchstart)="onTrimHandleTouchStart($event, 'start')"></div>
+            <div class="trimmer-handle trimmer-handle-right" [style.left.%]="getTrimRightPercent()" (mousedown)="onTrimHandleStart($event, 'end')" (touchstart)="onTrimHandleTouchStart($event, 'end')"></div>
+          </div>
+          <div class="trimmer-labels">
+            <span>{{ formatTrimTime(c.intro.videoStart || 0) }}</span>
+            <span style="opacity:0.5;">{{ formatTrimTime(getSelectedDuration()) }} seg</span>
+            <span>{{ formatTrimTime(c.intro.videoEnd || c.intro.videoDuration || 5) }}</span>
+          </div>
+        </div>
+        <div class="trimmer-preview" style="margin-top:8px;">
+          <button class="btn btn-sm btn-outline" (click)="previewTrim()"><span class="material-icons" style="font-size:14px;">play_arrow</span> Preview</button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 
@@ -449,7 +476,7 @@
   <div class="section-card-body" style="padding:0;overflow:hidden;border-radius:0 0 12px 12px;">
     <div class="particles-preview" [style.background]="c.intro.background && !isVideoFile(c.intro.background) ? 'url(' + c.intro.background + ') center/cover no-repeat' : 'radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 100%)'" style="aspect-ratio: 9/16; height: auto; max-height: 400px; max-width: 225px; margin: 0 auto; border-radius: 12px; position: relative; overflow: hidden;">
       @if (c.intro.background && isVideoFile(c.intro.background)) {
-        <video [src]="c.intro.background" autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;"></video>
+        <video [src]="c.intro.background" autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" #introPreviewVideo (loadedmetadata)="onIntroPreviewVideoLoaded($event)"></video>
       }
       <div class="particles-preview-overlay" *ngIf="c.intro.background"></div>
       <div class="particles-preview-container" [attr.data-type]="c.intro.particles!.type" [attr.data-dir]="c.intro.particles!.direction">
@@ -588,18 +615,32 @@
           <strong>Tip:</strong> Un video MP4 de 5-10s es más fluido y ligero que un GIF animado.
         </div>
       }
-      <input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')">
+      @if (!c.hero.backgroundGif) {
+        <input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')">
+      }
       @if (c.hero.backgroundGif) {
         @if (isVideoFile(c.hero.backgroundGif)) {
           <video [src]="c.hero.backgroundGif" class="upload-preview" style="max-height:120px;border-radius:8px;" muted autoplay loop playsinline></video>
         } @else {
           <img [src]="c.hero.backgroundGif" class="upload-preview">
         }
-        <button class="btn-remove-file" (click)="c.hero.backgroundGif = ''">✕ Quitar</button>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <label class="btn-remove-file" style="cursor:pointer;color:var(--gold-light);border-color:rgba(124,92,191,0.4);">✎ Cambiar<input type="file" accept="image/*,.gif,video/mp4,video/webm" (change)="uploadFile($event, 'gifs', 'hero.backgroundGif')" style="display:none;"></label>
+          <button class="btn-remove-file" (click)="c.hero.backgroundGif = ''">✕ Quitar</button>
+        </div>
       }
     </div>
-    <div class="field"><label class="form-label">Audio MP3</label><input type="file" accept="audio/*" (change)="uploadFile($event, 'audio', 'hero.audioUrl')">
-      @if (c.hero.audioUrl) { <audio [src]="c.hero.audioUrl" controls style="margin-top:8px;width:100%;border-radius:8px;"></audio> <button class="btn-remove-file" (click)="c.hero.audioUrl = ''">✕ Quitar audio</button> }
+    <div class="field"><label class="form-label">Audio MP3</label>
+      @if (!c.hero.audioUrl) {
+        <input type="file" accept="audio/*" (change)="uploadFile($event, 'audio', 'hero.audioUrl')">
+      }
+      @if (c.hero.audioUrl) {
+        <audio [src]="c.hero.audioUrl" controls style="margin-top:8px;width:100%;border-radius:8px;"></audio>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <label class="btn-remove-file" style="cursor:pointer;color:var(--gold-light);border-color:rgba(124,92,191,0.4);">✎ Cambiar<input type="file" accept="audio/*" (change)="uploadFile($event, 'audio', 'hero.audioUrl')" style="display:none;"></label>
+          <button class="btn-remove-file" (click)="c.hero.audioUrl = ''">✕ Quitar</button>
+        </div>
+      }
     </div>
   </div>
 </div>

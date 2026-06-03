@@ -67,6 +67,29 @@ const FONT_OPTIONS = `
         font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.8);
         background: rgba(255,255,255,0.02);
       }
+      .video-trimmer { padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+      .trimmer-container { position: relative; }
+      .trimmer-track {
+        position: relative; height: 32px; background: rgba(255,255,255,0.1);
+        border-radius: 4px; cursor: pointer; overflow: visible;
+      }
+      .trimmer-selected {
+        position: absolute; top: 0; bottom: 0;
+        background: rgba(124,92,191,0.4); border: 2px solid rgba(124,92,191,0.8);
+        border-radius: 4px; pointer-events: none;
+      }
+      .trimmer-handle {
+        position: absolute; top: -4px; bottom: -4px; width: 14px;
+        background: var(--gold); border-radius: 4px; cursor: ew-resize;
+        transform: translateX(-50%); z-index: 2;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        &:hover { background: #e6b800; }
+      }
+      .trimmer-labels {
+        display: flex; justify-content: space-between; margin-top: 6px;
+        font-size: 11px; color: rgba(255,255,255,0.6);
+      }
+      .trimmer-preview { display: flex; gap: 8px; align-items: center; }
       .venue-card {
         border: 1px solid rgba(124, 92, 191, 0.2);
         border-radius: 10px;
@@ -665,12 +688,188 @@ export class ConfigComponent implements OnInit {
 
   heroMediaHelp = false;
   introMediaHelp = false;
+  maxIntroDuration = 5;
+  introVideoDurationLocal = 0;
+  private trimDragging: 'start' | 'end' | null = null;
+  @ViewChild('trimmerTrack') trimmerTrack?: ElementRef<HTMLElement>;
+  @ViewChild('introTrimVideo') introTrimVideo?: ElementRef<HTMLVideoElement>;
+  @ViewChild('introPreviewVideo') introPreviewVideo?: ElementRef<HTMLVideoElement>;
 
   ensureEnvelopeTemplate() {
-    // Ensure template field exists for backward compatibility
     if (!this.config()?.envelope?.template) {
       this.config()!.envelope.template = 'envelope';
     }
+  }
+
+  // --- Video Trimmer Methods ---
+  uploadIntroMedia(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    this.api.uploadFile('gifs', file).subscribe(r => {
+      const c = this.config()!;
+      c.intro.background = r.url;
+      c.intro.videoStart = undefined;
+      c.intro.videoEnd = undefined;
+      c.intro.videoDuration = undefined;
+    });
+  }
+
+  onIntroVideoLoaded(event: Event) {
+    const video = event.target as HTMLVideoElement;
+    const duration = video.duration;
+    const c = this.config()!;
+    c.intro.videoDuration = Math.round(duration * 10) / 10;
+    this.introVideoDurationLocal = c.intro.videoDuration;
+    if (!c.intro.videoStart && c.intro.videoStart !== 0) c.intro.videoStart = 0;
+    if (!c.intro.videoEnd) c.intro.videoEnd = Math.min(duration, this.maxIntroDuration);
+    c.intro.duration = Math.min(Math.round(c.intro.videoEnd - c.intro.videoStart), this.maxIntroDuration);
+  }
+
+  getTrimLeftPercent(): number {
+    const c = this.config()!;
+    if (!c.intro.videoDuration) return 0;
+    return ((c.intro.videoStart || 0) / c.intro.videoDuration) * 100;
+  }
+
+  getTrimRightPercent(): number {
+    const c = this.config()!;
+    if (!c.intro.videoDuration) return 100;
+    return ((c.intro.videoEnd || c.intro.videoDuration) / c.intro.videoDuration) * 100;
+  }
+
+  getTrimWidthPercent(): number {
+    return this.getTrimRightPercent() - this.getTrimLeftPercent();
+  }
+
+  getSelectedDuration(): number {
+    const c = this.config()!;
+    return Math.round(((c.intro.videoEnd || c.intro.videoDuration || 5) - (c.intro.videoStart || 0)) * 10) / 10;
+  }
+
+  formatTrimTime(seconds: number): string {
+    const s = Math.round(seconds * 10) / 10;
+    return s.toFixed(1);
+  }
+
+  onTrimHandleStart(event: MouseEvent, handle: 'start' | 'end') {
+    event.preventDefault();
+    event.stopPropagation();
+    this.trimDragging = handle;
+    const onMove = (e: MouseEvent) => this.onTrimMove(e.clientX);
+    const onUp = () => { this.trimDragging = null; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); this.updateIntroDuration(); };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  onTrimHandleTouchStart(event: TouchEvent, handle: 'start' | 'end') {
+    event.preventDefault();
+    event.stopPropagation();
+    this.trimDragging = handle;
+    const onMove = (e: TouchEvent) => { e.preventDefault(); this.onTrimMove(e.touches[0].clientX); };
+    const onEnd = () => { this.trimDragging = null; document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); this.updateIntroDuration(); };
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+  }
+
+  onTrimmerTrackClick(event: MouseEvent) {
+    // Click on track moves nearest handle
+    if (!this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    const c = this.config()!;
+    const dur = c.intro.videoDuration || 5;
+    const time = percent * dur;
+    const startDist = Math.abs(time - (c.intro.videoStart || 0));
+    const endDist = Math.abs(time - (c.intro.videoEnd || dur));
+    if (startDist < endDist) {
+      c.intro.videoStart = Math.max(0, Math.min(time, (c.intro.videoEnd || dur) - 0.5));
+    } else {
+      c.intro.videoEnd = Math.min(dur, Math.max(time, (c.intro.videoStart || 0) + 0.5));
+    }
+    this.clampTrimDuration();
+    this.updateIntroDuration();
+  }
+
+  onTrimmerTrackTouch(event: TouchEvent) {
+    const touch = event.touches[0];
+    if (!this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = (touch.clientX - rect.left) / rect.width;
+    const c = this.config()!;
+    const dur = c.intro.videoDuration || 5;
+    const time = percent * dur;
+    const startDist = Math.abs(time - (c.intro.videoStart || 0));
+    const endDist = Math.abs(time - (c.intro.videoEnd || dur));
+    if (startDist < endDist) {
+      c.intro.videoStart = Math.max(0, Math.min(time, (c.intro.videoEnd || dur) - 0.5));
+    } else {
+      c.intro.videoEnd = Math.min(dur, Math.max(time, (c.intro.videoStart || 0) + 0.5));
+    }
+    this.clampTrimDuration();
+    this.updateIntroDuration();
+  }
+
+  private onTrimMove(clientX: number) {
+    if (!this.trimDragging || !this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const c = this.config()!;
+    const dur = c.intro.videoDuration || 5;
+    const time = Math.round(percent * dur * 10) / 10;
+
+    if (this.trimDragging === 'start') {
+      c.intro.videoStart = Math.max(0, Math.min(time, (c.intro.videoEnd || dur) - 0.5));
+    } else {
+      c.intro.videoEnd = Math.min(dur, Math.max(time, (c.intro.videoStart || 0) + 0.5));
+    }
+    this.clampTrimDuration();
+  }
+
+  private clampTrimDuration() {
+    const c = this.config()!;
+    const start = c.intro.videoStart || 0;
+    const end = c.intro.videoEnd || (c.intro.videoDuration || 5);
+    if (end - start > this.maxIntroDuration) {
+      if (this.trimDragging === 'start') {
+        c.intro.videoStart = end - this.maxIntroDuration;
+      } else {
+        c.intro.videoEnd = start + this.maxIntroDuration;
+      }
+    }
+  }
+
+  private updateIntroDuration() {
+    const c = this.config()!;
+    c.intro.duration = Math.min(Math.round((c.intro.videoEnd || 5) - (c.intro.videoStart || 0)), this.maxIntroDuration);
+  }
+
+  previewTrim() {
+    if (!this.introTrimVideo?.nativeElement) return;
+    const c = this.config()!;
+    const video = this.introTrimVideo.nativeElement;
+    video.currentTime = c.intro.videoStart || 0;
+    video.play();
+    const checkEnd = () => {
+      if (video.currentTime >= (c.intro.videoEnd || video.duration)) {
+        video.pause();
+        video.removeEventListener('timeupdate', checkEnd);
+      }
+    };
+    video.addEventListener('timeupdate', checkEnd);
+  }
+
+  onIntroPreviewVideoLoaded(event: Event) {
+    const video = event.target as HTMLVideoElement;
+    const c = this.config()!;
+    if (c.intro.videoStart) {
+      video.currentTime = c.intro.videoStart;
+    }
+    // Loop within trim range
+    video.addEventListener('timeupdate', () => {
+      if (c.intro.videoEnd && video.currentTime >= c.intro.videoEnd) {
+        video.currentTime = c.intro.videoStart || 0;
+      }
+    });
   }
 
   emojiOptions = [

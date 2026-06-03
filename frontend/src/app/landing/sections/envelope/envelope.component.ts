@@ -134,7 +134,7 @@ import { EnvelopeConfig } from '../../../core/models/models';
       background: radial-gradient(ellipse at center, var(--bg-color2, #1a1a2e) 0%, var(--bg-color, #0a0a14) 100%);
       overflow: hidden;
       transition: opacity 0.6s ease;
-      transition-delay: 1.4s;
+      transition-delay: 0.8s;
     }
     .envelope-overlay.opened { opacity: 0; pointer-events: none; }
 
@@ -356,6 +356,7 @@ export class LandingEnvelopeComponent {
 
   open() {
     this.opened = true;
-    setTimeout(() => this.done.emit(), 2200);
+    // Emit done sooner so intro starts while envelope is still fading
+    setTimeout(() => this.done.emit(), 1200);
   }
 }

@@ -53,6 +53,7 @@
 - [ ] Mini cards con ejemplos de vestimenta (pendiente: esperar imágenes de referencia)
 - [ ] Eliminar dependencia `fabric` del package.json (ya no se usa)
 - [ ] Eliminar dependencia `pdfkit` del backend (reemplazado por Puppeteer)
+- [ ] Probar video trimmer con video >5seg y verificar selección de sección intermedia
 
 ## Mejoras recomendadas
 

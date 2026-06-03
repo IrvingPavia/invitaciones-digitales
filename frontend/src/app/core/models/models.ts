@@ -137,6 +137,9 @@ export interface IntroConfig {
   background: string;
   phrase: string;
   duration: number;
+  videoStart?: number;
+  videoEnd?: number;
+  videoDuration?: number;
   phraseStyle?: {
     fontFamily: string;
     fontSize: number;

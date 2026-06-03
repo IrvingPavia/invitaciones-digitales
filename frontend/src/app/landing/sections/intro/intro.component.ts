@@ -47,7 +47,7 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       position: fixed; inset: 0; z-index: 9999;
       display: flex; align-items: flex-end; justify-content: center;
       padding-bottom: 80px;
-      transition: opacity 0.8s ease;
+      transition: opacity 1.2s ease;
       animation: introFadeIn 0.8s ease both;
     }
     .intro-overlay.fade-out { opacity: 0; pointer-events: none; }
@@ -213,8 +213,14 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     if (this.introVideo?.nativeElement) {
+      const video = this.introVideo.nativeElement;
+      // Set start time if trimmed
+      if (this.config.videoStart) {
+        video.currentTime = this.config.videoStart;
+      }
       // Try autoplay — if blocked, show tap hint
-      this.introVideo.nativeElement.play().then(() => {
+      video.play().then(() => {
+        this.startVideoMonitor();
         this.startTimer();
       }).catch(() => {
         this.showPlayHint = true;
@@ -224,11 +230,28 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onTap() {
     if (this.introVideo?.nativeElement && this.showPlayHint) {
-      this.introVideo.nativeElement.play().then(() => {
+      const video = this.introVideo.nativeElement;
+      if (this.config.videoStart) {
+        video.currentTime = this.config.videoStart;
+      }
+      video.play().then(() => {
         this.showPlayHint = false;
+        this.startVideoMonitor();
         this.startTimer();
       }).catch(() => {});
     }
+  }
+
+  private startVideoMonitor() {
+    // Stop video at videoEnd and loop back to videoStart
+    if (!this.config.videoEnd || !this.introVideo?.nativeElement) return;
+    const video = this.introVideo.nativeElement;
+    const checkEnd = () => {
+      if (video.currentTime >= (this.config.videoEnd || video.duration)) {
+        video.currentTime = this.config.videoStart || 0;
+      }
+    };
+    video.addEventListener('timeupdate', checkEnd);
   }
 
   private startTimer() {
@@ -237,8 +260,9 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
     const dur = Math.min(this.config.duration || 4, 5) * 1000;
     this.timer = setTimeout(() => {
       this.fading = true;
-      setTimeout(() => this.done.emit(), 800);
-    }, dur - 800);
+      // Wait for fade-out to complete before removing component
+      setTimeout(() => this.done.emit(), 1200);
+    }, dur - 1200);
   }
 
   get defaultBg(): string {
