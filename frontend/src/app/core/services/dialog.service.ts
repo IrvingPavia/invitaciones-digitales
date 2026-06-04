@@ -14,8 +14,8 @@ export class DialogService {
   config = signal<DialogConfig>({ type: 'alert', title: '', message: '' });
   private resolver: ((value: boolean) => void) | null = null;
 
-  confirm(title: string, message: string): Promise<boolean> {
-    this.config.set({ type: 'confirm', title, message, confirmText: 'Eliminar', cancelText: 'Cancelar' });
+  confirm(title: string, message: string, confirmText = 'Eliminar'): Promise<boolean> {
+    this.config.set({ type: 'confirm', title, message, confirmText, cancelText: 'Cancelar' });
     this.visible.set(true);
     return new Promise(resolve => { this.resolver = resolve; });
   }

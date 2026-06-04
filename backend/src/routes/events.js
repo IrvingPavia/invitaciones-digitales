@@ -132,9 +132,17 @@ router.post('/:id/duplicate', auth, requireRole('root', 'admin'), async (req, re
     if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado' });
     const orig = events[0];
 
-    // Generate unique slug
-    const newSlug = orig.slug + '-copia-' + Date.now().toString(36);
-    const newName = orig.name + ' (copia)';
+    // Generate unique slug with sequential numbering
+    const baseSlug = orig.slug.replace(/-copia-\d+$/, ''); // strip existing "-copia-XX" suffix
+    let newSlug = baseSlug + '-copia-01';
+    let counter = 1;
+    while (true) {
+      const [existing] = await db.query('SELECT id FROM events WHERE slug = ?', [newSlug]);
+      if (!existing.length) break;
+      counter++;
+      newSlug = baseSlug + '-copia-' + String(counter).padStart(2, '0');
+    }
+    const newName = orig.name.replace(/ \(copia\)$/, '') + ' (copia)';
 
     // Create new event
     const [result] = await db.query(
@@ -153,8 +161,8 @@ router.post('/:id/duplicate', auth, requireRole('root', 'admin'), async (req, re
     const [cards] = await db.query('SELECT * FROM card_templates WHERE event_id = ?', [req.params.id]);
     if (cards[0]) {
       await db.query(
-        'INSERT INTO card_templates (event_id, front_config, back_config, card_width, card_height, pdf_layout) VALUES (?, ?, ?, ?, ?, ?)',
-        [newId, cards[0].front_config, cards[0].back_config, cards[0].card_width, cards[0].card_height, cards[0].pdf_layout]
+        'INSERT INTO card_templates (event_id, front_config, back_config) VALUES (?, ?, ?)',
+        [newId, cards[0].front_config, cards[0].back_config]
       );
     }
 

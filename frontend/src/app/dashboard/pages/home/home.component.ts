@@ -12,7 +12,7 @@ import { environment } from '../../../../environments/environment';
   imports: [CommonModule, RouterLink],
   template: `
     <div>
-      <div class="flex-between mb-24">
+      <div class="flex-between mb-16">
         <div>
           <h2 class="section-title">{{ isClient ? 'Mi Evento' : 'Dashboard' }}</h2>
           <p class="section-subtitle">{{ isClient ? 'Resumen de tu invitación digital' : 'Selecciona un evento para ver su resumen' }}</p>
@@ -79,6 +79,30 @@ import { environment } from '../../../../environments/environment';
               }
             </div>
           }
+        </div>
+      }
+
+      <!-- Mobile integrated actions (between carousel and KPIs) -->
+      @if (selectedEvent()) {
+        <div class="mobile-card-actions">
+          @if (selectedEvent()!.event_mode === 'open') {
+            <a [routerLink]="['/dashboard/registrations', selectedEvent()!.id]" class="mobile-action" title="Registrados">
+              <span class="material-icons">how_to_reg</span>
+            </a>
+          } @else {
+            <a [routerLink]="['/dashboard/guests', selectedEvent()!.id]" class="mobile-action" title="Invitados">
+              <span class="material-icons">people</span>
+            </a>
+          }
+          <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="mobile-action" title="Configurar">
+            <span class="material-icons">settings</span>
+          </a>
+          <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="mobile-action" title="Tarjetas">
+            <span class="material-icons">style</span>
+          </a>
+          <a [href]="environment.baseUrl + '/invitacion/' + selectedEvent()!.slug" target="_blank" class="mobile-action highlight" title="Ver Landing">
+            <span class="material-icons">open_in_new</span>
+          </a>
         </div>
       }
 
@@ -371,17 +395,54 @@ import { environment } from '../../../../environments/environment';
     :host-context(body.light-mode) .progress-detail { color: #888; }
     :host-context(body.light-mode) .empty-title { color: #555; }
 
+    /* === MOBILE INTEGRATED ACTIONS === */
+    .mobile-card-actions {
+      display: none;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      margin: -16px auto 20px;
+      background: rgba(26,26,42,0.85);
+      border: 1px solid rgba(124,92,191,0.25);
+      border-radius: 16px;
+      backdrop-filter: blur(8px);
+      width: fit-content;
+      animation: fadeUp 0.3s ease;
+    }
+    .mobile-action {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(124,92,191,0.2);
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .mobile-action:active {
+      background: rgba(124,92,191,0.15);
+      border-color: var(--gold);
+      transform: scale(0.92);
+    }
+    .mobile-action .material-icons { font-size: 20px; color: var(--gold-light); }
+    .mobile-action.highlight {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border-color: transparent;
+    }
+    .mobile-action.highlight .material-icons { color: #fff; }
+
     /* === RESPONSIVE === */
     @media (max-width: 768px) {
-      .carousel-stage { height: 290px; }
+      .carousel-stage { height: 260px; }
+      .carousel-3d { padding: 8px 0 32px; }
       .carousel-card { width: 155px; height: 225px; border-radius: 16px; }
       .nav-arrow { width: 36px; height: 36px; }
       .nav-left { left: 2px; }
       .nav-right { right: 2px; }
       .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .actions-bar { gap: 8px; }
-      .action-btn { padding: 8px 14px; font-size: 12px; }
+      .actions-bar { display: none !important; }
       .card-title { font-size: 13px; }
+      .mobile-card-actions { display: flex !important; }
     }
   `]
 })

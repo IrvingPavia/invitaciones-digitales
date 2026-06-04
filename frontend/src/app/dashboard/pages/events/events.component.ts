@@ -382,7 +382,7 @@ export class EventsComponent implements OnInit {
   }
 
   async duplicateEvent(e: Event) {
-    const ok = await this.dialog.confirm('Duplicar evento', `¿Duplicar "${e.name}"? Se copiará la configuración, tarjetas, itinerario y fotos.`);
+    const ok = await this.dialog.confirm('Duplicar evento', `¿Duplicar "${e.name}"? Se copiará la configuración, tarjetas, itinerario y fotos.`, 'Duplicar');
     if (!ok) return;
     this.api.duplicateEvent(e.id).subscribe({
       next: () => this.load(),
