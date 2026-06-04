@@ -11,6 +11,7 @@ export class ApiService {
   // Events
   getEvents() { return this.http.get<Event[]>(`${this.api}/events`); }
   getEvent(id: number) { return this.http.get<Event>(`${this.api}/events/${id}`); }
+  getEventThemes() { return this.http.get<Record<number, { theme: any; heroBackground: string | null; globalStyles: any }>>(`${this.api}/events/themes`); }
   createEvent(data: Partial<Event>) { return this.http.post<any>(`${this.api}/events`, data); }
   updateEvent(id: number, data: Partial<Event>) { return this.http.put<any>(`${this.api}/events/${id}`, data); }
   deleteEvent(id: number) { return this.http.delete<any>(`${this.api}/events/${id}`); }

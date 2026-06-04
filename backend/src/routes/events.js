@@ -27,6 +27,45 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get themes for all accessible events (for dashboard carousel)
+router.get('/themes', auth, async (req, res) => {
+  try {
+    let query = `
+      SELECT e.id as event_id, ec.config_json
+      FROM events e
+      LEFT JOIN event_config ec ON ec.event_id = e.id
+    `;
+    let params = [];
+
+    if (req.user.role === 'client') {
+      query += ' JOIN user_events ue ON ue.event_id = e.id WHERE ue.user_id = ?';
+      params.push(req.user.id);
+    }
+
+    const [rows] = await getDB().query(query, params);
+    const themes = {};
+    for (const row of rows) {
+      if (row.config_json) {
+        try {
+          const config = JSON.parse(row.config_json);
+          themes[row.event_id] = {
+            theme: config.theme || null,
+            heroBackground: config.hero?.backgroundGif || null,
+            globalStyles: config.globalStyles || null
+          };
+        } catch (e) {
+          themes[row.event_id] = { theme: null, heroBackground: null, globalStyles: null };
+        }
+      } else {
+        themes[row.event_id] = { theme: null, heroBackground: null, globalStyles: null };
+      }
+    }
+    res.json(themes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/:id', auth, requireEventAccess, async (req, res) => {
   try {
     const [rows] = await getDB().query('SELECT * FROM events WHERE id = ?', [req.params.id]);

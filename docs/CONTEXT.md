@@ -26,6 +26,7 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 
 ### Dashboard (admin)
 - Gestión de eventos (CRUD, tipos: Boda, Cumpleaños, XV Años, Bautizo, Graduación, Empresarial, Conferencia)
+- **Carrusel 3D de eventos**: Selector visual con cards verticales estilizadas, card activa al centro con perspectiva 3D, fondo refleja el tema del evento (colores/degradado/imagen/gif/video del hero), reflejo espejo, navegación con flechas/dots/click
 - Selector de template al crear evento
 - Modo de evento: privado (invitados) / abierto (registro con cupo)
 - Gestión de invitados (CRUD, import/export Excel, QR) — solo eventos privados
@@ -104,6 +105,8 @@ docker-compose logs -f backend
 - **Puppeteer para PDF**: HTML → PDF garantiza fidelidad visual
 - **Roles en JWT**: Token incluye role + can_manage_users para decisiones en frontend
 - **Uploads relativos**: Rutas `/uploads/...` en BD, resueltas por Nginx proxy
+- **URLs de uploads en frontend**: Usa `window.location.origin + '/' + path` para construir URLs absolutas (Nginx hace proxy de `/uploads/` al backend)
+- **Endpoint `/api/events/themes`**: Devuelve theme + heroBackground + globalStyles de todos los eventos del usuario en una sola llamada (evita N requests individuales)
 - **Volúmenes Docker nombrados**: Datos persistentes entre rebuilds
 - **Secciones apagadas por defecto**: Eventos nuevos inician con todas las secciones en `enabled: false`
 - **DialogService global**: Reemplaza confirm()/alert() nativos en todo el dashboard

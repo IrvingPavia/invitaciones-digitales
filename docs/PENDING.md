@@ -22,6 +22,7 @@
 - [x] **Eventos abiertos v1 (backend)**: Campo `event_mode` (private/open) + `max_capacity` en eventos. Tabla `registrations`. Endpoints públicos de registro con validación de cupo + duplicados. Ruta dashboard para registrados. Modal de crear evento con selector de modo + cupo.
 - [x] **Vista previa PDF en el editor de tarjetas**: Botón "Vista previa" que genera solo la primera página y la muestra en un popup/modal sin descargar archivo. Incluye auto-guardado antes de generar.
 - [x] **Límites dinámicos de tamaño de tarjeta**: El alto/ancho máximo se adapta al tamaño de hoja, orientación y modo (solo frente / frente+reverso). Auto-clamp al cambiar configuración.
+- [x] **Carrusel 3D de eventos en Dashboard**: Reemplazar el dropdown de selector de eventos por un carrusel 3D centrado. Card activa al centro (escalada), cards laterales con perspectiva rotada y reducidas. Fondo de cada card refleja los colores del tema del evento (o imagen/gif/video del hero si tiene). Textos usan colores de estilos globales del evento. Reflejo espejo debajo de cada card (`-webkit-box-reflect`). Flechas, dots, click en cards adyacentes para navegar. Al seleccionar se despliegan KPIs + acciones debajo. Responsive en mobile. Light mode completo.
 
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
@@ -132,6 +133,13 @@
 - [x] Dashboard: botón Invitados/Registrados contextual según event_mode
 - [x] Fix NaN% en progreso cuando evento no tiene invitados
 - [x] **Eventos abiertos v3 — Tarjetas genéricas**: Tarjetas sin variables de invitado, QR apunta a landing genérica. Dos modos: "Hoja única" (folleto centrado, tamaño configurable) y "Múltiples copias" (N copias, maximiza espacio por hoja). Variables filtradas para eventos abiertos. Vista previa proporcional.
+
+### 2025-06-04
+- [x] **Carrusel 3D de eventos en Dashboard**: Reemplazó el dropdown por un carrusel 3D centrado con perspective. Card activa escalada al centro, laterales rotadas con profundidad. Fondo usa colores del tema del evento (landingBgColor1/2, landingBgType). Si tiene imagen/gif/video en el hero, se muestra en la card activa. Textos usan colores de `globalStyles` del evento. Reflejo espejo con `-webkit-box-reflect`. Navegación con flechas + dots + click en cards. Animación suave entre cards. Responsive.
+- [x] Fix light mode en home dashboard: textos invisibles del selector de eventos (reemplazados estilos inline por clases CSS con `:host-context(body.light-mode)`)
+- [x] Nuevo endpoint `GET /api/events/themes`: devuelve theme + heroBackground + globalStyles de todos los eventos del usuario en una sola llamada
+- [x] Fix URL de media en dashboard: usa `window.location.origin` para construir URLs absolutas de uploads (resuelto ERR_NAME_NOT_RESOLVED)
+- [x] Fix parpadeo de reflejo: `filter` movido al hijo `.carousel-card` + `will-change: transform` en wrapper + transiciones explícitas sin `all`
 
 ### 2025-06-01
 - [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown
