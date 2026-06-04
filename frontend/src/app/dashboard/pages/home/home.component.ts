@@ -26,17 +26,20 @@ import { environment } from '../../../../environments/environment';
             <span class="material-icons">chevron_left</span>
           </button>
 
-          <div class="carousel-stage">
+          <div class="carousel-stage" (mousedown)="onSwipeStart($event)" (touchstart)="onSwipeTouchStart($event)">
             @for (event of events(); track event.id; let i = $index) {
               <div
                 class="carousel-card-wrapper"
-                [class.is-active]="i === activeIndex()"
-                [class.is-prev]="i === activeIndex() - 1"
-                [class.is-next]="i === activeIndex() + 1"
-                [class.is-far-left]="i < activeIndex() - 1"
-                [class.is-far-right]="i > activeIndex() + 1"
-                (click)="goTo(i)">
-                <div class="carousel-card" [style.background]="getCardBackground(event.id)">
+                [style.transform]="getCardTransform(i)"
+                [style.opacity]="getCardOpacity(i)"
+                [style.z-index]="getCardZIndex(i)"
+                [style.pointer-events]="getCardPointerEvents(i)"
+                [style.transition]="isDragging ? 'none' : ''"
+                (click)="onCardClick(i)">
+                <div class="carousel-card" [style.background]="getCardBackground(event.id)"
+                     [style.filter]="getCardFilter(i)"
+                     [style.border-color]="getCardBorderColor(i)"
+                     [style.box-shadow]="getCardShadow(i)">
                   <!-- Hero media only on active card -->
                   @if (i === activeIndex() && getHeroMedia(event.id)) {
                     @if (isVideo(getHeroMedia(event.id)!)) {
@@ -60,8 +63,6 @@ import { environment } from '../../../../environments/environment';
                     </div>
                   </div>
                 </div>
-                <!-- Reflection -->
-                <div class="card-reflect" [style.background]="getCardBackground(event.id)"></div>
               </div>
             }
           </div>
@@ -202,7 +203,11 @@ import { environment } from '../../../../environments/environment';
       align-items: center;
       justify-content: center;
       perspective: 1000px;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: grab;
     }
+    .carousel-stage:active { cursor: grabbing; }
     .carousel-stage::after {
       content: '';
       position: absolute;
@@ -221,7 +226,7 @@ import { environment } from '../../../../environments/environment';
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+      transition: transform 0.4s ease, opacity 0.4s ease;
       will-change: transform;
       -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 65%, rgba(255,255,255,0.18) 100%);
     }
@@ -231,62 +236,8 @@ import { environment } from '../../../../environments/environment';
       overflow: hidden;
       border: 2px solid rgba(255,255,255,0.06);
       box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-      transition: border-color 0.3s ease, box-shadow 0.3s ease, filter 0.5s ease;
+      transition: filter 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
       position: relative;
-    }
-
-    /* Remove the manual reflection element */
-    .card-reflect { display: none; }
-
-    /* Active (center) */
-    .carousel-card-wrapper.is-active {
-      transform: translateX(0) scale(1.1);
-      z-index: 10;
-    }
-    .carousel-card-wrapper.is-active .carousel-card {
-      border-color: var(--gold);
-      box-shadow: 0 20px 60px rgba(124,92,191,0.3), 0 0 0 1px var(--gold);
-    }
-
-    /* Previous (left) */
-    .carousel-card-wrapper.is-prev {
-      transform: translateX(-180px) scale(0.85) rotateY(8deg);
-      z-index: 5;
-      opacity: 0.85;
-    }
-    .carousel-card-wrapper.is-prev .carousel-card { filter: brightness(0.7); }
-
-    /* Next (right) */
-    .carousel-card-wrapper.is-next {
-      transform: translateX(180px) scale(0.85) rotateY(-8deg);
-      z-index: 5;
-      opacity: 0.85;
-    }
-    .carousel-card-wrapper.is-next .carousel-card { filter: brightness(0.7); }
-
-    /* Far left */
-    .carousel-card-wrapper.is-far-left {
-      transform: translateX(-320px) scale(0.7) rotateY(15deg);
-      z-index: 2;
-      opacity: 0.5;
-      pointer-events: none;
-    }
-    .carousel-card-wrapper.is-far-left .carousel-card { filter: brightness(0.5); }
-
-    /* Far right */
-    .carousel-card-wrapper.is-far-right {
-      transform: translateX(320px) scale(0.7) rotateY(-15deg);
-      z-index: 2;
-      opacity: 0.5;
-      pointer-events: none;
-    }
-    .carousel-card-wrapper.is-far-right .carousel-card { filter: brightness(0.5); }
-
-    /* Hidden cards beyond +-2 */
-    .carousel-card-wrapper:not(.is-active):not(.is-prev):not(.is-next):not(.is-far-left):not(.is-far-right) {
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.5);
     }
 
     /* Card hover (non-active) — disabled to prevent reflection flicker */
@@ -424,10 +375,6 @@ import { environment } from '../../../../environments/environment';
     @media (max-width: 768px) {
       .carousel-stage { height: 290px; }
       .carousel-card { width: 155px; height: 225px; border-radius: 16px; }
-      .carousel-card-wrapper.is-prev { transform: translateX(-130px) scale(0.8) rotateY(8deg); }
-      .carousel-card-wrapper.is-next { transform: translateX(130px) scale(0.8) rotateY(-8deg); }
-      .carousel-card-wrapper.is-far-left { transform: translateX(-230px) scale(0.65) rotateY(15deg); }
-      .carousel-card-wrapper.is-far-right { transform: translateX(230px) scale(0.65) rotateY(-15deg); }
       .nav-arrow { width: 36px; height: 36px; }
       .nav-left { left: 2px; }
       .nav-right { right: 2px; }
@@ -466,6 +413,129 @@ export class HomeComponent implements OnInit {
     const next = this.activeIndex() + dir;
     if (next >= 0 && next < this.events().length) {
       this.goTo(next);
+    }
+  }
+
+  // === CONTINUOUS DRAG CAROUSEL ===
+  isDragging = false;
+  dragOffset = signal(0); // continuous offset in px during drag
+  private swipeStartX = 0;
+  private swipeStartTime = 0;
+  private readonly CARD_SPACING = 200; // px between cards
+
+  onSwipeStart(e: MouseEvent) {
+    e.preventDefault();
+    this.isDragging = true;
+    this.swipeStartX = e.clientX;
+    this.swipeStartTime = Date.now();
+
+    const onMove = (ev: MouseEvent) => {
+      ev.preventDefault();
+      this.dragOffset.set(ev.clientX - this.swipeStartX);
+    };
+    const onUp = (ev: MouseEvent) => {
+      this.finishDrag(ev.clientX);
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  onSwipeTouchStart(e: TouchEvent) {
+    this.isDragging = true;
+    this.swipeStartX = e.touches[0].clientX;
+    this.swipeStartTime = Date.now();
+
+    const onMove = (ev: TouchEvent) => {
+      this.dragOffset.set(ev.touches[0].clientX - this.swipeStartX);
+    };
+    const onEnd = (ev: TouchEvent) => {
+      if (ev.changedTouches.length) {
+        this.finishDrag(ev.changedTouches[0].clientX);
+      }
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+    };
+    document.addEventListener('touchmove', onMove, { passive: true });
+    document.addEventListener('touchend', onEnd);
+  }
+
+  private finishDrag(endX: number) {
+    const dist = endX - this.swipeStartX;
+    const elapsed = Date.now() - this.swipeStartTime;
+    const velocity = dist / Math.max(elapsed, 1); // px/ms (signed)
+
+    // Determine how many cards to advance based on drag distance + velocity
+    let cardsMoved = Math.round(-dist / this.CARD_SPACING);
+    // Add momentum based on velocity
+    if (Math.abs(velocity) > 0.5) {
+      cardsMoved += velocity < 0 ? 1 : -1;
+    }
+
+    // Clamp to valid range
+    const target = Math.max(0, Math.min(this.events().length - 1, this.activeIndex() + cardsMoved));
+
+    this.isDragging = false;
+    this.dragOffset.set(0);
+    this.goTo(target);
+  }
+
+  // === CARD POSITIONING (continuous) ===
+  private getCardOffset(index: number): number {
+    const baseOffset = (index - this.activeIndex()) * this.CARD_SPACING;
+    return baseOffset + (this.isDragging ? this.dragOffset() : 0);
+  }
+
+  getCardTransform(index: number): string {
+    const offset = this.getCardOffset(index);
+    const normalized = offset / this.CARD_SPACING; // -N..0..+N
+    const scale = Math.max(0.6, 1.1 - Math.abs(normalized) * 0.15);
+    const rotateY = normalized * -8;
+    return `translateX(${offset}px) scale(${scale}) rotateY(${rotateY}deg)`;
+  }
+
+  getCardOpacity(index: number): number {
+    const offset = this.getCardOffset(index);
+    const normalized = Math.abs(offset) / this.CARD_SPACING;
+    if (normalized > 3) return 0;
+    return Math.max(0, 1 - normalized * 0.25);
+  }
+
+  getCardZIndex(index: number): number {
+    const offset = this.getCardOffset(index);
+    return 100 - Math.round(Math.abs(offset) / 10);
+  }
+
+  getCardPointerEvents(index: number): string {
+    const offset = this.getCardOffset(index);
+    const normalized = Math.abs(offset) / this.CARD_SPACING;
+    return normalized > 2 ? 'none' : 'auto';
+  }
+
+  getCardFilter(index: number): string {
+    const offset = this.getCardOffset(index);
+    const normalized = Math.abs(offset) / this.CARD_SPACING;
+    const brightness = Math.max(0.4, 1 - normalized * 0.25);
+    return normalized < 0.1 ? 'none' : `brightness(${brightness})`;
+  }
+
+  getCardBorderColor(index: number): string {
+    const offset = this.getCardOffset(index);
+    const normalized = Math.abs(offset) / this.CARD_SPACING;
+    return normalized < 0.3 ? 'var(--gold)' : 'rgba(255,255,255,0.06)';
+  }
+
+  getCardShadow(index: number): string {
+    const offset = this.getCardOffset(index);
+    const normalized = Math.abs(offset) / this.CARD_SPACING;
+    if (normalized < 0.3) return '0 20px 60px rgba(124,92,191,0.3), 0 0 0 1px var(--gold)';
+    return '0 10px 40px rgba(0,0,0,0.4)';
+  }
+
+  onCardClick(index: number) {
+    if (!this.isDragging && Math.abs(this.dragOffset()) < 5) {
+      this.goTo(index);
     }
   }
 
