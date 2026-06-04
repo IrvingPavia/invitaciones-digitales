@@ -20,7 +20,7 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
         </div>
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">>
+            <div class="detail-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
               @if (card.iconType !== 'none') {
                 @if (card.iconType === 'emoji' && card.icon) {
                   <div class="detail-icon emoji-icon">

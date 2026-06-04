@@ -22,7 +22,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
         <div class="timeline">
           @for (item of items; track item.id; let i = $index) {
             <div class="timeline-item" [class.right]="i % 2 !== 0" [style.transition-delay.ms]="i * 100">
-              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 12">>>
+              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 12">
                 @if (item.iconType !== 'none') {
                 <div class="timeline-icon">
                   @if (item.iconType === 'custom' && item.iconUrl) {
