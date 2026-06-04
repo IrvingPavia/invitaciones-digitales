@@ -2,6 +2,7 @@ const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
 
@@ -32,10 +33,25 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } });
 
-router.post('/:type', auth, upload.single('file'), (req, res) => {
+router.post('/:type', auth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Archivo no válido o no proporcionado' });
-  const url = `/uploads/${req.params.type}/${req.file.filename}`;
-  res.json({ url, filename: `${req.params.type}/${req.file.filename}` });
+
+  // Compress images (not gifs, audio, or video)
+  const type = req.params.type;
+  const ext = path.extname(req.file.filename).toLowerCase();
+  if (type === 'images' && /\.(jpg|jpeg|png|webp)$/.test(ext)) {
+    try {
+      const filePath = req.file.path;
+      const buffer = await sharp(filePath)
+        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+      await fs.promises.writeFile(filePath, buffer);
+    } catch (e) { /* If compression fails, keep original */ }
+  }
+
+  const url = `/uploads/${type}/${req.file.filename}`;
+  res.json({ url, filename: `${type}/${req.file.filename}` });
 });
 
 router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res) => {
@@ -46,6 +62,19 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     const photos = [];
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
+
+      // Compress gallery photos
+      const ext = path.extname(file.filename).toLowerCase();
+      if (/\.(jpg|jpeg|png|webp)$/.test(ext)) {
+        try {
+          const buffer = await sharp(file.path)
+            .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 80 })
+            .toBuffer();
+          await fs.promises.writeFile(file.path, buffer);
+        } catch (e) { /* keep original if compression fails */ }
+      }
+
       const url = `/uploads/images/${file.filename}`;
       const [r] = await conn.query(
         'INSERT INTO photos (event_id, filename, url, sort_order) VALUES (?, ?, ?, ?)',

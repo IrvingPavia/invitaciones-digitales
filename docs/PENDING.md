@@ -23,6 +23,9 @@
 - [x] **Vista previa PDF en el editor de tarjetas**: Botón "Vista previa" que genera solo la primera página y la muestra en un popup/modal sin descargar archivo. Incluye auto-guardado antes de generar.
 - [x] **Límites dinámicos de tamaño de tarjeta**: El alto/ancho máximo se adapta al tamaño de hoja, orientación y modo (solo frente / frente+reverso). Auto-clamp al cambiar configuración.
 - [x] **Carrusel 3D de eventos en Dashboard**: Reemplazar el dropdown de selector de eventos por un carrusel 3D centrado. Card activa al centro (escalada), cards laterales con perspectiva rotada y reducidas. Fondo de cada card refleja los colores del tema del evento (o imagen/gif/video del hero si tiene). Textos usan colores de estilos globales del evento. Reflejo espejo debajo de cada card (`-webkit-box-reflect`). Flechas, dots, click en cards adyacentes para navegar. Al seleccionar se despliegan KPIs + acciones debajo. Responsive en mobile. Light mode completo.
+- [x] **Editor de tarjetas mejorado**: Drag & drop para reordenar elementos (z-index), duplicar elementos, Undo/Redo (Ctrl+Z/Y + botones + historial 30 estados)
+- [x] **Duplicar evento completo**: Botón en lista de eventos que clona config, tarjetas, itinerario y fotos a un nuevo evento con slug único
+- [x] **Preview de landing en iframe**: Pestaña "📱 Preview" en configuración con mockup tipo celular que muestra la landing real embebida + botón recargar
 
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
@@ -46,15 +49,11 @@
 - [x] **Toggle dark/light mode para el dashboard**: Botón en sidebar, persiste en localStorage, tema light con overrides completos para todos los componentes.
 - [x] **Sistema emoji/imagen para venues**: Selector tipo (sin icono/emoji/imagen) con picker de emojis, igual que itinerario.
 - [x] **Fondo configurable de la landing**: 4 tipos (Color plano, Degradado, Foco central, Difuminado) + 8 texturas (noise, grain, dots, lines, cross, paper, linen, stars) + controles de ángulo, expansión, mezcla, opacidad. Se refleja en todos los previews del dashboard.
-- [ ] Drag & drop para reordenar elementos en la lista de tarjetas
-- [ ] Duplicar elementos en el editor de tarjetas
-- [ ] Undo/Redo en el editor de tarjetas
-
 ### Baja prioridad
 - [ ] Warnings de `?.` innecesarios en templates Angular (no afectan funcionalidad)
 - [ ] Mini cards con ejemplos de vestimenta (pendiente: esperar imágenes de referencia)
-- [ ] Eliminar dependencia `fabric` del package.json (ya no se usa)
-- [ ] Eliminar dependencia `pdfkit` del backend (reemplazado por Puppeteer)
+- [x] Eliminar dependencia `fabric` del package.json (ya no se usa)
+- [x] Eliminar dependencia `pdfkit` del backend (reemplazado por Puppeteer)
 - [ ] Probar video trimmer con video >5seg y verificar selección de sección intermedia
 
 ## Mejoras recomendadas
@@ -62,7 +61,7 @@
 > Documentadas para atender en futuras iteraciones.
 
 ### Seguridad
-- [ ] Rate limiting específico para login (prevenir brute force)
+- [x] Rate limiting específico para login (prevenir brute force)
 - [ ] Validación de input con Joi/Zod en backend
 - [ ] Forzar cambio de contraseña en primer login para clients
 - [ ] Expiración de sesión configurable
@@ -70,7 +69,7 @@
 
 ### Performance
 - [ ] Lazy loading de imágenes en landing (IntersectionObserver)
-- [ ] Compresión de imágenes al subir (sharp/imagemin en backend)
+- [x] Compresión de imágenes al subir (sharp en backend — resize max 1920px + JPEG 80%)
 - [ ] Cache de QR generados (evitar regenerar en cada request)
 - [ ] CDN para assets estáticos (imágenes, videos, fuentes)
 - [ ] Service Worker para cache offline de la landing
@@ -79,11 +78,11 @@
 ### UX
 - [ ] Notificaciones push cuando un invitado confirma
 - [ ] Dashboard con gráficas de confirmaciones en tiempo real (WebSocket/SSE)
-- [ ] Preview de landing en iframe dentro del dashboard
+- [x] Preview de landing en iframe dentro del dashboard
 - [ ] Exportar landing como imagen/screenshot (Puppeteer)
 - [ ] Multi-idioma (español/inglés) — landing + dashboard
 - [ ] Historial de cambios por evento (audit log)
-- [ ] Duplicar evento completo (clonar configuración + tarjetas)
+- [x] Duplicar evento completo (clonar configuración + tarjetas)
 
 ### Infraestructura
 - [ ] CI/CD con GitHub Actions (build + test + deploy automático)
@@ -140,6 +139,14 @@
 - [x] Nuevo endpoint `GET /api/events/themes`: devuelve theme + heroBackground + globalStyles de todos los eventos del usuario en una sola llamada
 - [x] Fix URL de media en dashboard: usa `window.location.origin` para construir URLs absolutas de uploads (resuelto ERR_NAME_NOT_RESOLVED)
 - [x] Fix parpadeo de reflejo: `filter` movido al hijo `.carousel-card` + `will-change: transform` en wrapper + transiciones explícitas sin `all`
+- [x] **Editor de tarjetas — Drag & Drop**: Reordenar elementos en la lista lateral con drag handles. El orden define el z-index visual.
+- [x] **Editor de tarjetas — Duplicar**: Botón copiar en cada elemento, crea clon con offset +5% en X/Y
+- [x] **Editor de tarjetas — Undo/Redo**: Ctrl+Z/Y + botones visuales, historial de 30 estados, cubre add/delete/move/resize/reorder
+- [x] Eliminadas dependencias muertas: `fabric` (frontend) y `pdfkit` (backend)
+- [x] **Duplicar evento completo**: Endpoint `POST /api/events/:id/duplicate` + botón en UI. Clona: event_config, card_templates, itinerary, photos
+- [x] **Rate limiting en login**: 5 intentos por IP cada 15 min (express-rate-limit)
+- [x] **Compresión de imágenes**: sharp en backend, resize max 1920px + JPEG quality 80% al subir
+- [x] **Preview de landing en iframe**: Nueva pestaña "📱 Preview" en config con mockup celular (320×580px), iframe con landing real, botón recargar
 
 ### 2025-06-01
 - [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown

@@ -123,6 +123,7 @@ import { environment } from '../../../../environments/environment';
                     <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
                     <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
                     <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
+                    <button class="btn btn-secondary btn-sm btn-icon" (click)="duplicateEvent(e)" title="Duplicar"><span class="material-icons" style="font-size:16px">content_copy</span></button>
                     <button class="btn btn-danger btn-sm btn-icon" (click)="deleteEvent(e)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
                   </div>
                 </td>
@@ -163,6 +164,7 @@ import { environment } from '../../../../environments/environment';
               <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
               <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
               <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
+              <button class="btn btn-secondary btn-sm btn-icon" (click)="duplicateEvent(e)" title="Duplicar"><span class="material-icons" style="font-size:16px">content_copy</span></button>
               <button class="btn btn-danger btn-sm btn-icon" (click)="deleteEvent(e)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
             </div>
           </div>
@@ -377,5 +379,14 @@ export class EventsComponent implements OnInit {
     const ok = await this.dialog.confirm('Eliminar evento', `¿Eliminar "${e.name}"? Se eliminarán todos los invitados.`);
     if (!ok) return;
     this.api.deleteEvent(e.id).subscribe(() => this.load());
+  }
+
+  async duplicateEvent(e: Event) {
+    const ok = await this.dialog.confirm('Duplicar evento', `¿Duplicar "${e.name}"? Se copiará la configuración, tarjetas, itinerario y fotos.`);
+    if (!ok) return;
+    this.api.duplicateEvent(e.id).subscribe({
+      next: () => this.load(),
+      error: (err: any) => this.dialog.alert('Error', err.error?.error || 'No se pudo duplicar el evento')
+    });
   }
 }

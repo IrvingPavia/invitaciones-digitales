@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -107,6 +107,28 @@ interface CardSide {
       color: rgba(255,255,255,0.3); padding: 2px;
       .material-icons { font-size: 14px; }
       &:hover { color: #ff6b7a; }
+    }
+    .el-action {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.3); padding: 2px;
+      .material-icons { font-size: 14px; }
+      &:hover { color: var(--gold-light); }
+    }
+    .drag-handle {
+      font-size: 14px !important; opacity: 0.3; cursor: grab;
+      &:active { cursor: grabbing; }
+    }
+    .el-list-item.drag-over {
+      border-top: 2px solid var(--gold);
+      margin-top: -2px;
+    }
+    .undo-btn {
+      background: none; border: 1px solid rgba(124,92,191,0.2); border-radius: 6px;
+      padding: 3px 5px; cursor: pointer; color: rgba(255,255,255,0.5);
+      transition: all 0.2s; display: flex; align-items: center;
+      .material-icons { font-size: 16px; }
+      &:hover:not(:disabled) { color: var(--gold-light); border-color: var(--gold); }
+      &:disabled { opacity: 0.3; cursor: default; }
     }
     .prop-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end; }
     .prop-field { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
@@ -406,13 +428,22 @@ interface CardSide {
 
             <!-- Elements list -->
             <div class="panel-section">
-              <div class="panel-header"><span>Elementos ({{ currentSide().elements.length }})</span></div>
+              <div class="panel-header"><span>Elementos ({{ currentSide().elements.length }})</span>
+                <div style="display:flex;gap:4px;">
+                  <button class="undo-btn" (click)="undo()" [disabled]="!canUndo()" title="Deshacer (Ctrl+Z)"><span class="material-icons">undo</span></button>
+                  <button class="undo-btn" (click)="redo()" [disabled]="!canRedo()" title="Rehacer (Ctrl+Y)"><span class="material-icons">redo</span></button>
+                </div>
+              </div>
               <div class="panel-body">
-                @for (el of currentSide().elements; track el.id) {
-                  <div class="el-list-item" [class.active]="selectedEl?.id === el.id" (click)="selectedEl = el">
+                @for (el of currentSide().elements; track el.id; let i = $index) {
+                  <div class="el-list-item" [class.active]="selectedEl?.id === el.id" [class.drag-over]="dragOverIndex === i"
+                       (click)="selectedEl = el"
+                       draggable="true" (dragstart)="onDragStart($event, i)" (dragover)="onDragOver($event, i)" (dragend)="onDragEnd()" (drop)="onDrop($event, i)">
+                    <span class="material-icons drag-handle">drag_indicator</span>
                     <span class="material-icons">{{ getElIcon(el.type) }}</span>
                     <span>{{ getElLabel(el) }}</span>
-                    <button class="el-delete" (click)="removeElement(el); $event.stopPropagation()"><span class="material-icons">close</span></button>
+                    <button class="el-action" (click)="duplicateElement(el); $event.stopPropagation()" title="Duplicar"><span class="material-icons">content_copy</span></button>
+                    <button class="el-delete" (click)="removeElement(el); $event.stopPropagation()" title="Eliminar"><span class="material-icons">close</span></button>
                   </div>
                 }
                 @if (!currentSide().elements.length) { <p class="text-muted" style="font-size:12px;">Sin elementos. Agrega uno arriba.</p> }
@@ -668,6 +699,7 @@ export class CardsComponent implements OnInit {
   }
 
   addElement(type: CardElement['type']) {
+    this.pushUndo();
     // Calculate offset to avoid stacking on existing elements
     const existingCount = this.currentSide().elements.length;
     const offsetY = (existingCount * 12) % 60; // 12% vertical offset per element, wrap at 60%
@@ -683,9 +715,106 @@ export class CardsComponent implements OnInit {
   }
 
   removeElement(el: CardElement) {
+    this.pushUndo();
     const side = this.currentSide();
     side.elements = side.elements.filter(e => e.id !== el.id);
     if (this.selectedEl?.id === el.id) this.selectedEl = null;
+  }
+
+  duplicateElement(el: CardElement) {
+    this.pushUndo();
+    const clone: CardElement = JSON.parse(JSON.stringify(el));
+    clone.id = Date.now().toString();
+    clone.x = Math.min(el.x + 5, 90);
+    clone.y = Math.min(el.y + 5, 85);
+    this.currentSide().elements.push(clone);
+    this.selectedEl = clone;
+  }
+
+  // === DRAG & DROP REORDER ===
+  dragOverIndex: number | null = null;
+  private dragFromIndex: number | null = null;
+
+  onDragStart(e: DragEvent, index: number) {
+    this.dragFromIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  }
+
+  onDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    this.dragOverIndex = index;
+  }
+
+  onDrop(e: DragEvent, toIndex: number) {
+    e.preventDefault();
+    const fromIndex = this.dragFromIndex;
+    if (fromIndex !== null && fromIndex !== toIndex) {
+      this.pushUndo();
+      const elements = this.currentSide().elements;
+      const [moved] = elements.splice(fromIndex, 1);
+      elements.splice(toIndex, 0, moved);
+    }
+    this.dragOverIndex = null;
+    this.dragFromIndex = null;
+  }
+
+  onDragEnd() {
+    this.dragOverIndex = null;
+    this.dragFromIndex = null;
+  }
+
+  // === UNDO / REDO ===
+  private undoStack: string[] = [];
+  private redoStack: string[] = [];
+  private maxHistory = 30;
+
+  canUndo(): boolean { return this.undoStack.length > 0; }
+  canRedo(): boolean { return this.redoStack.length > 0; }
+
+  private getState(): string {
+    return JSON.stringify({ front: this.front, back: this.back });
+  }
+
+  private restoreState(state: string) {
+    const parsed = JSON.parse(state);
+    this.front = parsed.front;
+    this.back = parsed.back;
+    this.selectedEl = null;
+  }
+
+  pushUndo() {
+    this.undoStack.push(this.getState());
+    if (this.undoStack.length > this.maxHistory) this.undoStack.shift();
+    this.redoStack = []; // clear redo on new action
+  }
+
+  undo() {
+    if (!this.canUndo()) return;
+    this.redoStack.push(this.getState());
+    const prev = this.undoStack.pop()!;
+    this.restoreState(prev);
+  }
+
+  redo() {
+    if (!this.canRedo()) return;
+    this.undoStack.push(this.getState());
+    const next = this.redoStack.pop()!;
+    this.restoreState(next);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'z' && !event.shiftKey) {
+      event.preventDefault();
+      this.undo();
+    } else if (event.ctrlKey && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) {
+      event.preventDefault();
+      this.redo();
+    }
   }
 
   getElIcon(type: string): string {
@@ -994,6 +1123,7 @@ export class CardsComponent implements OnInit {
     if ((e.target as HTMLElement).classList.contains('resize-handle')) return;
     e.preventDefault();
     this.selectedEl = el;
+    this.pushUndo();
     this.startDrag(e.clientX, e.clientY, el);
     const onMove = (ev: MouseEvent) => this.onDragMove(ev.clientX, ev.clientY);
     const onUp = () => { this.dragging = null; this.snapGuides = { v: null, h: null }; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
@@ -1004,6 +1134,7 @@ export class CardsComponent implements OnInit {
   onElTouchStart(e: TouchEvent, el: CardElement) {
     if ((e.target as HTMLElement).classList.contains('resize-handle')) return;
     this.selectedEl = el;
+    this.pushUndo();
     const t = e.touches[0];
     this.startDrag(t.clientX, t.clientY, el);
     const onMove = (ev: TouchEvent) => { ev.preventDefault(); this.onDragMove(ev.touches[0].clientX, ev.touches[0].clientY); };
@@ -1056,6 +1187,7 @@ export class CardsComponent implements OnInit {
   onResizeMouseDown(e: MouseEvent, el: CardElement) {
     e.preventDefault(); e.stopPropagation();
     this.selectedEl = el;
+    this.pushUndo();
     this.startResize(e.clientX, e.clientY, el);
     const onMove = (ev: MouseEvent) => this.onResizeMove(ev.clientX, ev.clientY);
     const onUp = () => { this.resizing = null; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
@@ -1066,6 +1198,7 @@ export class CardsComponent implements OnInit {
   onResizeTouchStart(e: TouchEvent, el: CardElement) {
     e.preventDefault(); e.stopPropagation();
     this.selectedEl = el;
+    this.pushUndo();
     const t = e.touches[0];
     this.startResize(t.clientX, t.clientY, el);
     const onMove = (ev: TouchEvent) => { ev.preventDefault(); this.onResizeMove(ev.touches[0].clientX, ev.touches[0].clientY); };

@@ -9,6 +9,7 @@ import {
 import { CommonModule, DecimalPipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { RichTextEditorComponent } from "../../../core/components/rich-text-editor.component";
 import { ApiService } from "../../../core/services/api.service";
 import { ColorPickerComponent } from "../../../core/components/color-picker.component";
@@ -47,6 +48,29 @@ const FONT_OPTIONS = `
   imports: [CommonModule, DecimalPipe, FormsModule, RouterLink, ColorPickerComponent, RichTextEditorComponent],
   styles: [
     `
+      .preview-phone {
+        position: relative;
+        width: 320px; height: 580px;
+        border: 3px solid #333;
+        border-radius: 32px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 2px #1a1a1a;
+      }
+      .preview-phone-notch {
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 120px; height: 22px;
+        background: #000;
+        border-radius: 0 0 14px 14px;
+        z-index: 2;
+      }
+      .preview-iframe {
+        width: 100%; height: 100%;
+        border: none;
+        border-radius: 28px;
+      }
       .help-box {
         background: rgba(124,92,191,0.1); border: 1px solid rgba(124,92,191,0.3);
         border-radius: 8px; padding: 10px 14px; margin: 8px 0;
@@ -982,15 +1006,16 @@ export class ConfigComponent implements OnInit {
     { key: "styles", label: "Estilos" },
     { key: "envelope", label: "Inicio" },
     { key: "intro", label: "Intro" },
-    { key: "hero", label: "Car\u00e1tula" },
-    { key: "invitation", label: "Invitaci\u00f3n" },
+    { key: "hero", label: "Carátula" },
+    { key: "invitation", label: "Invitación" },
     { key: "details", label: "Detalles" },
     { key: "venues", label: "Eventos" },
     { key: "itinerary", label: "Itinerario" },
-    { key: "gallery", label: "Galer\u00eda" },
+    { key: "gallery", label: "Galería" },
     { key: "dresscode", label: "Vestimenta" },
     { key: "gifts", label: "Regalos" },
     { key: "rsvp", label: "Confirmaciones" },
+    { key: "preview", label: "📱 Preview" },
   ];
 
   scrollTabs(delta: number) {
@@ -1012,6 +1037,26 @@ export class ConfigComponent implements OnInit {
     });
     this.api.getItinerary(this.eventId).subscribe((i) => this.itinerary.set(i));
     this.api.getPhotos(this.eventId).subscribe((p) => this.photos.set(p));
+    this.api.getEvent(this.eventId).subscribe((e) => { this.eventSlug = e.slug; });
+  }
+
+  // === Preview ===
+  private sanitizer = inject(DomSanitizer);
+  eventSlug = '';
+  private previewKey = signal(0);
+
+  getPreviewUrl(): SafeResourceUrl {
+    const k = this.previewKey();
+    const url = window.location.origin + '/invitacion/' + this.eventSlug + (k ? '?_r=' + k : '');
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  getLandingUrl(): string {
+    return window.location.origin + '/invitacion/' + this.eventSlug;
+  }
+
+  refreshPreview() {
+    this.previewKey.set(Date.now());
   }
 
 

@@ -123,6 +123,65 @@ router.delete('/:id', auth, requireRole('root', 'admin'), async (req, res) => {
   }
 });
 
+// Duplicate an event (config + card templates + itinerary + photos)
+router.post('/:id/duplicate', auth, requireRole('root', 'admin'), async (req, res) => {
+  try {
+    const db = getDB();
+    // Get original event
+    const [events] = await db.query('SELECT * FROM events WHERE id = ?', [req.params.id]);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado' });
+    const orig = events[0];
+
+    // Generate unique slug
+    const newSlug = orig.slug + '-copia-' + Date.now().toString(36);
+    const newName = orig.name + ' (copia)';
+
+    // Create new event
+    const [result] = await db.query(
+      'INSERT INTO events (name, event_type, event_date, slug, event_mode, max_capacity) VALUES (?, ?, ?, ?, ?, ?)',
+      [newName, orig.event_type, orig.event_date, newSlug, orig.event_mode, orig.max_capacity]
+    );
+    const newId = result.insertId;
+
+    // Copy event_config
+    const [configs] = await db.query('SELECT config_json FROM event_config WHERE event_id = ?', [req.params.id]);
+    if (configs[0]) {
+      await db.query('INSERT INTO event_config (event_id, config_json) VALUES (?, ?)', [newId, configs[0].config_json]);
+    }
+
+    // Copy card_templates
+    const [cards] = await db.query('SELECT * FROM card_templates WHERE event_id = ?', [req.params.id]);
+    if (cards[0]) {
+      await db.query(
+        'INSERT INTO card_templates (event_id, front_config, back_config, card_width, card_height, pdf_layout) VALUES (?, ?, ?, ?, ?, ?)',
+        [newId, cards[0].front_config, cards[0].back_config, cards[0].card_width, cards[0].card_height, cards[0].pdf_layout]
+      );
+    }
+
+    // Copy itinerary
+    const [itinerary] = await db.query('SELECT * FROM itinerary WHERE event_id = ?', [req.params.id]);
+    for (const item of itinerary) {
+      await db.query(
+        'INSERT INTO itinerary (event_id, icon, icon_type, icon_url, time, title, description, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [newId, item.icon, item.icon_type, item.icon_url, item.time, item.title, item.description, item.sort_order]
+      );
+    }
+
+    // Copy photos
+    const [photos] = await db.query('SELECT * FROM photos WHERE event_id = ?', [req.params.id]);
+    for (const photo of photos) {
+      await db.query(
+        'INSERT INTO photos (event_id, filename, url, sort_order) VALUES (?, ?, ?, ?)',
+        [newId, photo.filename, photo.url, photo.sort_order]
+      );
+    }
+
+    res.status(201).json({ id: newId, slug: newSlug, name: newName });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const LANDING_TEMPLATES = {
   elegante: {
     theme: {

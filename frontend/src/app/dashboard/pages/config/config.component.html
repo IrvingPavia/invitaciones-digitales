@@ -1199,4 +1199,30 @@
 </div>
 }
 
+@if (activeTab === 'preview') {
+<div class="section-card">
+  <div class="section-card-header">
+    <span class="material-icons">phone_iphone</span>
+    <span>Vista previa de la landing</span>
+  </div>
+  <div class="section-card-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;">
+    <p style="font-size:13px;color:rgba(255,255,255,0.6);text-align:center;">
+      Preview en tiempo real de tu invitación. Guarda los cambios primero para verlos reflejados.
+    </p>
+    <div class="preview-phone">
+      <div class="preview-phone-notch"></div>
+      <iframe [src]="getPreviewUrl()" class="preview-iframe" allow="autoplay"></iframe>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="btn btn-secondary btn-sm" (click)="refreshPreview()">
+        <span class="material-icons" style="font-size:16px;">refresh</span> Recargar
+      </button>
+      <a [href]="getLandingUrl()" target="_blank" class="btn btn-primary btn-sm">
+        <span class="material-icons" style="font-size:16px;">open_in_new</span> Abrir en nueva pestaña
+      </a>
+    </div>
+  </div>
+</div>
+}
+
 }

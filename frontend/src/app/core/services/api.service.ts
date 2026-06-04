@@ -15,6 +15,7 @@ export class ApiService {
   createEvent(data: Partial<Event>) { return this.http.post<any>(`${this.api}/events`, data); }
   updateEvent(id: number, data: Partial<Event>) { return this.http.put<any>(`${this.api}/events/${id}`, data); }
   deleteEvent(id: number) { return this.http.delete<any>(`${this.api}/events/${id}`); }
+  duplicateEvent(id: number) { return this.http.post<{ id: number; slug: string; name: string }>(`${this.api}/events/${id}/duplicate`, {}); }
 
   // Guests
   getGuests(eventId: number) { return this.http.get<Guest[]>(`${this.api}/guests/event/${eventId}`); }
