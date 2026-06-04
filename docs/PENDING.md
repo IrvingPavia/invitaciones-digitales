@@ -42,8 +42,9 @@
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.
 - [x] **Border-radius configurable en cards de landing**: Slider 0–24px en todas las secciones. Per-item en Detalles. Global en el resto.
-- [ ] Toggle dark/light mode para el dashboard
-- [ ] Sistema emoji/imagen para venues (como itinerario)
+- [x] **Toggle dark/light mode para el dashboard**: Botón en sidebar, persiste en localStorage, tema light con overrides completos para todos los componentes.
+- [x] **Sistema emoji/imagen para venues**: Selector tipo (sin icono/emoji/imagen) con picker de emojis, igual que itinerario.
+- [x] **Fondo configurable de la landing**: 4 tipos (Color plano, Degradado, Foco central, Difuminado) + 8 texturas (noise, grain, dots, lines, cross, paper, linen, stars) + controles de ángulo, expansión, mezcla, opacidad. Se refleja en todos los previews del dashboard.
 - [ ] Drag & drop para reordenar elementos en la lista de tarjetas
 - [ ] Duplicar elementos en el editor de tarjetas
 - [ ] Undo/Redo en el editor de tarjetas

@@ -83,8 +83,10 @@ body.light-mode .event-actions a, body.light-mode .event-actions button { color:
 
 /* KPIs */
 body.light-mode .kpi-value { color: var(--gold) !important; }
-body.light-mode .kpi-label { color: #666 !important; }
-body.light-mode .kpi-icon { background: rgba(124,92,191,0.08) !important; }
+body.light-mode .kpi-label { color: #555 !important; }
+body.light-mode .kpi-icon { background: rgba(124,92,191,0.08) !important; color: var(--gold) !important; }
+body.light-mode .kpi-card span { color: #555; }
+body.light-mode .kpi-card .material-icons { color: var(--gold) !important; }
 
 /* Forms */
 body.light-mode .form-control, body.light-mode select, body.light-mode textarea,
@@ -130,6 +132,13 @@ body.light-mode .btn-outline:hover { background: rgba(124,92,191,0.06) !importan
 body.light-mode .back-link { color: var(--gold) !important; }
 body.light-mode .venue-card, body.light-mode .itinerary-card { background: #fafafa !important; border-color: #e8e8e8 !important; }
 body.light-mode .venue-header strong { color: #333 !important; }
+body.light-mode .badge, body.light-mode .event-badge { color: #333 !important; }
+body.light-mode .btn-primary { color: #fff !important; }
+body.light-mode .badge-info { background: rgba(23,162,184,0.15) !important; color: #17a2b8 !important; }
+body.light-mode .field-row { align-items: flex-end; }
+body.light-mode [style*="color:rgba(255,255,255"] { color: #555 !important; }
+body.light-mode [style*="color:white"], body.light-mode [style*="color:#fff"] { color: #333 !important; }
+body.light-mode [style*="background:rgba(255,255,255,0.05)"] { background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important; }
 body.light-mode ::-webkit-scrollbar-track { background: #f0f0f0; }
 body.light-mode .help-box { background: rgba(124,92,191,0.05); border-color: rgba(124,92,191,0.2); color: #555; }
 body.light-mode .help-box strong { color: #333; }
@@ -144,24 +153,44 @@ body.light-mode .start-tpl-card { border-color: #e0e0e8; }
 body.light-mode .start-tpl-name { color: #555; background: #fafafa; }
 body.light-mode .mobile-menu-btn { color: #555; background: #ffffff; border-color: #e0e0e8; }
 body.light-mode .sidebar-toggle { color: #555; background: #ffffff; border-color: #e0e0e8; }
+
+/* Cards editor panel */
+body.light-mode .panel { color: #333; }
+body.light-mode .panel-section { background: #fafafa !important; border-color: #e0e0e8 !important; }
+body.light-mode .panel-header { color: #333 !important; border-bottom-color: #eee !important; }
+body.light-mode .panel-body { color: #333; }
+body.light-mode .panel-body label, body.light-mode .prop-field label { color: #555 !important; }
+body.light-mode .prop-field input, body.light-mode .prop-field select { background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important; }
+body.light-mode .el-list-item { color: #555 !important; }
+body.light-mode .el-list-item.active { color: var(--gold) !important; background: rgba(124,92,191,0.06) !important; }
+body.light-mode .el-list-item .material-icons { color: #888; }
+body.light-mode .add-el-btn { background: #f0f0f5 !important; border-color: #ddd !important; color: #555 !important; }
+body.light-mode .add-el-btn:hover { background: #e8e8f0 !important; border-color: var(--gold) !important; color: var(--gold) !important; }
+body.light-mode .card-preview-area { background: rgba(0,0,0,0.05) !important; }
+body.light-mode .card-preview-area p { color: #888 !important; }
 body.light-mode select option { background: #ffffff; color: #333; }
 
 /* Time picker */
 body.light-mode .time-inputs { color: #333; }
 body.light-mode .time-val { color: #333 !important; }
 body.light-mode .time-sep { color: #333 !important; }
-body.light-mode .time-field { color: #333 !important; }
+body.light-mode .time-field { color: #333 !important; background: #f8f8fc !important; border: 1px solid #ddd !important; border-radius: 8px !important; }
 body.light-mode .time-field button { color: var(--gold) !important; }
-body.light-mode .time-ampm button { background: #f0f0f5 !important; color: #555 !important; border-color: #ddd !important; }
-body.light-mode .time-ampm button.active { background: var(--gold) !important; color: #fff !important; }
-body.light-mode .countdown-picker { background: #f8f8fc; border-color: #e0e0e8; }
+body.light-mode .time-ampm button { background: #f0f0f5 !important; color: #555 !important; border: 1px solid #ddd !important; }
+body.light-mode .time-ampm button.active { background: var(--gold) !important; color: #fff !important; border-color: var(--gold) !important; }
+body.light-mode .countdown-picker { background: #f8f8fc !important; border: 1px solid #e0e0e8 !important; }
+body.light-mode .countdown-grid { color: #333; }
 body.light-mode .picker-preview { background: rgba(124,92,191,0.06) !important; color: #555 !important; }
 body.light-mode .picker-label { color: #555 !important; }
 body.light-mode .picker-input { background: #fff !important; color: #333 !important; border-color: #ddd !important; }
 
+/* Toggle pill in light mode — subtle outline without changing size */
+body.light-mode .toggle-pill-dot { box-shadow: 0 0 0 1px #ccc; }
+body.light-mode .toggle-pill-dot.active { box-shadow: 0 0 0 1px var(--gold); }
+
 /* Previews — should NOT be affected by light mode (they show landing colors) */
 body.light-mode .preview-card .section-card-body {
-  background: #0d1117 !important;
+  background: none;
   border-radius: 0 0 12px 12px;
 }
 body.light-mode .preview-card .section-card-body * { color: inherit; }
@@ -175,7 +204,7 @@ body.light-mode .btn-remove-file:first-of-type { color: var(--gold) !important; 
 body.light-mode .btn-danger, body.light-mode .btn.btn-danger { background: #dc3545 !important; color: #fff !important; }
 
 /* Icon type buttons — fix wrapping */
-body.light-mode .icon-type-btn { white-space: nowrap; font-size: 11px !important; padding: 6px 8px !important; }
+body.light-mode .icon-type-btn { white-space: nowrap; }
 
 /* Emoji trigger */
 body.light-mode .emoji-trigger { color: #333 !important; }

@@ -74,6 +74,14 @@ export interface ThemeConfig {
   buttonBg: string;
   buttonText: string;
   buttonFont?: string;
+  // Landing background
+  landingBgColor1?: string;
+  landingBgColor2?: string;
+  landingBgType?: 'solid' | 'linear' | 'radial' | 'mesh';
+  landingBgAngle?: number;
+  landingBgIntensity?: number;
+  landingBgTexture?: 'none' | 'noise' | 'grain' | 'dots' | 'lines' | 'cross' | 'paper' | 'linen' | 'stars';
+  landingBgTextureOpacity?: number;
 }
 
 export interface GlobalTextStyles {

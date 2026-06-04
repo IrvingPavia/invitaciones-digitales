@@ -68,6 +68,42 @@ const FONT_OPTIONS = `
         background: rgba(255,255,255,0.02);
       }
       .video-trimmer { padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+      .landing-bg-preview {
+        height: 80px; border-radius: 8px; margin-top: 8px; position: relative; overflow: hidden;
+        border: 1px solid rgba(124,92,191,0.2);
+      }
+      .landing-bg-texture-overlay {
+        position: absolute; inset: 0; pointer-events: none;
+      }
+      .landing-bg-texture-overlay[data-texture="noise"] {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      }
+      .landing-bg-texture-overlay[data-texture="grain"] {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+      }
+      .landing-bg-texture-overlay[data-texture="dots"] {
+        background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+        background-size: 8px 8px;
+      }
+      .landing-bg-texture-overlay[data-texture="lines"] {
+        background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 5px);
+      }
+      .landing-bg-texture-overlay[data-texture="cross"] {
+        background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px),
+                          repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px);
+      }
+      .landing-bg-texture-overlay[data-texture="paper"] {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+      }
+      .landing-bg-texture-overlay[data-texture="linen"] {
+        background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px),
+                          repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px);
+      }
+      .landing-bg-texture-overlay[data-texture="stars"] {
+        background-image: radial-gradient(circle, rgba(255,255,255,0.8) 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+      }
       .trimmer-container { position: relative; }
       .trimmer-track {
         position: relative; height: 32px; background: rgba(255,255,255,0.1);
@@ -676,7 +712,7 @@ export class ConfigComponent implements OnInit {
   itinerary = signal<ItineraryItem[]>([]);
   photos = signal<any[]>([]);
   saving = signal(false);
-  activeTab = "styles";
+  activeTab = "theme";
   @ViewChild("tabsEl") tabsEl!: ElementRef<HTMLElement>;
   savedItems: Record<number, boolean> = {};
   emojiPickerOpen: number | null = null;
@@ -699,6 +735,27 @@ export class ConfigComponent implements OnInit {
   ensureEnvelopeTemplate() {
     if (!this.config()?.envelope?.template) {
       this.config()!.envelope.template = 'envelope';
+    }
+  }
+
+  getLandingBgPreview(): string {
+    const c = this.config()!;
+    const color1 = c.theme.landingBgColor1 || '#0d1117';
+    const color2 = c.theme.landingBgColor2 || '#1a1a2e';
+    const type = c.theme.landingBgType || 'solid';
+    const angle = c.theme.landingBgAngle || 135;
+    const intensity = c.theme.landingBgIntensity || 50;
+
+    switch (type) {
+      case 'solid': return color1;
+      case 'linear': return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+      case 'radial': return `radial-gradient(ellipse ${intensity}% ${intensity}% at center, ${color2}, ${color1})`;
+      case 'mesh': {
+        const s1 = Math.max(0, 50 - intensity / 2);
+        const s2 = Math.min(100, 50 + intensity / 2);
+        return `linear-gradient(${angle}deg, ${color1} ${s1}%, ${color2} ${s2}%)`;
+      }
+      default: return color1;
     }
   }
 
@@ -921,8 +978,8 @@ export class ConfigComponent implements OnInit {
   }
 
   tabs = [
-    { key: "styles", label: "Estilos" },
     { key: "theme", label: "Tema" },
+    { key: "styles", label: "Estilos" },
     { key: "envelope", label: "Inicio" },
     { key: "intro", label: "Intro" },
     { key: "hero", label: "Car\u00e1tula" },

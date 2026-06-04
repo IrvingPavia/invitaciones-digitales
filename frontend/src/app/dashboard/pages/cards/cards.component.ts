@@ -233,7 +233,7 @@ interface CardSide {
           </div>
           <div class="prop-row">
             <div class="prop-field">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;" (click)="pdfLayout.showCutMarks = !pdfLayout.showCutMarks">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;width:fit-content;" (click)="pdfLayout.showCutMarks = !pdfLayout.showCutMarks">
                 <input type="checkbox" [checked]="pdfLayout.showCutMarks"> Marcas de corte
               </label>
             </div>

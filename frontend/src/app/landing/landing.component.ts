@@ -70,7 +70,10 @@ import { LandingRegisterComponent } from './sections/register/register.component
     @if (data() && !loading()) {
       <!-- Fixed background: solid color always, media fades in after intro AND after preload -->
       @if (data()!.config.hero?.backgroundGif) {
-        <div class="landing-bg-solid"></div>
+        <div class="landing-bg-solid" [style.background]="getLandingBg()"></div>
+        @if (data()!.config.theme?.landingBgTexture && data()!.config.theme?.landingBgTexture !== 'none') {
+          <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme!.landingBgTexture" [style.opacity]="(data()!.config.theme!.landingBgTextureOpacity || 5) / 100"></div>
+        }
         @if (isVideoBackground()) {
           <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
         } @else {
@@ -161,7 +164,40 @@ import { LandingRegisterComponent } from './sections/register/register.component
     :host { display: block; overscroll-behavior-y: contain; }
     .landing-bg-solid {
       position: fixed; inset: -10vh -5vw; z-index: -3;
-      background: #0d1117;
+      background: var(--landing-bg, #0d1117);
+    }
+    .landing-bg-texture {
+      position: fixed; inset: -10vh -5vw; z-index: -3;
+      pointer-events: none;
+    }
+    .landing-bg-texture[data-texture="noise"] {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .landing-bg-texture[data-texture="grain"] {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+    .landing-bg-texture[data-texture="dots"] {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+      background-size: 8px 8px;
+    }
+    .landing-bg-texture[data-texture="lines"] {
+      background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 5px);
+    }
+    .landing-bg-texture[data-texture="cross"] {
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px),
+                        repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px);
+    }
+    .landing-bg-texture[data-texture="paper"] {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+    }
+    .landing-bg-texture[data-texture="linen"] {
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px),
+                        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px);
+    }
+    .landing-bg-texture[data-texture="stars"] {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.8) 0.5px, transparent 0.5px);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
     }
     .landing-bg {
       position: fixed; z-index: -2;
@@ -286,6 +322,28 @@ export class LandingComponent implements OnInit, OnDestroy {
     const url = this.data()?.config.hero?.backgroundGif || '';
     const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
     return ['mp4', 'webm', 'ogg'].includes(ext);
+  }
+
+  getLandingBg(): string {
+    const theme = this.data()?.config.theme;
+    if (!theme) return '#0d1117';
+    const color1 = theme.landingBgColor1 || '#0d1117';
+    const color2 = theme.landingBgColor2 || '#1a1a2e';
+    const type = theme.landingBgType || 'solid';
+    const angle = theme.landingBgAngle || 135;
+    const intensity = theme.landingBgIntensity || 50;
+
+    switch (type) {
+      case 'solid': return color1;
+      case 'linear': return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+      case 'radial': return `radial-gradient(ellipse ${intensity}% ${intensity}% at center, ${color2}, ${color1})`;
+      case 'mesh': {
+        const s1 = Math.max(0, 50 - intensity / 2);
+        const s2 = Math.min(100, 50 + intensity / 2);
+        return `linear-gradient(${angle}deg, ${color1} ${s1}%, ${color2} ${s2}%)`;
+      }
+      default: return color1;
+    }
   }
 
   onBgLoaded() {

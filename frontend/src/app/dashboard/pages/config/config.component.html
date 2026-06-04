@@ -85,7 +85,7 @@
 <!-- Preview unificado -->
 <div class="section-card preview-card">
   <div class="section-card-header"><span>Vista previa</span></div>
-  <div class="section-card-body" style="text-align:center;padding:32px 24px;">
+  <div class="section-card-body" style="text-align:center;padding:32px 24px;" [style.background]="getLandingBgPreview()">
     <p [style.fontFamily]="getFontPreview(c.globalStyles.sectionHeadingStyle.fontFamily)" [style.fontSize.px]="c.globalStyles.sectionHeadingStyle.fontSize" [style.color]="c.globalStyles.sectionHeadingStyle.color" style="margin-bottom:12px;">Encabezado de Sección</p>
     <div [style.background]="getSeparatorPreviewBg()" [style.height]="getSeparatorHeight()" style="width:50%;margin:12px auto;border-radius:2px;"></div>
     <span [style.fontFamily]="getFontPreview(c.globalStyles.titleStyle.fontFamily)" [style.fontSize.px]="c.globalStyles.titleStyle.fontSize" [style.fontWeight]="c.globalStyles.titleStyle.fontWeight" [style.backgroundImage]="getTitleGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;margin:12px 0;line-height:1.4;padding:0.1em 0.2em;">Título con Degradado</span>
@@ -165,10 +165,74 @@
     </div>
   </div>
 </div>
+<!-- Landing Background -->
+<div class="section-card">
+  <div class="section-card-header"><span>Fondo de la Landing</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Color de fondo cuando no hay imagen/video configurado como fondo.</p>
+    <div class="field mb-12">
+      <label class="form-label">Tipo de fondo</label>
+      <div class="flex gap-12">
+        <button class="icon-type-btn" [class.active]="(c.theme.landingBgType || 'solid') === 'solid'" (click)="c.theme.landingBgType = 'solid'">Color plano</button>
+        <button class="icon-type-btn" [class.active]="c.theme.landingBgType === 'linear'" (click)="c.theme.landingBgType = 'linear'; c.theme.landingBgAngle = c.theme.landingBgAngle || 135">Degradado</button>
+        <button class="icon-type-btn" [class.active]="c.theme.landingBgType === 'radial'" (click)="c.theme.landingBgType = 'radial'">Foco central</button>
+        <button class="icon-type-btn" [class.active]="c.theme.landingBgType === 'mesh'" (click)="c.theme.landingBgType = 'mesh'">Difuminado</button>
+      </div>
+    </div>
+    <div class="field-row mb-12">
+      <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.theme.landingBgColor1 || '#0d1117'" (valueChange)="c.theme.landingBgColor1 = $event"></app-color-picker></div>
+      @if (c.theme.landingBgType && c.theme.landingBgType !== 'solid') {
+        <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.theme.landingBgColor2 || '#1a1a2e'" (valueChange)="c.theme.landingBgColor2 = $event"></app-color-picker></div>
+      }
+    </div>
+    @if (c.theme.landingBgType === 'linear') {
+      <div class="field-row mb-12">
+        <div class="field" style="max-width:250px;"><label class="form-label">Ángulo: {{ c.theme.landingBgAngle ?? 135 }}°</label><input type="range" min="1" max="360" [ngModel]="c.theme.landingBgAngle ?? 135" (ngModelChange)="c.theme.landingBgAngle = $event" [ngModelOptions]="{standalone: true}"></div>
+      </div>
+    }
+    @if (c.theme.landingBgType === 'radial') {
+      <div class="field-row mb-12">
+        <div class="field" style="max-width:250px;"><label class="form-label">Expansión: {{ c.theme.landingBgIntensity ?? 50 }}%</label><input type="range" min="10" max="100" [ngModel]="c.theme.landingBgIntensity ?? 50" (ngModelChange)="c.theme.landingBgIntensity = $event" [ngModelOptions]="{standalone: true}"></div>
+      </div>
+      <p class="style-desc mb-12">10% = concentrado al centro, 100% = expandido a los bordes.</p>
+    }
+    @if (c.theme.landingBgType === 'mesh') {
+      <div class="field-row mb-12">
+        <div class="field" style="max-width:250px;"><label class="form-label">Ángulo: {{ c.theme.landingBgAngle ?? 135 }}°</label><input type="range" min="1" max="360" [ngModel]="c.theme.landingBgAngle ?? 135" (ngModelChange)="c.theme.landingBgAngle = $event" [ngModelOptions]="{standalone: true}"></div>
+        <div class="field" style="max-width:250px;"><label class="form-label">Mezcla: {{ c.theme.landingBgIntensity ?? 50 }}%</label><input type="range" min="0" max="100" [ngModel]="c.theme.landingBgIntensity ?? 50" (ngModelChange)="c.theme.landingBgIntensity = $event" [ngModelOptions]="{standalone: true}"></div>
+      </div>
+      <p class="style-desc mb-12">Mezcla ambos colores de forma orgánica y suave por toda la pantalla.</p>
+    }
+    <div class="field mb-12">
+      <label class="form-label">Textura</label>
+      <select [(ngModel)]="c.theme.landingBgTexture" [ngModelOptions]="{standalone: true}" style="max-width:200px;">
+        <option value="none">Ninguna</option>
+        <option value="noise">Noise (ruido digital)</option>
+        <option value="grain">Grain (grano de película)</option>
+        <option value="dots">Dots (puntos)</option>
+        <option value="lines">Lines (líneas diagonales)</option>
+        <option value="cross">Cross (trama cruzada)</option>
+        <option value="paper">Paper (papel)</option>
+        <option value="linen">Linen (tela)</option>
+        <option value="stars">Stars (estrellas)</option>
+      </select>
+    </div>
+    @if (c.theme.landingBgTexture && c.theme.landingBgTexture !== 'none') {
+      <div class="field mb-12">
+        <label class="form-label">Opacidad textura: {{ (c.theme.landingBgTextureOpacity || 5) }}%</label>
+        <input type="range" min="1" max="20" [(ngModel)]="c.theme.landingBgTextureOpacity" [ngModelOptions]="{standalone: true}" style="max-width:200px;">
+      </div>
+    }
+  </div>
+</div>
+
 <!-- Preview -->
 <div class="section-card preview-card">
   <div class="section-card-header"><span>Vista previa</span></div>
-  <div class="section-card-body" style="padding:24px;">
+  <div class="section-card-body" style="padding:24px;position:relative;overflow:hidden;" [style.background]="getLandingBgPreview()">
+    @if (c.theme.landingBgTexture && c.theme.landingBgTexture !== 'none') {
+      <div class="landing-bg-texture-overlay" [attr.data-texture]="c.theme.landingBgTexture" [style.opacity]="(c.theme.landingBgTextureOpacity || 5) / 100"></div>
+    }
     <div style="border-radius:12px;padding:20px;" [style.background]="c.theme.cardBg" [style.border]="'1px solid ' + c.theme.cardBorder">
       <p [style.color]="c.theme.textPrimary" [style.fontFamily]="getFontPreview(c.theme.textPrimaryFont)" style="font-size:16px;margin-bottom:8px;font-weight:600;">Título de ejemplo</p>
       <p [style.color]="c.theme.textSecondary" [style.fontFamily]="getFontPreview(c.theme.textSecondaryFont)" style="font-size:14px;margin-bottom:12px;">Texto secundario dentro de una card.</p>
@@ -512,7 +576,7 @@
       <div class="field slider-field"><label class="form-label">Grosor: {{ c.hero.eventDescriptionStyle.fontWeight }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.hero.eventDescriptionStyle.fontWeight"></div>
     </div>
     <!-- Preview -->
-    <div style="margin-top:16px;text-align:center;padding:16px;background:rgba(0,0,0,0.2);border-radius:8px;">
+    <div style="margin-top:16px;text-align:center;padding:16px;border-radius:8px;" [style.background]="getLandingBgPreview()">
       <span [style.fontFamily]="getFontPreview(c.hero.eventDescriptionStyle.fontFamily)" [style.fontSize.px]="c.hero.eventDescriptionStyle.fontSize" [style.fontWeight]="c.hero.eventDescriptionStyle.fontWeight" [style.backgroundImage]="getEventDescGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;letter-spacing:4px;text-transform:uppercase;">{{ c.hero.eventDescription || 'Descripción' }}</span>
     </div>
   </div>
@@ -540,7 +604,7 @@
       <div class="field slider-field"><label class="form-label">Grosor: {{ c.hero.celebrantNamesStyle.fontWeight || 400 }}</label><input type="range" min="100" max="900" step="100" [(ngModel)]="c.hero.celebrantNamesStyle.fontWeight"></div>
     </div>
     <!-- Preview nombres -->
-    <div style="margin-top:16px;text-align:center;padding:16px;background:rgba(0,0,0,0.2);border-radius:8px;">
+    <div style="margin-top:16px;text-align:center;padding:16px;border-radius:8px;" [style.background]="getLandingBgPreview()">
       <span [style.fontFamily]="getFontPreview(c.hero.celebrantNamesStyle.fontFamily)" [style.fontSize.px]="c.hero.celebrantNamesStyle.fontSize > 60 ? 48 : c.hero.celebrantNamesStyle.fontSize" [style.fontWeight]="c.hero.celebrantNamesStyle.fontWeight" [style.backgroundImage]="getCelebrantGradient()" style="-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;line-height:1.4;padding:0.1em 0.2em;">{{ c.hero.celebrantNames || 'Nombre' }}</span>
     </div>
   </div>
@@ -717,7 +781,7 @@
       </div>
       }
       <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="card.title"></div>
-      <div class="field mb-12"><label class="form-label">Contenido</label><app-rich-text-editor [(ngModel)]="card.content" [contentStyles]="{minHeight:'120px',color: c.globalStyles.contentStyle.color || 'white',fontSize: (c.globalStyles.contentStyle.fontSize || 14) + 'px', fontFamily: getFontPreview(c.globalStyles.contentStyle.fontFamily), background: c.theme.cardBg || 'rgba(0,0,0,0.45)', borderRadius:'0 0 8px 8px'}" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor></div>
+      <div class="field mb-12"><label class="form-label">Contenido</label><app-rich-text-editor [(ngModel)]="card.content" [contentStyles]="{minHeight:'120px',color: c.globalStyles.contentStyle.color || 'white',fontSize: (c.globalStyles.contentStyle.fontSize || 14) + 'px', fontFamily: getFontPreview(c.globalStyles.contentStyle.fontFamily), background: getLandingBgPreview(), borderRadius:'0 0 8px 8px'}" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor></div>
     </div>
     }
     <button class="btn btn-outline" (click)="addDetailCard()">+ Agregar tarjeta</button>
