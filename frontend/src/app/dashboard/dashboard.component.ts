@@ -98,7 +98,8 @@ import { ApiService } from '../core/services/api.service';
       height: 32px; object-fit: contain;
     }
     .sidebar-footer {
-      padding: 16px; border-top: 1px solid rgba(124,92,191,0.2);
+      padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(124,92,191,0.2);
       display: flex; flex-direction: column; gap: 12px;
     }
     .sidebar-user {

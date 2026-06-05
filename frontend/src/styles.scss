@@ -237,6 +237,7 @@ body {
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   background: #0e0e18;
   overflow-x: hidden;
   width: 100%;
@@ -250,6 +251,7 @@ body {
   flex-direction: column;
   position: fixed;
   height: 100vh;
+  height: 100dvh;
   z-index: 100;
   transition: var(--transition);
 
@@ -304,6 +306,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   transition: var(--transition);
   max-width: 100vw;
   overflow-x: hidden;
