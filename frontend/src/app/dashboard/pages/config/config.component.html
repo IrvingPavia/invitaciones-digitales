@@ -654,12 +654,13 @@
       <div class="picker-preview"><span class="material-icons">event</span> {{ countdownPreview }}</div>
     </div>
     <div class="flex gap-12" style="margin-top:12px;">
-      <label class="toggle-pill" (click)="c.hero.countdownShowCardBg = c.hero.countdownShowCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.hero.countdownShowCardBg !== false"></div>
-        <span>Fondo</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.hero.countdownShowCardBg !== false" (change)="c.hero.countdownShowCardBg = c.hero.countdownShowCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.hero.countdownCardBorderRadius ?? 12 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.hero.countdownCardBorderRadius ?? 12 }}px</label>
         <input type="range" [(ngModel)]="c.hero.countdownCardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
@@ -716,12 +717,13 @@
   <div class="section-card-body">
     <p class="style-desc mb-12">Los estilos de fuente se configuran en la pestaña "Estilos"</p>
     <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.invitation.showCardBg = c.invitation.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.invitation.showCardBg !== false"></div>
-        <span>Fondo de tarjeta</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.invitation.showCardBg !== false" (change)="c.invitation.showCardBg = c.invitation.showCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.invitation.cardBorderRadius ?? 16 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.invitation.cardBorderRadius ?? 16 }}px</label>
         <input type="range" [(ngModel)]="c.invitation.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
@@ -743,12 +745,13 @@
     <div class="venue-card">
       <div class="venue-header"><strong>Tarjeta {{ i + 1 }}</strong><button class="btn btn-sm btn-danger" (click)="removeDetailCard(i)">Eliminar</button></div>
       <div class="flex gap-12 mb-12">
-        <label class="toggle-pill" style="font-size:11px;" (click)="card.showCardBg = card.showCardBg !== false ? false : true">
-          <div class="toggle-pill-dot" [class.active]="card.showCardBg !== false" style="width:28px;height:16px;"></div>
-          <span>Fondo</span>
+        <label class="toggle-switch" style="gap:6px;transform:scale(0.85);">
+          <input type="checkbox" [checked]="card.showCardBg !== false" (change)="card.showCardBg = card.showCardBg !== false ? false : true">
+          <span class="toggle"></span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.5)">Fondo</span>
         </label>
         <div style="display:flex;align-items:center;gap:6px;">
-          <label style="margin:0;white-space:nowrap;font-size:11px;color:rgba(255,255,255,0.5);">Radio: {{ card.cardBorderRadius ?? 16 }}px</label>
+          <label style="margin:0;white-space:nowrap;font-size:11px;color:rgba(255,255,255,0.5);">Esquinas: {{ card.cardBorderRadius ?? 16 }}px</label>
           <input type="range" [(ngModel)]="card.cardBorderRadius" min="0" max="24" style="width:80px;" [ngModelOptions]="{standalone: true}">
         </div>
       </div>
@@ -796,28 +799,27 @@
     <label class="toggle-pill" (click)="c.venues.enabled = !c.venues.enabled"><span class="toggle-pill-dot" [class.active]="c.venues.enabled"></span>{{ c.venues.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
-    <div class="field mb-16">
-      <label class="form-label">Estilo de icono</label>
-      <div class="flex gap-12">
-        <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'none'" (click)="c.venues.iconStyle = 'none'"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
-        <button class="icon-type-btn" [class.active]="(c.venues.iconStyle || 'circle') === 'circle'" (click)="c.venues.iconStyle = 'circle'"><span class="material-icons" style="font-size:16px">radio_button_unchecked</span> Con contorno</button>
-        <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'plain'" (click)="c.venues.iconStyle = 'plain'"><span class="material-icons" style="font-size:16px">image</span> Sin contorno</button>
-      </div>
-    </div>
-    <div class="flex gap-12 mb-16">
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.venues.cardBorderRadius ?? 16 }}px</label>
-        <input type="range" [(ngModel)]="c.venues.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
-      </div>
-    </div>
     @for (venue of c.venues.items; track venue.id; let i = $index) {
     <div class="venue-card">
       <div class="venue-header"><strong>{{ venue.title || 'Evento ' + (i+1) }}</strong><button class="btn btn-sm btn-danger" (click)="removeVenue(i)">Eliminar</button></div>
-      <div class="flex gap-12 mb-12">
-        <label class="toggle-pill" style="font-size:11px;" (click)="venue.showCardBg = venue.showCardBg !== false ? false : true">
-          <div class="toggle-pill-dot" [class.active]="venue.showCardBg !== false" style="width:28px;height:16px;"></div>
-          <span>Fondo</span>
+      <div class="flex gap-12 mb-12" style="flex-wrap:wrap;">
+        <label class="toggle-switch" style="gap:6px;transform:scale(0.85);">
+          <input type="checkbox" [checked]="venue.showCardBg !== false" (change)="venue.showCardBg = venue.showCardBg !== false ? false : true">
+          <span class="toggle"></span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.5)">Fondo</span>
         </label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label style="margin:0;white-space:nowrap;font-size:11px;color:rgba(255,255,255,0.5);">Esquinas: {{ c.venues.cardBorderRadius ?? 16 }}px</label>
+          <input type="range" [(ngModel)]="c.venues.cardBorderRadius" min="0" max="24" style="width:80px;" [ngModelOptions]="{standalone: true}">
+        </div>
+      </div>
+      <div class="field mb-12">
+        <label class="form-label" style="font-size:11px;">Estilo de icono</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'none'" (click)="c.venues.iconStyle = 'none'" style="font-size:11px;padding:6px 10px;"><span class="material-icons" style="font-size:14px">visibility_off</span> Sin icono</button>
+          <button class="icon-type-btn" [class.active]="(c.venues.iconStyle || 'circle') === 'circle'" (click)="c.venues.iconStyle = 'circle'" style="font-size:11px;padding:6px 10px;"><span class="material-icons" style="font-size:14px">radio_button_unchecked</span> Con contorno</button>
+          <button class="icon-type-btn" [class.active]="c.venues.iconStyle === 'plain'" (click)="c.venues.iconStyle = 'plain'" style="font-size:11px;padding:6px 10px;"><span class="material-icons" style="font-size:14px">image</span> Sin contorno</button>
+        </div>
       </div>
       <div class="field-row mb-12">
         <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="venue.title" placeholder="Ej: Ceremonia"></div>
@@ -881,12 +883,13 @@
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">Título de sección</label><input class="form-control" [(ngModel)]="c.itinerary.title"></div>
     <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.itinerary.showCardBg = c.itinerary.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.itinerary.showCardBg !== false"></div>
-        <span>Fondo de tarjetas</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.itinerary.showCardBg !== false" (change)="c.itinerary.showCardBg = c.itinerary.showCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.itinerary.cardBorderRadius ?? 12 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.itinerary.cardBorderRadius ?? 12 }}px</label>
         <input type="range" [(ngModel)]="c.itinerary.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
@@ -991,12 +994,13 @@
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.dresscode.title"></div>
     <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.dresscode.showCardBg = c.dresscode.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.dresscode.showCardBg !== false"></div>
-        <span>Fondo de tarjeta</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.dresscode.showCardBg !== false" (change)="c.dresscode.showCardBg = c.dresscode.showCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.dresscode.cardBorderRadius ?? 16 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.dresscode.cardBorderRadius ?? 16 }}px</label>
         <input type="range" [(ngModel)]="c.dresscode.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
@@ -1040,12 +1044,13 @@
   </div>
   <div class="section-card-body">
     <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.gifts.showCardBg = c.gifts.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.gifts.showCardBg !== false"></div>
-        <span>Fondo de tarjeta</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.gifts.showCardBg !== false" (change)="c.gifts.showCardBg = c.gifts.showCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.gifts.cardBorderRadius ?? 16 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.gifts.cardBorderRadius ?? 16 }}px</label>
         <input type="range" [(ngModel)]="c.gifts.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
@@ -1093,12 +1098,13 @@
   @if (c.gifts.transfer.enabled) {
   <div class="section-card-body">
     <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.gifts.transfer.showCardBg = c.gifts.transfer.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.gifts.transfer.showCardBg !== false"></div>
-        <span>Fondo de tarjeta</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.gifts.transfer.showCardBg !== false" (change)="c.gifts.transfer.showCardBg = c.gifts.transfer.showCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.gifts.transfer.cardBorderRadius ?? 16 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.gifts.transfer.cardBorderRadius ?? 16 }}px</label>
         <input type="range" [(ngModel)]="c.gifts.transfer.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>
@@ -1153,12 +1159,13 @@
   <div class="section-card-body">
     <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.rsvp.title"></div>
     <div class="flex gap-12 mb-16">
-      <label class="toggle-pill" (click)="c.rsvp.showCardBg = c.rsvp.showCardBg !== false ? false : true">
-        <div class="toggle-pill-dot" [class.active]="c.rsvp.showCardBg !== false"></div>
-        <span>Fondo de tarjeta</span>
+      <label class="toggle-switch" style="gap:8px;">
+        <input type="checkbox" [checked]="c.rsvp.showCardBg !== false" (change)="c.rsvp.showCardBg = c.rsvp.showCardBg !== false ? false : true">
+        <span class="toggle"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
       </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:200px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Radio: {{ c.rsvp.cardBorderRadius ?? 20 }}px</label>
+      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
+        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.rsvp.cardBorderRadius ?? 20 }}px</label>
         <input type="range" [(ngModel)]="c.rsvp.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
       </div>
     </div>

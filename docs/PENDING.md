@@ -14,7 +14,7 @@
 - [x] Fondo mobile: verificar fix de scroll en dispositivo real
     > Fix aplicado: `overscroll-behavior-y: contain` en `:host` del landing + bg extendido ±5vh. ✅ Verificado.
 - [ ] **Config responsive mobile**: Botones `.icon-type-btn` se cortan en pantallas angostas en algunas secciones.
-- [ ] **Toggles y labels inconsistentes**: El toggle "Fondo" y slider "Radio" en secciones de config (Venues, Itinerario, Detalles, etc.) tienen: bolita desalineada, leyenda confusa ("Radio: 16px" → debería ser "Redondeo de esquinas"), tamaño de toggle diferente al estándar, y label inconsistente entre secciones ("Fondo" vs "Fondo de tarjeta"). Requiere homologar en todas las secciones.
+- [x] **Toggles y labels homologados**: Todos los toggles "Fondo" usan `.toggle-switch` estándar, slider renombrado de "Radio" a "Esquinas", labels unificadas "Mostrar fondo" en todas las secciones. Opciones de venues (estilo icono + esquinas + fondo) movidas dentro de cada card individual.
 ## Features pendientes
 
 ### Alta prioridad
