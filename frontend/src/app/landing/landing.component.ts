@@ -418,6 +418,14 @@ export class LandingComponent implements OnInit, OnDestroy {
         } else {
           this.bgLoaded = true;
         }
+        // Preload intro media (video/gif) while user sees envelope/splash
+        if (d.config.intro?.enabled && d.config.intro?.background) {
+          this.preloadMedia(d.config.intro.background);
+        }
+        // Preload hero background ahead of time
+        if (d.config.hero?.backgroundGif) {
+          this.preloadMedia(d.config.hero.backgroundGif);
+        }
         if (code) {
           this.api.getGuestByCode(this.slug, code).subscribe({
             next: (g) => this.guest.set(g),
@@ -433,6 +441,24 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.scrollbarStyle?.remove();
     // Restore default favicon and title when leaving landing
     this.restoreFavicon();
+  }
+
+  /** Preload a media URL (image/gif/video) in background for faster display later */
+  private preloadMedia(url: string) {
+    if (!url) return;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'ogg'].includes(ext)) {
+      // Video: create hidden video element to buffer
+      const video = document.createElement('video');
+      video.preload = 'auto';
+      video.muted = true;
+      video.src = url;
+      video.load();
+    } else {
+      // Image/GIF: preload with Image object
+      const img = new Image();
+      img.src = url;
+    }
   }
 
   private applyScrollbarColor(color: string) {
