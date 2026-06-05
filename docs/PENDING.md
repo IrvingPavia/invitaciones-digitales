@@ -157,6 +157,7 @@
 - [x] **Dropdowns de fuente vacíos**: inicializados con `''` en ensureDefaults → muestran "Hereda" por defecto
 - [x] **Campos de formulario de registro rediseñados**: Nuevo UX de agregar/eliminar dinámicamente. Campo "Nombre" fijo, resto como cards con icono + etiqueta editable + badge obligatorio/opcional clickeable + botón eliminar. Botón "+ Agregar campo" con form inline (etiqueta, tipo, obligatorio).
 - [x] **Botones de acción en dashboard centrados**: actions-bar centrada + botones más prominentes (padding mayor, font-weight 600)
+- [x] **Fix sidebar iOS**: barra de navegación del navegador tapaba los botones inferiores del sidebar. Solución: `100dvh` + `env(safe-area-inset-bottom)` + `viewport-fit=cover` en meta viewport
 
 ### 2025-06-01
 - [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown
