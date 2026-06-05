@@ -1179,21 +1179,55 @@
 <div class="section-card">
   <div class="section-card-header"><span>Campos del formulario de registro</span></div>
   <div class="section-card-body">
-    <p class="style-desc mb-12">Configura qué información solicitar a los asistentes en eventos abiertos. El nombre siempre es obligatorio.</p>
-    @for (field of getRegistrationFields(); track field.key) {
-      <div class="field-row mb-12" style="align-items:center;">
-        <label class="toggle-pill" style="min-width:44px;" (click)="field.key !== 'name' && (field.enabled = !field.enabled)">
-          <div class="toggle-pill-dot" [class.active]="field.enabled" [style.opacity]="field.key === 'name' ? 0.5 : 1"></div>
-        </label>
-        <div class="field" style="flex:1;"><input class="form-control" [(ngModel)]="field.label" [disabled]="!field.enabled"></div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <label class="toggle-pill" style="font-size:11px;" (click)="field.key !== 'name' && (field.required = !field.required)">
-            <span style="opacity:0.6">{{ field.required ? 'Obligatorio' : 'Opcional' }}</span>
-            <div class="toggle-pill-dot" [class.active]="field.required" style="width:28px;height:16px;" [style.opacity]="field.key === 'name' ? 0.5 : 1"></div>
-          </label>
+    <p class="style-desc mb-12">Define qué información solicitar al registrarse. El nombre siempre es obligatorio.</p>
+
+    <!-- Active fields list -->
+    <div class="reg-fields-grid">
+      @for (field of getActiveRegistrationFields(); track field.key; let i = $index) {
+        <div class="reg-field-card">
+          <!-- Icon by type -->
+          <span class="material-icons reg-type-icon">{{ field.type === 'email' ? 'email' : field.type === 'phone' ? 'phone' : 'person' }}</span>
+          <!-- Label editable -->
+          <input class="reg-label-input" [(ngModel)]="field.label" placeholder="Etiqueta">
+          <!-- Required badge -->
+          <span class="reg-req-badge" [class.required]="field.required" (click)="field.key !== 'name' && (field.required = !field.required)">
+            {{ field.required ? 'Obligatorio' : 'Opcional' }}
+          </span>
+          <!-- Remove button (not for 'name') -->
+          @if (field.key !== 'name') {
+            <button class="reg-remove-btn" (click)="removeRegistrationField(i)" title="Eliminar">
+              <span class="material-icons">close</span>
+            </button>
+          } @else {
+            <div style="width:28px"></div>
+          }
         </div>
-        <span class="badge badge-info" style="font-size:11px;">{{ field.type }}</span>
+      }
+    </div>
+
+    <!-- Add field form -->
+    @if (showAddField) {
+      <div class="reg-add-form">
+        <input class="form-control reg-add-input" [(ngModel)]="newField.label" placeholder="Etiqueta del campo (ej: Empresa)">
+        <select class="reg-add-select" [(ngModel)]="newField.type">
+          <option value="text">Texto</option>
+          <option value="email">Email</option>
+          <option value="phone">Teléfono</option>
+        </select>
+        <button class="reg-req-badge" [class.required]="newField.required" (click)="newField.required = !newField.required">
+          {{ newField.required ? 'Obligatorio' : 'Opcional' }}
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="addRegistrationField()" [disabled]="!newField.label.trim()">
+          <span class="material-icons">check</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="showAddField = false">
+          <span class="material-icons">close</span>
+        </button>
       </div>
+    } @else {
+      <button class="btn btn-outline btn-sm" style="margin-top:12px;" (click)="showAddField = true">
+        <span class="material-icons">add</span> Agregar campo
+      </button>
     }
   </div>
 </div>

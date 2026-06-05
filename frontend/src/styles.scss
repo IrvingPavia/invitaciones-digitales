@@ -981,3 +981,66 @@ textarea {
   color: white;
   &.ql-blank::before { color: rgba(255,255,255,0.3) !important; font-style: normal !important; }
 }
+
+/* ===== CONFIG PAGE MOBILE RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .section-card-body .flex { flex-wrap: wrap; }
+  .field-row { flex-wrap: wrap; }
+  .section-card-body { padding: 14px; }
+  .icon-type-btn { white-space: nowrap; font-size: 11px; padding: 6px 10px; }
+}
+
+/* ===== REGISTRATION FIELD ROW ===== */
+.reg-fields-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.reg-field-card {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(124,92,191,0.15);
+  border-radius: 10px; padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+.reg-field-card:hover { border-color: rgba(124,92,191,0.3); }
+.reg-type-icon { font-size: 18px; color: var(--gold-light); opacity: 0.7; flex-shrink: 0; }
+.reg-label-input {
+  flex: 1; min-width: 0; height: 34px; font-size: 13px; font-weight: 500;
+  background: transparent; border: none; outline: none; color: var(--white);
+  font-family: var(--font-sans);
+  border-bottom: 1px solid transparent; transition: border-color 0.2s; padding: 0 4px;
+}
+.reg-label-input:focus { border-bottom-color: var(--gold); }
+.reg-req-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; border: none;
+  background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5);
+}
+.reg-req-badge.required {
+  background: rgba(124,92,191,0.2); color: var(--gold-light);
+  border: 1px solid rgba(124,92,191,0.3);
+}
+.reg-req-badge:hover { opacity: 0.8; }
+.reg-remove-btn {
+  background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.25);
+  padding: 4px; border-radius: 6px; display: flex; align-items: center; transition: all 0.2s; flex-shrink: 0;
+  .material-icons { font-size: 16px; }
+  &:hover { color: #ff6b7a; background: rgba(220,53,69,0.1); }
+}
+/* Add form */
+.reg-add-form {
+  display: flex; align-items: center; gap: 8px; margin-top: 10px;
+  background: rgba(124,92,191,0.05); border: 1px solid rgba(124,92,191,0.2);
+  border-radius: 10px; padding: 10px 14px; flex-wrap: wrap;
+}
+.reg-add-input { flex: 1; min-width: 140px; height: 34px; font-size: 13px; }
+.reg-add-select { height: 34px; font-size: 12px; padding: 4px 8px; min-width: 100px; }
+
+@media (max-width: 520px) {
+  .reg-add-form { flex-wrap: wrap; }
+  .reg-add-input { min-width: 100%; }
+}
+
+body.light-mode .reg-field-card { background: #fafafa; border-color: #e0e0e8; }
+body.light-mode .reg-field-card:hover { border-color: rgba(124,92,191,0.3); }
+body.light-mode .reg-label-input { color: #333; }
+body.light-mode .reg-req-badge { background: rgba(0,0,0,0.05); color: #888; }
+body.light-mode .reg-req-badge.required { background: rgba(124,92,191,0.08); color: var(--gold); }
+body.light-mode .reg-add-form { background: rgba(124,92,191,0.03); border-color: #e0e0e8; }

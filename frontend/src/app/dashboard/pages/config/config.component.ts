@@ -613,8 +613,7 @@ const FONT_OPTIONS = `
         white-space: nowrap;
         &.active { background: rgba(124,92,191,0.15); border-color: var(--gold); color: var(--gold); }
         &:hover:not(.active) { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
-      }
-      .emoji-trigger {
+      }      .emoji-trigger {
         display: flex; align-items: center; gap: 10px;
         background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
         border-radius: 10px; padding: 10px 16px; cursor: pointer;
@@ -623,6 +622,7 @@ const FONT_OPTIONS = `
       }
       .emoji-trigger-icon { font-size: 24px; }
       .emoji-trigger-text { flex: 1; font-size: 13px; color: rgba(255,255,255,0.5); text-align: left; }
+
       .emoji-dropdown {
         position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
         background: #1a1a2e; border: 1px solid rgba(124,92,191,0.3);
@@ -1468,10 +1468,15 @@ export class ConfigComponent implements OnInit {
         cardBg: 'rgba(255,255,255,0.05)',
         cardBorder: 'rgba(212,160,23,0.3)',
         textPrimary: '#ffffff',
+        textPrimaryFont: '',
         textSecondary: 'rgba(255,255,255,0.7)',
+        textSecondaryFont: '',
         navFooterText: '#d4a017',
+        navFooterFont: '',
         buttonBg: '#d4a017',
         buttonText: '#1a1a2e',
+        buttonFont: '',
+        landingBgTexture: 'none',
         ...(cfg?.theme || {}),
       },
       globalStyles: {
@@ -1649,13 +1654,37 @@ export class ConfigComponent implements OnInit {
     if (!c.rsvp.registrationFields || c.rsvp.registrationFields.length === 0) {
       c.rsvp.registrationFields = [
         { key: 'name', label: 'Nombre completo', type: 'text', enabled: true, required: true },
-        { key: 'email', label: 'Email', type: 'email', enabled: true, required: false },
-        { key: 'phone', label: 'Teléfono', type: 'phone', enabled: true, required: false },
-        { key: 'company', label: 'Empresa', type: 'text', enabled: false, required: false },
-        { key: 'position', label: 'Cargo', type: 'text', enabled: false, required: false },
       ];
     }
     return c.rsvp.registrationFields;
+  }
+
+  // Returns only enabled fields (active = in list)
+  getActiveRegistrationFields(): any[] {
+    const fields = this.getRegistrationFields();
+    return fields.filter(f => f.enabled);
+  }
+
+  // Add/remove field UI state
+  showAddField = false;
+  newField = { label: '', type: 'text', required: false };
+
+  addRegistrationField() {
+    if (!this.newField.label.trim()) return;
+    const fields = this.getRegistrationFields();
+    const key = 'custom_' + Date.now();
+    fields.push({ key, label: this.newField.label.trim(), type: this.newField.type, enabled: true, required: this.newField.required });
+    this.newField = { label: '', type: 'text', required: false };
+    this.showAddField = false;
+  }
+
+  removeRegistrationField(index: number) {
+    const fields = this.getRegistrationFields();
+    const enabledFields = fields.filter(f => f.enabled);
+    const field = enabledFields[index];
+    if (!field || field.key === 'name') return;
+    // Mark as disabled (remove from active view)
+    field.enabled = false;
   }
 
   // Landing templates

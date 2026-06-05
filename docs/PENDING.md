@@ -13,7 +13,7 @@
     > Fix aplicado: el gif de fondo ahora hace fade-in (1.2s) solo después de que sobre+intro terminan. Fondo sólido oscuro como fallback.
 - [ ] Fondo mobile: verificar fix de scroll en dispositivo real
     > Fix aplicado: `overscroll-behavior-y: contain` en `:host` del landing + bg extendido ±5vh.
-
+- [ ] **Config responsive mobile**: Dropdowns de fuente/textura vacíos cuando no tienen valor (necesitan opción default "Hereda"/"Ninguna"). Botones `.icon-type-btn` se cortan en pantallas angostas (necesitan flex-wrap). Campos de registro de formulario se desordenan en mobile.
 ## Features pendientes
 
 ### Alta prioridad
@@ -147,6 +147,16 @@
 - [x] **Rate limiting en login**: 5 intentos por IP cada 15 min (express-rate-limit)
 - [x] **Compresión de imágenes**: sharp en backend, resize max 1920px + JPEG quality 80% al subir
 - [x] **Preview de landing en iframe**: Nueva pestaña "📱 Preview" en config con mockup celular (320×580px), iframe con landing real, botón recargar
+- [x] **Carrusel drag continuo (iPhone-style)**: Cards se mueven 1:1 con el cursor al arrastrar. Al soltar hace snap a la card más cercana con momentum. Cursor grab/grabbing. Sin selección de texto.
+- [x] Fix dialog "Duplicar evento": botón de confirmación ahora dice "Duplicar" en vez de "Eliminar"
+- [x] Fix duplicar evento: error `Unknown column 'card_width'` resuelto (solo copia front/back_config)
+- [x] Fix slug de copia: ahora genera `-copia-01`, `-copia-02` secuencial en vez de timestamp base36
+- [x] **Botones de acciones mobile dashboard**: En mobile se oculta la barra de texto y aparecen iconos integrados debajo del carrusel (backdrop blur, borde redondeado)
+- [x] Reflejo del carrusel visible en mobile: stage height 300px + padding-top para dejar espacio al reflejo
+- [x] **Config responsive mobile**: botones icon-type-btn con flex-wrap, campos de registro rediseñados
+- [x] **Dropdowns de fuente vacíos**: inicializados con `''` en ensureDefaults → muestran "Hereda" por defecto
+- [x] **Campos de formulario de registro rediseñados**: Nuevo UX de agregar/eliminar dinámicamente. Campo "Nombre" fijo, resto como cards con icono + etiqueta editable + badge obligatorio/opcional clickeable + botón eliminar. Botón "+ Agregar campo" con form inline (etiqueta, tipo, obligatorio).
+- [x] **Botones de acción en dashboard centrados**: actions-bar centrada + botones más prominentes (padding mayor, font-weight 600)
 
 ### 2025-06-01
 - [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown
