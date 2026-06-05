@@ -12,7 +12,7 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - Sobre animado con sello (pre-intro)
 - Intro con partículas configurables (6 tipos, dirección, colores, opacidad)
 - Hero con countdown, nombres con degradado (ocultables), descripción opcional, audio
-- Secciones: Invitación, Detalles, Lugares, Itinerario, Galería, Vestimenta, Regalos, RSVP/Registro
+- Secciones: Invitación, Detalles, Lugares, Itinerario, Galería (8 estilos: Carrusel 3D, Vertical 3D, Coverflow, Stack, Flip, Polaroid, Grid, Slideshow), Vestimenta, Regalos, RSVP/Registro
 - Tema global configurable (colores, fuentes, 15 tipografías)
 - 5 templates de landing predefinidos (Elegante, Moderno, Romántico, Festivo, Corporativo)
 - Menú de navegación dinámico (solo muestra secciones habilitadas)

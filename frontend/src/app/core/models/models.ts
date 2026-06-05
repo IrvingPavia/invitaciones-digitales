@@ -272,6 +272,7 @@ export interface GalleryConfig {
   enabled: boolean;
   title: string;
   description: string;
+  displayStyle?: 'carousel-3d' | 'carousel-vertical' | 'stack' | 'coverflow' | 'flip' | 'polaroid' | 'grid' | 'slideshow';
 }
 
 export interface SectionIconConfig {

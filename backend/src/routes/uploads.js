@@ -63,17 +63,8 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
 
-      // Compress gallery photos
-      const ext = path.extname(file.filename).toLowerCase();
-      if (/\.(jpg|jpeg|png|webp)$/.test(ext)) {
-        try {
-          const buffer = await sharp(file.path)
-            .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 80 })
-            .toBuffer();
-          await fs.promises.writeFile(file.path, buffer);
-        } catch (e) { /* keep original if compression fails */ }
-      }
+      // Gallery photos: NO compression (preserve original quality for professional photos)
+      // Only general uploads (/uploads/:type) get compressed
 
       const url = `/uploads/images/${file.filename}`;
       const [r] = await conn.query(

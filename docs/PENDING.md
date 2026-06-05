@@ -9,11 +9,12 @@
 
 ## Bugs por verificar en dispositivo móvil físico
 
-- [ ] Sobre → Intro: verificar que no hay flash de fondo entre sobre e intro en mobile real
-    > Fix aplicado: el gif de fondo ahora hace fade-in (1.2s) solo después de que sobre+intro terminan. Fondo sólido oscuro como fallback.
-- [ ] Fondo mobile: verificar fix de scroll en dispositivo real
-    > Fix aplicado: `overscroll-behavior-y: contain` en `:host` del landing + bg extendido ±5vh.
-- [ ] **Config responsive mobile**: Dropdowns de fuente/textura vacíos cuando no tienen valor (necesitan opción default "Hereda"/"Ninguna"). Botones `.icon-type-btn` se cortan en pantallas angostas (necesitan flex-wrap). Campos de registro de formulario se desordenan en mobile.
+- [x] Sobre → Intro: verificar que no hay flash de fondo entre sobre e intro en mobile real
+    > Fix aplicado: el gif de fondo ahora hace fade-in (1.2s) solo después de que sobre+intro terminan. Fondo sólido oscuro como fallback. ✅ Verificado en iPhone.
+- [x] Fondo mobile: verificar fix de scroll en dispositivo real
+    > Fix aplicado: `overscroll-behavior-y: contain` en `:host` del landing + bg extendido ±5vh. ✅ Verificado.
+- [ ] **Config responsive mobile**: Botones `.icon-type-btn` se cortan en pantallas angostas en algunas secciones.
+- [ ] **Toggles y labels inconsistentes**: El toggle "Fondo" y slider "Radio" en secciones de config (Venues, Itinerario, Detalles, etc.) tienen: bolita desalineada, leyenda confusa ("Radio: 16px" → debería ser "Redondeo de esquinas"), tamaño de toggle diferente al estándar, y label inconsistente entre secciones ("Fondo" vs "Fondo de tarjeta"). Requiere homologar en todas las secciones.
 ## Features pendientes
 
 ### Alta prioridad
@@ -158,6 +159,11 @@
 - [x] **Campos de formulario de registro rediseñados**: Nuevo UX de agregar/eliminar dinámicamente. Campo "Nombre" fijo, resto como cards con icono + etiqueta editable + badge obligatorio/opcional clickeable + botón eliminar. Botón "+ Agregar campo" con form inline (etiqueta, tipo, obligatorio).
 - [x] **Botones de acción en dashboard centrados**: actions-bar centrada + botones más prominentes (padding mayor, font-weight 600)
 - [x] **Fix sidebar iOS**: barra de navegación del navegador tapaba los botones inferiores del sidebar. Solución: `100dvh` + `env(safe-area-inset-bottom)` + `viewport-fit=cover` en meta viewport
+- [x] **Preload media en landing**: al cargar datos del evento, precarga inmediata del video de intro + GIF/imagen del hero mientras el usuario ve la pantalla de inicio. Verificado en iPhone — carga instantánea.
+- [x] **Galería rediseñada con 8 estilos**: Carrusel 3D horizontal, Carrusel 3D vertical, Coverflow, Stack/Abanico, Flip/Album, Polaroid, Mosaico, Slideshow. Selector tipo dropdown en config. Drag continuo en mobile con detección de dirección (no interfiere scroll). Slideshow con flechas estilo chevron sin fondo.
+- [x] **Lightbox mejorado**: fondo negro sólido, foto más grande (95vw × 75vh), botón cerrar visible debajo de la foto, pinch-to-zoom en mobile.
+- [x] **No selección de texto en landing**: `user-select: none` global en la landing para prevenir selección accidental en botones/textos que dispara búsqueda en mobile.
+- [x] **Fotos galería sin compresión**: las fotos de galería se suben en calidad original (sharp solo comprime uploads generales). Specs de resolución mostradas en el config.
 
 ### 2025-06-01
 - [x] Fondo de tarjetas individual: toggle per-item en Detalles y Venues, global en Invitación, Itinerario, Vestimenta, Regalos, Confirmación, Countdown

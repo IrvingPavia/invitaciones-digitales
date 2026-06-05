@@ -950,9 +950,26 @@
   <div class="section-card-body">
     <div class="field-row mb-16">
       <div class="field"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.gallery.title"></div>
-      <div class="field"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="c.gallery.description"></div>
     </div>
-    <div class="field mb-16"><label class="form-label">Subir fotos</label><input type="file" accept="image/*" multiple (change)="uploadPhotos($event)"></div>
+    <div class="field mb-16"><label class="form-label">Descripción</label><input class="form-control" [(ngModel)]="c.gallery.description" placeholder="Breve descripción de la galería"></div>
+    <div class="field mb-16">
+      <label class="form-label">Estilo de galería</label>
+      <select class="form-control" [(ngModel)]="c.gallery.displayStyle" style="max-width:300px;">
+        <option value="carousel-3d">🎠 Carrusel 3D Horizontal</option>
+        <option value="carousel-vertical">📐 Carrusel 3D Vertical</option>
+        <option value="coverflow">💿 Coverflow</option>
+        <option value="stack">🃏 Stack / Abanico</option>
+        <option value="flip">📖 Flip / Album</option>
+        <option value="polaroid">📸 Polaroid</option>
+        <option value="grid">⊞ Mosaico</option>
+        <option value="slideshow">▶ Slideshow</option>
+      </select>
+    </div>
+    <div class="field mb-16">
+      <label class="form-label">Subir fotos (máx. 20 fotos, 10MB c/u)</label>
+      <input type="file" accept="image/*" multiple (change)="uploadPhotos($event)">
+      <p class="style-desc" style="margin-top:6px;">Resolución recomendada: 1080×1350px (vertical) o 1920×1080px (horizontal). Formatos: JPG, PNG, WebP. Las fotos de galería se suben en calidad original sin compresión.</p>
+    </div>
     <div class="photo-grid">
       @for (photo of photos(); track photo.id) {
       <div class="photo-item">

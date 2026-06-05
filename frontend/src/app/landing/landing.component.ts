@@ -161,7 +161,7 @@ import { LandingRegisterComponent } from './sections/register/register.component
     }
   `,
   styles: [`
-    :host { display: block; overscroll-behavior-y: contain; }
+    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; }
     .landing-bg-solid {
       position: fixed; inset: -10vh -5vw; z-index: -3;
       background: var(--landing-bg, #0d1117);
