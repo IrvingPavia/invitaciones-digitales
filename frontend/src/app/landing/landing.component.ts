@@ -40,12 +40,14 @@ import { LandingDresscodeComponent } from './sections/dresscode/dresscode.compon
 import { LandingGiftsComponent } from './sections/gifts/gifts.component';
 import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
 import { LandingRegisterComponent } from './sections/register/register.component';
+import { SectionDividerComponent } from './components/section-divider.component';
+import { SectionStyle } from '../core/models/models';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
   imports: [
-    CommonModule, ScrollRevealDirective,
+    CommonModule, ScrollRevealDirective, SectionDividerComponent,
     LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
     LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent, LandingRegisterComponent
@@ -101,47 +103,116 @@ import { LandingRegisterComponent } from './sections/register/register.component
         <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
         <!-- Sections -->
-        <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-          <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" />
+        <div class="section-block" [style]="getSectionBg(data()!.config.invitation.sectionStyle)" [style.padding-top.px]="data()!.config.invitation.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.invitation.sectionStyle?.paddingBottom ?? 80">
+          @if (data()!.config.invitation.sectionStyle?.dividerType && data()!.config.invitation.sectionStyle?.dividerType !== 'none') {
+            <app-section-divider [type]="data()!.config.invitation.sectionStyle!.dividerType" [color]="data()!.config.invitation.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.invitation.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.invitation.sectionStyle!.dividerFlip || false" />
+          }
+          @if (data()!.config.invitation.sectionStyle?.bgImage && data()!.config.invitation.sectionStyle?.bgType === 'image') {
+            <div class="section-bg-overlay" [style.opacity]="(data()!.config.invitation.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+          }
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+            <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" />
+          </div>
         </div>
         @if (data()!.config.details.enabled && data()!.config.details.cards.length > 0) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.details.sectionStyle)" [style.padding-top.px]="data()!.config.details.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.details.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.details.sectionStyle?.dividerType && data()!.config.details.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.details.sectionStyle!.dividerType" [color]="data()!.config.details.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.details.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.details.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.details.sectionStyle?.bgImage && data()!.config.details.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.details.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (data()!.config.venues.enabled && data()!.config.venues.items.length > 0) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.venues.sectionStyle)" [style.padding-top.px]="data()!.config.venues.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.venues.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.venues.sectionStyle?.dividerType && data()!.config.venues.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.venues.sectionStyle!.dividerType" [color]="data()!.config.venues.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.venues.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.venues.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.venues.sectionStyle?.bgImage && data()!.config.venues.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.venues.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (data()!.config.itinerary.enabled) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-itinerary [config]="data()!.config.itinerary" [items]="data()!.itinerary" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.itinerary.sectionStyle)" [style.padding-top.px]="data()!.config.itinerary.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.itinerary.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.itinerary.sectionStyle?.dividerType && data()!.config.itinerary.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.itinerary.sectionStyle!.dividerType" [color]="data()!.config.itinerary.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.itinerary.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.itinerary.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.itinerary.sectionStyle?.bgImage && data()!.config.itinerary.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.itinerary.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-itinerary [config]="data()!.config.itinerary" [items]="data()!.itinerary" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (data()!.config.gallery.enabled) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-gallery [config]="data()!.config.gallery" [photos]="data()!.photos" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.gallery.sectionStyle)" [style.padding-top.px]="data()!.config.gallery.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gallery.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.gallery.sectionStyle?.dividerType && data()!.config.gallery.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.gallery.sectionStyle!.dividerType" [color]="data()!.config.gallery.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.gallery.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gallery.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.gallery.sectionStyle?.bgImage && data()!.config.gallery.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.gallery.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-gallery [config]="data()!.config.gallery" [photos]="data()!.photos" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (data()!.config.dresscode.enabled) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.dresscode.sectionStyle)" [style.padding-top.px]="data()!.config.dresscode.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.dresscode.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.dresscode.sectionStyle?.dividerType && data()!.config.dresscode.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="data()!.config.dresscode.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.dresscode.sectionStyle?.bgImage && data()!.config.dresscode.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.dresscode.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (data()!.config.gifts.enabled) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-gifts [config]="data()!.config.gifts" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.gifts.sectionStyle)" [style.padding-top.px]="data()!.config.gifts.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gifts.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.gifts.sectionStyle?.dividerType && data()!.config.gifts.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.gifts.sectionStyle!.dividerType" [color]="data()!.config.gifts.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.gifts.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gifts.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.gifts.sectionStyle?.bgImage && data()!.config.gifts.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.gifts.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-gifts [config]="data()!.config.gifts" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (data()!.config.rsvp.enabled && guest()) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="data()!.config.rsvp.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" />
+            }
+            @if (data()!.config.rsvp.sectionStyle?.bgImage && data()!.config.rsvp.sectionStyle?.bgType === 'image') {
+              <div class="section-bg-overlay" [style.opacity]="(data()!.config.rsvp.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
         @if (isOpenEvent() && !guest()) {
-          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
-            <app-landing-register [config]="data()!.config.rsvp" [slug]="slug" [styles]="data()!.config.globalStyles" />
+          <div class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
+            @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
+              <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="data()!.config.rsvp.sectionStyle!.dividerColor || getLandingBg()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" />
+            }
+            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
+              <app-landing-register [config]="data()!.config.rsvp" [slug]="slug" [styles]="data()!.config.globalStyles" />
+            </div>
           </div>
         }
 
@@ -251,6 +322,17 @@ import { LandingRegisterComponent } from './sections/register/register.component
       position: relative;
       overflow-x: hidden;
     }
+    .section-block {
+      position: relative;
+      margin-left: -20px;
+      margin-right: -20px;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .section-bg-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.5); pointer-events: none;
+    }
+    .section-inner { position: relative; z-index: 1; }
     .landing-footer {
       text-align: center;
       padding: 40px 20px 96px;
@@ -511,5 +593,21 @@ export class LandingComponent implements OnInit, OnDestroy {
       'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key] || 'inherit';
+  }
+
+  getSectionBg(style?: SectionStyle): string {
+    if (!style || style.bgType === 'inherit') return '';
+    switch (style.bgType) {
+      case 'solid':
+        return `background: ${style.bgColor1 || '#ffffff'}`;
+      case 'linear':
+        return `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'}, ${style.bgColor2 || '#f0f0f0'})`;
+      case 'radial':
+        return `background: radial-gradient(ellipse at center, ${style.bgColor2 || '#f0f0f0'}, ${style.bgColor1 || '#ffffff'})`;
+      case 'image':
+        return `background: url(${style.bgImage}) center/cover no-repeat`;
+      default:
+        return '';
+    }
   }
 }

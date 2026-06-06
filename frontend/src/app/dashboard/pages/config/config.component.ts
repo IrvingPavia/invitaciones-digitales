@@ -21,6 +21,7 @@ import {
   GlobalTextStyles,
   ThemeConfig,
   SectionIconConfig,
+  SectionStyle,
   IntroParticlesConfig,
   EnvelopeConfig,
 } from "../../../core/models/models";
@@ -1303,6 +1304,33 @@ export class ConfigComponent implements OnInit {
   }
   removeDresscodeImage(card: any, index: number) {
     card.images.splice(index, 1);
+  }
+
+  // Section Style helpers
+  ensureSectionStyle(section: any): any {
+    if (!section.sectionStyle) {
+      section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
+    }
+    return section.sectionStyle;
+  }
+  toggleSectionStyle(section: any) {
+    if (section.sectionStyle && section.sectionStyle.bgType !== 'inherit') {
+      section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
+    } else {
+      section.sectionStyle = { bgType: 'solid', bgColor1: '#ffffff', dividerType: 'none', dividerHeight: 50 };
+    }
+  }
+  hasSectionStyle(section: any): boolean {
+    return section.sectionStyle && section.sectionStyle.bgType !== 'inherit';
+  }
+  uploadSectionBgImage(event: any, section: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    this.api.uploadFile('images', file).subscribe((r) => {
+      this.ensureSectionStyle(section);
+      section.sectionStyle.bgImage = r.url;
+      section.sectionStyle.bgType = 'image';
+    });
   }
 
   // Itinerary

@@ -86,6 +86,27 @@ export interface ThemeConfig {
   scrollAnimation?: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
 }
 
+export interface SectionStyle {
+  // Background
+  bgType: 'inherit' | 'solid' | 'linear' | 'radial' | 'image';
+  bgColor1?: string;
+  bgColor2?: string;
+  bgAngle?: number;
+  bgImage?: string;
+  bgOverlay?: number;
+  // Divider
+  dividerType: 'none' | 'wave' | 'curve' | 'slant' | 'zigzag' | 'mountains' | 'drops' | 'arrow';
+  dividerColor?: string;
+  dividerFlip?: boolean;
+  dividerHeight?: number;
+  // Text override
+  headingColor?: string;
+  contentColor?: string;
+  // Spacing
+  paddingTop?: number;
+  paddingBottom?: number;
+}
+
 export interface GlobalTextStyles {
   titleStyle: DetailTextStyle;
   subtitleStyle: DetailTextStyle;
@@ -197,6 +218,7 @@ export interface InvitationConfig {
   subtitle: string;
   showCardBg?: boolean;
   cardBorderRadius?: number;
+  sectionStyle?: SectionStyle;
 }
 
 export interface DetailsConfig {
@@ -205,6 +227,7 @@ export interface DetailsConfig {
   showCardBg?: boolean;
   cardBorderRadius?: number;
   cards: DetailCard[];
+  sectionStyle?: SectionStyle;
 }
 
 export interface DetailTextStyle {
@@ -235,6 +258,7 @@ export interface VenuesConfig {
   showCardBg?: boolean;
   cardBorderRadius?: number;
   items: VenueItem[];
+  sectionStyle?: SectionStyle;
 }
 
 export interface VenueItem {
@@ -256,6 +280,7 @@ export interface ItineraryConfig {
   showCardBg?: boolean;
   cardBorderRadius?: number;
   items: ItineraryItem[];
+  sectionStyle?: SectionStyle;
 }
 
 export interface ItineraryItem {
@@ -275,6 +300,7 @@ export interface GalleryConfig {
   title: string;
   description: string;
   displayStyle?: 'carousel-3d' | 'carousel-vertical' | 'stack' | 'coverflow' | 'flip' | 'polaroid' | 'grid' | 'slideshow';
+  sectionStyle?: SectionStyle;
 }
 
 export interface SectionIconConfig {
@@ -300,6 +326,7 @@ export interface DresscodeConfig {
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   cards?: DresscodeCard[];
+  sectionStyle?: SectionStyle;
 }
 
 export interface GiftsConfig {
@@ -312,6 +339,7 @@ export interface GiftsConfig {
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   transfer: TransferConfig;
+  sectionStyle?: SectionStyle;
 }
 
 export interface TransferConfig {
@@ -335,6 +363,7 @@ export interface RsvpConfig {
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   registrationFields?: RegistrationFieldConfig[];
+  sectionStyle?: SectionStyle;
 }
 
 export interface RegistrationFieldConfig {
