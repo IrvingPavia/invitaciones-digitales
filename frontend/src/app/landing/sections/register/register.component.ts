@@ -24,7 +24,7 @@ interface CountryCode {
               [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
               [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
               [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-          >{{ config?.title || 'Registro' }}</h2>
+          >{{ config.title || 'Registro' }}</h2>
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
 
@@ -246,7 +246,7 @@ export class LandingRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
-    const configured = this.config?.registrationFields;
+    const configured = this.config.registrationFields;
     this.fields.set(configured && configured.length > 0 ? configured : this.defaultFields);
 
     this.api.getRegistrationStatus(this.slug).subscribe({

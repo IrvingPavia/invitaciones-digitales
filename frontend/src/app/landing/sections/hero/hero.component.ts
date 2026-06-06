@@ -40,9 +40,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
     <section id="hero" class="hero-section">
       <div class="hero-content">
         <p class="hero-event-type animate-in" style="animation-delay:0.2s"
-           [style.font-family]="getFontFamily(config.eventDescriptionStyle?.fontFamily)"
-           [style.font-size.px]="config.eventDescriptionStyle?.fontSize || 22"
-           [style.font-weight]="config.eventDescriptionStyle?.fontWeight || 400"
+           [style.font-family]="getFontFamily(config.eventDescriptionStyle.fontFamily)"
+           [style.font-size.px]="config.eventDescriptionStyle.fontSize || 22"
+           [style.font-weight]="config.eventDescriptionStyle.fontWeight || 400"
            [style.background]="getEventDescGradient()"
            [style.-webkit-background-clip]="'text'"
            [style.background-clip]="'text'"
@@ -50,9 +50,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
         >{{ config.eventDescription }}</p>
         @if (config.showCelebrantNames !== false && config.celebrantNames) {
         <h1 class="hero-names animate-in" style="animation-delay:0.5s"
-            [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
-            [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
-            [style.font-weight]="config.celebrantNamesStyle?.fontWeight || 400"
+            [style.font-family]="getFontFamily(config.celebrantNamesStyle.fontFamily)"
+            [style.font-size.px]="config.celebrantNamesStyle.fontSize || 80"
+            [style.font-weight]="config.celebrantNamesStyle.fontWeight || 400"
             [style.background]="getGradient()"
             [style.-webkit-background-clip]="'text'"
             [style.background-clip]="'text'"
@@ -66,9 +66,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
 
         @if (config.heroPhrase) {
           <p class="hero-phrase animate-in" style="animation-delay:0.65s"
-             [style.font-family]="getFontFamily(config.heroPhraseStyle?.fontFamily)"
-             [style.font-size.px]="config.heroPhraseStyle?.fontSize || 16"
-             [style.color]="config.heroPhraseStyle?.color || '#ffffff'"
+             [style.font-family]="getFontFamily(config.heroPhraseStyle.fontFamily)"
+             [style.font-size.px]="config.heroPhraseStyle.fontSize || 16"
+             [style.color]="config.heroPhraseStyle.color || '#ffffff'"
           >{{ config.heroPhrase }}</p>
         }
 

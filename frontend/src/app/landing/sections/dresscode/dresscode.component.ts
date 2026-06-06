@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/models/models';
+import { DresscodeConfig, DresscodeCard, GlobalTextStyles, SectionIconConfig } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-dresscode',
@@ -18,22 +18,64 @@ import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../c
           >{{ config.title }}</h2>
           <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
         </div>
-        <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
-          @if (getIcon(); as icon) {
-            @if (icon.type === 'material') {
-              <span class="material-icons dresscode-icon">{{ icon.value }}</span>
-            } @else if (icon.type === 'emoji') {
-              <span class="dresscode-icon emoji">{{ icon.value }}</span>
-            } @else {
-              <img [src]="icon.value" class="dresscode-icon-img" alt="">
+
+        <!-- Legacy: main dresscode card with icon + description (shown only if no example cards exist) -->
+        @if ((!config.cards || config.cards.length === 0) && (config.description || getIcon())) {
+          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+            @if (getIcon(); as icon) {
+              @if (icon.type === 'material') {
+                <span class="material-icons dresscode-icon">{{ icon.value }}</span>
+              } @else if (icon.type === 'emoji') {
+                <span class="dresscode-icon emoji">{{ icon.value }}</span>
+              } @else {
+                <img [src]="icon.value" class="dresscode-icon-img" alt="">
+              }
             }
-          }
-          <p class="dresscode-desc"
-             [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
-             [style.font-size.px]="styles?.contentStyle?.fontSize || 16"
-             [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.8)'"
-          >{{ config.description }}</p>
-        </div>
+            @if (config.description) {
+              <p class="dresscode-desc"
+                 [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
+                 [style.font-size.px]="styles?.contentStyle?.fontSize || 16"
+                 [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.8)'"
+              >{{ config.description }}</p>
+            }
+          </div>
+        }
+
+        <!-- Example cards with images -->
+        @if (config.cards && config.cards.length > 0) {
+          <div class="dresscode-examples">
+            @for (card of config.cards; track card.id) {
+              <div class="example-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
+                @if (card.images && card.images.length > 0) {
+                  <div class="example-images" [class.single]="card.images.length === 1">
+                    @for (img of card.images; track img) {
+                      <div class="example-img-wrapper">
+                        <img [src]="img" [alt]="card.title">
+                      </div>
+                    }
+                  </div>
+                }
+                @if (card.title) {
+                  <h3 class="example-title"
+                      [style.font-family]="getFontFamily(styles?.titleStyle?.fontFamily)"
+                      [style.font-size.px]="(styles?.titleStyle?.fontSize || 18)"
+                      [style.font-weight]="styles?.titleStyle?.fontWeight || 400"
+                      [style.background-image]="getTitleGradient()"
+                      [class.gradient-text]="!!styles?.titleStyle?.color2"
+                      [style.color]="!styles?.titleStyle?.color2 ? (styles?.titleStyle?.color || '#d4a017') : null"
+                  >{{ card.title }}</h3>
+                }
+                @if (card.description) {
+                  <p class="example-desc"
+                     [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
+                     [style.font-size.px]="styles?.contentStyle?.fontSize || 14"
+                     [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.8)'"
+                  >{{ card.description }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
       </div>
     </section>
   `,
@@ -52,6 +94,44 @@ import { DresscodeConfig, GlobalTextStyles, SectionIconConfig } from '../../../c
     .dresscode-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
     .dresscode-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .dresscode-desc { color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.8; white-space: pre-line; }
+
+    /* Example cards */
+    .dresscode-examples {
+      display: flex; flex-direction: column; gap: 20px; margin-top: 24px;
+    }
+    .example-card {
+      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      border-radius: 16px; padding: 24px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      &:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(212,160,23,0.1); }
+      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
+    }
+    .example-images {
+      display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .example-images.single {
+      .example-img-wrapper { max-width: 180px; }
+    }
+    .example-img-wrapper {
+      width: 120px; height: 160px; border-radius: 12px; overflow: hidden;
+      flex-shrink: 0;
+      img {
+        width: 100%; height: 100%; object-fit: cover;
+        transition: transform 0.3s;
+      }
+      &:hover img { transform: scale(1.05); }
+    }
+    .example-title {
+      font-family: var(--font-serif); font-size: 18px;
+      color: var(--gold); margin-bottom: 8px; line-height: 1.4; padding: 0.1em 0;
+    }
+    .example-title.gradient-text {
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; display: inline-block;
+    }
+    .example-desc {
+      color: rgba(255,255,255,0.8); font-size: 14px; line-height: 1.7; white-space: pre-line;
+    }
     .reveal { animation: revealUp 0.8s ease both; }
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   `]
@@ -71,6 +151,14 @@ export class LandingDresscodeComponent {
   getSeparatorHeight(): string {
     const t=this.styles?.separatorStyle?.type||'elegant';
     switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
+  }
+
+  getTitleGradient(): string {
+    const s = this.styles?.titleStyle;
+    if (!s?.color2) return '';
+    const angle = s.gradientAngle || 135;
+    const intensity = s.gradientIntensity || 50;
+    return `linear-gradient(${angle}deg, ${s.color || '#d4a017'} ${50 - intensity / 2}%, ${s.color2} ${50 + intensity / 2}%)`;
   }
 
   getIcon(): { type: string; value: string } | null {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, HostListener, AfterViewInit, Directive, ElementRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, HostListener, AfterViewInit, Directive, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
@@ -11,15 +11,18 @@ import { LandingData, Guest } from '../core/models/models';
 export class ScrollRevealDirective implements OnInit, OnDestroy {
   private el = inject(ElementRef);
   private observer!: IntersectionObserver;
+  @Input() appScrollReveal: string = 'fade-up';
 
   ngOnInit() {
-    this.el.nativeElement.classList.add('scroll-hidden');
+    const anim = this.appScrollReveal || 'fade-up';
+    if (anim === 'none') return; // no animation
+    this.el.nativeElement.classList.add('scroll-hidden', `scroll-anim-${anim}`);
     this.observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         this.el.nativeElement.classList.add('scroll-visible');
         this.observer.unobserve(this.el.nativeElement);
       }
-    }, { threshold: 0.15 });
+    }, { threshold: 0.1 });
     this.observer.observe(this.el.nativeElement);
   }
 
@@ -69,10 +72,10 @@ import { LandingRegisterComponent } from './sections/register/register.component
 
     @if (data() && !loading()) {
       <!-- Fixed background: solid color always, media fades in after intro AND after preload -->
-      @if (data()!.config.hero?.backgroundGif) {
+      @if (data()!.config.hero.backgroundGif) {
         <div class="landing-bg-solid" [style.background]="getLandingBg()"></div>
-        @if (data()!.config.theme?.landingBgTexture && data()!.config.theme?.landingBgTexture !== 'none') {
-          <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme!.landingBgTexture" [style.opacity]="(data()!.config.theme!.landingBgTextureOpacity || 5) / 100"></div>
+        @if (data()!.config.theme.landingBgTexture && data()!.config.theme.landingBgTexture !== 'none') {
+          <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme.landingBgTexture" [style.opacity]="(data()!.config.theme.landingBgTextureOpacity || 5) / 100"></div>
         }
         @if (isVideoBackground()) {
           <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
@@ -83,61 +86,61 @@ import { LandingRegisterComponent } from './sections/register/register.component
       }
 
       <!-- Envelope -->
-      @if (showEnvelope() && data()!.config.envelope?.enabled) {
+      @if (showEnvelope() && data()!.config.envelope.enabled) {
         <app-landing-envelope [config]="data()!.config.envelope" [globalStyles]="data()!.config.globalStyles" (done)="onEnvelopeOpened()" />
       }
 
       <!-- Intro -->
-      @if (showIntro() && !showEnvelope() && data()!.config.intro?.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme?.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme?.cardBg || ''" [themeBorder]="data()!.config.theme?.cardBorder || ''" (done)="showIntro.set(false)" />
+      @if (showIntro() && !showEnvelope() && data()!.config.intro.enabled) {
+        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.cardBg || ''" [themeBorder]="data()!.config.theme.cardBorder || ''" (done)="showIntro.set(false)" />
       }
 
       @if (!showIntro() && !showEnvelope()) {
-        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme?.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme?.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme?.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme?.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme?.buttonFont)">
+        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)">
         <!-- Sticky nav -->
         <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
         <!-- Sections -->
-        <div appScrollReveal>
+        <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
           <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" />
         </div>
-        @if (data()!.config.details?.enabled && data()!.config.details.cards.length > 0) {
-          <div appScrollReveal>
+        @if (data()!.config.details.enabled && data()!.config.details.cards.length > 0) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" />
           </div>
         }
-        @if (data()!.config.venues?.enabled && data()!.config.venues.items.length > 0) {
-          <div appScrollReveal>
+        @if (data()!.config.venues.enabled && data()!.config.venues.items.length > 0) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" />
           </div>
         }
-        @if (data()!.config.itinerary?.enabled) {
-          <div appScrollReveal>
+        @if (data()!.config.itinerary.enabled) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-itinerary [config]="data()!.config.itinerary" [items]="data()!.itinerary" [styles]="data()!.config.globalStyles" />
           </div>
         }
-        @if (data()!.config.gallery?.enabled) {
-          <div appScrollReveal>
+        @if (data()!.config.gallery.enabled) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-gallery [config]="data()!.config.gallery" [photos]="data()!.photos" [styles]="data()!.config.globalStyles" />
           </div>
         }
-        @if (data()!.config.dresscode?.enabled) {
-          <div appScrollReveal>
+        @if (data()!.config.dresscode.enabled) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" />
           </div>
         }
-        @if (data()!.config.gifts?.enabled) {
-          <div appScrollReveal>
+        @if (data()!.config.gifts.enabled) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-gifts [config]="data()!.config.gifts" [styles]="data()!.config.globalStyles" />
           </div>
         }
-        @if (data()!.config.rsvp?.enabled && guest()) {
-          <div appScrollReveal>
+        @if (data()!.config.rsvp.enabled && guest()) {
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" [styles]="data()!.config.globalStyles" />
           </div>
         }
         @if (isOpenEvent() && !guest()) {
-          <div appScrollReveal>
+          <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'">
             <app-landing-register [config]="data()!.config.rsvp" [slug]="slug" [styles]="data()!.config.globalStyles" />
           </div>
         }
@@ -246,6 +249,7 @@ import { LandingRegisterComponent } from './sections/register/register.component
       max-width: 520px;
       margin: 0 auto;
       position: relative;
+      overflow-x: hidden;
     }
     .landing-footer {
       text-align: center;
@@ -291,12 +295,20 @@ import { LandingRegisterComponent } from './sections/register/register.component
     }
     :host ::ng-deep .scroll-hidden {
       opacity: 0;
-      transform: translateY(40px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
+      transition: opacity 1.4s cubic-bezier(0.22, 0.61, 0.36, 1), transform 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
     }
+    :host ::ng-deep .scroll-hidden.scroll-anim-fade-up { transform: translateY(80px); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-fade-in { transform: none; }
+    :host ::ng-deep .scroll-hidden.scroll-anim-slide-left { transform: translateX(-100px); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-slide-right { transform: translateX(100px); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-scale { transform: scale(0.8); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-fade-up.scroll-visible { transform: translateY(0); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-fade-in.scroll-visible { transform: none; }
+    :host ::ng-deep .scroll-hidden.scroll-anim-slide-left.scroll-visible { transform: translateX(0); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-slide-right.scroll-visible { transform: translateX(0); }
+    :host ::ng-deep .scroll-hidden.scroll-anim-scale.scroll-visible { transform: scale(1); }
     :host ::ng-deep .scroll-visible {
       opacity: 1;
-      transform: translateY(0);
     }
   `]
 })
@@ -319,7 +331,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   isVideoBackground(): boolean {
-    const url = this.data()?.config.hero?.backgroundGif || '';
+    const url = this.data()?.config.hero.backgroundGif || '';
     const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
     return ['mp4', 'webm', 'ogg'].includes(ext);
   }
@@ -356,13 +368,13 @@ export class LandingComponent implements OnInit, OnDestroy {
     const sections: string[] = [];
     // Invitation is always shown (it's the main content)
     sections.push('invitation');
-    if (d.config.details?.enabled && d.config.details.cards?.length > 0) sections.push('details');
-    if (d.config.venues?.enabled && d.config.venues.items?.length > 0) sections.push('venues');
-    if (d.config.itinerary?.enabled) sections.push('itinerary');
-    if (d.config.gallery?.enabled) sections.push('gallery');
-    if (d.config.dresscode?.enabled) sections.push('dresscode');
-    if (d.config.gifts?.enabled) sections.push('gifts');
-    if ((d.config.rsvp?.enabled && this.guest()) || this.isOpenEvent()) sections.push('rsvp');
+    if (d.config.details.enabled && d.config.details.cards?.length > 0) sections.push('details');
+    if (d.config.venues.enabled && d.config.venues.items?.length > 0) sections.push('venues');
+    if (d.config.itinerary.enabled) sections.push('itinerary');
+    if (d.config.gallery.enabled) sections.push('gallery');
+    if (d.config.dresscode.enabled) sections.push('dresscode');
+    if (d.config.gifts.enabled) sections.push('gifts');
+    if ((d.config.rsvp.enabled && this.guest()) || this.isOpenEvent()) sections.push('rsvp');
     return sections;
   }
 
@@ -374,7 +386,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   onEnvelopeOpened() {
     this.showEnvelope.set(false);
     // Start audio (user interaction satisfied by envelope click)
-    if (this.data()?.config.hero?.audioUrl) {
+    if (this.data()?.config.hero.audioUrl) {
       const audio = new Audio(this.data()!.config.hero.audioUrl);
       audio.loop = true;
       audio.play().catch(() => {});
@@ -382,7 +394,7 @@ export class LandingComponent implements OnInit, OnDestroy {
       (window as any).__landingAudio = audio;
     }
     // Show intro if enabled, otherwise go straight to landing
-    if (this.data()?.config.intro?.enabled) {
+    if (this.data()?.config.intro.enabled) {
       this.showIntro.set(true);
     }
   }
@@ -395,16 +407,16 @@ export class LandingComponent implements OnInit, OnDestroy {
       next: (d) => {
         this.data.set(d);
         this.loading.set(false);
-        if (d.config.envelope?.enabled) {
+        if (d.config.envelope.enabled) {
           this.showEnvelope.set(true);
-        } else if (d.config.intro?.enabled) {
+        } else if (d.config.intro.enabled) {
           this.showIntro.set(true);
         }
-        this.applyScrollbarColor(d.config.theme?.cardBorder || '#d4a017');
+        this.applyScrollbarColor(d.config.theme.cardBorder || '#d4a017');
         this.applyFavicon(d.config.favicon);
         this.applyTitle(d.event.name);
         // Preload background media so it doesn't render partially
-        if (d.config.hero?.backgroundGif) {
+        if (d.config.hero.backgroundGif) {
           const url = d.config.hero.backgroundGif;
           const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
           if (['mp4', 'webm', 'ogg'].includes(ext)) {
@@ -419,11 +431,11 @@ export class LandingComponent implements OnInit, OnDestroy {
           this.bgLoaded = true;
         }
         // Preload intro media (video/gif) while user sees envelope/splash
-        if (d.config.intro?.enabled && d.config.intro?.background) {
+        if (d.config.intro.enabled && d.config.intro.background) {
           this.preloadMedia(d.config.intro.background);
         }
         // Preload hero background ahead of time
-        if (d.config.hero?.backgroundGif) {
+        if (d.config.hero.backgroundGif) {
           this.preloadMedia(d.config.hero.backgroundGif);
         }
         if (code) {

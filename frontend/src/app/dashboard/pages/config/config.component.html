@@ -82,6 +82,22 @@
   </div>
 </div>
 
+<!-- Scroll animation -->
+<div class="section-card">
+  <div class="section-card-header"><span>Animación de Secciones</span></div>
+  <div class="section-card-body">
+    <p class="style-desc mb-12">Efecto al hacer scroll y revelar cada sección de la landing.</p>
+    <div class="flex gap-8" style="flex-wrap:wrap;">
+      <button class="icon-type-btn" [class.active]="(c.theme.scrollAnimation || 'fade-up') === 'fade-up'" (click)="c.theme.scrollAnimation = 'fade-up'"><span class="material-icons" style="font-size:16px">arrow_upward</span> Fade Up</button>
+      <button class="icon-type-btn" [class.active]="c.theme.scrollAnimation === 'fade-in'" (click)="c.theme.scrollAnimation = 'fade-in'"><span class="material-icons" style="font-size:16px">blur_on</span> Fade In</button>
+      <button class="icon-type-btn" [class.active]="c.theme.scrollAnimation === 'slide-left'" (click)="c.theme.scrollAnimation = 'slide-left'"><span class="material-icons" style="font-size:16px">arrow_back</span> Slide Left</button>
+      <button class="icon-type-btn" [class.active]="c.theme.scrollAnimation === 'slide-right'" (click)="c.theme.scrollAnimation = 'slide-right'"><span class="material-icons" style="font-size:16px">arrow_forward</span> Slide Right</button>
+      <button class="icon-type-btn" [class.active]="c.theme.scrollAnimation === 'scale'" (click)="c.theme.scrollAnimation = 'scale'"><span class="material-icons" style="font-size:16px">zoom_in</span> Scale</button>
+      <button class="icon-type-btn" [class.active]="c.theme.scrollAnimation === 'none'" (click)="c.theme.scrollAnimation = 'none'"><span class="material-icons" style="font-size:16px">visibility_off</span> Ninguna</button>
+    </div>
+  </div>
+</div>
+
 <!-- Preview unificado -->
 <div class="section-card preview-card">
   <div class="section-card-header"><span>Vista previa</span></div>
@@ -992,46 +1008,46 @@
     <label class="toggle-pill" (click)="c.dresscode.enabled = !c.dresscode.enabled"><span class="toggle-pill-dot" [class.active]="c.dresscode.enabled"></span>{{ c.dresscode.enabled ? 'ON' : 'OFF' }}</label>
   </div>
   <div class="section-card-body">
-    <div class="field mb-16"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="c.dresscode.title"></div>
-    <div class="flex gap-12 mb-16">
-      <label class="toggle-switch" style="gap:8px;">
-        <input type="checkbox" [checked]="c.dresscode.showCardBg !== false" (change)="c.dresscode.showCardBg = c.dresscode.showCardBg !== false ? false : true">
-        <span class="toggle"></span>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Mostrar fondo</span>
-      </label>
-      <div style="display:flex;align-items:center;gap:8px;max-width:220px;">
-        <label class="form-label" style="margin:0;white-space:nowrap;font-size:12px;">Esquinas: {{ c.dresscode.cardBorderRadius ?? 16 }}px</label>
-        <input type="range" [(ngModel)]="c.dresscode.cardBorderRadius" min="0" max="24" style="width:100px;" [ngModelOptions]="{standalone: true}">
-      </div>
-    </div>
-    <div class="field mb-16"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="c.dresscode.description" rows="3"></textarea></div>
-    <div class="field mb-12"><label class="form-label">Icono de sección</label>
-      <div class="flex gap-12 mb-12">
-        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'none'" (click)="c.dresscode.sectionIcon!.iconType = 'none'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">visibility_off</span> Sin icono</button>
-        <button class="icon-type-btn" [class.active]="ensureSectionIcon(c.dresscode).iconType === 'material'" (click)="c.dresscode.sectionIcon!.iconType = 'material'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">checkroom</span> Default</button>
-        <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'emoji'" (click)="c.dresscode.sectionIcon!.iconType = 'emoji'; c.dresscode.sectionIcon!.iconUrl = ''"><span class="material-icons" style="font-size:16px">sentiment_satisfied_alt</span> Emoji</button>
-        <button class="icon-type-btn" [class.active]="c.dresscode.sectionIcon!.iconType === 'image'" (click)="c.dresscode.sectionIcon!.iconType = 'image'"><span class="material-icons" style="font-size:16px">image</span> Imagen</button>
-      </div>
-      @if (c.dresscode.sectionIcon!.iconType === 'emoji') {
-        <div style="position:relative;">
-          <button class="emoji-trigger" (click)="toggleSectionEmojiPicker('dresscode')">
-            <span class="emoji-trigger-icon">{{ c.dresscode.sectionIcon!.icon || '👗' }}</span>
-            <span class="emoji-trigger-text">Cambiar emoji</span>
-            <span class="material-icons" style="font-size:16px;opacity:0.5">expand_more</span>
-          </button>
-          @if (sectionEmojiPickerOpen === 'dresscode') {
-            <div class="emoji-dropdown">
-              <div class="emoji-grid">@for (emoji of sectionEmojiOptions; track emoji) { <button class="emoji-btn" [class.active]="c.dresscode.sectionIcon!.icon === emoji" (click)="c.dresscode.sectionIcon!.icon = emoji; sectionEmojiPickerOpen = null">{{ emoji }}</button> }</div>
-            </div>
-          }
+    <div class="field mb-16"><label class="form-label">Título de sección</label><input class="form-control" [(ngModel)]="c.dresscode.title"></div>
+
+    <!-- Dresscode example cards -->
+    <label class="form-label" style="font-size:13px;font-weight:600;margin-bottom:12px;display:block;">Ejemplos de vestimenta</label>
+    @for (card of getDresscodeCards(); track card.id; let i = $index) {
+      <div class="venue-card">
+        <div class="venue-header"><strong>{{ card.title || 'Ejemplo ' + (i+1) }}</strong><button class="btn btn-sm btn-danger" (click)="removeDresscodeCard(i)">Eliminar</button></div>
+        <div class="flex gap-12 mb-12" style="flex-wrap:wrap;">
+          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);">
+            <input type="checkbox" [checked]="card.showCardBg !== false" (change)="card.showCardBg = card.showCardBg !== false ? false : true">
+            <span class="toggle"></span>
+            <span style="font-size:11px;color:rgba(255,255,255,0.5)">Fondo</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="margin:0;white-space:nowrap;font-size:11px;color:rgba(255,255,255,0.5);">Esquinas: {{ card.cardBorderRadius ?? 16 }}px</label>
+            <input type="range" [(ngModel)]="card.cardBorderRadius" min="0" max="24" style="width:80px;" [ngModelOptions]="{standalone: true}">
+          </div>
         </div>
-      } @else if (c.dresscode.sectionIcon!.iconType === 'image') {
-        <div class="field-row">
-          <div class="venue-icon-preview">@if (c.dresscode.sectionIcon!.iconUrl) { <img [src]="c.dresscode.sectionIcon!.iconUrl" style="width:100%;height:100%;object-fit:cover;"> }</div>
-          <div class="field"><input type="file" accept="image/*" (change)="uploadSectionIcon($event, c.dresscode)"></div>
+        <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="card.title" placeholder="Ej: Formal Elegante"></div>
+        <div class="field mb-12"><label class="form-label">Descripción</label><textarea class="form-control" [(ngModel)]="card.description" rows="2" placeholder="Ej: La ocasión invita a lucir lo mejor..."></textarea></div>
+        <div class="field mb-12">
+          <label class="form-label">Imágenes de ejemplo ({{ card.images.length }}/4)</label>
+          <div class="dresscode-images-grid">
+            @for (img of card.images; track img; let j = $index) {
+              <div class="dresscode-img-preview">
+                <img [src]="img" alt="">
+                <button class="dresscode-img-remove" (click)="removeDresscodeImage(card, j)"><span class="material-icons">close</span></button>
+              </div>
+            }
+            @if (card.images.length < 4) {
+              <label class="dresscode-img-add">
+                <span class="material-icons">add_photo_alternate</span>
+                <input type="file" accept="image/*" (change)="uploadDresscodeImage($event, card)" style="display:none">
+              </label>
+            }
+          </div>
         </div>
-      }
-    </div>
+      </div>
+    }
+    <button class="btn btn-outline" (click)="addDresscodeCard()">+ Agregar ejemplo</button>
   </div>
 </div>
 }

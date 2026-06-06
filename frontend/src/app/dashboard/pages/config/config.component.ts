@@ -175,6 +175,30 @@ const FONT_OPTIONS = `
         overflow: hidden;
         flex-shrink: 0;
       }
+      .dresscode-images-grid {
+        display: flex; gap: 10px; flex-wrap: wrap;
+      }
+      .dresscode-img-preview {
+        width: 80px; height: 100px; border-radius: 10px; overflow: hidden; position: relative;
+        border: 1px solid rgba(124, 92, 191, 0.3); background: rgba(124, 92, 191, 0.1);
+        img { width: 100%; height: 100%; object-fit: cover; }
+      }
+      .dresscode-img-remove {
+        position: absolute; top: 2px; right: 2px;
+        background: rgba(0,0,0,0.7); border: none; border-radius: 50%;
+        width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; padding: 0;
+        .material-icons { font-size: 14px; color: #ff6b6b; }
+        &:hover { background: rgba(0,0,0,0.9); }
+      }
+      .dresscode-img-add {
+        width: 80px; height: 100px; border-radius: 10px;
+        border: 2px dashed rgba(124, 92, 191, 0.4); background: rgba(124, 92, 191, 0.05);
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        .material-icons { font-size: 28px; color: rgba(124, 92, 191, 0.6); }
+        &:hover { border-color: rgba(124, 92, 191, 0.7); background: rgba(124, 92, 191, 0.1); }
+      }
       .time-ampm {
         display: flex;
         flex-direction: column;
@@ -1246,6 +1270,41 @@ export class ConfigComponent implements OnInit {
       .subscribe((r) => (card.iconUrl = r.url));
   }
 
+  // Dresscode cards
+  getDresscodeCards(): any[] {
+    const cfg = this.config();
+    if (!cfg) return [];
+    if (!cfg.dresscode.cards) cfg.dresscode.cards = [];
+    return cfg.dresscode.cards;
+  }
+  addDresscodeCard() {
+    const cfg = this.config();
+    if (!cfg) return;
+    if (!cfg.dresscode.cards) cfg.dresscode.cards = [];
+    cfg.dresscode.cards.push({
+      id: Date.now().toString(),
+      title: '',
+      description: '',
+      images: [],
+      showCardBg: true,
+      cardBorderRadius: 16,
+    });
+  }
+  removeDresscodeCard(i: number) {
+    this.config()!.dresscode.cards?.splice(i, 1);
+  }
+  uploadDresscodeImage(event: any, card: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    this.api.uploadFile('images', file).subscribe((r) => {
+      if (!card.images) card.images = [];
+      card.images.push(r.url);
+    });
+  }
+  removeDresscodeImage(card: any, index: number) {
+    card.images.splice(index, 1);
+  }
+
   // Itinerary
   toggleEmojiPicker(item: ItineraryItem) {
     this.emojiPickerOpen = this.emojiPickerOpen === item.id! ? null : item.id!;
@@ -1439,10 +1498,14 @@ export class ConfigComponent implements OnInit {
         title: "Galer\u00eda",
         description: "",
       },
-      dresscode: cfg?.dresscode || {
-        enabled: true,
-        title: "C\u00f3digo de Vestimenta",
-        description: "",
+      dresscode: {
+        enabled: cfg?.dresscode?.enabled ?? true,
+        title: cfg?.dresscode?.title || "Código de Vestimenta",
+        description: cfg?.dresscode?.description || "",
+        showCardBg: cfg?.dresscode?.showCardBg,
+        cardBorderRadius: cfg?.dresscode?.cardBorderRadius,
+        sectionIcon: cfg?.dresscode?.sectionIcon,
+        cards: cfg?.dresscode?.cards || [],
       },
       gifts: {
         enabled: cfg?.gifts?.enabled ?? true,

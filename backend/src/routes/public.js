@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { getDB } = require('../models/database');
+const { ensureConfigDefaults } = require('../utils/ensureConfigDefaults');
 
 router.get('/invitation/:slug', async (req, res) => {
   try {
@@ -13,7 +14,7 @@ router.get('/invitation/:slug', async (req, res) => {
 
     res.json({
       event,
-      config: configs[0] ? JSON.parse(configs[0].config_json) : {},
+      config: ensureConfigDefaults(configs[0] ? JSON.parse(configs[0].config_json) : {}),
       itinerary: itinerary.map(i => ({ ...i, iconType: i.icon_type || 'emoji', iconUrl: i.icon_url || '' })),
       photos
     });

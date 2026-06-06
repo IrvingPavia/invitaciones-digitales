@@ -82,6 +82,8 @@ export interface ThemeConfig {
   landingBgIntensity?: number;
   landingBgTexture?: 'none' | 'noise' | 'grain' | 'dots' | 'lines' | 'cross' | 'paper' | 'linen' | 'stars';
   landingBgTextureOpacity?: number;
+  // Scroll animation
+  scrollAnimation?: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
 }
 
 export interface GlobalTextStyles {
@@ -281,13 +283,23 @@ export interface SectionIconConfig {
   iconUrl: string;
 }
 
+export interface DresscodeCard {
+  id: string;
+  title: string;
+  description: string;
+  images: string[];  // URLs of dresscode example images
+  showCardBg?: boolean;
+  cardBorderRadius?: number;
+}
+
 export interface DresscodeConfig {
   enabled: boolean;
   title: string;
-  description: string;
+  description?: string;
   showCardBg?: boolean;
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
+  cards?: DresscodeCard[];
 }
 
 export interface GiftsConfig {

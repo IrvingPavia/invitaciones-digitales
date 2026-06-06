@@ -13,7 +13,7 @@
     > Fix aplicado: el gif de fondo ahora hace fade-in (1.2s) solo después de que sobre+intro terminan. Fondo sólido oscuro como fallback. ✅ Verificado en iPhone.
 - [x] Fondo mobile: verificar fix de scroll en dispositivo real
     > Fix aplicado: `overscroll-behavior-y: contain` en `:host` del landing + bg extendido ±5vh. ✅ Verificado.
-- [ ] **Config responsive mobile**: Botones `.icon-type-btn` se cortan en pantallas angostas en algunas secciones.
+- [x] **Config responsive mobile**: Botones `.icon-type-btn` se cortan en pantallas angostas en algunas secciones.
 - [x] **Toggles y labels homologados**: Todos los toggles "Fondo" usan `.toggle-switch` estándar, slider renombrado de "Radio" a "Esquinas", labels unificadas "Mostrar fondo" en todas las secciones. Opciones de venues (estilo icono + esquinas + fondo) movidas dentro de cada card individual.
 ## Features pendientes
 
@@ -51,11 +51,13 @@
 - [x] **Sistema emoji/imagen para venues**: Selector tipo (sin icono/emoji/imagen) con picker de emojis, igual que itinerario.
 - [x] **Fondo configurable de la landing**: 4 tipos (Color plano, Degradado, Foco central, Difuminado) + 8 texturas (noise, grain, dots, lines, cross, paper, linen, stars) + controles de ángulo, expansión, mezcla, opacidad. Se refleja en todos los previews del dashboard.
 ### Baja prioridad
-- [ ] Warnings de `?.` innecesarios en templates Angular (no afectan funcionalidad)
-- [ ] Mini cards con ejemplos de vestimenta (pendiente: esperar imágenes de referencia)
+- [x] Warnings de `?.` innecesarios en templates Angular (no afectan funcionalidad)
+    > Fix: Se agregó `ensureConfigDefaults` en el backend (ruta pública) que normaliza todas las secciones del config con valores por defecto. Esto permitió eliminar los `?.` redundantes en la landing, hero, gifts y register components. 0 warnings NG8107 en build.
+- [x] Mini cards con ejemplos de vestimenta (pendiente: esperar imágenes de referencia)
+    > Fix: Se rediseñó la sección Vestimenta con cards dinámicas (N cards). Cada card tiene título, descripción, hasta 4 imágenes de ejemplo, fondo y esquinas individuales. Se eliminó la descripción global, icono de sección y controles globales. Retrocompatible con configs existentes.
 - [x] Eliminar dependencia `fabric` del package.json (ya no se usa)
 - [x] Eliminar dependencia `pdfkit` del backend (reemplazado por Puppeteer)
-- [ ] Probar video trimmer con video >5seg y verificar selección de sección intermedia
+- [x] Probar video trimmer con video >5seg y verificar selección de sección intermedia
 
 ## Mejoras recomendadas
 
