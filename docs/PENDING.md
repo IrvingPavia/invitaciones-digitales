@@ -28,6 +28,17 @@
 - [x] **Duplicar evento completo**: Botón en lista de eventos que clona config, tarjetas, itinerario y fotos a un nuevo evento con slug único
 - [x] **Preview de landing en iframe**: Pestaña "📱 Preview" en configuración con mockup tipo celular que muestra la landing real embebida + botón recargar
 
+### 🆕 Estilos por Sección (feature grande — int-006)
+
+> **Contexto**: Permitir personalización visual individual por sección de la landing. Cada sección puede tener su propio fondo (color, degradado, imagen), colores de texto, y separadores orgánicos SVG entre secciones. La configuración global sigue siendo el default — solo se aplica override cuando el cliente activa la personalización en una sección específica.
+
+> **Documentación completa**: `docs/FEATURE-SECTION-STYLES.md`
+
+**Fases:**
+- [ ] **Fase 1 — Fondos + Dividers SVG**: Fondo configurable per-sección (inherit/solid/linear/image) + 7 tipos de separadores orgánicos SVG (wave, curve, slant, zigzag, mountains, drops, arrow) + toggle "Personalizar estilo" en cada tab del config.
+- [ ] **Fase 2 — Override de texto**: Fuentes y colores de texto per-sección con auto-contraste.
+- [ ] **Fase 3 — Presets de layout**: Templates de sección predefinidos + animaciones individuales.
+
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
 > **Contexto**: Actualmente Vitely solo soporta eventos con lista de invitados predefinida (bodas, XV años). Cada invitado tiene un código único, un QR personal, y la landing se personaliza con su nombre. Este feature extiende la plataforma para soportar eventos tipo conferencia, taller, o fiesta abierta donde NO hay una lista de invitados previa — cualquier persona con el link puede registrarse hasta llenar el cupo.

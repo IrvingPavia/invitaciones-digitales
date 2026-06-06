@@ -78,7 +78,7 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 ## GitHub
 
 - **Repo**: https://github.com/IrvingPavia/invitaciones-digitales
-- **Rama activa**: `int-005`
+- **Rama activa**: `int-006`
 - **Cuenta**: IrvingPavia
 
 ## Comandos útiles (local)
