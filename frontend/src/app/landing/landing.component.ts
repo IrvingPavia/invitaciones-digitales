@@ -329,6 +329,23 @@ import { SectionStyle } from '../core/models/models';
       padding-left: 20px;
       padding-right: 20px;
     }
+    .section-block[style*="--section-heading-color"] ::ng-deep .section-heading,
+    .section-block[style*="--section-heading-color"] ::ng-deep h2,
+    .section-block[style*="--section-heading-color"] ::ng-deep h3,
+    .section-block[style*="--section-heading-color"] ::ng-deep .example-title,
+    .section-block[style*="--section-heading-color"] ::ng-deep .venue-title {
+      color: var(--section-heading-color) !important;
+      -webkit-text-fill-color: var(--section-heading-color) !important;
+      background-image: none !important;
+    }
+    .section-block[style*="--section-content-color"] ::ng-deep p,
+    .section-block[style*="--section-content-color"] ::ng-deep .detail-content,
+    .section-block[style*="--section-content-color"] ::ng-deep .dresscode-desc,
+    .section-block[style*="--section-content-color"] ::ng-deep .example-desc,
+    .section-block[style*="--section-content-color"] ::ng-deep .venue-name,
+    .section-block[style*="--section-content-color"] ::ng-deep .venue-address {
+      color: var(--section-content-color) !important;
+    }
     .section-bg-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.5); pointer-events: none;
     }
@@ -597,17 +614,24 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   getSectionBg(style?: SectionStyle): string {
     if (!style || style.bgType === 'inherit') return '';
+    let css = '';
     switch (style.bgType) {
       case 'solid':
-        return `background: ${style.bgColor1 || '#ffffff'}`;
+        css = `background: ${style.bgColor1 || '#ffffff'}`;
+        break;
       case 'linear':
-        return `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'}, ${style.bgColor2 || '#f0f0f0'})`;
+        css = `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'}, ${style.bgColor2 || '#f0f0f0'})`;
+        break;
       case 'radial':
-        return `background: radial-gradient(ellipse at center, ${style.bgColor2 || '#f0f0f0'}, ${style.bgColor1 || '#ffffff'})`;
+        css = `background: radial-gradient(ellipse at center, ${style.bgColor2 || '#f0f0f0'}, ${style.bgColor1 || '#ffffff'})`;
+        break;
       case 'image':
-        return `background: url(${style.bgImage}) center/cover no-repeat`;
-      default:
-        return '';
+        css = `background: url(${style.bgImage}) center/cover no-repeat`;
+        break;
     }
+    // Text color overrides as CSS custom properties
+    if (style.headingColor) css += `; --section-heading-color: ${style.headingColor}`;
+    if (style.contentColor) css += `; --section-content-color: ${style.contentColor}`;
+    return css;
   }
 }
