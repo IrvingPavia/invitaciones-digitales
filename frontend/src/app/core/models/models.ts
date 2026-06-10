@@ -106,8 +106,10 @@ export interface SectionStyle {
   headingGradientAngle?: number;
   headingGradientIntensity?: number;
   headingFontWeight?: number;
+  headingFontSize?: number;
   headingFont?: string;
   contentColor?: string;
+  contentFontSize?: number;
   contentFont?: string;
   // Animation override (per section)
   animation?: 'inherit' | 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
