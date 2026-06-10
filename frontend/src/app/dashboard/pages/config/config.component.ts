@@ -517,6 +517,14 @@ const FONT_OPTIONS = `
       }
       .slider-field {
         max-width: 200px;
+        min-width: 0;
+        flex: 1 1 140px;
+      }
+      @media (max-width: 600px) {
+        .slider-field { max-width: 100%; flex: 1 1 100%; }
+        .section-card-body .field-row { gap: 8px; }
+        .section-card-body input[type="number"] { max-width: 56px; min-width: 48px; padding: 6px 4px; font-size: 12px; }
+        .section-card-body .field-xs { max-width: 160px; }
       }
       .toggle-pill {
         display: flex;
