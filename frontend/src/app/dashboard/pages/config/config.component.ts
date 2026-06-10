@@ -1379,6 +1379,17 @@ export class ConfigComponent implements OnInit {
     }
   }
 
+  getFontName(key: string): string {
+    const map: Record<string, string> = {
+      'sans': 'Lato', 'serif': 'Playfair Display', 'script': 'Great Vibes',
+      'cormorant': 'Cormorant', 'spumoni': 'Spumoni', 'dancing': 'Dancing Script',
+      'montserrat': 'Montserrat', 'raleway': 'Raleway', 'cinzel': 'Cinzel',
+      'sacramento': 'Sacramento', 'tangerine': 'Tangerine', 'alexbrush': 'Alex Brush',
+      'pinyon': 'Pinyon Script', 'josefin': 'Josefin Sans', 'baskerville': 'Baskerville'
+    };
+    return map[key] || key || 'Sans';
+  }
+
   // Itinerary
   toggleEmojiPicker(item: ItineraryItem) {
     this.emojiPickerOpen = this.emojiPickerOpen === item.id! ? null : item.id!;
