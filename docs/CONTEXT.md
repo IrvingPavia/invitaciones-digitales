@@ -23,7 +23,12 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - Spellcheck habilitado globalmente (lang="es")
 - **Fondo de tarjetas configurable**: per-item en Detalles y Venues, global en el resto
 - **Border-radius configurable** (0–24px) en todas las secciones con cards
-
+- **Animaciones de scroll configurables** (6 estilos): Fade Up, Fade In, Slide Left, Slide Right, Scale, Ninguna. Configurable desde pestaña Estilos. Threshold 10%, duración 1.4s, cubic-bezier suave.
+- **Estilos por sección (fondos)**: Cada sección puede tener su propio fondo (sólido, degradado lineal, imagen con overlay) independiente del tema global. Toggle "✨ Estilo de sección" en cada pestaña del config.
+- **Dividers SVG entre secciones**: 7 tipos de separadores orgánicos (onda, curva, diagonal, zigzag, montañas, gotas, flecha). Color, alto (20-100px) e inversión configurables.
+- **Override de colores de texto per sección**: Cada sección con estilo custom puede sobreescribir el color de títulos y contenido (Fase 2). Usa CSS custom properties para aplicar solo dentro de la sección.
+- **Vestimenta con cards dinámicas**: N cards con título, descripción, hasta 4 imágenes de ejemplo, fondo y esquinas individuales por card. Reemplaza la configuración estática anterior.
+- **PDF compatible con Android Chrome**: Preview abre en nueva pestaña en mobile (window.open con blob URL), descarga usa appendChild para compatibilidad cross-browser.
 ### Dashboard (admin)
 - Gestión de eventos (CRUD, tipos: Boda, Cumpleaños, XV Años, Bautizo, Graduación, Empresarial, Conferencia)
 - **Carrusel 3D de eventos**: Selector visual con cards verticales estilizadas, card activa al centro con perspectiva 3D, fondo refleja el tema del evento (colores/degradado/imagen/gif/video del hero), reflejo espejo, navegación con flechas/dots/click. **Drag continuo iPhone-style** (cards se mueven 1:1 con cursor, snap al soltar con momentum). Botones de acción centrados debajo del carrusel — en mobile aparecen como iconos integrados con backdrop blur.
@@ -116,6 +121,10 @@ docker-compose logs -f backend
 - **Volúmenes Docker nombrados**: Datos persistentes entre rebuilds
 - **Secciones apagadas por defecto**: Eventos nuevos inician con todas las secciones en `enabled: false`
 - **DialogService global**: Reemplaza confirm()/alert() nativos en todo el dashboard
+- **ensureConfigDefaults en backend**: La ruta pública `/api/public/invitation/:slug` normaliza el config JSON con todos los defaults antes de enviarlo al frontend. Esto garantiza que todas las secciones existen y permite eliminar optional chaining redundante en templates.
+- **SectionStyle como override**: Cada sección puede tener `sectionStyle?: SectionStyle` opcional. Si no existe o `bgType === 'inherit'`, hereda todo del tema global. Solo se aplica override cuando el usuario activa la personalización. Zero breaking changes con configs existentes.
+- **Dividers SVG como componente**: `SectionDividerComponent` recibe tipo/color/alto/flip y genera el path SVG dinámicamente. Se posiciona con `position: absolute; top: 0; transform: translateY(-99%)` para superponerse al final de la sección anterior.
+- **Text overrides con CSS custom properties**: Los overrides de color de texto usan `--section-heading-color` y `--section-content-color` en el `.section-block`, aplicados con `::ng-deep` + `!important` para sobreescribir estilos inline de cada componente hijo.
 
 ## Base de datos (8 tablas)
 

@@ -172,13 +172,14 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
     }
     .transfer-label { font-size: 11px; color: var(--theme-text-secondary, rgba(255,255,255,0.4)); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
     .transfer-value { font-size: 15px; color: var(--theme-text-primary, rgba(255,255,255,0.9)); }
-    .transfer-value-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .transfer-number { font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 1px; color: var(--theme-text-primary, var(--gold)); font-weight: 600; }
+    .transfer-value-row { display: flex; align-items: center; gap: 8px; }
+    .transfer-value { font-size: 15px; color: var(--theme-text-primary, rgba(255,255,255,0.9)); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .transfer-number { font-family: 'Courier New', monospace; font-size: 15px; letter-spacing: 0.5px; color: var(--theme-text-primary, var(--gold)); font-weight: 600; word-break: break-all; white-space: normal; overflow-wrap: break-word; }
     .copy-btn {
       background: var(--theme-card-bg, rgba(212,160,23,0.15)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
-      border-radius: 8px; padding: 6px 10px; cursor: pointer;
+      border-radius: 8px; padding: 8px 12px; cursor: pointer; flex-shrink: 0;
       color: var(--theme-text-primary, var(--gold)); transition: all 0.2s; display: flex; align-items: center;
-      .material-icons { font-size: 16px; }
+      .material-icons { font-size: 18px; }
       &:hover { background: var(--theme-card-border, rgba(212,160,23,0.3)); }
       &:active { transform: scale(0.95); }
     }

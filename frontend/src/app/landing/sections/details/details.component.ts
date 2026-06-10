@@ -59,7 +59,7 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
     .section-container { max-width: 800px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
-    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
+    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .details-grid { display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; }
     .detail-card {
       background: var(--theme-card-bg, rgba(0,0,0,0.45)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));

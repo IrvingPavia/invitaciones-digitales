@@ -84,7 +84,7 @@ import { DresscodeConfig, DresscodeCard, GlobalTextStyles, SectionIconConfig } f
     .section-container { max-width: 700px; margin: 0 auto; text-align: center; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
-    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
+    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .dresscode-card {
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px;

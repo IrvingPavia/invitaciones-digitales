@@ -137,7 +137,7 @@ import { GalleryConfig, Photo, GlobalTextStyles } from '../../../core/models/mod
     .section-container { max-width: 600px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
     .section-line { flex: 1; height: 1px; }
-    .section-heading { white-space: nowrap; }
+    .section-heading { text-align: center; }
     .gallery-desc { text-align: center; margin-bottom: 32px; }
 
     /* === 3D CAROUSEL === */

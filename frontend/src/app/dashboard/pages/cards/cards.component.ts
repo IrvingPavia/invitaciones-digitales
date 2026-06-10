@@ -890,7 +890,17 @@ export class CardsComponent implements OnInit {
   downloadPDF() {
     this.downloading.set(true);
     this.api.downloadCardsPDF(this.eventId).subscribe({
-      next: (blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `invitaciones_${this.eventId}.pdf`; a.click(); this.downloading.set(false); },
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invitaciones_${this.eventId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        this.downloading.set(false);
+      },
       error: () => this.downloading.set(false)
     });
   }
@@ -904,14 +914,24 @@ export class CardsComponent implements OnInit {
         this.api.previewCardsPDF(this.eventId).subscribe({
           next: (blob) => {
             const url = URL.createObjectURL(blob);
-            this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-            this.previewing.set(false);
+            // On mobile, open in new tab (iframe PDF doesn't work on Android Chrome)
+            if (this.isMobile()) {
+              window.open(url, '_blank');
+              this.previewing.set(false);
+            } else {
+              this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+              this.previewing.set(false);
+            }
           },
           error: () => this.previewing.set(false)
         });
       },
       error: () => this.previewing.set(false)
     });
+  }
+
+  private isMobile(): boolean {
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   closePreview() {

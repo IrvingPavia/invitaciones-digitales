@@ -63,7 +63,7 @@ import { ItineraryConfig, ItineraryItem, GlobalTextStyles } from '../../../core/
     .section-container { max-width: 900px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
-    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
+    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
 
     .timeline { position: relative; padding: 0 20px; }
     .timeline::before {

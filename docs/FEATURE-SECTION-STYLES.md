@@ -2,6 +2,14 @@
 
 > Documentación de diseño y contexto para el feature de personalización visual per-sección en la landing page.
 
+## Estado actual
+
+| Fase | Estado | Descripción |
+|------|--------|-------------|
+| Fase 1 | ✅ Completa | Fondos per-sección + 7 dividers SVG + UI en todas las tabs |
+| Fase 2 | ✅ Completa | Override de colores de texto (títulos + contenido) per sección |
+| Fase 3 | ⏳ Pendiente | Presets de layout, override de fuentes, animaciones individuales |
+
 ## Problema que resuelve
 
 Actualmente la landing aplica un solo tema global (colores, fuentes, fondo) a todas las secciones. Esto es suficiente para invitaciones simples, pero limita a clientes que quieren diseños más elaborados donde cada sección tiene su propia identidad visual — fondos alternados, degradados, imágenes de fondo, tipografías distintas, y transiciones orgánicas entre secciones.

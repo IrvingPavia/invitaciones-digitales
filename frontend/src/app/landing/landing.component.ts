@@ -338,6 +338,23 @@ import { SectionStyle } from '../core/models/models';
       -webkit-text-fill-color: var(--section-heading-color) !important;
       background-image: none !important;
     }
+    .section-block[style*="--section-heading-color2"] ::ng-deep .section-heading,
+    .section-block[style*="--section-heading-color2"] ::ng-deep h2,
+    .section-block[style*="--section-heading-color2"] ::ng-deep h3,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .example-title,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .venue-title {
+      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color2) var(--section-heading-intensity, 50%)) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+    }
+    .section-block[style*="--section-heading-weight"] ::ng-deep .section-heading,
+    .section-block[style*="--section-heading-weight"] ::ng-deep h2,
+    .section-block[style*="--section-heading-weight"] ::ng-deep h3,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .example-title,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .venue-title {
+      font-weight: var(--section-heading-weight) !important;
+    }
     .section-block[style*="--section-content-color"] ::ng-deep p,
     .section-block[style*="--section-content-color"] ::ng-deep .detail-content,
     .section-block[style*="--section-content-color"] ::ng-deep .dresscode-desc,
@@ -574,7 +591,12 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   private applyScrollbarColor(color: string) {
     this.scrollbarStyle = document.createElement('style');
-    this.scrollbarStyle.textContent = `::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${color};border-radius:3px}html{scrollbar-color:${color} transparent}`;
+    const inIframe = window.self !== window.top;
+    if (inIframe) {
+      this.scrollbarStyle.textContent = `::-webkit-scrollbar{width:0;display:none}html{scrollbar-width:none}`;
+    } else {
+      this.scrollbarStyle.textContent = `::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${color};border-radius:3px}html{scrollbar-color:${color} transparent}`;
+    }
     document.head.appendChild(this.scrollbarStyle);
   }
 
@@ -619,9 +641,11 @@ export class LandingComponent implements OnInit, OnDestroy {
       case 'solid':
         css = `background: ${style.bgColor1 || '#ffffff'}`;
         break;
-      case 'linear':
-        css = `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'}, ${style.bgColor2 || '#f0f0f0'})`;
+      case 'linear': {
+        const intensity = style.bgIntensity || 50;
+        css = `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'} ${50 - intensity / 2}%, ${style.bgColor2 || '#f0f0f0'} ${50 + intensity / 2}%)`;
         break;
+      }
       case 'radial':
         css = `background: radial-gradient(ellipse at center, ${style.bgColor2 || '#f0f0f0'}, ${style.bgColor1 || '#ffffff'})`;
         break;
@@ -629,9 +653,21 @@ export class LandingComponent implements OnInit, OnDestroy {
         css = `background: url(${style.bgImage}) center/cover no-repeat`;
         break;
     }
-    // Text color overrides as CSS custom properties
     if (style.headingColor) css += `; --section-heading-color: ${style.headingColor}`;
+    if (style.headingColor2) css += `; --section-heading-color2: ${style.headingColor2}`;
+    if (style.headingGradientAngle) css += `; --section-heading-angle: ${style.headingGradientAngle}deg`;
+    if (style.headingGradientIntensity) css += `; --section-heading-intensity: ${style.headingGradientIntensity}`;
+    if (style.headingFontWeight) css += `; --section-heading-weight: ${style.headingFontWeight}`;
     if (style.contentColor) css += `; --section-content-color: ${style.contentColor}`;
+    if (style.headingFont) css += `; --section-heading-font: ${this.getThemeFont(style.headingFont)}`;
+    if (style.contentFont) css += `; --section-content-font: ${this.getThemeFont(style.contentFont)}`;
     return css;
+  }
+
+  getSectionAnimation(style?: SectionStyle): string {
+    if (!style || !style.animation || style.animation === 'inherit') {
+      return this.data()?.config.theme.scrollAnimation || 'fade-up';
+    }
+    return style.animation;
   }
 }

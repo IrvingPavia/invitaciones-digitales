@@ -94,6 +94,7 @@ function ensureConfigDefaults(cfg) {
       subtitle: cfg.invitation?.subtitle || '',
       showCardBg: cfg.invitation?.showCardBg,
       cardBorderRadius: cfg.invitation?.cardBorderRadius,
+      sectionStyle: cfg.invitation?.sectionStyle,
     },
     details: {
       enabled: cfg.details?.enabled ?? true,
@@ -101,6 +102,7 @@ function ensureConfigDefaults(cfg) {
       showCardBg: cfg.details?.showCardBg,
       cardBorderRadius: cfg.details?.cardBorderRadius,
       cards: cfg.details?.cards || [],
+      sectionStyle: cfg.details?.sectionStyle,
     },
     venues: {
       enabled: cfg.venues?.enabled ?? true,
@@ -108,6 +110,7 @@ function ensureConfigDefaults(cfg) {
       showCardBg: cfg.venues?.showCardBg,
       cardBorderRadius: cfg.venues?.cardBorderRadius,
       items: cfg.venues?.items || [],
+      sectionStyle: cfg.venues?.sectionStyle,
     },
     itinerary: {
       enabled: cfg.itinerary?.enabled ?? true,
@@ -115,12 +118,14 @@ function ensureConfigDefaults(cfg) {
       showCardBg: cfg.itinerary?.showCardBg,
       cardBorderRadius: cfg.itinerary?.cardBorderRadius,
       items: cfg.itinerary?.items || [],
+      sectionStyle: cfg.itinerary?.sectionStyle,
     },
     gallery: {
       enabled: cfg.gallery?.enabled ?? true,
       title: cfg.gallery?.title || 'Galería',
       description: cfg.gallery?.description || '',
       displayStyle: cfg.gallery?.displayStyle || 'carousel-3d',
+      sectionStyle: cfg.gallery?.sectionStyle,
     },
     dresscode: {
       enabled: cfg.dresscode?.enabled ?? true,
@@ -130,6 +135,7 @@ function ensureConfigDefaults(cfg) {
       cardBorderRadius: cfg.dresscode?.cardBorderRadius,
       sectionIcon: cfg.dresscode?.sectionIcon,
       cards: cfg.dresscode?.cards || [],
+      sectionStyle: cfg.dresscode?.sectionStyle,
     },
     gifts: {
       enabled: cfg.gifts?.enabled ?? true,
@@ -140,6 +146,7 @@ function ensureConfigDefaults(cfg) {
       showCardBg: cfg.gifts?.showCardBg,
       cardBorderRadius: cfg.gifts?.cardBorderRadius,
       sectionIcon: cfg.gifts?.sectionIcon,
+      sectionStyle: cfg.gifts?.sectionStyle,
       transfer: {
         enabled: false,
         title: '¿Prefieres hacer una transferencia?',
@@ -159,6 +166,7 @@ function ensureConfigDefaults(cfg) {
       cardBorderRadius: cfg.rsvp?.cardBorderRadius,
       sectionIcon: cfg.rsvp?.sectionIcon,
       registrationFields: cfg.rsvp?.registrationFields,
+      sectionStyle: cfg.rsvp?.sectionStyle,
     },
     theme: {
       cardBg: 'rgba(255,255,255,0.05)',

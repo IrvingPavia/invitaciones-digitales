@@ -92,6 +92,7 @@ export interface SectionStyle {
   bgColor1?: string;
   bgColor2?: string;
   bgAngle?: number;
+  bgIntensity?: number;
   bgImage?: string;
   bgOverlay?: number;
   // Divider
@@ -101,7 +102,15 @@ export interface SectionStyle {
   dividerHeight?: number;
   // Text override
   headingColor?: string;
+  headingColor2?: string;
+  headingGradientAngle?: number;
+  headingGradientIntensity?: number;
+  headingFontWeight?: number;
+  headingFont?: string;
   contentColor?: string;
+  contentFont?: string;
+  // Animation override (per section)
+  animation?: 'inherit' | 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
   // Spacing
   paddingTop?: number;
   paddingBottom?: number;

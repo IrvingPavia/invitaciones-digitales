@@ -750,6 +750,90 @@
 }
 
 @if (activeTab === 'details') {
+<!-- Section Style (collapsible, at top) -->
+<div class="section-card" style="margin-bottom:16px;">
+  <div class="section-card-header" style="cursor:pointer;" (click)="hasSectionStyle(c.details) ? toggleSectionStyleExpand('details') : null">
+    <span style="display:flex;align-items:center;gap:8px;">✨ Estilo de sección @if (hasSectionStyle(c.details)) { <span class="material-icons" style="font-size:18px;color:rgba(255,255,255,0.4);transition:transform 0.2s;" [style.transform]="sectionStyleExpanded['details'] ? 'rotate(180deg)' : ''">expand_more</span> }</span>
+    <label class="toggle-pill" (click)="$event.stopPropagation(); toggleSectionStyle(c.details); sectionStyleExpanded['details'] = hasSectionStyle(c.details)"><span class="toggle-pill-dot" [class.active]="hasSectionStyle(c.details)"></span>{{ hasSectionStyle(c.details) ? 'ON' : 'OFF' }}</label>
+  </div>
+  @if (hasSectionStyle(c.details) && sectionStyleExpanded['details']) {
+    <div class="section-card-body">
+      <div class="field mb-12"><label class="form-label">Tipo de fondo</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="icon-type-btn" [class.active]="ensureSectionStyle(c.details).bgType === 'solid'" (click)="c.details.sectionStyle!.bgType = 'solid'">Sólido</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.bgType === 'linear'" (click)="c.details.sectionStyle!.bgType = 'linear'">Degradado</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.bgType === 'image'" (click)="c.details.sectionStyle!.bgType = 'image'">Imagen</button>
+        </div>
+      </div>
+      @if (c.details.sectionStyle!.bgType === 'solid' || c.details.sectionStyle!.bgType === 'linear') {
+        <div class="field-row mb-12">
+          <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.details.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.details.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
+          @if (c.details.sectionStyle!.bgType === 'linear') {
+            <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.details.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.details.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
+            <div class="field" style="max-width:150px;"><label class="form-label">Ángulo: {{ c.details.sectionStyle!.bgAngle ?? 180 }}°</label><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}"></div>
+          }
+        </div>
+      }
+      @if (c.details.sectionStyle!.bgType === 'image') {
+        <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.details)">
+          @if (c.details.sectionStyle!.bgImage) { <small style="color:rgba(255,255,255,0.5);margin-top:4px;display:block;">Imagen cargada ✔</small> }
+        </div>
+        <div class="field mb-12" style="max-width:200px;"><label class="form-label">Overlay: {{ c.details.sectionStyle!.bgOverlay ?? 50 }}%</label><input type="range" min="0" max="90" [ngModel]="c.details.sectionStyle!.bgOverlay ?? 50" (ngModelChange)="c.details.sectionStyle!.bgOverlay = $event" [ngModelOptions]="{standalone:true}"></div>
+      }
+      <div class="field mb-12"><label class="form-label">Separador superior</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="icon-type-btn" [class.active]="(c.details.sectionStyle!.dividerType || 'none') === 'none'" (click)="c.details.sectionStyle!.dividerType = 'none'">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'wave'" (click)="c.details.sectionStyle!.dividerType = 'wave'">∿ Onda</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'curve'" (click)="c.details.sectionStyle!.dividerType = 'curve'">⌒ Curva</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'slant'" (click)="c.details.sectionStyle!.dividerType = 'slant'">╱ Diagonal</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'zigzag'" (click)="c.details.sectionStyle!.dividerType = 'zigzag'">∧ Zigzag</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'mountains'" (click)="c.details.sectionStyle!.dividerType = 'mountains'">⛰ Montañas</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'drops'" (click)="c.details.sectionStyle!.dividerType = 'drops'">◠ Gotas</button>
+          <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'arrow'" (click)="c.details.sectionStyle!.dividerType = 'arrow'">▽ Flecha</button>
+        </div>
+      </div>
+      @if (c.details.sectionStyle!.dividerType && c.details.sectionStyle!.dividerType !== 'none') {
+        <div class="field-row mb-12">
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.details.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.details.sectionStyle!.dividerColor = $event"></app-color-picker></div>
+          <div class="field" style="max-width:150px;"><label class="form-label">Alto: {{ c.details.sectionStyle!.dividerHeight ?? 50 }}px</label><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}"></div>
+          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.details.sectionStyle!.dividerFlip" (change)="c.details.sectionStyle!.dividerFlip = !c.details.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+        </div>
+      }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.details.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda global</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+        </div>
+        <div class="field-row mb-8">
+          <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.details.sectionStyle!.headingColor || ''" (valueChange)="c.details.sectionStyle!.headingColor = $event"></app-color-picker></div>
+          <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.details.sectionStyle!.headingColor2 || ''" (valueChange)="c.details.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
+        </div>
+        <div class="field-row">
+          <div class="field slider-field"><label class="form-label">Ángulo: {{ c.details.sectionStyle!.headingGradientAngle ?? 135 }}°</label><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.details.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field slider-field"><label class="form-label">Intensidad: {{ c.details.sectionStyle!.headingGradientIntensity ?? 50 }}%</label><input type="range" min="0" max="100" [ngModel]="c.details.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.details.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field slider-field"><label class="form-label">Grosor: {{ c.details.sectionStyle!.headingFontWeight ?? 400 }}</label><input type="range" min="100" max="900" step="100" [ngModel]="c.details.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.details.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}"></div>
+        </div>
+      </div>
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.details.sectionStyle!.contentFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda global</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option></select></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.details.sectionStyle!.contentColor || ''" (valueChange)="c.details.sectionStyle!.contentColor = $event"></app-color-picker></div>
+        </div>
+      </div>
+      @if (c.details.sectionStyle!.headingColor || c.details.sectionStyle!.contentColor || c.details.sectionStyle!.headingFont || c.details.sectionStyle!.contentFont) {
+        <button class="btn btn-outline btn-sm" style="white-space:nowrap;" (click)="c.details.sectionStyle!.headingColor = ''; c.details.sectionStyle!.contentColor = ''; c.details.sectionStyle!.headingFont = ''; c.details.sectionStyle!.contentFont = ''; c.details.sectionStyle!.headingColor2 = ''; c.details.sectionStyle!.headingGradientAngle = undefined; c.details.sectionStyle!.headingGradientIntensity = undefined; c.details.sectionStyle!.headingFontWeight = undefined">✕ Limpiar estilos de texto</button>
+      }
+      <small style="color:rgba(255,255,255,0.35);font-size:11px;display:block;margin-top:8px;">Vacío = hereda de la pestaña Estilos global.</small>
+      <!-- Vista previa -->
+      <div style="margin-top:16px;border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.details)">
+        <div style="text-align:center;">
+          <p [style.color]="c.details.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.details.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.details.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;" [style.background-image]="c.details.sectionStyle!.headingColor2 ? 'linear-gradient(' + (c.details.sectionStyle!.headingGradientAngle ?? 135) + 'deg, ' + (c.details.sectionStyle!.headingColor || '#d4a017') + ', ' + c.details.sectionStyle!.headingColor2 + ')' : 'none'" [style.-webkit-background-clip]="c.details.sectionStyle!.headingColor2 ? 'text' : ''" [style.-webkit-text-fill-color]="c.details.sectionStyle!.headingColor2 ? 'transparent' : ''">Título de ejemplo</p>
+          <p [style.color]="c.details.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.details.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
 <div class="section-card">
   <div class="section-card-header">
     <span>Detalles del Evento</span>
@@ -800,73 +884,10 @@
       </div>
       }
       <div class="field mb-12"><label class="form-label">Título</label><input class="form-control" [(ngModel)]="card.title"></div>
-      <div class="field mb-12"><label class="form-label">Contenido</label><app-rich-text-editor [(ngModel)]="card.content" [contentStyles]="{minHeight:'120px',color: c.globalStyles.contentStyle.color || 'white',fontSize: (c.globalStyles.contentStyle.fontSize || 14) + 'px', fontFamily: getFontPreview(c.globalStyles.contentStyle.fontFamily), background: getLandingBgPreview(), borderRadius:'0 0 8px 8px'}" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor></div>
+      <div class="field mb-12"><label class="form-label">Contenido</label><app-rich-text-editor [(ngModel)]="card.content" [contentStyles]="{minHeight:'120px',color: c.details.sectionStyle?.contentColor || c.globalStyles.contentStyle.color || 'white',fontSize: (c.globalStyles.contentStyle.fontSize || 14) + 'px', fontFamily: getFontPreview(c.details.sectionStyle?.contentFont || c.globalStyles.contentStyle.fontFamily), background: getSectionStylePreviewBg(c.details), borderRadius:'0 0 8px 8px'}" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor></div>
     </div>
     }
     <button class="btn btn-outline" (click)="addDetailCard()">+ Agregar tarjeta</button>
-
-    <!-- Section Style -->
-    <div class="section-card" style="margin-top:20px;">
-      <div class="section-card-header">
-        <span>✨ Estilo de sección</span>
-        <label class="toggle-pill" (click)="toggleSectionStyle(c.details)"><span class="toggle-pill-dot" [class.active]="hasSectionStyle(c.details)"></span>{{ hasSectionStyle(c.details) ? 'ON' : 'OFF' }}</label>
-      </div>
-      @if (hasSectionStyle(c.details)) {
-        <div class="section-card-body">
-          <div class="field mb-12"><label class="form-label">Tipo de fondo</label>
-            <div class="flex gap-8" style="flex-wrap:wrap;">
-              <button class="icon-type-btn" [class.active]="ensureSectionStyle(c.details).bgType === 'solid'" (click)="c.details.sectionStyle!.bgType = 'solid'">Sólido</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.bgType === 'linear'" (click)="c.details.sectionStyle!.bgType = 'linear'">Degradado</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.bgType === 'image'" (click)="c.details.sectionStyle!.bgType = 'image'">Imagen</button>
-            </div>
-          </div>
-          @if (c.details.sectionStyle!.bgType === 'solid' || c.details.sectionStyle!.bgType === 'linear') {
-            <div class="field-row mb-12">
-              <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.details.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.details.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
-              @if (c.details.sectionStyle!.bgType === 'linear') {
-                <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.details.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.details.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-                <div class="field" style="max-width:150px;"><label class="form-label">Ángulo: {{ c.details.sectionStyle!.bgAngle ?? 180 }}°</label><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}"></div>
-              }
-            </div>
-          }
-          @if (c.details.sectionStyle!.bgType === 'image') {
-            <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.details)">
-              @if (c.details.sectionStyle!.bgImage) { <small style="color:rgba(255,255,255,0.5);margin-top:4px;display:block;">Imagen cargada ✔</small> }
-            </div>
-            <div class="field mb-12" style="max-width:200px;"><label class="form-label">Overlay oscuro: {{ c.details.sectionStyle!.bgOverlay ?? 50 }}%</label><input type="range" min="0" max="90" [ngModel]="c.details.sectionStyle!.bgOverlay ?? 50" (ngModelChange)="c.details.sectionStyle!.bgOverlay = $event" [ngModelOptions]="{standalone:true}"></div>
-          }
-          <div class="field mb-12"><label class="form-label">Separador superior</label>
-            <div class="flex gap-8" style="flex-wrap:wrap;">
-              <button class="icon-type-btn" [class.active]="(c.details.sectionStyle!.dividerType || 'none') === 'none'" (click)="c.details.sectionStyle!.dividerType = 'none'">Ninguno</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'wave'" (click)="c.details.sectionStyle!.dividerType = 'wave'">∿ Onda</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'curve'" (click)="c.details.sectionStyle!.dividerType = 'curve'">⌒ Curva</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'slant'" (click)="c.details.sectionStyle!.dividerType = 'slant'">╱ Diagonal</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'zigzag'" (click)="c.details.sectionStyle!.dividerType = 'zigzag'">∧ Zigzag</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'mountains'" (click)="c.details.sectionStyle!.dividerType = 'mountains'">⛰ Montañas</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'drops'" (click)="c.details.sectionStyle!.dividerType = 'drops'">◠ Gotas</button>
-              <button class="icon-type-btn" [class.active]="c.details.sectionStyle!.dividerType === 'arrow'" (click)="c.details.sectionStyle!.dividerType = 'arrow'">▽ Flecha</button>
-            </div>
-          </div>
-          @if (c.details.sectionStyle!.dividerType && c.details.sectionStyle!.dividerType !== 'none') {
-            <div class="field-row mb-12">
-              <div class="field field-xs"><label class="form-label">Color divider</label><app-color-picker [value]="c.details.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.details.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-              <div class="field" style="max-width:150px;"><label class="form-label">Alto: {{ c.details.sectionStyle!.dividerHeight ?? 50 }}px</label><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}"></div>
-              <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.details.sectionStyle!.dividerFlip" (change)="c.details.sectionStyle!.dividerFlip = !c.details.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
-            </div>
-          }
-          <div class="field mb-12"><label class="form-label">Colores de texto (override)</label>
-            <div class="field-row">
-              <div class="field field-xs"><label class="form-label">Títulos</label><app-color-picker [value]="c.details.sectionStyle!.headingColor || ''" (valueChange)="c.details.sectionStyle!.headingColor = $event"></app-color-picker></div>
-              <div class="field field-xs"><label class="form-label">Contenido</label><app-color-picker [value]="c.details.sectionStyle!.contentColor || ''" (valueChange)="c.details.sectionStyle!.contentColor = $event"></app-color-picker></div>
-              @if (c.details.sectionStyle!.headingColor || c.details.sectionStyle!.contentColor) {
-                <button class="btn btn-sm" style="font-size:11px;padding:4px 8px;" (click)="c.details.sectionStyle!.headingColor = ''; c.details.sectionStyle!.contentColor = ''">Limpiar</button>
-              }
-            </div>
-            <small style="color:rgba(255,255,255,0.4);font-size:11px;margin-top:4px;display:block;">Deja vacío para heredar del tema global.</small>
-          </div>
-        </div>
-      }
-    </div>
   </div>
 </div>
 }

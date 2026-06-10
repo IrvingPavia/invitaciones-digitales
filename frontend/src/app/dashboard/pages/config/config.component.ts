@@ -1323,6 +1323,10 @@ export class ConfigComponent implements OnInit {
   hasSectionStyle(section: any): boolean {
     return section.sectionStyle && section.sectionStyle.bgType !== 'inherit';
   }
+  sectionStyleExpanded: Record<string, boolean> = {};
+  toggleSectionStyleExpand(key: string) {
+    this.sectionStyleExpanded[key] = !this.sectionStyleExpanded[key];
+  }
   uploadSectionBgImage(event: any, section: any) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1331,6 +1335,48 @@ export class ConfigComponent implements OnInit {
       section.sectionStyle.bgImage = r.url;
       section.sectionStyle.bgType = 'image';
     });
+  }
+
+  applySectionPreset(section: any, preset: string) {
+    this.ensureSectionStyle(section);
+    const s = section.sectionStyle;
+    switch (preset) {
+      case 'light':
+        s.bgType = 'solid'; s.bgColor1 = '#f8f5f0'; s.bgColor2 = '';
+        s.headingColor = '#2d2d2d'; s.contentColor = '#4a4a4a';
+        s.dividerType = 'wave'; s.dividerColor = '#f8f5f0'; s.dividerHeight = 50;
+        break;
+      case 'dark':
+        s.bgType = 'solid'; s.bgColor1 = '#1a1a2e'; s.bgColor2 = '';
+        s.headingColor = '#d4a017'; s.contentColor = 'rgba(255,255,255,0.8)';
+        s.dividerType = 'curve'; s.dividerColor = '#1a1a2e'; s.dividerHeight = 50;
+        break;
+      case 'wine':
+        s.bgType = 'linear'; s.bgColor1 = '#6b1d1d'; s.bgColor2 = '#4a1515'; s.bgAngle = 180;
+        s.headingColor = '#f5e6d3'; s.contentColor = 'rgba(245,230,211,0.85)';
+        s.dividerType = 'slant'; s.dividerColor = '#6b1d1d'; s.dividerHeight = 60;
+        break;
+      case 'transparent':
+        s.bgType = 'inherit'; s.bgColor1 = ''; s.bgColor2 = '';
+        s.headingColor = ''; s.contentColor = '';
+        s.dividerType = 'none'; s.dividerHeight = 50;
+        break;
+    }
+  }
+
+  getSectionStylePreviewBg(section: any): string {
+    const s = section?.sectionStyle;
+    if (!s || s.bgType === 'inherit') return this.getLandingBgPreview();
+    switch (s.bgType) {
+      case 'solid': return s.bgColor1 || '#ffffff';
+      case 'linear': {
+        const intensity = s.bgIntensity || 50;
+        return `linear-gradient(${s.bgAngle || 180}deg, ${s.bgColor1 || '#ffffff'} ${50 - intensity / 2}%, ${s.bgColor2 || '#f0f0f0'} ${50 + intensity / 2}%)`;
+      }
+      case 'radial': return `radial-gradient(ellipse at center, ${s.bgColor2 || '#f0f0f0'}, ${s.bgColor1 || '#ffffff'})`;
+      case 'image': return s.bgImage ? `url(${s.bgImage}) center/cover no-repeat` : '#333';
+      default: return this.getLandingBgPreview();
+    }
   }
 
   // Itinerary
@@ -1503,10 +1549,16 @@ export class ConfigComponent implements OnInit {
       invitation: {
         title: cfg?.invitation?.title || "Est\u00e1n cordialmente invitados",
         subtitle: cfg?.invitation?.subtitle || "",
+        showCardBg: cfg?.invitation?.showCardBg,
+        cardBorderRadius: cfg?.invitation?.cardBorderRadius,
+        sectionStyle: cfg?.invitation?.sectionStyle,
       },
       details: {
         enabled: cfg?.details?.enabled ?? true,
         title: cfg?.details?.title || "Detalles del Evento",
+        showCardBg: cfg?.details?.showCardBg,
+        cardBorderRadius: cfg?.details?.cardBorderRadius,
+        sectionStyle: cfg?.details?.sectionStyle,
         cards: (cfg?.details?.cards || this.migrateDetails(cfg?.details)).map((c: any) => ({
           ...c,
           iconType: c.iconType || (c.iconUrl ? 'image' : 'emoji'),
@@ -1515,17 +1567,12 @@ export class ConfigComponent implements OnInit {
           content: this.ensureHtmlContent(c.content || ''),
         })),
       },
-      venues: cfg?.venues || { enabled: true, items: [] },
-      itinerary: cfg?.itinerary || {
-        enabled: true,
-        title: "Itinerario",
-        items: [],
+      venues: { ...(cfg?.venues || { enabled: true, items: [] }), sectionStyle: cfg?.venues?.sectionStyle },
+      itinerary: {
+        ...(cfg?.itinerary || { enabled: true, title: "Itinerario", items: [] }),
+        sectionStyle: cfg?.itinerary?.sectionStyle,
       },
-      gallery: cfg?.gallery || {
-        enabled: true,
-        title: "Galer\u00eda",
-        description: "",
-      },
+      gallery: { ...(cfg?.gallery || { enabled: true, title: "Galería", description: "" }), sectionStyle: cfg?.gallery?.sectionStyle },
       dresscode: {
         enabled: cfg?.dresscode?.enabled ?? true,
         title: cfg?.dresscode?.title || "Código de Vestimenta",
@@ -1534,6 +1581,7 @@ export class ConfigComponent implements OnInit {
         cardBorderRadius: cfg?.dresscode?.cardBorderRadius,
         sectionIcon: cfg?.dresscode?.sectionIcon,
         cards: cfg?.dresscode?.cards || [],
+        sectionStyle: cfg?.dresscode?.sectionStyle,
       },
       gifts: {
         enabled: cfg?.gifts?.enabled ?? true,
@@ -1542,6 +1590,7 @@ export class ConfigComponent implements OnInit {
         link: cfg?.gifts?.link || "",
         buttonText: cfg?.gifts?.buttonText || "Ver Lista",
         sectionIcon: cfg?.gifts?.sectionIcon || undefined,
+        sectionStyle: cfg?.gifts?.sectionStyle,
         transfer: {
           enabled: false,
           title: "\u00bfPrefieres hacer una transferencia?",
@@ -1554,7 +1603,7 @@ export class ConfigComponent implements OnInit {
           ...(cfg?.gifts?.transfer || {}),
         },
       },
-      rsvp: cfg?.rsvp || { enabled: true, title: "Confirmar Asistencia" },
+      rsvp: { ...(cfg?.rsvp || { enabled: true, title: "Confirmar Asistencia" }), sectionStyle: cfg?.rsvp?.sectionStyle },
       theme: {
         cardBg: 'rgba(255,255,255,0.05)',
         cardBorder: 'rgba(212,160,23,0.3)',

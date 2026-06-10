@@ -33,11 +33,12 @@
 > **Contexto**: Permitir personalización visual individual por sección de la landing. Cada sección puede tener su propio fondo (color, degradado, imagen), colores de texto, y separadores orgánicos SVG entre secciones. La configuración global sigue siendo el default — solo se aplica override cuando el cliente activa la personalización en una sección específica.
 
 > **Documentación completa**: `docs/FEATURE-SECTION-STYLES.md`
+> **Plan de pruebas**: `docs/TESTING-INT006.md`
 
 **Fases:**
-- [ ] **Fase 1 — Fondos + Dividers SVG**: Fondo configurable per-sección (inherit/solid/linear/image) + 7 tipos de separadores orgánicos SVG (wave, curve, slant, zigzag, mountains, drops, arrow) + toggle "Personalizar estilo" en cada tab del config.
-- [ ] **Fase 2 — Override de texto**: Fuentes y colores de texto per-sección con auto-contraste.
-- [ ] **Fase 3 — Presets de layout**: Templates de sección predefinidos + animaciones individuales.
+- [x] **Fase 1 — Fondos + Dividers SVG**: Fondo configurable per-sección (inherit/solid/linear/image) + 7 tipos de separadores orgánicos SVG (wave, curve, slant, zigzag, mountains, drops, arrow) + toggle "✨ Estilo de sección" en TODAS las tabs del config (Detalles, Venues, Itinerario, Galería, Vestimenta, Regalos, Confirmación). Color, ángulo, overlay de imagen, alto del divider (20-100px), invertir.
+- [x] **Fase 2 — Override de texto**: Colores de títulos y contenido configurables per-sección. Usa CSS custom properties para aplicar solo dentro del section-block. Botón "Limpiar" para volver a heredar del global.
+- [x] **Fase 3 — Fuentes + Animaciones + Presets**: Override de fuentes per sección (heading/content font dropdowns 12 opciones). Animación de entrada individual (hereda/fade-up/fade-in/slide-left/slide-right/scale/none). 4 presets rápidos (☀ Claro, 🌙 Oscuro, 🍷 Vino, ◻ Transparente) que pre-configuran fondo+colores+divider.
 
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
@@ -206,3 +207,13 @@
 - [x] PDF tarjetas: Puppeteer genera correctamente en el server (Chromium Alpine)
 - [x] Cambio de contraseña desde el perfil del usuario logueado
 - [x] Editor de tarjetas: nuevos items ya no se superponen (offset incremental de 12% vertical + 4% horizontal)
+
+### 2025-06-08 (int-006)
+- [x] **ensureConfigDefaults en backend**: Función que normaliza config JSON con defaults para todas las secciones. Aplicada en ruta pública `/api/public/invitation/:slug`. Permite eliminar `?.` redundantes.
+- [x] **Limpieza de optional chaining**: Eliminados `?.` innecesarios en landing.component, hero.component, gifts.component, register.component. 0 warnings NG8107 en build.
+- [x] **Dresscode cards dinámicas**: N cards con título, descripción, hasta 4 imágenes, fondo y esquinas individuales. Eliminada configuración global (descripción, icono). Retrocompatible con configs legacy.
+- [x] **Animaciones de scroll configurables**: 6 estilos (Fade Up, Fade In, Slide Left, Slide Right, Scale, Ninguna). Selector en pestaña Estilos. Threshold 0.1, duración 1.4s, cubic-bezier. Movimientos amplificados (80px, 100px, scale 0.8).
+- [x] **Estilos por sección — Fase 1 (Fondos + Dividers SVG)**: Interface `SectionStyle` + `sectionStyle?` en todos los configs. Fondos: sólido, degradado, imagen con overlay. 7 dividers SVG (wave, curve, slant, zigzag, mountains, drops, arrow). Color, alto (20-100px), invertir. UI en TODAS las tabs: Details, Venues, Itinerary, Gallery, Dresscode, Gifts, RSVP. Componente `SectionDividerComponent`.
+- [x] **Estilos por sección — Fase 2 (Override de texto)**: Color de títulos y contenido per sección. CSS custom properties `--section-heading-color` y `--section-content-color`. Aplicados con `::ng-deep` + `!important`. Botón "Limpiar" para volver a heredar del global. Controles implementados en tab Detalles (patrón para replicar en las demás).
+- [x] **Estilos por Sección — Fase 3 (Fuentes + Animaciones + Presets)**: Override de fuentes per sección (heading font + content font), animación de entrada individual per sección (override del global), 4 presets rápidos (Claro, Oscuro, Vino, Transparente). Controles completos en TODAS las tabs.
+- [x] **Fix PDF en Android Chrome**: Preview PDF ahora abre en nueva pestaña en mobile (blob URL + window.open) en vez de iframe que no funciona. Descarga corregida con appendChild/removeChild para compatibilidad Android.
