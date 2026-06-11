@@ -770,9 +770,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.details.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.details.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.details.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.details.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.details.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.details.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.details.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.details)">
@@ -793,11 +795,11 @@
         </div>
       </div>
       @if (c.details.sectionStyle!.dividerType && c.details.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.details.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.details.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.details.sectionStyle!.dividerFlip" (change)="c.details.sectionStyle!.dividerFlip = !c.details.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
@@ -915,9 +917,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.venues.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.venues.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.venues.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.venues.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.venues.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.venues.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.venues.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.venues)">
@@ -938,11 +942,11 @@
         </div>
       </div>
       @if (c.venues.sectionStyle!.dividerType && c.venues.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.venues.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.venues.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.venues.sectionStyle!.dividerFlip" (change)="c.venues.sectionStyle!.dividerFlip = !c.venues.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
@@ -1078,9 +1082,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.itinerary.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.itinerary.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.itinerary.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.itinerary.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.itinerary.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.itinerary.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.itinerary.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.itinerary)">
@@ -1101,11 +1107,11 @@
         </div>
       </div>
       @if (c.itinerary.sectionStyle!.dividerType && c.itinerary.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.itinerary.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.itinerary.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.itinerary.sectionStyle!.dividerFlip" (change)="c.itinerary.sectionStyle!.dividerFlip = !c.itinerary.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
@@ -1229,9 +1235,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.gallery.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.gallery.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.gallery.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.gallery.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.gallery.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.gallery.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.gallery.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.gallery)">
@@ -1252,11 +1260,11 @@
         </div>
       </div>
       @if (c.gallery.sectionStyle!.dividerType && c.gallery.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gallery.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.gallery.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.gallery.sectionStyle!.dividerFlip" (change)="c.gallery.sectionStyle!.dividerFlip = !c.gallery.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
@@ -1351,9 +1359,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.dresscode.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.dresscode.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.dresscode.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.dresscode.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.dresscode.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.dresscode.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.dresscode.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.dresscode)">
@@ -1374,11 +1384,11 @@
         </div>
       </div>
       @if (c.dresscode.sectionStyle!.dividerType && c.dresscode.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.dresscode.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.dresscode.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.dresscode.sectionStyle!.dividerFlip" (change)="c.dresscode.sectionStyle!.dividerFlip = !c.dresscode.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
@@ -1483,9 +1493,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.gifts.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.gifts.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.gifts.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.gifts.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.gifts.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.gifts.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.gifts.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.gifts)">
@@ -1506,11 +1518,11 @@
         </div>
       </div>
       @if (c.gifts.sectionStyle!.dividerType && c.gifts.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gifts.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.gifts.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.gifts.sectionStyle!.dividerFlip" (change)="c.gifts.sectionStyle!.dividerFlip = !c.gifts.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
@@ -1678,9 +1690,11 @@
           <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.rsvp.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.rsvp.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
           @if (c.rsvp.sectionStyle!.bgType === 'linear') {
             <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.rsvp.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.rsvp.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
-            <div class="field" style="max-width:200px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           }
         </div>
+        @if (c.rsvp.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        }
       }
       @if (c.rsvp.sectionStyle!.bgType === 'image') {
         <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.rsvp)">
@@ -1701,11 +1715,11 @@
         </div>
       </div>
       @if (c.rsvp.sectionStyle!.dividerType && c.rsvp.sectionStyle!.dividerType !== 'none') {
-        <div class="field-row mb-12">
+        <div class="field-row mb-8">
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.rsvp.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.rsvp.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <div class="field" style="max-width:200px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:55px;" class="form-control"></div></div>
           <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.rsvp.sectionStyle!.dividerFlip" (change)="c.rsvp.sectionStyle!.dividerFlip = !c.rsvp.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
         </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">

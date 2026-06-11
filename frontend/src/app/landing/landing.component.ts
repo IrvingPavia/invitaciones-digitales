@@ -328,6 +328,7 @@ import { SectionStyle } from '../core/models/models';
       margin-right: -20px;
       padding-left: 20px;
       padding-right: 20px;
+      margin-top: -1px;
     }
     .section-block[style*="--section-heading-color"] ::ng-deep .section-heading,
     .section-block[style*="--section-heading-color"] ::ng-deep h2,

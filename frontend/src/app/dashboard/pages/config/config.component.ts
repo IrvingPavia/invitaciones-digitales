@@ -525,6 +525,8 @@ const FONT_OPTIONS = `
         .section-card-body .field-row { gap: 8px; }
         .section-card-body input[type="number"] { max-width: 56px; min-width: 48px; padding: 6px 4px; font-size: 12px; }
         .section-card-body .field-xs { max-width: 160px; }
+        .section-card-body .field-sm { max-width: 70px; flex: 0 0 70px; }
+        .section-card-body .field-row > .field[style*="max-width:200px"] { max-width: 100% !important; flex: 1 1 100%; }
       }
       .toggle-pill {
         display: flex;
@@ -1317,15 +1319,17 @@ export class ConfigComponent implements OnInit {
   // Section Style helpers
   ensureSectionStyle(section: any): any {
     if (!section.sectionStyle) {
-      section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
+      section.sectionStyle = { bgType: 'inherit', dividerType: 'none', headingFont: '', contentFont: '', headingColor: '', contentColor: '' };
     }
+    if (section.sectionStyle.headingFont === undefined) section.sectionStyle.headingFont = '';
+    if (section.sectionStyle.contentFont === undefined) section.sectionStyle.contentFont = '';
     return section.sectionStyle;
   }
   toggleSectionStyle(section: any) {
     if (section.sectionStyle && section.sectionStyle.bgType !== 'inherit') {
       section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
     } else {
-      section.sectionStyle = { bgType: 'solid', bgColor1: '#ffffff', dividerType: 'none', dividerHeight: 50 };
+      section.sectionStyle = { bgType: 'solid', bgColor1: '#ffffff', dividerType: 'none', dividerHeight: 50, headingFont: '', contentFont: '', headingColor: '', contentColor: '' };
     }
   }
   hasSectionStyle(section: any): boolean {
