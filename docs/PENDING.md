@@ -40,6 +40,10 @@
 - [x] **Fase 2 — Override de texto**: Colores de títulos y contenido configurables per-sección. Usa CSS custom properties para aplicar solo dentro del section-block. Botón "Limpiar" para volver a heredar del global.
 - [x] **Fase 3 — Fuentes + Animaciones + Presets**: Override de fuentes per sección (heading/content font dropdowns 12 opciones). Animación de entrada individual (hereda/fade-up/fade-in/slide-left/slide-right/scale/none). 4 presets rápidos (☀ Claro, 🌙 Oscuro, 🍷 Vino, ◻ Transparente) que pre-configuran fondo+colores+divider.
 
+**Pendiente próxima sesión:**
+- [ ] **Adornos de título per sección**: Reemplazar el sistema de "Separadores" global por adornos decorativos configurables en cada sección. Tipos: none, line, dots, sparkles, flourish, dash, arrows, wave. Propiedades: tipo, posición (arriba/abajo/ambos), color, tamaño. Se configura dentro del sectionStyle de cada sección.
+- [ ] **Verificar que la configuración de sección aplica correctamente en la landing** (fondos, dividers, colores de texto, fuentes)
+
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
 > **Contexto**: Actualmente Vitely solo soporta eventos con lista de invitados predefinida (bodas, XV años). Cada invitado tiene un código único, un QR personal, y la landing se personaliza con su nombre. Este feature extiende la plataforma para soportar eventos tipo conferencia, taller, o fiesta abierta donde NO hay una lista de invitados previa — cualquier persona con el link puede registrarse hasta llenar el cupo.

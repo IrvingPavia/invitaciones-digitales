@@ -8,7 +8,8 @@
 |------|--------|-------------|
 | Fase 1 | ✅ Completa | Fondos per-sección + 7 dividers SVG + UI en todas las tabs |
 | Fase 2 | ✅ Completa | Override de colores de texto (títulos + contenido) per sección |
-| Fase 3 | ⏳ Pendiente | Presets de layout, override de fuentes, animaciones individuales |
+| Fase 3 | ✅ Completa | Override de fuentes, tamaños, degradado títulos, animaciones individuales, presets, number inputs, responsive, preview |
+| Fase 4 | ⏳ Pendiente | Adornos de título per sección (reemplaza separadores globales) |
 
 ## Problema que resuelve
 
@@ -290,3 +291,69 @@ Todo se almacena en `config_json` — solo es una propiedad nueva en el JSON. Co
   - Recomendación: no limitar, pero el default es "inherit" y el toggle está apagado
 - [ ] ¿Agregar esto como feature de "plan premium" en el SaaS?
   - Recomendación: sí, es un diferenciador claro para clientes que pagan más
+
+
+---
+
+## Fase 4 — Adornos de Título (próxima sesión)
+
+### Contexto
+Los "Separadores" actuales (líneas a los lados del título en cada sección) son inconsistentes:
+- Solo se muestran en secciones que tienen `.section-header` con `display: flex`
+- Cuando el título es largo, las líneas se comprimen a nada
+- No son configurables per-sección
+- No se adaptan bien a fondos claros
+
+### Propuesta: Adornos decorativos per-sección
+
+Reemplazar el sistema global de "Separadores" (pestaña Estilos) por un sistema de adornos configurables dentro de cada `sectionStyle`.
+
+### Tipos de adorno
+
+| Tipo | Visual | CSS/SVG |
+|------|--------|---------|
+| `none` | — | Sin adorno |
+| `line` | ——— | Línea simple con degradado |
+| `dots` | • • • | 3-5 círculos centrados |
+| `sparkles` | ✦ ✦ ✦ | Destellos/estrellas (SVG) |
+| `flourish` | ❧ ❦ | Floritura ornamental (SVG path) |
+| `dash` | — · — | Línea con punto central |
+| `arrows` | ‹ · › | Flechas decorativas |
+| `wave` | ∿∿∿ | Mini ondas |
+
+### Propiedades en SectionStyle
+
+```typescript
+// Dentro de SectionStyle
+headingOrnament?: {
+  type: 'none' | 'line' | 'dots' | 'sparkles' | 'flourish' | 'dash' | 'arrows' | 'wave';
+  position: 'above' | 'below' | 'both';
+  color?: string;  // default: hereda del heading color
+  size?: number;   // escala 0.5-2 (default 1)
+};
+```
+
+### En la Landing
+```html
+@if (ornament && ornament.position !== 'below') {
+  <div class="heading-ornament" [attr.data-type]="ornament.type">...</div>
+}
+<h2 class="section-heading">{{ title }}</h2>
+@if (ornament && ornament.position !== 'above') {
+  <div class="heading-ornament" [attr.data-type]="ornament.type">...</div>
+}
+```
+
+### En el Dashboard Config
+Dentro del panel "✨ Estilo de sección", agregar una subsección:
+```
+Adorno de título:
+[none] [line] [dots] [sparkles] [flourish] [dash] [arrows] [wave]
+Posición: [Arriba] [Abajo] [Ambos]
+Color: ████   Tamaño: ═══○═══
+```
+
+### Migración
+- Eliminar la sección "Separadores" de la pestaña Estilos global
+- O mantenerla como default para secciones que no tienen sectionStyle activo
+- Retrocompatible: si no hay `headingOrnament`, se usa el separador global (o none)
