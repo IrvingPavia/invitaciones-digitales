@@ -1,23 +1,40 @@
 import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/models/models';
+import { GiftsConfig, GlobalTextStyles, SectionIconConfig, SectionStyle } from '../../../core/models/models';
+import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
 
 @Component({
   selector: 'app-landing-gifts',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeadingOrnamentComponent],
   template: `
     <section id="gifts" class="landing-section gifts-section">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          <h2 class="section-heading"
-              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-          >{{ config.title }}</h2>
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-        </div>
+        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+          <div class="section-header-block">
+            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title }}</h2>
+            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+          </div>
+        } @else {
+          <div class="section-header">
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title }}</h2>
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          </div>
+        }
         <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
           @if (getGiftsIcon(); as icon) {
             @if (icon.type === 'material') {
@@ -110,6 +127,7 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
     .gifts-section { padding: 80px 20px; }
     .section-container { max-width: 700px; margin: 0 auto; text-align: center; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 32px; text-align: center; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
     .gifts-card {
@@ -191,6 +209,15 @@ import { GiftsConfig, GlobalTextStyles, SectionIconConfig } from '../../../core/
 export class LandingGiftsComponent {
   @Input() config!: GiftsConfig;
   @Input() styles?: GlobalTextStyles;
+  @Input() sectionStyle?: SectionStyle;
+
+  hasOrnament(): boolean {
+    return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
+  }
+  getOrnamentType(): string { return this.sectionStyle?.headingOrnament?.type || 'none'; }
+  getOrnamentPosition(): string { return this.sectionStyle?.headingOrnament?.position || 'below'; }
+  getOrnamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
+  getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   getFontFamily(key?: string): string {
     const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};

@@ -1,8 +1,9 @@
 import { Component, Input, signal, OnInit, inject, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GlobalTextStyles, RsvpConfig, RegistrationFieldConfig } from '../../../core/models/models';
+import { GlobalTextStyles, RsvpConfig, RegistrationFieldConfig, SectionStyle } from '../../../core/models/models';
 import { ApiService } from '../../../core/services/api.service';
+import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
 
 interface CountryCode {
   code: string;
@@ -14,19 +15,35 @@ interface CountryCode {
 @Component({
   selector: 'app-landing-register',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HeadingOrnamentComponent],
   template: `
     <section id="rsvp" class="landing-section register-section">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          <h2 class="section-heading"
-              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-          >{{ config.title || 'Registro' }}</h2>
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-        </div>
+        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+          <div class="section-header-block">
+            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title || 'Registro' }}</h2>
+            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+          </div>
+        } @else {
+          <div class="section-header">
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title || 'Registro' }}</h2>
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          </div>
+        }
 
         <div class="register-card reveal">
           @if (registered()) {
@@ -105,6 +122,7 @@ interface CountryCode {
     .register-section { padding: 80px 20px; }
     .section-container { max-width: 600px; margin: 0 auto; text-align: center; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 32px; text-align: center; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .register-card {
@@ -192,8 +210,17 @@ export class LandingRegisterComponent implements OnInit {
   @Input() config!: RsvpConfig;
   @Input() slug = '';
   @Input() styles?: GlobalTextStyles;
+  @Input() sectionStyle?: SectionStyle;
   private api = inject(ApiService);
   private elRef = inject(ElementRef);
+
+  hasOrnament(): boolean {
+    return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
+  }
+  getOrnamentType(): string { return this.sectionStyle?.headingOrnament?.type || 'none'; }
+  getOrnamentPosition(): string { return this.sectionStyle?.headingOrnament?.position || 'below'; }
+  getOrnamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
+  getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   formData: Record<string, string> = {};
   registered = signal(false);

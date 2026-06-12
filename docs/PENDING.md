@@ -41,8 +41,11 @@
 - [x] **Fase 3 — Fuentes + Animaciones + Presets**: Override de fuentes per sección (heading/content font dropdowns 12 opciones). Animación de entrada individual (hereda/fade-up/fade-in/slide-left/slide-right/scale/none). 4 presets rápidos (☀ Claro, 🌙 Oscuro, 🍷 Vino, ◻ Transparente) que pre-configuran fondo+colores+divider.
 
 **Pendiente próxima sesión:**
-- [ ] **Adornos de título per sección**: Reemplazar el sistema de "Separadores" global por adornos decorativos configurables en cada sección. Tipos: none, line, dots, sparkles, flourish, dash, arrows, wave. Propiedades: tipo, posición (arriba/abajo/ambos), color, tamaño. Se configura dentro del sectionStyle de cada sección.
-- [ ] **Verificar que la configuración de sección aplica correctamente en la landing** (fondos, dividers, colores de texto, fuentes)
+- [x] **Adornos de título per sección**: Implementado con 7 tipos SVG, posición configurable, color, tamaño.
+- [x] **Verificar que la configuración de sección aplica correctamente en la landing** (fondos, dividers, colores de texto, fuentes)
+- [ ] **Verificar landing real en dispositivo móvil**: Validar que clip-path de transiciones funciona en iOS Safari y Android Chrome
+- [ ] **Stroke/borde opcional en la transición**: Permitir configurar una línea visible en el borde del clip (color, grosor, opacidad)
+- [ ] **Preview del iframe no se actualiza automáticamente**: Requiere click en "Recargar" después de guardar — evaluar auto-refresh
 
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
@@ -221,3 +224,14 @@
 - [x] **Estilos por sección — Fase 2 (Override de texto)**: Color de títulos y contenido per sección. CSS custom properties `--section-heading-color` y `--section-content-color`. Aplicados con `::ng-deep` + `!important`. Botón "Limpiar" para volver a heredar del global. Controles implementados en tab Detalles (patrón para replicar en las demás).
 - [x] **Estilos por Sección — Fase 3 (Fuentes + Animaciones + Presets)**: Override de fuentes per sección (heading font + content font), animación de entrada individual per sección (override del global), 4 presets rápidos (Claro, Oscuro, Vino, Transparente). Controles completos en TODAS las tabs.
 - [x] **Fix PDF en Android Chrome**: Preview PDF ahora abre en nueva pestaña en mobile (blob URL + window.open) en vez de iframe que no funciona. Descarga corregida con appendChild/removeChild para compatibilidad Android.
+
+### 2025-06-12 (int-006 — Fase 4 + Mejoras)
+- [x] **Fase 4 — Adornos de título per sección**: Nuevo `HeadingOrnamentComponent` con 7 tipos SVG (line, dots, sparkles, flourish, dash, arrows, wave). Interface `HeadingOrnament` en `SectionStyle`. Posición configurable (arriba/abajo/ambos/lados). Color y tamaño (0.5x–2x) configurables. Controles en TODAS las tabs del config. Fallback a separadores globales cuando posición es "sides".
+- [x] **Rediseño del separador superior → Transición entre secciones (clip-path)**: Cambio arquitectónico completo. El divider ya NO es un SVG relleno con color — ahora es un `clip-path: polygon()` aplicado al section-block. La sección se superpone a la anterior con `margin-top` negativo y la forma orgánica recorta el borde superior. Soporte completo para fondos de imagen/degradado sin franjas de color artificial. Formas curvas (wave, curve, drops) generadas con Math.sin/cos (40-60 puntos para suavidad). Toggle "Invertir" funciona correctamente invirtiendo coordenadas Y.
+- [x] **Eliminado campo "Color" del separador**: Ya no es necesario — el clip-path hereda automáticamente el fondo de la sección. Solo queda: tipo de forma, invertir, y alto.
+- [x] **Preview de estilo de sección mejorado**: Usa clip-path real en el preview (misma lógica que la landing). Franja superior dinámica (`height = dividerHeight`). Padding-top dinámico para que el contenido no se solape con el corte. Escala proporcional con el valor de "Alto".
+- [x] **Separación de Encabezado de sección vs Títulos**: Nuevo bloque "Encabezado de sección" (fuente, tamaño, color) controla el H2 grande. "Títulos de sección" controla los h3/títulos internos. CSS custom properties separados (`--section-h2-color`/`--section-h2-font` vs `--section-heading-color`). Campos `sectionHeadingColor`, `sectionHeadingFont`, `sectionHeadingSize` agregados al modelo `SectionStyle`.
+- [x] **Fix controles responsive en config**: Inputs numéricos de sliders ampliados a 72px con padding reducido. Los campos de "Tamaño" (font) no se ven afectados. Sliders con max-width limitado.
+- [x] **Fix texto "Invertir" diminuto**: Font-size 13px, sin transform scale, color más visible (0.6 opacidad).
+- [x] **Fix adornos — escalado proporcional**: El SVG del preview ahora escala tanto width como height con el factor de tamaño.
+- [x] **Método `getLandingBgColor()`**: Retorna solo el color sólido primario para uso en SVG fills (evita pasar gradientes CSS a SVG).

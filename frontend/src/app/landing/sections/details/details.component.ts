@@ -1,23 +1,40 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
+import { DetailsConfig, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
+import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
 
 @Component({
   selector: 'app-landing-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeadingOrnamentComponent],
   template: `
     <section id="details" class="details-section">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          <h2 class="section-heading"
-              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-          >{{ config.title || 'Detalles del Evento' }}</h2>
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-        </div>
+        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+          <div class="section-header-block">
+            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title || 'Detalles del Evento' }}</h2>
+            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+          </div>
+        } @else {
+          <div class="section-header">
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title || 'Detalles del Evento' }}</h2>
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          </div>
+        }
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
             <div class="detail-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
@@ -58,6 +75,7 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
     .details-section { padding: 80px 20px; }
     .section-container { max-width: 800px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 48px; text-align: center; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .details-grid { display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; }
@@ -96,6 +114,15 @@ import { DetailsConfig, GlobalTextStyles } from '../../../core/models/models';
 export class LandingDetailsComponent {
   @Input() config!: DetailsConfig;
   @Input() styles?: GlobalTextStyles;
+  @Input() sectionStyle?: SectionStyle;
+
+  hasOrnament(): boolean {
+    return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
+  }
+  getOrnamentType(): string { return this.sectionStyle?.headingOrnament?.type || 'none'; }
+  getOrnamentPosition(): string { return this.sectionStyle?.headingOrnament?.position || 'below'; }
+  getOrnamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
+  getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   getFontFamily(key?: string): string {
     const map: Record<string, string> = {

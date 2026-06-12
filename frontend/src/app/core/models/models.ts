@@ -100,7 +100,11 @@ export interface SectionStyle {
   dividerColor?: string;
   dividerFlip?: boolean;
   dividerHeight?: number;
-  // Text override
+  // Text override - Section Heading (H2)
+  sectionHeadingColor?: string;
+  sectionHeadingFont?: string;
+  sectionHeadingSize?: number;
+  // Text override - Titles (h3, internal card titles)
   headingColor?: string;
   headingColor2?: string;
   headingGradientAngle?: number;
@@ -113,9 +117,18 @@ export interface SectionStyle {
   contentFont?: string;
   // Animation override (per section)
   animation?: 'inherit' | 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
+  // Heading ornament (per section)
+  headingOrnament?: HeadingOrnament;
   // Spacing
   paddingTop?: number;
   paddingBottom?: number;
+}
+
+export interface HeadingOrnament {
+  type: 'none' | 'line' | 'dots' | 'sparkles' | 'flourish' | 'dash' | 'arrows' | 'wave';
+  position: 'above' | 'below' | 'both' | 'sides';
+  color?: string;
+  size?: number; // scale 0.5–2, default 1
 }
 
 export interface GlobalTextStyles {

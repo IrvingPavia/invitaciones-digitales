@@ -516,17 +516,58 @@ const FONT_OPTIONS = `
         flex-wrap: wrap;
       }
       .slider-field {
-        max-width: 200px;
-        min-width: 0;
-        flex: 1 1 140px;
+        max-width: 220px;
+        min-width: 150px;
+        flex: 1 1 150px;
+      }
+      .slider-field > div {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .slider-field input[type="range"] {
+        flex: 1;
+        min-width: 50px;
+        max-width: 120px;
+      }
+      .slider-field input[type="number"] {
+        width: 72px !important;
+        min-width: 72px !important;
+        max-width: 72px !important;
+        flex: 0 0 72px !important;
+        text-align: center;
+        padding: 8px 6px !important;
+        font-size: 13px;
+      }
+      .section-card-body .field[style*="max-width:280px"] input[type="number"].form-control,
+      .section-card-body .field[style*="max-width:200px"] input[type="number"].form-control {
+        width: 72px !important;
+        min-width: 72px !important;
+        max-width: 72px !important;
+        padding: 8px 6px !important;
+        text-align: center;
+        flex: 0 0 72px;
+      }
+      .section-card-body .field[style*="max-width:280px"],
+      .section-card-body .field[style*="max-width:200px"] {
+        max-width: 280px !important;
+      }
+      .section-card-body .field[style*="max-width:280px"] input[type="range"],
+      .section-card-body .field[style*="max-width:200px"] input[type="range"] {
+        max-width: 160px;
+      }
+      .section-card-body input[type="range"] {
+        min-width: 50px;
+        max-width: 160px;
+        flex: 1;
       }
       @media (max-width: 600px) {
         .slider-field { max-width: 100%; flex: 1 1 100%; }
+        .slider-field input[type="range"] { max-width: none; }
+        .section-card-body input[type="range"] { max-width: none; }
         .section-card-body .field-row { gap: 8px; }
-        .section-card-body input[type="number"] { max-width: 56px; min-width: 48px; padding: 6px 4px; font-size: 12px; }
         .section-card-body .field-xs { max-width: 160px; }
         .section-card-body .field-sm { max-width: 70px; flex: 0 0 70px; }
-        .section-card-body .field-row > .field[style*="max-width:200px"] { max-width: 100% !important; flex: 1 1 100%; }
       }
       .toggle-pill {
         display: flex;
@@ -1391,6 +1432,122 @@ export class ConfigComponent implements OnInit {
     }
   }
 
+  getPreviewClipPath(section: any): string {
+    const s = section?.sectionStyle;
+    if (!s || !s.dividerType || s.dividerType === 'none') return 'none';
+    const type = s.dividerType;
+    const flip = s.dividerFlip || false;
+    const h = s.dividerHeight || 50;
+    // Use same logic as landing but with percentage-based Y for the preview
+    const totalH = h + 120; // estimated element height
+    const maxP = (h / totalH) * 100;
+
+    const toP = (yPx: number) => ((yPx / totalH) * 100).toFixed(1);
+
+    switch (type) {
+      case 'slant':
+        return flip
+          ? `polygon(0% 0%, 100% ${toP(h)}%, 100% 100%, 0% 100%)`
+          : `polygon(0% ${toP(h)}%, 100% 0%, 100% 100%, 0% 100%)`;
+      case 'arrow':
+        return flip
+          ? `polygon(0% 0%, 50% ${toP(h)}%, 100% 0%, 100% 100%, 0% 100%)`
+          : `polygon(0% ${toP(h)}%, 50% 0%, 100% ${toP(h)}%, 100% 100%, 0% 100%)`;
+      case 'zigzag': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 12; i++) {
+          const x = ((i / 12) * 100).toFixed(1);
+          const y = i % 2 === 0 ? (flip ? 0 : h) : (flip ? h : 0);
+          pts.push(`${x}% ${toP(y)}%`);
+        }
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'mountains': {
+        const mPts = [[0,1],[12.5,0.3],[25,0.7],[42,0],[58,0.6],[75,0.2],[87.5,0.5],[100,0.15]];
+        const pts = mPts.map(([x, ratio]) => {
+          const y = flip ? h * (1 - ratio) : h * ratio;
+          return `${x}% ${toP(y)}%`;
+        });
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'wave': {
+        const pts: string[] = [];
+        const steps = 40;
+        for (let i = 0; i <= steps; i++) {
+          const x = ((i / steps) * 100).toFixed(1);
+          const t = (i / steps) * Math.PI * 2;
+          let y = (Math.sin(t) + 1) / 2 * h;
+          if (flip) y = h - y;
+          pts.push(`${x}% ${toP(y)}%`);
+        }
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'curve': {
+        const pts: string[] = [];
+        const steps = 30;
+        for (let i = 0; i <= steps; i++) {
+          const x = ((i / steps) * 100).toFixed(1);
+          const t = (i / steps) * Math.PI;
+          let y = (Math.cos(t) * 0.5 + 0.5) * h;
+          if (flip) y = h - y;
+          pts.push(`${x}% ${toP(y)}%`);
+        }
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'drops': {
+        const pts: string[] = [];
+        const drops = 6;
+        const stepsPerDrop = 10;
+        const totalSteps = drops * stepsPerDrop;
+        for (let i = 0; i <= totalSteps; i++) {
+          const x = ((i / totalSteps) * 100).toFixed(1);
+          const t = (i / totalSteps) * drops * Math.PI * 2;
+          let y = (Math.cos(t) + 1) / 2 * h;
+          if (flip) y = h - y;
+          pts.push(`${x}% ${toP(y)}%`);
+        }
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      default:
+        return 'none';
+    }
+  }
+
+  Math = Math;
+
+  getOrnamentPreviewSvg(section: any): string {
+    const ornament = section?.sectionStyle?.headingOrnament;
+    if (!ornament || ornament.type === 'none') return '';
+    const color = ornament.color || this.config()?.globalStyles?.separatorStyle?.color || '#d4a017';
+    const s = ornament.size || 1;
+    switch (ornament.type) {
+      case 'line':
+        return `<svg width="${100 * s}" height="${6 * s}" viewBox="0 0 120 6" fill="none" style="display:block;margin:0 auto;"><path d="M0 3 C20 0, 40 6, 60 3 C80 0, 100 6, 120 3" stroke="${color}" stroke-width="1.5" fill="none" opacity="0.8"/><circle cx="60" cy="3" r="2.5" fill="${color}" opacity="0.6"/></svg>`;
+      case 'dots':
+        return `<svg width="${60 * s}" height="${10 * s}" viewBox="0 0 60 10" style="display:block;margin:0 auto;"><circle cx="10" cy="5" r="2" fill="${color}" opacity="0.5"/><circle cx="20" cy="5" r="3" fill="${color}" opacity="0.7"/><circle cx="30" cy="5" r="4" fill="${color}"/><circle cx="40" cy="5" r="3" fill="${color}" opacity="0.7"/><circle cx="50" cy="5" r="2" fill="${color}" opacity="0.5"/></svg>`;
+      case 'sparkles':
+        return `<svg width="${80 * s}" height="${16 * s}" viewBox="0 0 80 16" fill="none" style="display:block;margin:0 auto;"><path d="M16 8 L18 5 L20 8 L18 11 Z" fill="${color}" opacity="0.5"/><path d="M32 8 L35 3 L38 8 L35 13 Z" fill="${color}" opacity="0.7"/><path d="M40 8 L44 1 L48 8 L44 15 Z" fill="${color}"/><path d="M50 8 L53 3 L56 8 L53 13 Z" fill="${color}" opacity="0.7"/><path d="M64 8 L66 5 L68 8 L66 11 Z" fill="${color}" opacity="0.5"/></svg>`;
+      case 'flourish':
+        return `<svg width="${130 * s}" height="${20 * s}" viewBox="0 0 160 24" fill="none" style="display:block;margin:0 auto;"><path d="M80 12 C70 4, 50 4, 30 12 C20 16, 10 14, 5 10" stroke="${color}" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M80 12 C90 4, 110 4, 130 12 C140 16, 150 14, 155 10" stroke="${color}" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="80" cy="12" r="3" fill="${color}" opacity="0.8"/></svg>`;
+      case 'dash':
+        return `<svg width="${70 * s}" height="${8 * s}" viewBox="0 0 70 8" style="display:block;margin:0 auto;"><rect x="5" y="3" width="24" height="2" rx="1" fill="${color}" opacity="0.7"/><circle cx="35" cy="4" r="3" fill="${color}"/><rect x="41" y="3" width="24" height="2" rx="1" fill="${color}" opacity="0.7"/></svg>`;
+      case 'arrows':
+        return `<svg width="${60 * s}" height="${12 * s}" viewBox="0 0 60 12" fill="none" style="display:block;margin:0 auto;"><path d="M12 6 L18 2 L18 10 Z" fill="${color}" opacity="0.5"/><path d="M22 6 L27 3 L27 9 Z" fill="${color}" opacity="0.7"/><circle cx="31" cy="6" r="2.5" fill="${color}"/><path d="M38 6 L33 3 L33 9 Z" fill="${color}" opacity="0.7"/><path d="M48 6 L42 2 L42 10 Z" fill="${color}" opacity="0.5"/></svg>`;
+      case 'wave':
+        return `<svg width="${100 * s}" height="${10 * s}" viewBox="0 0 120 12" fill="none" style="display:block;margin:0 auto;"><path d="M0 6 C10 2, 20 10, 30 6 C40 2, 50 10, 60 6 C70 2, 80 10, 90 6 C100 2, 110 10, 120 6" stroke="${color}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
+      default: return '';
+    }
+  }
+
+  getSafeOrnamentHtml(section: any) {
+    return this.sanitizer.bypassSecurityTrustHtml(this.getOrnamentPreviewSvg(section));
+  }
+
   getFontName(key: string): string {
     const map: Record<string, string> = {
       'sans': 'Lato', 'serif': 'Playfair Display', 'script': 'Great Vibes',
@@ -1400,6 +1557,33 @@ export class ConfigComponent implements OnInit {
       'pinyon': 'Pinyon Script', 'josefin': 'Josefin Sans', 'baskerville': 'Baskerville'
     };
     return map[key] || key || 'Sans';
+  }
+
+  // Heading Ornament helpers
+  getOrnamentType(section: any): string {
+    return section?.sectionStyle?.headingOrnament?.type || 'none';
+  }
+  setOrnamentType(section: any, type: string) {
+    this.ensureSectionStyle(section);
+    if (type === 'none') {
+      section.sectionStyle.headingOrnament = undefined;
+    } else {
+      if (!section.sectionStyle.headingOrnament) {
+        section.sectionStyle.headingOrnament = { type, position: 'below', size: 1 };
+      } else {
+        section.sectionStyle.headingOrnament.type = type;
+      }
+    }
+  }
+  getOrnamentProp(section: any, prop: string): any {
+    return section?.sectionStyle?.headingOrnament?.[prop];
+  }
+  setOrnamentProp(section: any, prop: string, value: any) {
+    this.ensureSectionStyle(section);
+    if (!section.sectionStyle.headingOrnament) {
+      section.sectionStyle.headingOrnament = { type: 'dots', position: 'below', size: 1 };
+    }
+    (section.sectionStyle.headingOrnament as any)[prop] = value;
   }
 
   // Itinerary

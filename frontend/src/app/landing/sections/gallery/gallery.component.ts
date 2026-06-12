@@ -1,23 +1,40 @@
 import { Component, Input, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GalleryConfig, Photo, GlobalTextStyles } from '../../../core/models/models';
+import { GalleryConfig, Photo, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
+import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
 
 @Component({
   selector: 'app-landing-gallery',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeadingOrnamentComponent],
   template: `
     <section id="gallery" class="landing-section gallery-section">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          <h2 class="section-heading"
-              [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-              [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-              [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-          >{{ config.title || 'Galería' }}</h2>
-          <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-        </div>
+        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+          <div class="section-header-block">
+            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title || 'Galería' }}</h2>
+            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+            }
+          </div>
+        } @else {
+          <div class="section-header">
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            <h2 class="section-heading"
+                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+            >{{ config.title || 'Galería' }}</h2>
+            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+          </div>
+        }
         @if (config.description) {
           <p class="gallery-desc"
              [style.font-family]="getFontFamily(styles?.subtitleStyle?.fontFamily)"
@@ -136,6 +153,7 @@ import { GalleryConfig, Photo, GlobalTextStyles } from '../../../core/models/mod
     .gallery-section { padding: 80px 20px; }
     .section-container { max-width: 600px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; }
     .section-line { flex: 1; height: 1px; }
     .section-heading { text-align: center; }
     .gallery-desc { text-align: center; margin-bottom: 32px; }
@@ -257,6 +275,15 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   @Input() config!: GalleryConfig;
   @Input() photos: Photo[] = [];
   @Input() styles?: GlobalTextStyles;
+  @Input() sectionStyle?: SectionStyle;
+
+  hasOrnament(): boolean {
+    return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
+  }
+  getOrnamentType(): string { return this.sectionStyle?.headingOrnament?.type || 'none'; }
+  getOrnamentPosition(): string { return this.sectionStyle?.headingOrnament?.position || 'below'; }
+  getOrnamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
+  getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   current = signal(0);
   lightboxIndex = signal<number | null>(null);

@@ -1,4 +1,4 @@
-@if (config(); as c) {
+﻿@if (config(); as c) {
 <div class="config-toolbar">
   <div>
     <a routerLink="/dashboard" class="back-link"><span class="material-icons">arrow_back</span> Volver</a>
@@ -773,7 +773,7 @@
           }
         </div>
         @if (c.details.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.details.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.details.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.details.sectionStyle!.bgType === 'image') {
@@ -796,11 +796,17 @@
       </div>
       @if (c.details.sectionStyle!.dividerType && c.details.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.details.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.details.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.details.sectionStyle!.dividerFlip" (change)="c.details.sectionStyle!.dividerFlip = !c.details.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.details.sectionStyle!.dividerFlip" (change)="c.details.sectionStyle!.dividerFlip = !c.details.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.details.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.details.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.details.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.details.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.details.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -811,9 +817,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.details.sectionStyle!.headingColor2 || ''" (valueChange)="c.details.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.details.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.details.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.details.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.details.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.details.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.details.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.details.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.details.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.details.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.details.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.details.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.details.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.details.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.details.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.details.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.details.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.details.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.details.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.details.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.details.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.details.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.details.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.details.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -827,11 +833,42 @@
         <button class="btn btn-outline btn-sm" style="white-space:nowrap;" (click)="c.details.sectionStyle!.headingColor = ''; c.details.sectionStyle!.contentColor = ''; c.details.sectionStyle!.headingFont = ''; c.details.sectionStyle!.contentFont = ''; c.details.sectionStyle!.headingColor2 = ''; c.details.sectionStyle!.headingGradientAngle = undefined; c.details.sectionStyle!.headingGradientIntensity = undefined; c.details.sectionStyle!.headingFontWeight = undefined">✕ Limpiar estilos de texto</button>
       }
       <small style="color:rgba(255,255,255,0.35);font-size:11px;display:block;margin-top:8px;">Vacío = hereda de la pestaña Estilos global.</small>
-      <!-- Vista previa -->
-      <div style="margin-top:16px;border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.details)">
-        <div style="text-align:center;">
-          <p [style.color]="c.details.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.details.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.details.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;" [style.background-image]="c.details.sectionStyle!.headingColor2 ? 'linear-gradient(' + (c.details.sectionStyle!.headingGradientAngle ?? 135) + 'deg, ' + (c.details.sectionStyle!.headingColor || '#d4a017') + ', ' + c.details.sectionStyle!.headingColor2 + ')' : 'none'" [style.-webkit-background-clip]="c.details.sectionStyle!.headingColor2 ? 'text' : ''" [style.-webkit-text-fill-color]="c.details.sectionStyle!.headingColor2 ? 'transparent' : ''">Título de ejemplo</p>
-          <p [style.color]="c.details.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.details.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'none'" (click)="setOrnamentType(c.details, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'line'" (click)="setOrnamentType(c.details, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'dots'" (click)="setOrnamentType(c.details, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'sparkles'" (click)="setOrnamentType(c.details, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'flourish'" (click)="setOrnamentType(c.details, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'dash'" (click)="setOrnamentType(c.details, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'arrows'" (click)="setOrnamentType(c.details, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.details) === 'wave'" (click)="setOrnamentType(c.details, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.details) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.details, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.details, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.details, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.details, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.details, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.details, 'size') || 1" (ngModelChange)="setOrnamentProp(c.details, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
+      <!-- Preview -->
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.details.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.details.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.details.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.details)" [style.clip-path]="getPreviewClipPath(c.details)">
+          @if (getOrnamentType(c.details) !== 'none' && (getOrnamentProp(c.details, 'position') === 'above' || getOrnamentProp(c.details, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.details)"></div>
+          }
+          <p [style.color]="c.details.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.details.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.details.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;" [style.background-image]="c.details.sectionStyle!.headingColor2 ? 'linear-gradient(' + (c.details.sectionStyle!.headingGradientAngle ?? 135) + 'deg, ' + (c.details.sectionStyle!.headingColor || '#d4a017') + ', ' + c.details.sectionStyle!.headingColor2 + ')' : 'none'" [style.-webkit-background-clip]="c.details.sectionStyle!.headingColor2 ? 'text' : ''" [style.-webkit-text-fill-color]="c.details.sectionStyle!.headingColor2 ? 'transparent' : ''">Título de ejemplo</p>
+          @if (getOrnamentType(c.details) !== 'none' && (getOrnamentProp(c.details, 'position') === 'below' || getOrnamentProp(c.details, 'position') === 'both' || !getOrnamentProp(c.details, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.details)"></div>
+          }
+          <p [style.color]="c.details.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.details.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
@@ -920,7 +957,7 @@
           }
         </div>
         @if (c.venues.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.venues.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.venues.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.venues.sectionStyle!.bgType === 'image') {
@@ -943,11 +980,17 @@
       </div>
       @if (c.venues.sectionStyle!.dividerType && c.venues.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.venues.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.venues.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.venues.sectionStyle!.dividerFlip" (change)="c.venues.sectionStyle!.dividerFlip = !c.venues.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.venues.sectionStyle!.dividerFlip" (change)="c.venues.sectionStyle!.dividerFlip = !c.venues.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.venues.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.venues.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.venues.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.venues.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.venues.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -958,9 +1001,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.venues.sectionStyle!.headingColor2 || ''" (valueChange)="c.venues.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.venues.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.venues.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.venues.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.venues.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.venues.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.venues.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.venues.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.venues.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.venues.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.venues.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.venues.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.venues.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.venues.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.venues.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.venues.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.venues.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.venues.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.venues.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.venues.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.venues.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.venues.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.venues.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.venues.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.venues.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -970,11 +1013,42 @@
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.venues.sectionStyle!.contentColor || ''" (valueChange)="c.venues.sectionStyle!.contentColor = $event"></app-color-picker></div>
         </div>
       </div>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'none'" (click)="setOrnamentType(c.venues, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'line'" (click)="setOrnamentType(c.venues, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'dots'" (click)="setOrnamentType(c.venues, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'sparkles'" (click)="setOrnamentType(c.venues, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'flourish'" (click)="setOrnamentType(c.venues, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'dash'" (click)="setOrnamentType(c.venues, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'arrows'" (click)="setOrnamentType(c.venues, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.venues) === 'wave'" (click)="setOrnamentType(c.venues, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.venues) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.venues, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.venues, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.venues, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.venues, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.venues, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.venues, 'size') || 1" (ngModelChange)="setOrnamentProp(c.venues, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
       <!-- Preview -->
-      <div style="border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.venues)">
-        <div style="text-align:center;">
-          <p [style.color]="c.venues.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.venues.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.venues.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;">Título de ejemplo</p>
-          <p [style.color]="c.venues.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.venues.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.venues.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.venues.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.venues.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.venues)" [style.clip-path]="getPreviewClipPath(c.venues)">
+          @if (getOrnamentType(c.venues) !== 'none' && (getOrnamentProp(c.venues, 'position') === 'above' || getOrnamentProp(c.venues, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.venues)"></div>
+          }
+          <p [style.color]="c.venues.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.venues.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.venues.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;">Título de ejemplo</p>
+          @if (getOrnamentType(c.venues) !== 'none' && (getOrnamentProp(c.venues, 'position') === 'below' || getOrnamentProp(c.venues, 'position') === 'both' || !getOrnamentProp(c.venues, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.venues)"></div>
+          }
+          <p [style.color]="c.venues.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.venues.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
@@ -1085,7 +1159,7 @@
           }
         </div>
         @if (c.itinerary.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.itinerary.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.itinerary.sectionStyle!.bgType === 'image') {
@@ -1108,11 +1182,17 @@
       </div>
       @if (c.itinerary.sectionStyle!.dividerType && c.itinerary.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.itinerary.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.itinerary.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.itinerary.sectionStyle!.dividerFlip" (change)="c.itinerary.sectionStyle!.dividerFlip = !c.itinerary.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.itinerary.sectionStyle!.dividerFlip" (change)="c.itinerary.sectionStyle!.dividerFlip = !c.itinerary.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.itinerary.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.itinerary.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.itinerary.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.itinerary.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.itinerary.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -1123,9 +1203,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.itinerary.sectionStyle!.headingColor2 || ''" (valueChange)="c.itinerary.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.itinerary.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.itinerary.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.itinerary.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.itinerary.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.itinerary.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.itinerary.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.itinerary.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.itinerary.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.itinerary.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.itinerary.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.itinerary.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.itinerary.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.itinerary.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -1135,11 +1215,42 @@
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.itinerary.sectionStyle!.contentColor || ''" (valueChange)="c.itinerary.sectionStyle!.contentColor = $event"></app-color-picker></div>
         </div>
       </div>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'none'" (click)="setOrnamentType(c.itinerary, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'line'" (click)="setOrnamentType(c.itinerary, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'dots'" (click)="setOrnamentType(c.itinerary, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'sparkles'" (click)="setOrnamentType(c.itinerary, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'flourish'" (click)="setOrnamentType(c.itinerary, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'dash'" (click)="setOrnamentType(c.itinerary, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'arrows'" (click)="setOrnamentType(c.itinerary, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.itinerary) === 'wave'" (click)="setOrnamentType(c.itinerary, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.itinerary) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.itinerary, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.itinerary, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.itinerary, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.itinerary, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.itinerary, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.itinerary, 'size') || 1" (ngModelChange)="setOrnamentProp(c.itinerary, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
       <!-- Preview -->
-      <div style="border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.itinerary)">
-        <div style="text-align:center;">
-          <p [style.color]="c.itinerary.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.itinerary.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.itinerary.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;">Título de ejemplo</p>
-          <p [style.color]="c.itinerary.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.itinerary.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.itinerary.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.itinerary.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.itinerary.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.itinerary)" [style.clip-path]="getPreviewClipPath(c.itinerary)">
+          @if (getOrnamentType(c.itinerary) !== 'none' && (getOrnamentProp(c.itinerary, 'position') === 'above' || getOrnamentProp(c.itinerary, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.itinerary)"></div>
+          }
+          <p [style.color]="c.itinerary.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.itinerary.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.itinerary.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;">Título de ejemplo</p>
+          @if (getOrnamentType(c.itinerary) !== 'none' && (getOrnamentProp(c.itinerary, 'position') === 'below' || getOrnamentProp(c.itinerary, 'position') === 'both' || !getOrnamentProp(c.itinerary, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.itinerary)"></div>
+          }
+          <p [style.color]="c.itinerary.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.itinerary.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
@@ -1238,7 +1349,7 @@
           }
         </div>
         @if (c.gallery.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gallery.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.gallery.sectionStyle!.bgType === 'image') {
@@ -1261,11 +1372,17 @@
       </div>
       @if (c.gallery.sectionStyle!.dividerType && c.gallery.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gallery.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.gallery.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.gallery.sectionStyle!.dividerFlip" (change)="c.gallery.sectionStyle!.dividerFlip = !c.gallery.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.gallery.sectionStyle!.dividerFlip" (change)="c.gallery.sectionStyle!.dividerFlip = !c.gallery.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.gallery.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.gallery.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gallery.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.gallery.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.gallery.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -1276,9 +1393,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.gallery.sectionStyle!.headingColor2 || ''" (valueChange)="c.gallery.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gallery.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gallery.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.gallery.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gallery.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.gallery.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gallery.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.gallery.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gallery.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.gallery.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gallery.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gallery.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gallery.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gallery.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.gallery.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gallery.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.gallery.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gallery.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.gallery.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gallery.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.gallery.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gallery.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -1288,11 +1405,42 @@
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gallery.sectionStyle!.contentColor || ''" (valueChange)="c.gallery.sectionStyle!.contentColor = $event"></app-color-picker></div>
         </div>
       </div>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'none'" (click)="setOrnamentType(c.gallery, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'line'" (click)="setOrnamentType(c.gallery, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'dots'" (click)="setOrnamentType(c.gallery, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'sparkles'" (click)="setOrnamentType(c.gallery, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'flourish'" (click)="setOrnamentType(c.gallery, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'dash'" (click)="setOrnamentType(c.gallery, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'arrows'" (click)="setOrnamentType(c.gallery, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gallery) === 'wave'" (click)="setOrnamentType(c.gallery, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.gallery) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.gallery, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.gallery, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.gallery, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.gallery, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.gallery, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.gallery, 'size') || 1" (ngModelChange)="setOrnamentProp(c.gallery, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
       <!-- Preview -->
-      <div style="border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.gallery)">
-        <div style="text-align:center;">
-          <p [style.color]="c.gallery.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.gallery.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.gallery.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;">Título de ejemplo</p>
-          <p [style.color]="c.gallery.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.gallery.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.gallery.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.gallery.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.gallery.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.gallery)" [style.clip-path]="getPreviewClipPath(c.gallery)">
+          @if (getOrnamentType(c.gallery) !== 'none' && (getOrnamentProp(c.gallery, 'position') === 'above' || getOrnamentProp(c.gallery, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.gallery)"></div>
+          }
+          <p [style.color]="c.gallery.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.gallery.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.gallery.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;">Título de ejemplo</p>
+          @if (getOrnamentType(c.gallery) !== 'none' && (getOrnamentProp(c.gallery, 'position') === 'below' || getOrnamentProp(c.gallery, 'position') === 'both' || !getOrnamentProp(c.gallery, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.gallery)"></div>
+          }
+          <p [style.color]="c.gallery.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.gallery.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
@@ -1362,7 +1510,7 @@
           }
         </div>
         @if (c.dresscode.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.dresscode.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.dresscode.sectionStyle!.bgType === 'image') {
@@ -1385,11 +1533,17 @@
       </div>
       @if (c.dresscode.sectionStyle!.dividerType && c.dresscode.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.dresscode.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.dresscode.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.dresscode.sectionStyle!.dividerFlip" (change)="c.dresscode.sectionStyle!.dividerFlip = !c.dresscode.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.dresscode.sectionStyle!.dividerFlip" (change)="c.dresscode.sectionStyle!.dividerFlip = !c.dresscode.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.dresscode.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.dresscode.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.dresscode.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.dresscode.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.dresscode.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -1400,9 +1554,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.dresscode.sectionStyle!.headingColor2 || ''" (valueChange)="c.dresscode.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.dresscode.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.dresscode.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.dresscode.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.dresscode.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.dresscode.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.dresscode.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.dresscode.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.dresscode.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.dresscode.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.dresscode.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.dresscode.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.dresscode.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.dresscode.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -1412,11 +1566,42 @@
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.dresscode.sectionStyle!.contentColor || ''" (valueChange)="c.dresscode.sectionStyle!.contentColor = $event"></app-color-picker></div>
         </div>
       </div>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'none'" (click)="setOrnamentType(c.dresscode, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'line'" (click)="setOrnamentType(c.dresscode, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'dots'" (click)="setOrnamentType(c.dresscode, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'sparkles'" (click)="setOrnamentType(c.dresscode, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'flourish'" (click)="setOrnamentType(c.dresscode, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'dash'" (click)="setOrnamentType(c.dresscode, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'arrows'" (click)="setOrnamentType(c.dresscode, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.dresscode) === 'wave'" (click)="setOrnamentType(c.dresscode, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.dresscode) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.dresscode, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.dresscode, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.dresscode, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.dresscode, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.dresscode, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.dresscode, 'size') || 1" (ngModelChange)="setOrnamentProp(c.dresscode, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
       <!-- Preview -->
-      <div style="border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.dresscode)">
-        <div style="text-align:center;">
-          <p [style.color]="c.dresscode.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.dresscode.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.dresscode.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;">Título de ejemplo</p>
-          <p [style.color]="c.dresscode.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.dresscode.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.dresscode.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.dresscode.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.dresscode.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.dresscode)" [style.clip-path]="getPreviewClipPath(c.dresscode)">
+          @if (getOrnamentType(c.dresscode) !== 'none' && (getOrnamentProp(c.dresscode, 'position') === 'above' || getOrnamentProp(c.dresscode, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.dresscode)"></div>
+          }
+          <p [style.color]="c.dresscode.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.dresscode.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.dresscode.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;">Título de ejemplo</p>
+          @if (getOrnamentType(c.dresscode) !== 'none' && (getOrnamentProp(c.dresscode, 'position') === 'below' || getOrnamentProp(c.dresscode, 'position') === 'both' || !getOrnamentProp(c.dresscode, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.dresscode)"></div>
+          }
+          <p [style.color]="c.dresscode.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.dresscode.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
@@ -1496,7 +1681,7 @@
           }
         </div>
         @if (c.gifts.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.gifts.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.gifts.sectionStyle!.bgType === 'image') {
@@ -1519,11 +1704,17 @@
       </div>
       @if (c.gifts.sectionStyle!.dividerType && c.gifts.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gifts.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.gifts.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.gifts.sectionStyle!.dividerFlip" (change)="c.gifts.sectionStyle!.dividerFlip = !c.gifts.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.gifts.sectionStyle!.dividerFlip" (change)="c.gifts.sectionStyle!.dividerFlip = !c.gifts.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.gifts.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.gifts.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gifts.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.gifts.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.gifts.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -1534,9 +1725,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.gifts.sectionStyle!.headingColor2 || ''" (valueChange)="c.gifts.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gifts.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gifts.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.gifts.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gifts.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.gifts.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gifts.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.gifts.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gifts.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.gifts.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gifts.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gifts.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.gifts.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.gifts.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.gifts.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gifts.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.gifts.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.gifts.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.gifts.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gifts.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.gifts.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.gifts.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -1546,11 +1737,42 @@
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gifts.sectionStyle!.contentColor || ''" (valueChange)="c.gifts.sectionStyle!.contentColor = $event"></app-color-picker></div>
         </div>
       </div>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'none'" (click)="setOrnamentType(c.gifts, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'line'" (click)="setOrnamentType(c.gifts, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'dots'" (click)="setOrnamentType(c.gifts, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'sparkles'" (click)="setOrnamentType(c.gifts, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'flourish'" (click)="setOrnamentType(c.gifts, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'dash'" (click)="setOrnamentType(c.gifts, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'arrows'" (click)="setOrnamentType(c.gifts, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.gifts) === 'wave'" (click)="setOrnamentType(c.gifts, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.gifts) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.gifts, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.gifts, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.gifts, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.gifts, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.gifts, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.gifts, 'size') || 1" (ngModelChange)="setOrnamentProp(c.gifts, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
       <!-- Preview -->
-      <div style="border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.gifts)">
-        <div style="text-align:center;">
-          <p [style.color]="c.gifts.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.gifts.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.gifts.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;">Título de ejemplo</p>
-          <p [style.color]="c.gifts.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.gifts.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.gifts.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.gifts.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.gifts.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.gifts)" [style.clip-path]="getPreviewClipPath(c.gifts)">
+          @if (getOrnamentType(c.gifts) !== 'none' && (getOrnamentProp(c.gifts, 'position') === 'above' || getOrnamentProp(c.gifts, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.gifts)"></div>
+          }
+          <p [style.color]="c.gifts.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.gifts.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.gifts.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;">Título de ejemplo</p>
+          @if (getOrnamentType(c.gifts) !== 'none' && (getOrnamentProp(c.gifts, 'position') === 'below' || getOrnamentProp(c.gifts, 'position') === 'both' || !getOrnamentProp(c.gifts, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.gifts)"></div>
+          }
+          <p [style.color]="c.gifts.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.gifts.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
@@ -1693,7 +1915,7 @@
           }
         </div>
         @if (c.rsvp.sectionStyle!.bgType === 'linear') {
-          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.rsvp.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         }
       }
       @if (c.rsvp.sectionStyle!.bgType === 'image') {
@@ -1716,11 +1938,17 @@
       </div>
       @if (c.rsvp.sectionStyle!.dividerType && c.rsvp.sectionStyle!.dividerType !== 'none') {
         <div class="field-row mb-8">
-          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.rsvp.sectionStyle!.dividerColor || '#0d1117'" (valueChange)="c.rsvp.sectionStyle!.dividerColor = $event"></app-color-picker></div>
-          <label class="toggle-switch" style="gap:6px;transform:scale(0.85);"><input type="checkbox" [checked]="c.rsvp.sectionStyle!.dividerFlip" (change)="c.rsvp.sectionStyle!.dividerFlip = !c.rsvp.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:11px;color:rgba(255,255,255,0.5)">Invertir</span></label>
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.rsvp.sectionStyle!.dividerFlip" (change)="c.rsvp.sectionStyle!.dividerFlip = !c.rsvp.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
-        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
       }
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
+        <div class="field-row mb-8">
+          <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.rsvp.sectionStyle!.sectionHeadingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.sectionHeadingStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
+          <div class="field field-sm"><label class="form-label">Tamaño</label><input type="number" [(ngModel)]="c.rsvp.sectionStyle!.sectionHeadingSize" [placeholder]="c.globalStyles.sectionHeadingStyle.fontSize || 36" min="12" max="72" [ngModelOptions]="{standalone:true}"></div>
+          <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.rsvp.sectionStyle!.sectionHeadingColor || ''" (valueChange)="c.rsvp.sectionStyle!.sectionHeadingColor = $event"></app-color-picker></div>
+        </div>
+      </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Títulos de sección</label>
         <div class="field-row mb-8">
           <div class="field"><label class="form-label">Fuente</label><select [(ngModel)]="c.rsvp.sectionStyle!.headingFont" [ngModelOptions]="{standalone:true}"><option value="">Hereda ({{ getFontName(c.globalStyles.titleStyle.fontFamily) }})</option><option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option></select></div>
@@ -1731,9 +1959,9 @@
           <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.rsvp.sectionStyle!.headingColor2 || ''" (valueChange)="c.rsvp.sectionStyle!.headingColor2 = $event"></app-color-picker></div>
         </div>
         <div class="field-row" style="flex-wrap:wrap;">
-          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.rsvp.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.rsvp.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
-          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.rsvp.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.rsvp.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.rsvp.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.rsvp.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:56px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.rsvp.sectionStyle!.headingGradientAngle ?? 135" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Intensidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="100" [ngModel]="c.rsvp.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="100" [ngModel]="c.rsvp.sectionStyle!.headingGradientIntensity ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.headingGradientIntensity = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+          <div class="field slider-field"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="100" max="900" step="100" [ngModel]="c.rsvp.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.rsvp.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="100" max="900" step="100" [ngModel]="c.rsvp.sectionStyle!.headingFontWeight ?? 400" (ngModelChange)="c.rsvp.sectionStyle!.headingFontWeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
         </div>
       </div>
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Contenido</label>
@@ -1743,11 +1971,42 @@
           <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.rsvp.sectionStyle!.contentColor || ''" (valueChange)="c.rsvp.sectionStyle!.contentColor = $event"></app-color-picker></div>
         </div>
       </div>
+      <!-- Adorno de título -->
+      <div class="field mb-12" style="margin-top:16px;"><label class="form-label" style="font-weight:600;">Adorno de título</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:8px;">
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'none'" (click)="setOrnamentType(c.rsvp, 'none')">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'line'" (click)="setOrnamentType(c.rsvp, 'line')">〰 Línea</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'dots'" (click)="setOrnamentType(c.rsvp, 'dots')">••• Puntos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'sparkles'" (click)="setOrnamentType(c.rsvp, 'sparkles')">✦ Destellos</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'flourish'" (click)="setOrnamentType(c.rsvp, 'flourish')">❧ Floritura</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'dash'" (click)="setOrnamentType(c.rsvp, 'dash')">— · — Guión</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'arrows'" (click)="setOrnamentType(c.rsvp, 'arrows')">‹ · › Flechas</button>
+          <button class="icon-type-btn" [class.active]="getOrnamentType(c.rsvp) === 'wave'" (click)="setOrnamentType(c.rsvp, 'wave')">∿ Onda</button>
+        </div>
+        @if (getOrnamentType(c.rsvp) !== 'none') {
+          <div class="field-row mb-8">
+            <div class="field"><label class="form-label">Posición</label>
+              <select [ngModel]="getOrnamentProp(c.rsvp, 'position') || 'below'" (ngModelChange)="setOrnamentProp(c.rsvp, 'position', $event)" [ngModelOptions]="{standalone:true}">
+                <option value="above">Arriba</option><option value="below">Abajo</option><option value="both">Ambos</option><option value="sides">A los lados (líneas)</option>
+              </select>
+            </div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="getOrnamentProp(c.rsvp, 'color') || c.globalStyles.separatorStyle.color || '#d4a017'" (valueChange)="setOrnamentProp(c.rsvp, 'color', $event)"></app-color-picker></div>
+          </div>
+          <div class="field" style="max-width:200px;"><label class="form-label">Tamaño: {{ getOrnamentProp(c.rsvp, 'size') || 1 }}x</label><input type="range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp(c.rsvp, 'size') || 1" (ngModelChange)="setOrnamentProp(c.rsvp, 'size', $event)" [ngModelOptions]="{standalone:true}"></div>
+        }
+      </div>
       <!-- Preview -->
-      <div style="border-radius:12px;padding:20px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);" [style.background]="getSectionStylePreviewBg(c.rsvp)">
-        <div style="text-align:center;">
-          <p [style.color]="c.rsvp.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.rsvp.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.rsvp.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:8px;">Título de ejemplo</p>
-          <p [style.color]="c.rsvp.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.rsvp.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:14px;">Texto de contenido para esta sección.</p>
+      <div style="margin-top:8px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(124,92,191,0.2);">
+        <div [style.height.px]="Math.max(c.rsvp.sectionStyle!.dividerHeight || 50, 40)" [style.background]="getLandingBgPreview()"></div>
+        <div style="text-align:center;padding:20px;padding-bottom:20px;" [style.padding-top.px]="(c.rsvp.sectionStyle!.dividerHeight || 50) + 20" [style.margin-top.px]="-(c.rsvp.sectionStyle!.dividerHeight || 50)" [style.background]="getSectionStylePreviewBg(c.rsvp)" [style.clip-path]="getPreviewClipPath(c.rsvp)">
+          @if (getOrnamentType(c.rsvp) !== 'none' && (getOrnamentProp(c.rsvp, 'position') === 'above' || getOrnamentProp(c.rsvp, 'position') === 'both')) {
+            <div style="margin-bottom:6px;" [innerHTML]="getSafeOrnamentHtml(c.rsvp)"></div>
+          }
+          <p [style.color]="c.rsvp.sectionStyle!.headingColor || c.globalStyles.titleStyle.color" [style.font-family]="getFontPreview(c.rsvp.sectionStyle!.headingFont || c.globalStyles.titleStyle.fontFamily)" [style.font-weight]="c.rsvp.sectionStyle!.headingFontWeight || c.globalStyles.titleStyle.fontWeight" style="font-size:20px;margin-bottom:4px;">Título de ejemplo</p>
+          @if (getOrnamentType(c.rsvp) !== 'none' && (getOrnamentProp(c.rsvp, 'position') === 'below' || getOrnamentProp(c.rsvp, 'position') === 'both' || !getOrnamentProp(c.rsvp, 'position'))) {
+            <div style="margin-bottom:8px;" [innerHTML]="getSafeOrnamentHtml(c.rsvp)"></div>
+          }
+          <p [style.color]="c.rsvp.sectionStyle!.contentColor || c.globalStyles.contentStyle.color" [style.font-family]="getFontPreview(c.rsvp.sectionStyle!.contentFont || c.globalStyles.contentStyle.fontFamily)" style="font-size:13px;">Texto de contenido para esta sección.</p>
         </div>
       </div>
     </div>
