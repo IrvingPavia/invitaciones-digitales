@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { sanitizeConfigJson } = require('../utils/sanitize');
+const { logAudit } = require('../utils/audit');
 
 router.get('/:eventId', auth, async (req, res) => {
   try {
@@ -16,7 +18,7 @@ router.get('/:eventId', auth, async (req, res) => {
 
 router.put('/:eventId', auth, async (req, res) => {
   try {
-    const { config_json } = req.body;
+    const config_json = sanitizeConfigJson(req.body.config_json);
     const [existing] = await getDB().query('SELECT id, config_json FROM event_config WHERE event_id = ?', [req.params.eventId]);
     
     if (existing.length) {
@@ -38,6 +40,7 @@ router.put('/:eventId', auth, async (req, res) => {
       await getDB().query('INSERT INTO event_config (event_id, config_json) VALUES (?, ?)',
         [req.params.eventId, JSON.stringify(config_json)]);
     }
+    logAudit(req.user.id, req.user.username, 'config_save', 'event', parseInt(req.params.eventId));
     res.json({ message: 'Configuración guardada' });
   } catch (err) {
     res.status(500).json({ error: err.message });

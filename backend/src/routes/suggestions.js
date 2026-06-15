@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
+const { validate, createSuggestionSchema, updateSuggestionSchema } = require('../middleware/validate');
 
 // GET /api/suggestions — list suggestions
 // Clients see only their own; admin/root see all
@@ -36,14 +37,13 @@ router.get('/', auth, async (req, res) => {
 });
 
 // POST /api/suggestions — create suggestion (any authenticated user)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validate(createSuggestionSchema), async (req, res) => {
   try {
     const { text, category, event_id } = req.body;
-    if (!text || !text.trim()) return res.status(400).json({ error: 'El texto es requerido' });
 
     const [result] = await getDB().query(
       'INSERT INTO suggestions (user_id, event_id, category, text) VALUES (?, ?, ?, ?)',
-      [req.user.id, event_id || null, category || 'general', text.trim()]
+      [req.user.id, event_id || null, category || 'general', text]
     );
     res.status(201).json({ id: result.insertId, message: 'Sugerencia enviada' });
   } catch (err) {
@@ -52,7 +52,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // PUT /api/suggestions/:id — update status/note (admin/root only)
-router.put('/:id', auth, requireRole('root', 'admin'), async (req, res) => {
+router.put('/:id', auth, requireRole('root', 'admin'), validate(updateSuggestionSchema), async (req, res) => {
   try {
     const { status, admin_note } = req.body;
     const fields = [];
@@ -60,8 +60,6 @@ router.put('/:id', auth, requireRole('root', 'admin'), async (req, res) => {
 
     if (status) { fields.push('status = ?'); params.push(status); }
     if (admin_note !== undefined) { fields.push('admin_note = ?'); params.push(admin_note); }
-
-    if (fields.length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
 
     params.push(req.params.id);
     await getDB().query(`UPDATE suggestions SET ${fields.join(', ')} WHERE id = ?`, params);

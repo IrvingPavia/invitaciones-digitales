@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
 const { requireUserManagement } = require('../middleware/roles');
+const { validate, createUserSchema, updateUserSchema } = require('../middleware/validate');
 
 // Get all users (requires user management permission)
 router.get('/', auth, requireUserManagement, async (req, res) => {
@@ -39,11 +40,9 @@ router.get('/', auth, requireUserManagement, async (req, res) => {
 });
 
 // Create user
-router.post('/', auth, requireUserManagement, async (req, res) => {
+router.post('/', auth, requireUserManagement, validate(createUserSchema), async (req, res) => {
   try {
     let { username, password, role, can_manage_users, event_ids } = req.body;
-    if (!username) return res.status(400).json({ error: 'Username requerido' });
-
     // Generate random password for clients if not provided
     if (!password) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
@@ -65,9 +64,10 @@ router.post('/', auth, requireUserManagement, async (req, res) => {
     if (existing.length) return res.status(400).json({ error: 'El usuario ya existe' });
 
     const hash = bcrypt.hashSync(password, 10);
+    const mustChangePassword = (role || 'admin') === 'client' ? 1 : 0;
     const [result] = await getDB().query(
-      'INSERT INTO users (username, password, role, can_manage_users, plain_password) VALUES (?, ?, ?, ?, ?)',
-      [username, hash, role || 'admin', can_manage_users ? 1 : 0, password]
+      'INSERT INTO users (username, password, role, can_manage_users, plain_password, must_change_password) VALUES (?, ?, ?, ?, ?, ?)',
+      [username, hash, role || 'admin', can_manage_users ? 1 : 0, password, mustChangePassword]
     );
 
     // Assign events if provided (for clients)
@@ -84,7 +84,7 @@ router.post('/', auth, requireUserManagement, async (req, res) => {
 });
 
 // Update user
-router.put('/:id', auth, requireUserManagement, async (req, res) => {
+router.put('/:id', auth, requireUserManagement, validate(updateUserSchema), async (req, res) => {
   try {
     const { username, password, role, can_manage_users, event_ids } = req.body;
     const userId = parseInt(req.params.id);

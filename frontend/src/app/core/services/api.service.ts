@@ -16,6 +16,7 @@ export class ApiService {
   updateEvent(id: number, data: Partial<Event>) { return this.http.put<any>(`${this.api}/events/${id}`, data); }
   deleteEvent(id: number) { return this.http.delete<any>(`${this.api}/events/${id}`); }
   duplicateEvent(id: number) { return this.http.post<{ id: number; slug: string; name: string }>(`${this.api}/events/${id}/duplicate`, {}); }
+  screenshotEvent(id: number) { return this.http.get(`${this.api}/events/${id}/screenshot`, { responseType: 'blob' }); }
 
   // Guests
   getGuests(eventId: number) { return this.http.get<Guest[]>(`${this.api}/guests/event/${eventId}`); }
@@ -23,6 +24,8 @@ export class ApiService {
   updateGuest(id: number, data: Partial<Guest>) { return this.http.put<any>(`${this.api}/guests/${id}`, data); }
   deleteGuest(id: number) { return this.http.delete<any>(`${this.api}/guests/${id}`); }
   getGuestQR(id: number) { return this.http.get<{ qr: string; url: string }>(`${this.api}/guests/${id}/qr`); }
+  markGuestSent(id: number) { return this.http.put<any>(`${this.api}/guests/${id}/mark-sent`, {}); }
+  bulkMarkSent(eventId: number, guestIds: number[]) { return this.http.put<any>(`${this.api}/guests/bulk-mark-sent/${eventId}`, { guest_ids: guestIds }); }
   importGuests(eventId: number, file: File) {
     const fd = new FormData(); fd.append('file', file);
     return this.http.post<any>(`${this.api}/guests/import/${eventId}`, fd);

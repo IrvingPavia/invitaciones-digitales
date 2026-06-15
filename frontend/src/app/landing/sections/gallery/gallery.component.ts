@@ -55,7 +55,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="getCardZIndex(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
                 </div>
               }
             </div>
@@ -71,7 +71,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="photos.length - getStackDistance(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
                 </div>
               }
             </div>
@@ -82,7 +82,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-flip" (click)="next()">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
                 </div>
               }
               <div class="flip-hint">Toca para pasar →</div>
@@ -94,7 +94,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-polaroid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
                 </div>
               }
             </div>
@@ -105,7 +105,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-grid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="gallery-grid-item" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
                 </div>
               }
             </div>
@@ -115,7 +115,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           @if (displayStyle === 'slideshow') {
             <div class="gallery-slideshow">
               @for (photo of photos; track photo.id; let i = $index) {
-                <img class="slideshow-img" [class.active]="i === current()" [src]="photo.url" (click)="openLightbox(current())">
+                <img class="slideshow-img" [class.active]="i === current()" [src]="photo.url" loading="lazy" (click)="openLightbox(current())">
               }
               @if (photos.length > 1) {
                 <button class="slideshow-arrow arrow-left" (click)="prev(); $event.stopPropagation()"><span class="material-icons">chevron_left</span></button>

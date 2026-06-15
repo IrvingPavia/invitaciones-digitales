@@ -2,6 +2,8 @@ const router = require('express').Router();
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
 const { requireRole, requireEventAccess } = require('../middleware/roles');
+const { validate, createEventSchema, updateEventSchema } = require('../middleware/validate');
+const { logAudit } = require('../utils/audit');
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -76,11 +78,9 @@ router.get('/:id', auth, requireEventAccess, async (req, res) => {
   }
 });
 
-router.post('/', auth, requireRole('root', 'admin'), async (req, res) => {
+router.post('/', auth, requireRole('root', 'admin'), validate(createEventSchema), async (req, res) => {
   try {
     const { name, event_type, event_date, slug } = req.body;
-    if (!name || !event_type || !event_date || !slug)
-      return res.status(400).json({ error: 'Campos requeridos: name, event_type, event_date, slug' });
 
     const [existing] = await getDB().query('SELECT id FROM events WHERE slug = ?', [slug]);
     if (existing.length) return res.status(400).json({ error: 'El slug ya existe' });
@@ -96,18 +96,20 @@ router.post('/', auth, requireRole('root', 'admin'), async (req, res) => {
     );
 
     res.status(201).json({ id: result.insertId, slug, name, event_type, event_date });
+    logAudit(req.user.id, req.user.username, 'event_create', 'event', result.insertId, { name, slug });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.put('/:id', auth, requireEventAccess, async (req, res) => {
+router.put('/:id', auth, requireEventAccess, validate(updateEventSchema), async (req, res) => {
   try {
     const { name, event_type, event_date, active, event_mode, max_capacity } = req.body;
     await getDB().query(
       'UPDATE events SET name=?, event_type=?, event_date=?, active=?, event_mode=?, max_capacity=? WHERE id=?',
       [name, event_type, event_date, active ?? 1, event_mode || 'private', max_capacity || null, req.params.id]
     );
+    logAudit(req.user.id, req.user.username, 'event_update', 'event', parseInt(req.params.id), { name });
     res.json({ message: 'Evento actualizado' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -117,6 +119,7 @@ router.put('/:id', auth, requireEventAccess, async (req, res) => {
 router.delete('/:id', auth, requireRole('root', 'admin'), async (req, res) => {
   try {
     await getDB().query('DELETE FROM events WHERE id = ?', [req.params.id]);
+    logAudit(req.user.id, req.user.username, 'event_delete', 'event', parseInt(req.params.id));
     res.json({ message: 'Evento eliminado' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -185,6 +188,20 @@ router.post('/:id/duplicate', auth, requireRole('root', 'admin'), async (req, re
     }
 
     res.status(201).json({ id: newId, slug: newSlug, name: newName });
+    logAudit(req.user.id, req.user.username, 'event_duplicate', 'event', newId, { from: parseInt(req.params.id), newSlug });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Audit log for an event
+router.get('/:id/audit', auth, requireEventAccess, async (req, res) => {
+  try {
+    const [rows] = await getDB().query(
+      'SELECT * FROM audit_log WHERE entity_type = ? AND entity_id = ? ORDER BY created_at DESC LIMIT 50',
+      ['event', req.params.id]
+    );
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -356,5 +373,42 @@ function getDefaultConfig(name, event_type, event_date, templateKey) {
     theme: tpl.theme
   };
 }
+
+// Screenshot endpoint — captures the landing as an image using Puppeteer
+router.get('/:id/screenshot', auth, requireEventAccess, async (req, res) => {
+  try {
+    const [events] = await getDB().query('SELECT slug FROM events WHERE id = ?', [req.params.id]);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado' });
+
+    const landingUrl = `${process.env.BASE_URL}/invitacion/${events[0].slug}`;
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+    });
+
+    const page = await browser.newPage();
+    await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+    await page.goto(landingUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    // Wait a bit for animations to settle
+    await new Promise(r => setTimeout(r, 2000));
+
+    // Take full page screenshot
+    const screenshot = await page.screenshot({
+      fullPage: true,
+      type: 'png',
+    });
+
+    await browser.close();
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename="landing-${events[0].slug}.png"`);
+    res.send(screenshot);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

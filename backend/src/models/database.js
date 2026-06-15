@@ -192,6 +192,31 @@ async function initDB() {
   // Add company/position columns if they don't exist (migration for existing DBs)
   try { await db.query('ALTER TABLE registrations ADD COLUMN company VARCHAR(255) DEFAULT NULL'); } catch(e) {}
   try { await db.query('ALTER TABLE registrations ADD COLUMN position VARCHAR(255) DEFAULT NULL'); } catch(e) {}
+
+  // Migration: must_change_password for forced password change on first login
+  try { await db.query('ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) DEFAULT 0'); } catch(e) {}
+
+  // Migration: phone column for WhatsApp sharing
+  try { await db.query('ALTER TABLE guests ADD COLUMN phone VARCHAR(30) DEFAULT NULL'); } catch(e) {}
+  try { await db.query('ALTER TABLE guests ADD COLUMN invitation_sent TINYINT(1) DEFAULT 0'); } catch(e) {}
+  try { await db.query('ALTER TABLE guests ADD COLUMN sent_at DATETIME DEFAULT NULL'); } catch(e) {}
+
+  // Table: audit_log (historial de cambios)
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      username VARCHAR(100),
+      action VARCHAR(100) NOT NULL,
+      entity_type VARCHAR(50) NOT NULL,
+      entity_id INT,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_entity (entity_type, entity_id),
+      INDEX idx_user (user_id),
+      INDEX idx_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
   // Seed root user
   const [rows] = await db.query('SELECT id FROM users WHERE username = ?', ['root']);
   if (rows.length === 0) {

@@ -254,3 +254,278 @@ Conectar al mismo WiFi → navegar a `http://{IP-PC}:80/invitacion/{slug}`
 - Después de cada cambio en config: **Ctrl+Shift+R** en la landing para limpiar cache
 - Los dividers SVG usan `position: absolute; top: 0; transform: translateY(-99%)` — si se ven mal, verificar que no hay `overflow: hidden` en el padre
 - Los text overrides usan CSS custom properties + `!important` para sobreescribir los estilos inline que cada sección aplica
+
+---
+
+## 10. Stroke/Borde Opcional en la Transición
+
+### Qué se hizo
+Cada transición (clip-path) entre secciones ahora puede tener un borde visible (SVG stroke) con color, grosor y opacidad configurables. El stroke se renderiza como un SVG superpuesto que sigue la misma forma del clip-path.
+
+### Pruebas — Dashboard
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 10.1 | Controles visibles | Activar estilo + seleccionar divider tipo "Onda" | Aparece bloque "Borde de transición" con Grosor, Color | ☐ | ☐ |
+| 10.2 | Sin divider = sin controles | Con divider "Ninguno" seleccionado | No se muestra el bloque "Borde de transición" | ☐ | ☐ |
+| 10.3 | Grosor default 0 | Abrir controles de borde por primera vez | Slider de grosor inicia en 0px | ☐ | ☐ |
+| 10.4 | Slider de grosor | Mover slider de 0 a 3px | El valor se muestra al lado del slider | ☐ | ☐ |
+| 10.5 | Color picker | Cambiar el color del stroke a rojo | El picker actualiza correctamente | ☐ | ☐ |
+| 10.6 | Opacidad visible solo con grosor | Con grosor = 0 | El slider de opacidad NO aparece | ☐ | ☐ |
+| 10.7 | Opacidad visible | Con grosor > 0 | El slider de opacidad aparece (0 a 1) | ☐ | ☐ |
+| 10.8 | Disponible en todas las tabs | Verificar en: Details, Venues, Itinerary, Gallery, Dresscode, Gifts, RSVP | Todas tienen "Borde de transición" cuando hay divider activo | ☐ | ☐ |
+| 10.9 | Guardar y persistir | Configurar stroke, guardar, recargar página | Los valores persisten correctamente | ☐ | ☐ |
+
+### Pruebas — Landing
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 10.10 | Sin stroke (default) | Sección con divider pero sin stroke configurado | No se ve ningún borde visible (como antes) | ☐ | ☐ |
+| 10.11 | Stroke visible | Configurar grosor 2px + color blanco | Se ve una línea blanca siguiendo la forma de la transición | ☐ | ☐ |
+| 10.12 | Opacidad funciona | Configurar stroke + opacidad 0.5 | El borde se ve semi-transparente | ☐ | ☐ |
+| 10.13 | Color correcto | Poner stroke color dorado (#d4a017) | El borde se ve dorado | ☐ | ☐ |
+| 10.14 | Forma sincronizada | Wave + stroke 2px | El SVG stroke sigue exactamente la forma ondulada del clip-path | ☐ | ☐ |
+| 10.15 | Invertir afecta stroke | Toggle "Invertir" activo + stroke | El stroke se invierte junto con la forma | ☐ | ☐ |
+| 10.16 | Responsive | Ver en mobile 320-520px | El stroke se escala con el divider, no se desborda | ☐ | ☐ |
+| 10.17 | Cada tipo con stroke | Probar stroke en los 7 tipos (wave, curve, slant, zigzag, mountains, drops, arrow) | Todos renderizan el stroke correctamente siguiendo su forma | ☐ | ☐ |
+
+---
+
+## 11. Auto-Refresh del Preview (iframe)
+
+### Qué se hizo
+El iframe de preview en la pestaña "📱 Preview" ahora se recarga automáticamente después de guardar exitosamente la configuración. El botón "Recargar" manual sigue disponible como fallback.
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 11.1 | Auto-refresh al guardar | Estar en tab Preview → cambiar algo en otra tab → Guardar | El iframe se recarga automáticamente sin tocar "Recargar" | ☐ | ☐ |
+| 11.2 | Cambios visibles | Cambiar color de fondo de sección + Guardar + ver Preview | El nuevo color aparece en el iframe sin acción extra | ☐ | ☐ |
+| 11.3 | Texto actualizado | Verificar texto debajo del mockup | Dice "Se actualiza automáticamente al guardar." | ☐ | ☐ |
+| 11.4 | Botón Recargar sigue | Verificar que el botón "Recargar" sigue disponible | Botón presente y funcional (refresca manualmente) | ☐ | ☐ |
+| 11.5 | No refresh si error | Desconectar red → intentar guardar → error | El iframe NO se recarga cuando el guardado falla | ☐ | ☐ |
+| 11.6 | Múltiples guardados | Guardar 3 veces seguidas rápidamente | El iframe se recarga cada vez sin errores ni acumulación | ☐ | ☐ |
+
+
+---
+
+## 12. Validación de Input con Joi
+
+### Qué se hizo
+Se agregó middleware centralizado de validación con Joi en todas las rutas que aceptan input del usuario. Los schemas validan tipos, longitudes, formatos y valores permitidos. Input inválido retorna 400 con mensajes descriptivos.
+
+### Pruebas
+
+| # | Caso | Endpoint | Pasos | Esperado |
+|---|------|----------|-------|----------|
+| 12.1 | Login sin username | POST /api/auth/login | Enviar `{ password: "x" }` | 400: "Username es requerido" |
+| 12.2 | Login username largo | POST /api/auth/login | Username >50 chars | 400: "Username muy largo" |
+| 12.3 | Crear evento sin slug | POST /api/events | Sin campo slug | 400: error de validación |
+| 12.4 | Slug con espacios | POST /api/events | slug: "mi evento" | 400: "solo puede contener letras minúsculas, números y guiones" |
+| 12.5 | Crear invitado sin nombres | POST /api/guests | Sin guest_names | 400: "Nombres del invitado es requerido" |
+| 12.6 | max_companions negativo | POST /api/guests | max_companions: -1 | 400: error de validación |
+| 12.7 | Registro público sin nombre | POST /api/public/register/:slug | `{ email: "x@y.z" }` | 400: "El nombre es requerido" |
+| 12.8 | Email inválido en registro | POST /api/public/register/:slug | `{ name: "Test", email: "no-es-email" }` | 400: error de email |
+| 12.9 | Cambiar contraseña corta | PUT /api/auth/change-password | newPassword: "12345" | 400: "al menos 6 caracteres" |
+| 12.10 | Sugerencia vacía | POST /api/suggestions | `{ text: "" }` | 400: "El texto es requerido" |
+| 12.11 | Categoría inválida | POST /api/suggestions | `{ text: "x", category: "hack" }` | 400: error de validación |
+| 12.12 | Flujo normal funciona | POST /api/auth/login | Credenciales correctas | 200: token devuelto |
+
+---
+
+## 13. Lazy Loading de Imágenes
+
+### Qué se hizo
+Se agregó `loading="lazy"` nativo a todas las imágenes de la galería (6 estilos + slideshow) y de la sección vestimenta (imágenes de ejemplo).
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 13.1 | Galería no carga todo | Abrir landing con galería de 20+ fotos → DevTools → Network → Img | Solo las fotos visibles/cercanas se cargan inicialmente | ☐ | ☐ |
+| 13.2 | Fotos cargan al scrollear | Scrollear hasta la galería | Las imágenes se cargan conforme entran al viewport | ☐ | ☐ |
+| 13.3 | Atributo presente | Inspeccionar `<img>` de galería | Tiene `loading="lazy"` | ☐ | ☐ |
+| 13.4 | Lightbox funciona | Click en foto de galería | Lightbox abre con la imagen correcta cargada | ☐ | ☐ |
+| 13.5 | Dresscode lazy | Sección vestimenta con imágenes de ejemplo | Las imágenes se cargan lazy (no bloquean carga inicial) | ☐ | ☐ |
+| 13.6 | Primera foto visible | Con galería estilo carousel/coverflow | La foto activa/central se ve inmediatamente sin delay | ☐ | ☐ |
+
+---
+
+## 14. Sanitización HTML (XSS)
+
+### Qué se hizo
+Se implementó sanitización de campos de texto en el config JSON al guardar. Previene inyección de scripts maliciosos manteniendo formato básico permitido.
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 14.1 | Script eliminado | En título de sección poner: `<script>alert('xss')</script>Hola` → Guardar → Verificar en BD | Solo queda "Hola", sin tag script |
+| 14.2 | Formato preservado | Poner `<b>Negrita</b> y <i>cursiva</i>` en descripción | Se preserva el formato |
+| 14.3 | onclick eliminado | Poner `<a onclick="alert(1)" href="#">Link</a>` | Se elimina onclick, se preserva href con target=_blank |
+| 14.4 | Campos no-texto intactos | Configurar colores (#ff0000), URLs de uploads | No se modifican — solo se sanitizan campos de texto |
+| 14.5 | Config normal funciona | Guardar un config normal sin HTML malicioso | Se guarda sin ningún cambio |
+| 14.6 | img tag eliminado | Poner `<img src=x onerror=alert(1)>` en campo de texto | El tag img se elimina completamente |
+
+
+---
+
+## 15. Cache de QR Generados
+
+### Qué se hizo
+Los códigos QR se cachean en memoria (LRU, max 500 entradas). Requests repetidos devuelven el QR desde cache sin regenerarlo.
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 15.1 | QR se genera | Pedir QR de un invitado nuevo | Se genera y devuelve correctamente |
+| 15.2 | Cache funciona | Pedir el mismo QR 2 veces → medir tiempo | Segunda request es significativamente más rápida |
+| 15.3 | URL correcta | Verificar campo `url` en response | Apunta a `/invitacion/{slug}?t={code}` |
+| 15.4 | QR escanenable | Escanear el QR con celular | Abre la URL correcta de la landing |
+
+---
+
+## 16. Exportar Landing como Screenshot
+
+### Qué se hizo
+Nuevo endpoint `GET /api/events/:id/screenshot` que usa Puppeteer para capturar la landing completa como PNG (viewport mobile 390×844 @2x). Botón "Captura PNG" en pestaña Preview del config.
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 16.1 | Botón visible | Ir a Config → Preview | Se ve botón "Captura PNG" junto a "Recargar" y "Abrir" | ☐ | ☐ |
+| 16.2 | Screenshot se descarga | Click "Captura PNG" | Se descarga un archivo `landing-{slug}.png` | ☐ | N/A |
+| 16.3 | Loading state | Click en botón | Muestra "Generando..." y se deshabilita mientras procesa | ☐ | ☐ |
+| 16.4 | Imagen completa | Abrir el PNG descargado | Se ve la landing completa (full-page, no solo viewport) | ☐ | N/A |
+| 16.5 | Resolución alta | Verificar dimensiones del PNG | Ancho ~780px (390×2) por el deviceScaleFactor 2 | ☐ | N/A |
+| 16.6 | Error handling | Con backend apagado → click captura | No crash, vuelve al estado normal | ☐ | ☐ |
+
+---
+
+## 17. Forzar Cambio de Contraseña en Primer Login
+
+### Qué se hizo
+Los usuarios tipo `client` se crean con `must_change_password = 1`. Al hacer login, si el flag está activo, se muestra un formulario de cambio de contraseña obligatorio antes de acceder al dashboard.
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 17.1 | Client nuevo con flag | Crear usuario client → verificar en BD | `must_change_password = 1` | ☐ | ☐ |
+| 17.2 | Admin/root sin flag | Crear usuario admin | `must_change_password = 0` | ☐ | ☐ |
+| 17.3 | Login muestra cambio | Login con client nuevo | En vez de ir al dashboard, muestra formulario "Cambio de contraseña requerido" | ☐ | ☐ |
+| 17.4 | Contraseñas no coinciden | Ingresar contraseñas diferentes | Error: "Las contraseñas no coinciden" | ☐ | ☐ |
+| 17.5 | Contraseña corta | Ingresar 5 caracteres | Error: "al menos 6 caracteres" | ☐ | ☐ |
+| 17.6 | Cambio exitoso | Cambiar contraseña correctamente | Navega al dashboard, flag se limpia | ☐ | ☐ |
+| 17.7 | Segundo login normal | Login con contraseña nueva | Entra directamente al dashboard sin pedir cambio | ☐ | ☐ |
+| 17.8 | Root/admin login normal | Login como root o admin | Entra directamente, sin formulario de cambio | ☐ | ☐ |
+
+
+---
+
+## 18. Healthcheck + Logs + Audit Log + Expiración de Sesión
+
+### 18a. Healthcheck mejorado
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 18.1 | Health OK | GET /health | `{ status: "ok", db: "connected", uptime: N, timestamp: "..." }` |
+| 18.2 | Health degraded | Detener MySQL → GET /health | 503 con `{ status: "degraded", db: "disconnected" }` |
+
+### 18b. Logs HTTP (Morgan)
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 18.3 | Logs visibles | `docker-compose logs -f backend` → hacer request | Se ve "GET /api/events 200 ... - Xms" |
+| 18.4 | Health no se logea | GET /health repetidas veces | No aparece en los logs |
+
+### 18c. Audit Log
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 18.5 | Config save registrado | Guardar config de un evento → GET /api/events/:id/audit | Aparece entry con action "config_save" |
+| 18.6 | Event create registrado | Crear evento → consultar audit | Entry "event_create" con slug en details |
+| 18.7 | Event delete registrado | Eliminar evento → verificar en BD audit_log | Entry "event_delete" registrado |
+| 18.8 | Duplicate registrado | Duplicar evento → consultar audit del nuevo | Entry "event_duplicate" con referencia al original |
+| 18.9 | Últimos 50 | Generar >50 entries → GET audit | Solo devuelve los 50 más recientes |
+
+### 18d. Expiración de sesión
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 18.10 | Token expirado | Modificar token en localStorage (cambiar exp a pasado) → navegar | Redirige automáticamente al login |
+| 18.11 | Token válido | Login normal → navegar por el dashboard | Funciona sin interrupciones |
+| 18.12 | 401 del backend | Token válido pero backend rechaza (ej: usuario eliminado) | Redirige al login |
+
+
+---
+
+## 19. Sistema de Compartir Invitaciones
+
+### Qué se hizo
+Sistema completo para compartir invitaciones por WhatsApp (mobile) o copiar link (desktop). Incluye: Open Graph meta tags, campo de teléfono, tracking de envío, envío individual y masivo asistido.
+
+### 19a. Open Graph Meta Tags
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 19.1 | Preview en WhatsApp | Compartir link de landing en un chat de WhatsApp | Se muestra título del evento + descripción + imagen del hero |
+| 19.2 | Preview en Facebook | Pegar link en Facebook | Muestra OG card con título, descripción e imagen |
+| 19.3 | Bot redirect | Acceder a `/invitacion/{slug}` con user-agent "WhatsApp" | Devuelve HTML con meta tags + redirect |
+| 19.4 | Normal user | Acceder con navegador normal | Carga la SPA Angular normalmente |
+
+### 19b. Campo Teléfono en Invitados
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 19.5 | Campo en modal | Abrir modal "Nuevo Invitado" | Se ve campo "Teléfono (WhatsApp)" con hint de formato | ☐ | ☐ |
+| 19.6 | Guardar teléfono | Crear invitado con phone "521234567890" | Se guarda y muestra en la tabla | ☐ | ☐ |
+| 19.7 | Editar teléfono | Editar invitado existente → agregar teléfono | Se actualiza correctamente | ☐ | ☐ |
+| 19.8 | Import Excel con teléfono | Subir Excel con columna "phone" o "telefono" | Los teléfonos se importan correctamente | ☐ | ☐ |
+| 19.9 | Export incluye teléfono | Exportar Excel | Columna "Telefono" presente con datos | ☐ | ☐ |
+| 19.10 | Template actualizado | Descargar plantilla | Incluye columna "phone" con ejemplo | ☐ | ☐ |
+
+### 19c. Compartir Individual
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 19.11 | Botón share visible | Ver tabla de invitados | Botón "share" en columna acciones | ☐ | ☐ |
+| 19.12 | Desktop → copiar | Click share en desktop | Copia URL al clipboard + toast "Copiado" | ☐ | N/A |
+| 19.13 | Mobile con phone → WhatsApp | Click share en mobile (invitado con teléfono) | Abre wa.me/{phone} con mensaje pre-llenado | N/A | ☐ |
+| 19.14 | Mobile sin phone → share API | Click share en mobile (sin teléfono) | Usa navigator.share o copia link | N/A | ☐ |
+| 19.15 | Marca como enviado | Después de compartir | Badge "✓ Enviado" aparece en la fila | ☐ | ☐ |
+
+### 19d. Envío Masivo
+
+| # | Caso | Pasos | Esperado | Desktop | Mobile |
+|---|------|-------|----------|---------|--------|
+| 19.16 | Botón habilitado | Con invitados que tienen teléfono y no están enviados | Botón "Enviar invitaciones" habilitado | ☐ | ☐ |
+| 19.17 | Botón deshabilitado | Todos sin teléfono o todos ya enviados | Botón deshabilitado | ☐ | ☐ |
+| 19.18 | Confirmar antes de enviar | Click "Enviar invitaciones" | Modal de confirmación con conteo | ☐ | ☐ |
+| 19.19 | Desktop masivo | Confirmar en desktop | Copia todos los links como lista al clipboard | ☐ | N/A |
+| 19.20 | Mobile masivo | Confirmar en mobile | Abre wa.me secuencialmente (cada 1.5s) | N/A | ☐ |
+| 19.21 | Tracking masivo | Después de envío masivo | Todos marcados como "✓ Enviado" | ☐ | ☐ |
+
+
+---
+
+## 20. Optimizaciones de Performance y Bundle
+
+### Qué se hizo
+Optimizaciones de bundle (removed unused dep), meta tags SEO, Nginx con gzip mejorado + security headers + cache de imágenes 30d, Material Icons con display=swap.
+
+### Pruebas
+
+| # | Caso | Pasos | Esperado |
+|---|------|-------|----------|
+| 20.1 | Bundle sin qrcode | Verificar que `qrcode` no está en package.json del frontend | No está presente |
+| 20.2 | Gzip activo | DevTools → Network → verificar `Content-Encoding: gzip` en JS/CSS | Respuestas comprimidas |
+| 20.3 | Cache de imágenes | DevTools → Network → cargar imagen de /uploads/ | Header `Cache-Control: public, max-age=2592000` (30d) |
+| 20.4 | Cache de JS/CSS | DevTools → cargar asset .js | Header `Cache-Control: public, immutable` |
+| 20.5 | Security headers | DevTools → Response headers de cualquier request | `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` |
+| 20.6 | Material Icons sin FOIT | Recargar página cold | Los iconos aparecen con text swap, no flash invisible |
+| 20.7 | Meta description | Ver source HTML de index.html | Tiene meta description y theme-color |
+| 20.8 | Título actualizado | Título de la pestaña del navegador | "Vitely — Invitaciones Digitales" |

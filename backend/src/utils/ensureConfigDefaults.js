@@ -168,6 +168,11 @@ function ensureConfigDefaults(cfg) {
       registrationFields: cfg.rsvp?.registrationFields,
       sectionStyle: cfg.rsvp?.sectionStyle,
     },
+    sharing: {
+      message: cfg.sharing?.message || '¡Hola {nombre}! 🎉\nEstás cordialmente invitado(a) a {evento}.\nAquí tu invitación personal:\n{link}\n\n¡Te esperamos! 💕',
+      messageOpen: cfg.sharing?.messageOpen || '¡Hola! 🎉\nEstás invitado(a) a {evento}.\nRegístrate aquí:\n{link}',
+      ...(cfg.sharing || {}),
+    },
     theme: {
       cardBg: 'rgba(255,255,255,0.05)',
       cardBorder: 'rgba(212,160,23,0.3)',

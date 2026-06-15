@@ -67,7 +67,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                   <div class="example-images" [class.single]="card.images.length === 1">
                     @for (img of card.images; track img) {
                       <div class="example-img-wrapper">
-                        <img [src]="img" [alt]="card.title">
+                        <img [src]="img" [alt]="card.title" loading="lazy">
                       </div>
                     }
                   </div>

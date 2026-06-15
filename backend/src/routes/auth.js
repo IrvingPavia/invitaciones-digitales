@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { validate, loginSchema, changePasswordSchema } = require('../middleware/validate');
 
 // Rate limit: max 5 login attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
@@ -14,10 +15,9 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post('/login', loginLimiter, async (req, res) => {
+router.post('/login', loginLimiter, validate(loginSchema), async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Credenciales requeridas' });
 
     const [rows] = await getDB().query('SELECT * FROM users WHERE username = ?', [username]);
     const user = rows[0];
@@ -29,7 +29,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
-    res.json({ token, user: { id: user.id, username: user.username, role: user.role, can_manage_users: user.can_manage_users } });
+    res.json({ token, user: { id: user.id, username: user.username, role: user.role, can_manage_users: user.can_manage_users, must_change_password: !!user.must_change_password } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -54,7 +54,7 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-router.put('/change-password', auth, async (req, res) => {
+router.put('/change-password', auth, validate(changePasswordSchema), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const [rows] = await getDB().query('SELECT * FROM users WHERE id = ?', [req.user.id]);
@@ -63,7 +63,7 @@ router.put('/change-password', auth, async (req, res) => {
       return res.status(400).json({ error: 'Contraseña actual incorrecta' });
 
     const hash = bcrypt.hashSync(newPassword, 10);
-    await getDB().query('UPDATE users SET password = ?, plain_password = ? WHERE id = ?', [hash, newPassword, req.user.id]);
+    await getDB().query('UPDATE users SET password = ?, plain_password = ?, must_change_password = 0 WHERE id = ?', [hash, newPassword, req.user.id]);
     res.json({ message: 'Contraseña actualizada' });
   } catch (err) {
     res.status(500).json({ error: err.message });

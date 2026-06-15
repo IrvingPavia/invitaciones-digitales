@@ -799,6 +799,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.details.sectionStyle!.dividerFlip" (change)="c.details.sectionStyle!.dividerFlip = !c.details.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.details.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.details.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.details.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.details.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.details.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.details.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.details.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.details.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.details.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.details.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.details.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -983,6 +992,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.venues.sectionStyle!.dividerFlip" (change)="c.venues.sectionStyle!.dividerFlip = !c.venues.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.venues.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.venues.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.venues.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.venues.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.venues.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.venues.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.venues.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.venues.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.venues.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.venues.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.venues.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -1185,6 +1203,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.itinerary.sectionStyle!.dividerFlip" (change)="c.itinerary.sectionStyle!.dividerFlip = !c.itinerary.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.itinerary.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.itinerary.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.itinerary.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.itinerary.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.itinerary.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.itinerary.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.itinerary.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.itinerary.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.itinerary.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.itinerary.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.itinerary.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -1375,6 +1402,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.gallery.sectionStyle!.dividerFlip" (change)="c.gallery.sectionStyle!.dividerFlip = !c.gallery.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gallery.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gallery.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.gallery.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.gallery.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.gallery.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gallery.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.gallery.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.gallery.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.gallery.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.gallery.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.gallery.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -1536,6 +1572,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.dresscode.sectionStyle!.dividerFlip" (change)="c.dresscode.sectionStyle!.dividerFlip = !c.dresscode.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.dresscode.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.dresscode.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.dresscode.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.dresscode.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.dresscode.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.dresscode.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.dresscode.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.dresscode.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.dresscode.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -1707,6 +1752,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.gifts.sectionStyle!.dividerFlip" (change)="c.gifts.sectionStyle!.dividerFlip = !c.gifts.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.gifts.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.gifts.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.gifts.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.gifts.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.gifts.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.gifts.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.gifts.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.gifts.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.gifts.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.gifts.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.gifts.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -1941,6 +1995,15 @@
           <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.rsvp.sectionStyle!.dividerFlip" (change)="c.rsvp.sectionStyle!.dividerFlip = !c.rsvp.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
         </div>
         <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.rsvp.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.rsvp.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.rsvp.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.rsvp.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.rsvp.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.rsvp.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.rsvp.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.rsvp.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.rsvp.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
       }
       <div class="field mb-12"><label class="form-label" style="font-weight:600;">Encabezado de sección</label>
         <div class="field-row mb-8">
@@ -2126,19 +2189,22 @@
   </div>
   <div class="section-card-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;">
     <p style="font-size:13px;color:rgba(255,255,255,0.6);text-align:center;">
-      Preview en tiempo real de tu invitación. Guarda los cambios primero para verlos reflejados.
+      Preview en tiempo real de tu invitación. Se actualiza automáticamente al guardar.
     </p>
     <div class="preview-phone">
       <div class="preview-phone-notch"></div>
       <iframe [src]="getPreviewUrl()" class="preview-iframe" allow="autoplay"></iframe>
     </div>
-    <div style="display:flex;gap:10px;align-items:center;">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn btn-secondary btn-sm" (click)="refreshPreview()">
         <span class="material-icons" style="font-size:16px;">refresh</span> Recargar
       </button>
       <a [href]="getLandingUrl()" target="_blank" class="btn btn-primary btn-sm">
         <span class="material-icons" style="font-size:16px;">open_in_new</span> Abrir en nueva pestaña
       </a>
+      <button class="btn btn-secondary btn-sm" (click)="downloadScreenshot()" [disabled]="screenshotLoading()">
+        <span class="material-icons" style="font-size:16px;">photo_camera</span> {{ screenshotLoading() ? 'Generando...' : 'Captura PNG' }}
+      </button>
     </div>
   </div>
 </div>

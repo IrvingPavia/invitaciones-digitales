@@ -38,10 +38,13 @@ export interface Guest {
   family_name: string;
   guest_names: string;
   max_companions: number;
+  phone?: string;
   confirmed: number;
   confirmed_names?: string;
   confirmed_count?: number;
   confirmed_at?: string;
+  invitation_sent?: number;
+  sent_at?: string;
   notes?: string;
 }
 
@@ -100,6 +103,10 @@ export interface SectionStyle {
   dividerColor?: string;
   dividerFlip?: boolean;
   dividerHeight?: number;
+  // Divider stroke (visible border along the transition edge)
+  dividerStrokeColor?: string;
+  dividerStrokeWidth?: number;   // 0-5px, default 0 (off)
+  dividerStrokeOpacity?: number; // 0-1, default 1
   // Text override - Section Heading (H2)
   sectionHeadingColor?: string;
   sectionHeadingFont?: string;

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { getDB } = require('../models/database');
+const { validate, confirmRsvpSchema } = require('../middleware/validate');
 
 router.get('/:code', async (req, res) => {
   try {
@@ -15,7 +16,7 @@ router.get('/:code', async (req, res) => {
   }
 });
 
-router.post('/:code/confirm', async (req, res) => {
+router.post('/:code/confirm', validate(confirmRsvpSchema), async (req, res) => {
   try {
     const { confirmed_names, confirmed_count } = req.body;
     const [rows] = await getDB().query('SELECT * FROM guests WHERE unique_code = ?', [req.params.code]);

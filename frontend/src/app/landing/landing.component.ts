@@ -28,6 +28,42 @@ export class ScrollRevealDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() { this.observer?.disconnect(); }
 }
+
+@Directive({
+  selector: 'img[appLazyLoad]',
+  standalone: true
+})
+export class LazyImgDirective implements OnInit, OnDestroy {
+  private el = inject(ElementRef);
+  private observer!: IntersectionObserver;
+
+  ngOnInit() {
+    const img = this.el.nativeElement as HTMLImageElement;
+    const src = img.getAttribute('src');
+    if (!src) return;
+
+    // Move src to data-src and clear src
+    img.setAttribute('data-src', src);
+    img.removeAttribute('src');
+    img.style.opacity = '0';
+    img.style.transition = 'opacity 0.3s ease';
+
+    this.observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        const realSrc = img.getAttribute('data-src');
+        if (realSrc) {
+          img.src = realSrc;
+          img.onload = () => { img.style.opacity = '1'; };
+          img.onerror = () => { img.style.opacity = '1'; };
+        }
+        this.observer.unobserve(img);
+      }
+    }, { rootMargin: '200px' }); // Start loading 200px before visible
+    this.observer.observe(img);
+  }
+
+  ngOnDestroy() { this.observer?.disconnect(); }
+}
 import { LandingIntroComponent } from './sections/intro/intro.component';
 import { LandingEnvelopeComponent } from './sections/envelope/envelope.component';
 import { LandingHeroComponent } from './sections/hero/hero.component';
@@ -47,7 +83,7 @@ import { SectionStyle } from '../core/models/models';
   selector: 'app-landing',
   standalone: true,
   imports: [
-    CommonModule, ScrollRevealDirective, SectionDividerComponent,
+    CommonModule, ScrollRevealDirective, LazyImgDirective, SectionDividerComponent,
     LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
     LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent, LandingRegisterComponent
@@ -105,7 +141,7 @@ import { SectionStyle } from '../core/models/models';
         <!-- Sections -->
         <div class="section-block" [style]="getSectionBg(data()!.config.invitation.sectionStyle)" [style.padding-top.px]="data()!.config.invitation.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.invitation.sectionStyle?.paddingBottom ?? 80">
           @if (data()!.config.invitation.sectionStyle?.dividerType && data()!.config.invitation.sectionStyle?.dividerType !== 'none') {
-            <app-section-divider [type]="data()!.config.invitation.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.invitation.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.invitation.sectionStyle!.dividerFlip || false" />
+            <app-section-divider [type]="data()!.config.invitation.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.invitation.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.invitation.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.invitation.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.invitation.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.invitation.sectionStyle!.dividerStrokeOpacity ?? 1" />
           }
           @if (data()!.config.invitation.sectionStyle?.bgImage && data()!.config.invitation.sectionStyle?.bgType === 'image') {
             <div class="section-bg-overlay" [style.opacity]="(data()!.config.invitation.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -117,7 +153,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.details.enabled && data()!.config.details.cards.length > 0) {
           <div class="section-block" [style]="getSectionBg(data()!.config.details.sectionStyle)" [style.padding-top.px]="data()!.config.details.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.details.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.details.sectionStyle?.dividerType && data()!.config.details.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.details.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.details.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.details.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.details.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.details.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.details.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.details.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.details.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.details.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.details.sectionStyle?.bgImage && data()!.config.details.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.details.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -130,7 +166,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.venues.enabled && data()!.config.venues.items.length > 0) {
           <div class="section-block" [style]="getSectionBg(data()!.config.venues.sectionStyle)" [style.padding-top.px]="data()!.config.venues.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.venues.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.venues.sectionStyle?.dividerType && data()!.config.venues.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.venues.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.venues.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.venues.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.venues.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.venues.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.venues.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.venues.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.venues.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.venues.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.venues.sectionStyle?.bgImage && data()!.config.venues.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.venues.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -143,7 +179,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.itinerary.enabled) {
           <div class="section-block" [style]="getSectionBg(data()!.config.itinerary.sectionStyle)" [style.padding-top.px]="data()!.config.itinerary.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.itinerary.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.itinerary.sectionStyle?.dividerType && data()!.config.itinerary.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.itinerary.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.itinerary.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.itinerary.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.itinerary.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.itinerary.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.itinerary.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.itinerary.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.itinerary.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.itinerary.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.itinerary.sectionStyle?.bgImage && data()!.config.itinerary.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.itinerary.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -156,7 +192,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.gallery.enabled) {
           <div class="section-block" [style]="getSectionBg(data()!.config.gallery.sectionStyle)" [style.padding-top.px]="data()!.config.gallery.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gallery.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.gallery.sectionStyle?.dividerType && data()!.config.gallery.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.gallery.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gallery.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gallery.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.gallery.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gallery.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gallery.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.gallery.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.gallery.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.gallery.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.gallery.sectionStyle?.bgImage && data()!.config.gallery.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.gallery.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -169,7 +205,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.dresscode.enabled) {
           <div class="section-block" [style]="getSectionBg(data()!.config.dresscode.sectionStyle)" [style.padding-top.px]="data()!.config.dresscode.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.dresscode.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.dresscode.sectionStyle?.dividerType && data()!.config.dresscode.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.dresscode.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.dresscode.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.dresscode.sectionStyle?.bgImage && data()!.config.dresscode.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.dresscode.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -182,7 +218,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.gifts.enabled) {
           <div class="section-block" [style]="getSectionBg(data()!.config.gifts.sectionStyle)" [style.padding-top.px]="data()!.config.gifts.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gifts.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.gifts.sectionStyle?.dividerType && data()!.config.gifts.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.gifts.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gifts.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gifts.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.gifts.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gifts.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gifts.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.gifts.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.gifts.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.gifts.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.gifts.sectionStyle?.bgImage && data()!.config.gifts.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.gifts.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -195,7 +231,7 @@ import { SectionStyle } from '../core/models/models';
         @if (data()!.config.rsvp.enabled && guest()) {
           <div class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.rsvp.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.rsvp.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             @if (data()!.config.rsvp.sectionStyle?.bgImage && data()!.config.rsvp.sectionStyle?.bgType === 'image') {
               <div class="section-bg-overlay" [style.opacity]="(data()!.config.rsvp.sectionStyle!.bgOverlay ?? 50) / 100"></div>
@@ -208,7 +244,7 @@ import { SectionStyle } from '../core/models/models';
         @if (isOpenEvent() && !guest()) {
           <div class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
-              <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" />
+              <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.rsvp.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.rsvp.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-register [config]="data()!.config.rsvp" [slug]="slug" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.rsvp.sectionStyle" />

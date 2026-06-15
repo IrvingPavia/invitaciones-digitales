@@ -91,6 +91,7 @@ import { environment } from '../../../../environments/environment';
             <input type="file" accept=".xlsx,.xls" (change)="importExcel($event)" style="display:none">
           </label>
           <button class="btn btn-secondary btn-sm" (click)="exportExcel()"><span class="material-icons">table_view</span> Exportar</button>
+          <button class="btn btn-secondary btn-sm" (click)="shareAll()" [disabled]="!guestsWithPhone().length" title="Compartir invitaciones por WhatsApp (solo invitados con teléfono)"><span class="material-icons">send</span> Enviar invitaciones</button>
           <button class="btn btn-primary btn-sm" (click)="openModal()"><span class="material-icons">person_add</span> Agregar</button>
         </div>
       </div>
@@ -111,7 +112,7 @@ import { environment } from '../../../../environments/environment';
       <div class="card desktop-table" style="overflow:auto">
         <table class="data-table">
           <thead>
-            <tr><th>Código</th><th>Tipo</th><th>Familia/Nombre</th><th>Invitados</th><th>Acompañantes</th><th>Estado</th><th>Acciones</th></tr>
+            <tr><th>Código</th><th>Tipo</th><th>Familia/Nombre</th><th>Teléfono</th><th>Estado</th><th>Enviado</th><th>Acciones</th></tr>
           </thead>
           <tbody>
             @for (g of filtered(); track g.id) {
@@ -122,8 +123,13 @@ import { environment } from '../../../../environments/environment';
                   @if (g.family_name) { <strong>{{ g.family_name }}</strong><br> }
                   <small class="text-muted">{{ g.guest_names }}</small>
                 </td>
-                <td>{{ guestCount(g) }}</td>
-                <td>{{ g.guest_type === 'individual' ? g.max_companions : '-' }}</td>
+                <td>
+                  @if (g.phone) {
+                    <span style="font-size:12px;color:rgba(255,255,255,0.7)">{{ g.phone }}</span>
+                  } @else {
+                    <span style="font-size:11px;color:rgba(255,255,255,0.3)">—</span>
+                  }
+                </td>
                 <td>
                   @if (g.confirmed) {
                     <span class="badge badge-success">✓ Confirmado ({{ g.confirmed_count }})</span>
@@ -132,8 +138,15 @@ import { environment } from '../../../../environments/environment';
                   }
                 </td>
                 <td>
+                  @if (g.invitation_sent) {
+                    <span class="badge badge-success" style="font-size:11px">✓ Enviado</span>
+                  } @else {
+                    <span style="font-size:11px;color:rgba(255,255,255,0.3)">—</span>
+                  }
+                </td>
+                <td>
                   <div class="flex gap-8">
-                    <a [href]="landingUrl(g)" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Invitación"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
+                    <button class="btn btn-secondary btn-sm btn-icon" (click)="shareGuest(g)" title="Compartir invitación"><span class="material-icons" style="font-size:16px">share</span></button>
                     <button class="btn btn-secondary btn-sm btn-icon" (click)="showQR(g)" title="QR"><span class="material-icons" style="font-size:16px">qr_code</span></button>
                     <button class="btn btn-secondary btn-sm btn-icon" (click)="editGuest(g)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
                     <button class="btn btn-danger btn-sm btn-icon" (click)="deleteGuest(g)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
@@ -181,7 +194,7 @@ import { environment } from '../../../../environments/environment';
               </span>
             </div>
             <div class="guest-card-actions">
-              <a [href]="landingUrl(g)" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Invitación"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
+              <button class="btn btn-secondary btn-sm btn-icon" (click)="shareGuest(g)" title="Compartir"><span class="material-icons" style="font-size:16px">share</span></button>
               <button class="btn btn-secondary btn-sm btn-icon" (click)="showQR(g)" title="QR"><span class="material-icons" style="font-size:16px">qr_code</span></button>
               <button class="btn btn-secondary btn-sm btn-icon" (click)="editGuest(g)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
               <button class="btn btn-danger btn-sm btn-icon" (click)="deleteGuest(g)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
@@ -231,6 +244,11 @@ import { environment } from '../../../../environments/environment';
             <label>Notas</label>
             <textarea [(ngModel)]="form.notes" placeholder="Mesa VIP, restricciones alimentarias..."></textarea>
           </div>
+          <div class="form-group">
+            <label>Teléfono (WhatsApp)</label>
+            <input type="tel" [(ngModel)]="form.phone" placeholder="521XXXXXXXXXX (con lada, sin +)">
+            <small style="color:rgba(255,255,255,0.4);font-size:11px;display:block;margin-top:4px;">Formato: código de país + número. Ej: 521234567890 (MX)</small>
+          </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
             <button class="btn btn-primary" (click)="save()" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
@@ -269,7 +287,7 @@ export class GuestsComponent implements OnInit {
   saving = signal(false);
   qrData = signal<{ qr: string; url: string } | null>(null);
   editing = false; editId = 0; search = '';
-  form: any = { guest_type: 'individual', family_name: '', guest_names: '', max_companions: 0, notes: '' };
+  form: any = { guest_type: 'individual', family_name: '', guest_names: '', max_companions: 0, phone: '', notes: '' };
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
@@ -294,12 +312,12 @@ export class GuestsComponent implements OnInit {
     return g.guest_type === 'family' ? g.guest_names.split(',').length : g.max_companions + 1;
   }
 
-  openModal() { this.editing = false; this.form = { guest_type: 'individual', family_name: '', guest_names: '', max_companions: 0, notes: '' }; this.showModal.set(true); }
+  openModal() { this.editing = false; this.form = { guest_type: 'individual', family_name: '', guest_names: '', max_companions: 0, phone: '', notes: '' }; this.showModal.set(true); }
   closeModal() { this.showModal.set(false); }
 
   editGuest(g: Guest) {
     this.editing = true; this.editId = g.id;
-    this.form = { guest_type: g.guest_type, family_name: g.family_name, guest_names: g.guest_names, max_companions: g.max_companions, notes: g.notes };
+    this.form = { guest_type: g.guest_type, family_name: g.family_name, guest_names: g.guest_names, max_companions: g.max_companions, phone: g.phone || '', notes: g.notes };
     this.showModal.set(true);
   }
 
@@ -343,6 +361,103 @@ export class GuestsComponent implements OnInit {
     this.api.downloadTemplate().subscribe(blob => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'plantilla_invitados.xlsx'; a.click();
+    });
+  }
+
+  // === Share functionality ===
+  private isMobile(): boolean {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+  }
+
+  guestsWithPhone(): Guest[] {
+    return this.guests().filter(g => g.phone && !g.invitation_sent);
+  }
+
+  private buildMessage(g: Guest): string {
+    const name = g.family_name || g.guest_names.split(',')[0].trim();
+    const link = this.landingUrl(g);
+    // Default message template
+    let msg = `¡Hola ${name}! 🎉\nEstás cordialmente invitado(a) a nuestro evento.\nAquí tu invitación personal:\n${link}\n\n¡Te esperamos! 💕`;
+    return msg;
+  }
+
+  shareGuest(g: Guest) {
+    const url = this.landingUrl(g);
+    if (this.isMobile() && g.phone) {
+      // Open WhatsApp with pre-filled message
+      const msg = encodeURIComponent(this.buildMessage(g));
+      window.open(`https://wa.me/${g.phone}?text=${msg}`, '_blank');
+      // Mark as sent
+      this.api.markGuestSent(g.id).subscribe(() => {
+        g.invitation_sent = 1;
+        g.sent_at = new Date().toISOString();
+      });
+    } else if (this.isMobile() && !g.phone) {
+      // Mobile without phone — use native share API or copy
+      if (navigator.share) {
+        navigator.share({ title: 'Invitación', text: this.buildMessage(g), url }).then(() => {
+          this.api.markGuestSent(g.id).subscribe(() => { g.invitation_sent = 1; });
+        }).catch(() => {});
+      } else {
+        this.copyToClipboard(url);
+      }
+    } else {
+      // Desktop — copy link
+      this.copyToClipboard(url);
+    }
+  }
+
+  async shareAll() {
+    const pending = this.guestsWithPhone();
+    if (!pending.length) return;
+    const ok = await this.dialog.confirm(
+      'Enviar invitaciones',
+      `Se abrirá WhatsApp para ${pending.length} invitado(s) con teléfono. En mobile se abrirá uno por uno. ¿Continuar?`
+    );
+    if (!ok) return;
+
+    if (this.isMobile()) {
+      // Open WhatsApp sequentially with short delay
+      for (let i = 0; i < pending.length; i++) {
+        const g = pending[i];
+        const msg = encodeURIComponent(this.buildMessage(g));
+        setTimeout(() => {
+          window.open(`https://wa.me/${g.phone}?text=${msg}`, '_blank');
+        }, i * 1500);
+      }
+      // Mark all as sent
+      const ids = pending.map(g => g.id);
+      this.api.bulkMarkSent(this.eventId, ids).subscribe(() => {
+        pending.forEach(g => { g.invitation_sent = 1; g.sent_at = new Date().toISOString(); });
+      });
+    } else {
+      // Desktop: copy all links as list
+      const links = pending.map(g => {
+        const name = g.family_name || g.guest_names.split(',')[0].trim();
+        return `${name}: ${this.landingUrl(g)}`;
+      }).join('\n');
+      this.copyToClipboard(links);
+      this.dialog.success('Links copiados', `${pending.length} links copiados al portapapeles. Pégalos manualmente en WhatsApp Web.`);
+      // Mark as sent
+      const ids = pending.map(g => g.id);
+      this.api.bulkMarkSent(this.eventId, ids).subscribe(() => {
+        pending.forEach(g => { g.invitation_sent = 1; g.sent_at = new Date().toISOString(); });
+      });
+    }
+  }
+
+  private copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      this.dialog.success('Copiado', 'Link copiado al portapapeles');
+    }).catch(() => {
+      // Fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      this.dialog.success('Copiado', 'Link copiado al portapapeles');
     });
   }
 }

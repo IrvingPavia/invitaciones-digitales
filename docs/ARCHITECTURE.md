@@ -55,7 +55,7 @@ invitaciones-digitales/
 └── DEVELOPMENT_LOG.md            # Session log (legacy, see docs/)
 ```
 
-## Base de datos (7 tablas)
+## Base de datos (10 tablas)
 
 | Tabla | Propósito |
 |-------|-----------|
@@ -67,6 +67,8 @@ invitaciones-digitales/
 | `itinerary` | Items del itinerario (normalizado) |
 | `photos` | Galería de fotos por evento |
 | `card_templates` | Plantillas de tarjetas (front/back JSON) |
+| `suggestions` | Sugerencias/retroalimentación de clientes |
+| `audit_log` | Historial de cambios (user, action, entity, timestamp) |
 
 ## Roles de usuario
 

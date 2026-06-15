@@ -44,6 +44,13 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - **Compresión automática de imágenes** al subir (sharp: max 1920px, JPEG 80%)
 - **Rate limiting en login** (5 intentos/15min por IP)
 - Gestión de usuarios (root/admin/client con permisos)
+- **Compartir invitaciones**: Botón share individual (WhatsApp en mobile, copiar link en desktop). Envío masivo asistido. Tracking de enviados. Campo teléfono en invitados + import Excel.
+- **Exportar landing como screenshot**: Captura PNG full-page con Puppeteer desde pestaña Preview.
+- **Validación de input con Joi**: Schemas centralizados para todas las rutas del backend.
+- **Sanitización HTML**: Prevención XSS al guardar config JSON.
+- **Audit log**: Historial de cambios por evento (config_save, event_create, update, delete, duplicate).
+- **Forzar cambio de contraseña**: Usuarios client deben cambiar contraseña en primer login.
+- Gestión de usuarios (root/admin/client con permisos)
 - Diálogos personalizados (sin confirm/alert nativos del navegador)
 - Selector de hora personalizado (sin datetime-local nativo)
 - Responsive (cards en mobile, tabla en desktop)
@@ -125,8 +132,12 @@ docker-compose logs -f backend
 - **SectionStyle como override**: Cada sección puede tener `sectionStyle?: SectionStyle` opcional. Si no existe o `bgType === 'inherit'`, hereda todo del tema global. Solo se aplica override cuando el usuario activa la personalización. Zero breaking changes con configs existentes.
 - **Dividers SVG como componente**: `SectionDividerComponent` recibe tipo/color/alto/flip y genera el path SVG dinámicamente. Se posiciona con `position: absolute; top: 0; transform: translateY(-99%)` para superponerse al final de la sección anterior.
 - **Text overrides con CSS custom properties**: Los overrides de color de texto usan `--section-heading-color` y `--section-content-color` en el `.section-block`, aplicados con `::ng-deep` + `!important` para sobreescribir estilos inline de cada componente hijo.
+- **Open Graph para bots**: Nginx detecta user-agents de redes sociales y redirige a `/api/public/og/:slug` que sirve HTML con meta tags + redirect. Usuarios normales reciben la SPA Angular.
+- **Compartir WhatsApp (sin API de pago)**: Se usa `wa.me/{phone}?text=` (deep link) que abre WhatsApp con mensaje pre-llenado. El usuario confirma envío manualmente. No requiere WhatsApp Business API.
+- **Validación con Joi + sanitización**: Input se valida en middleware antes del handler (schemas tipados). Config JSON se sanitiza al guardar (sanitize-html). Doble capa de protección.
+- **Audit log non-blocking**: Los registros de auditoría se insertan con try/catch que loguea errores sin interrumpir la operación principal.
 
-## Base de datos (8 tablas)
+## Base de datos (11 tablas)
 
 | Tabla | Propósito |
 |-------|-----------|
@@ -140,6 +151,7 @@ docker-compose logs -f backend
 | `photos` | Galería de fotos por evento |
 | `card_templates` | Plantillas de tarjetas (front/back JSON) |
 | `suggestions` | Sugerencias/retroalimentación de clientes |
+| `audit_log` | Historial de cambios (user, action, entity, timestamp) |
 
 ## Notas para desarrollo local
 

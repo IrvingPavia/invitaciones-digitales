@@ -1,5 +1,38 @@
 # 🗄️ Migraciones de Base de Datos
 
+## Sesión 2025-06-15 — Seguridad: Forzar cambio de contraseña + Audit Log + Compartir
+
+**Se ejecutan automáticamente** al iniciar el backend (migrations en `database.js`). Si necesitas aplicarlas manualmente:
+
+```sql
+-- Agregar columna must_change_password (forzar cambio en primer login para clients)
+ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) DEFAULT 0;
+
+-- Tabla audit_log (historial de cambios)
+CREATE TABLE IF NOT EXISTS audit_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  username VARCHAR(100),
+  action VARCHAR(100) NOT NULL,
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id INT,
+  details TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_entity (entity_type, entity_id),
+  INDEX idx_user (user_id),
+  INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Columnas para compartir invitaciones por WhatsApp
+ALTER TABLE guests ADD COLUMN phone VARCHAR(30) DEFAULT NULL;
+ALTER TABLE guests ADD COLUMN invitation_sent TINYINT(1) DEFAULT 0;
+ALTER TABLE guests ADD COLUMN sent_at DATETIME DEFAULT NULL;
+```
+
+> **Nota**: Los usuarios client existentes no se ven afectados (must_change_password = 0). Solo aplica a clients nuevos.
+
+---
+
 ## Sesión 2025-05-29 — Eventos Abiertos v1/v2 + Campos dinámicos
 
 **Ejecutar en DBeaver antes del deploy de `int-004`:**

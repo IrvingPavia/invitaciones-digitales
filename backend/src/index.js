@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 const { initDB } = require('./models/database');
 const { fixUrls } = require('./migrations/fix-urls');
 
@@ -31,6 +32,11 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// HTTP request logging (skip health checks)
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms', {
+  skip: (req) => req.url === '/health'
+}));
+
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
 app.use(limiter);
 
@@ -46,7 +52,15 @@ app.use('/api/users', userRoutes);
 app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/registrations', registrationRoutes);
 
-app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/health', async (req, res) => {
+  try {
+    const { getDB } = require('./models/database');
+    await getDB().query('SELECT 1');
+    res.json({ status: 'ok', db: 'connected', timestamp: new Date().toISOString(), uptime: process.uptime() });
+  } catch (err) {
+    res.status(503).json({ status: 'degraded', db: 'disconnected', error: err.message, timestamp: new Date().toISOString() });
+  }
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

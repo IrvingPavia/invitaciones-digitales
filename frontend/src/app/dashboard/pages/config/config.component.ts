@@ -1120,6 +1120,7 @@ export class ConfigComponent implements OnInit {
   private sanitizer = inject(DomSanitizer);
   eventSlug = '';
   private previewKey = signal(0);
+  screenshotLoading = signal(false);
 
   getPreviewUrl(): SafeResourceUrl {
     const k = this.previewKey();
@@ -1135,6 +1136,24 @@ export class ConfigComponent implements OnInit {
     this.previewKey.set(Date.now());
   }
 
+  downloadScreenshot() {
+    this.screenshotLoading.set(true);
+    this.api.screenshotEvent(this.eventId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `landing-${this.eventSlug}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.screenshotLoading.set(false);
+      },
+      error: () => { this.screenshotLoading.set(false); }
+    });
+  }
+
 
 
   saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -1144,7 +1163,7 @@ export class ConfigComponent implements OnInit {
     this.saving.set(true);
     this.saveStatus.set('saving');
     this.api.saveConfig(this.eventId, this.config()!).subscribe({
-      next: () => { this.saving.set(false); this.saveStatus.set('saved'); setTimeout(() => this.saveStatus.set('idle'), 3000); },
+      next: () => { this.saving.set(false); this.saveStatus.set('saved'); this.refreshPreview(); setTimeout(() => this.saveStatus.set('idle'), 3000); },
       error: () => { this.saving.set(false); this.saveStatus.set('error'); setTimeout(() => this.saveStatus.set('idle'), 3000); },
     });
   }

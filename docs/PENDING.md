@@ -43,9 +43,21 @@
 **Pendiente próxima sesión:**
 - [x] **Adornos de título per sección**: Implementado con 7 tipos SVG, posición configurable, color, tamaño.
 - [x] **Verificar que la configuración de sección aplica correctamente en la landing** (fondos, dividers, colores de texto, fuentes)
+- [x] **Stroke/borde opcional en la transición**: Controles de grosor (0-5px), color y opacidad del borde visible en la forma de la transición entre secciones. SVG overlay sincronizado con el clip-path. Disponible en todas las tabs.
+- [x] **Preview del iframe se actualiza automáticamente**: Auto-refresh del iframe al guardar config exitosamente (sin necesidad de click en "Recargar").
 - [ ] **Verificar landing real en dispositivo móvil**: Validar que clip-path de transiciones funciona en iOS Safari y Android Chrome
-- [ ] **Stroke/borde opcional en la transición**: Permitir configurar una línea visible en el borde del clip (color, grosor, opacidad)
-- [ ] **Preview del iframe no se actualiza automáticamente**: Requiere click en "Recargar" después de guardar — evaluar auto-refresh
+
+### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
+
+> **Contexto**: Permitir a los administradores compartir las invitaciones directamente por WhatsApp (mobile) o copiar links (desktop). Para eventos privados con lista de invitados, cada invitado tiene su link personalizado. Para eventos abiertos, se comparte un link genérico.
+
+**Implementado:**
+- [x] **Open Graph meta tags**: Endpoint `/api/public/og/:slug` genera HTML con OG tags para bots de redes sociales. Nginx detecta user-agents (WhatsApp, Facebook, Twitter) y redirige. Preview bonito al compartir links.
+- [x] **Campo teléfono en invitados**: Columna `phone` en tabla guests. CRUD completo, import/export Excel (columnas "phone", "telefono", "celular"). Template actualizado.
+- [x] **Tracking de envío**: Campos `invitation_sent` + `sent_at`. Endpoints mark-sent individual y bulk. Badge "✓ Enviado" en la tabla.
+- [x] **Compartir individual**: Botón share por invitado. Mobile con teléfono → abre wa.me directo. Mobile sin teléfono → navigator.share. Desktop → copia link al clipboard.
+- [x] **Envío masivo asistido**: Botón "Enviar invitaciones" filtra invitados con phone pendientes. Mobile → abre WhatsApp secuencial. Desktop → copia lista de links. Modal de confirmación previa.
+- [x] **Mensaje configurable**: Campo `sharing.message` en config JSON con variables {nombre}, {evento}, {link}. Default con emojis.
 
 ### 🆕 Eventos abiertos / Conferencias (feature grande — versionado)
 
@@ -84,35 +96,35 @@
 
 ### Seguridad
 - [x] Rate limiting específico para login (prevenir brute force)
-- [ ] Validación de input con Joi/Zod en backend
-- [ ] Forzar cambio de contraseña en primer login para clients
+- [x] Validación de input con Joi en backend (schemas para auth, events, users, guests, rsvp, registrations, suggestions)
+- [x] Sanitización de HTML en campos de texto enriquecido (sanitize-html en config JSON save)
+- [x] Forzar cambio de contraseña en primer login para clients
 - [ ] Expiración de sesión configurable
-- [ ] Sanitización de HTML en campos de texto enriquecido (prevenir XSS)
 
 ### Performance
-- [ ] Lazy loading de imágenes en landing (IntersectionObserver)
+- [x] Lazy loading de imágenes en landing (native `loading="lazy"` en galería, dresscode)
 - [x] Compresión de imágenes al subir (sharp en backend — resize max 1920px + JPEG 80%)
-- [ ] Cache de QR generados (evitar regenerar en cada request)
+- [x] Cache de QR generados (LRU in-memory, max 500 entradas)
+- [x] Optimización de bundle Angular (removido qrcode unused dep, Material Icons con display=swap, Nginx gzip nivel 6 + security headers + image caching 30d)
 - [ ] CDN para assets estáticos (imágenes, videos, fuentes)
-- [ ] Service Worker para cache offline de la landing
-- [ ] Optimización de bundle Angular (tree-shaking, code splitting)
+- [ ] Service Worker para cache offline de la landing (bloqueado por incompatibilidad esbuild/Alpine Docker — requiere refactor del Dockerfile)
 
 ### UX
 - [ ] Notificaciones push cuando un invitado confirma
 - [ ] Dashboard con gráficas de confirmaciones en tiempo real (WebSocket/SSE)
 - [x] Preview de landing en iframe dentro del dashboard
-- [ ] Exportar landing como imagen/screenshot (Puppeteer)
+- [x] Exportar landing como imagen/screenshot (Puppeteer)
 - [ ] Multi-idioma (español/inglés) — landing + dashboard
-- [ ] Historial de cambios por evento (audit log)
+- [x] Historial de cambios por evento (audit log)
 - [x] Duplicar evento completo (clonar configuración + tarjetas)
 
 ### Infraestructura
 - [ ] CI/CD con GitHub Actions (build + test + deploy automático)
 - [ ] Backups automáticos de BD (cron + mysqldump + S3/storage)
-- [ ] Monitoreo con healthchecks y alertas (uptime, errores)
+- [x] Monitoreo con healthchecks y alertas (uptime, errores)
 - [ ] Dominio propio para Vitely (vitely.app o similar)
 - [ ] Staging environment (para probar antes de producción)
-- [ ] Logs centralizados (errores backend, métricas de uso)
+- [x] Logs centralizados (Morgan HTTP logging + error handler mejorado)
 - [ ] Monitoreo con healthchecks y alertas
 - [ ] Dominio propio para Vitely (vitely.app o similar)
 
@@ -235,3 +247,20 @@
 - [x] **Fix texto "Invertir" diminuto**: Font-size 13px, sin transform scale, color más visible (0.6 opacidad).
 - [x] **Fix adornos — escalado proporcional**: El SVG del preview ahora escala tanto width como height con el factor de tamaño.
 - [x] **Método `getLandingBgColor()`**: Retorna solo el color sólido primario para uso en SVG fills (evita pasar gradientes CSS a SVG).
+
+### 2025-06-15 (int-006 — Mejoras de seguridad, performance, UX + Sistema de compartir)
+- [x] **Stroke/borde en transiciones**: Nuevas propiedades `dividerStrokeColor`, `dividerStrokeWidth` (0-5px), `dividerStrokeOpacity` (0-1) en `SectionStyle`. SVG overlay renderiza un path con stroke siguiendo la forma del clip-path. Controles "Borde de transición" en TODAS las tabs. Default 0 (sin borde) — retrocompatible.
+- [x] **Auto-refresh del preview iframe**: El iframe se recarga automáticamente al guardar config exitosamente (`refreshPreview()` llamado en callback de éxito del `save()`). Texto actualizado. Botón "Recargar" manual conservado como fallback.
+- [x] **Validación de input con Joi**: Middleware `validate.js` centralizado con schemas para: login, change-password, create/update event, create/update user, create/update guest, confirm RSVP, public registration, create/update suggestion. `stripUnknown: true` + `abortEarly: false`. Elimina validaciones manuales ad-hoc de las rutas.
+- [x] **Lazy loading de imágenes**: Atributo nativo `loading="lazy"` en todas las imágenes de galería (6 estilos + slideshow) y dresscode (example images). Cero dependencias extra, soporte browser nativo.
+- [x] **Sanitización HTML (prevención XSS)**: Paquete `sanitize-html` aplicado al guardar config JSON. Función `sanitizeConfigJson` recorre el JSON y sanitiza campos de texto que contengan HTML. Permite tags de formato básico (b, i, em, strong, a, ul, ol, li) pero elimina scripts y atributos peligrosos. Links forzados a `target="_blank" rel="noopener noreferrer"`.
+- [x] **Cache de QR generados**: LRU in-memory (Map) con máximo 500 entradas. Evita regenerar el mismo QR en requests repetidos. Eviction automática del entry más antiguo al llegar al límite.
+- [x] **Exportar landing como screenshot**: Endpoint `GET /api/events/:id/screenshot` usa Puppeteer con viewport 390×844 @2x para capturar la landing completa como PNG. Botón "Captura PNG" en pestaña Preview del config con descarga automática.
+- [x] **Forzar cambio de contraseña en primer login**: Campo `must_change_password` en tabla users. Se activa automáticamente al crear usuarios client. Al hacer login, si el flag está activo muestra formulario de cambio obligatorio. Después de cambiar, el flag se limpia y navega al dashboard.
+- [x] **Healthcheck mejorado**: Endpoint `/health` verifica conexión a MySQL y reporta `status: ok|degraded`, DB state, uptime. Retorna 503 si la BD está caída.
+- [x] **Logs HTTP con Morgan**: Logging de todas las requests HTTP (método, URL, status, tiempo de respuesta). Excluye `/health` para no contaminar logs.
+- [x] **Audit log (historial de cambios)**: Tabla `audit_log` con user, action, entity, timestamp. Se registran: config_save, event_create, event_update, event_delete, event_duplicate. Endpoint `GET /api/events/:id/audit` para consultar historial (últimos 50).
+- [x] **Expiración de sesión**: Interceptor frontend detecta tokens JWT expirados antes de enviar requests. Si el token expiró, redirige automáticamente al login. Limpia el storage.
+- [x] **Open Graph meta tags**: Endpoint `/api/public/og/:slug` sirve HTML con OG meta tags (título, descripción, imagen) para bots de WhatsApp/Facebook/Twitter. Nginx detecta user-agents de bots y redirige automáticamente. Preview de link bonito al compartir.
+- [x] **Sistema de compartir invitaciones**: Campo `phone` en tabla guests + import/export Excel. Campo `invitation_sent` + `sent_at` para tracking. Endpoints `PUT /:id/mark-sent` y `PUT /bulk-mark-sent/:eventId`. Mensaje configurable en config JSON (`sharing.message` con variables {nombre}, {evento}, {link}). Lógica: en mobile usa `wa.me/{phone}?text=`, en desktop solo copiar URL.
+- [x] **Optimización de bundle y Nginx**: Removido `qrcode` (unused dep). Material Icons con `display=swap`. Nginx: gzip level 6, imágenes cache 30d, security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy). Meta description + theme-color en index.html.
