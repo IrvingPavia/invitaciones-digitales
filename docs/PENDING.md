@@ -264,3 +264,11 @@
 - [x] **Open Graph meta tags**: Endpoint `/api/public/og/:slug` sirve HTML con OG meta tags (título, descripción, imagen) para bots de WhatsApp/Facebook/Twitter. Nginx detecta user-agents de bots y redirige automáticamente. Preview de link bonito al compartir.
 - [x] **Sistema de compartir invitaciones**: Campo `phone` en tabla guests + import/export Excel. Campo `invitation_sent` + `sent_at` para tracking. Endpoints `PUT /:id/mark-sent` y `PUT /bulk-mark-sent/:eventId`. Mensaje configurable en config JSON (`sharing.message` con variables {nombre}, {evento}, {link}). Lógica: en mobile usa `wa.me/{phone}?text=`, en desktop solo copiar URL.
 - [x] **Optimización de bundle y Nginx**: Removido `qrcode` (unused dep). Material Icons con `display=swap`. Nginx: gzip level 6, imágenes cache 30d, security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy). Meta description + theme-color en index.html.
+
+### 2025-06-15 (int-007 — UX Configurador)
+- [x] **Reorganización de navegación del config**: Reemplazo de 14 tabs horizontales por sidebar lateral con 4 categorías colapsables (Apariencia, Pantalla de Inicio, Secciones, Vista Previa). Cada categoría tiene sub-items con íconos. Sticky en desktop, overlay fullscreen en mobile con botón cerrar.
+- [x] **Cards colapsables**: Click en cualquier section-card-header colapsa/expande el body. Event delegation con click en config-content. Flechita `::after` sutil. Headers con toggle-pill o expand-more inline no muestran flecha duplicada.
+- [x] **Header contextual por sección**: Banner con ícono + título + descripción en cada vista. Mapa `sectionInfo` con textos de ayuda para las 14 secciones.
+- [x] **Preview flotante (FAB)**: Botón circular púrpura fijo en esquina inferior derecha. Abre modal con mockup celular + iframe de la landing real. Botones Recargar + Abrir. Se oculta cuando ya está en tab Preview.
+- [x] **Fix toggles homologados**: Eliminada flecha duplicada en headers con toggle-pill/toggle-pill-dot y en headers de estilo de sección (que tienen su propio expand_more inline).
+- [x] **Dockerfile optimizado**: Removido `package-lock.json` del COPY para evitar incompatibilidad de binarios Windows/Alpine.

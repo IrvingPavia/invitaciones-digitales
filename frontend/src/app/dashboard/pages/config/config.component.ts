@@ -800,6 +800,201 @@ const FONT_OPTIONS = `
         90% { opacity: calc(var(--particle-opacity, 0.8) * 0.6); }
         100% { opacity: 0; transform: translateY(200px) rotate(var(--rotation, 720deg)) scale(0.5); }
       }
+
+      /* === Config Layout with Sidebar Navigation === */
+      .config-toolbar-actions { display: flex; gap: 8px; align-items: center; }
+      .config-nav-toggle { display: none; }
+
+      .config-layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .config-nav {
+        position: sticky;
+        top: 16px;
+        background: rgba(26, 26, 42, 0.6);
+        border: 1px solid rgba(124, 92, 191, 0.15);
+        border-radius: 12px;
+        padding: 12px 0;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        backdrop-filter: blur(8px);
+      }
+
+      .config-nav-category { margin-bottom: 4px; }
+
+      .config-nav-cat-header {
+        display: flex; align-items: center; gap: 10px;
+        width: 100%; padding: 10px 16px;
+        background: none; border: none; cursor: pointer;
+        color: rgba(255, 255, 255, 0.9); font-size: 13px; font-weight: 600;
+        transition: all 0.2s; text-align: left;
+      }
+      .config-nav-cat-header:hover { background: rgba(124, 92, 191, 0.08); }
+      .cat-icon { font-size: 18px; color: var(--gold); }
+      .cat-label { flex: 1; }
+      .cat-arrow { font-size: 18px; color: rgba(255,255,255,0.4); transition: transform 0.2s; }
+      .cat-arrow.expanded { transform: rotate(180deg); }
+
+      .config-nav-items { padding: 2px 0; }
+
+      .config-nav-item {
+        display: flex; align-items: center; gap: 10px;
+        width: 100%; padding: 8px 16px 8px 44px;
+        background: none; border: none; cursor: pointer;
+        color: rgba(255, 255, 255, 0.6); font-size: 13px;
+        transition: all 0.2s; text-align: left; border-left: 3px solid transparent;
+      }
+      .config-nav-item .material-icons { font-size: 16px; }
+      .config-nav-item:hover { color: rgba(255,255,255,0.9); background: rgba(124, 92, 191, 0.06); }
+      .config-nav-item.active {
+        color: var(--gold-light); background: rgba(124, 92, 191, 0.1);
+        border-left-color: var(--gold); font-weight: 500;
+      }
+
+      .config-content { min-width: 0; }
+
+      /* Collapsible section cards */
+      .section-card-header {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        padding-right: 40px;
+      }
+      .section-card-header::after {
+        content: 'expand_less';
+        font-family: 'Material Icons';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        color: rgba(255,255,255,0.25);
+        transition: transform 0.2s;
+      }
+      /* Hide collapse arrow when header has interactive controls */
+      .section-card-header:has(.toggle-pill)::after,
+      .section-card-header:has(.toggle-pill-dot)::after {
+        display: none;
+      }
+      .section-card-header:has(.toggle-pill),
+      .section-card-header:has(.toggle-pill-dot) {
+        padding-right: 16px;
+      }
+      /* Hide on section-style headers that have their own expand icon */
+      .section-card-header[style*="cursor:pointer"]::after {
+        display: none;
+      }
+      .section-card.collapsed .section-card-header::after {
+        content: 'expand_more';
+      }
+      .section-card .section-card-body {
+        transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+        overflow: hidden;
+      }
+      .section-card.collapsed .section-card-body {
+        max-height: 0 !important;
+        opacity: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
+      /* Floating Preview FAB + Modal */
+      .config-fab-preview {
+        position: fixed; bottom: 24px; right: 24px; z-index: 900;
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold), var(--gold-light));
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 20px rgba(124, 92, 191, 0.4);
+        transition: all 0.2s;
+        .material-icons { font-size: 24px; color: white; }
+        &:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(124, 92, 191, 0.6); }
+      }
+      .floating-preview-overlay {
+        position: fixed; inset: 0; z-index: 1100;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+      }
+      .floating-preview-modal {
+        background: #1a1a2a; border: 1px solid rgba(124, 92, 191, 0.3);
+        border-radius: 16px; padding: 20px;
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+        max-height: 90vh; overflow-y: auto;
+      }
+      .floating-preview-header {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; padding: 0 4px;
+        span { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); }
+      }
+      .floating-preview-close {
+        background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.5);
+        padding: 4px; border-radius: 6px; display: flex;
+        &:hover { color: white; background: rgba(255,255,255,0.1); }
+      }
+      .floating-preview-phone {
+        position: relative; width: 280px; height: 500px;
+        border: 3px solid #333; border-radius: 28px;
+        overflow: hidden; background: #000;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      }
+      .floating-preview-phone .preview-iframe { width: 100%; height: 100%; border: none; border-radius: 24px; }
+      .floating-preview-phone .preview-phone-notch {
+        position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+        width: 100px; height: 18px; background: #000;
+        border-radius: 0 0 12px 12px; z-index: 2;
+      }
+      .floating-preview-actions { display: flex; gap: 8px; }
+
+      .config-nav-close { display: none; }
+
+      /* Section header with contextual info */
+      .config-section-header {
+        display: flex; align-items: flex-start; gap: 14px;
+        padding: 16px 20px; margin-bottom: 20px;
+        background: rgba(124, 92, 191, 0.06);
+        border: 1px solid rgba(124, 92, 191, 0.15);
+        border-radius: 12px;
+        border-left: 3px solid var(--gold);
+      }
+      .config-section-header-icon {
+        width: 38px; height: 38px; min-width: 38px;
+        border-radius: 10px;
+        background: rgba(124, 92, 191, 0.15);
+        display: flex; align-items: center; justify-content: center;
+        .material-icons { font-size: 20px; color: var(--gold-light); }
+      }
+      .config-section-title {
+        font-size: 16px; font-weight: 600; color: white; margin-bottom: 4px;
+      }
+      .config-section-desc {
+        font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; margin: 0;
+      }
+
+      @media (max-width: 900px) {
+        .config-nav-toggle { display: flex; }
+        .config-layout { grid-template-columns: 1fr; }
+        .config-nav {
+          display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+          z-index: 1000; max-height: 100vh; border-radius: 0;
+          background: rgba(26, 26, 42, 0.98); padding: 60px 0 20px;
+        }
+        .config-nav.open { display: block; }
+        .config-nav-close {
+          display: flex; position: absolute; top: 16px; right: 16px;
+          background: rgba(124, 92, 191, 0.1); border: 1px solid rgba(124, 92, 191, 0.3);
+          border-radius: 8px; width: 36px; height: 36px;
+          align-items: center; justify-content: center; cursor: pointer;
+          color: var(--gold-light); transition: all 0.2s;
+        }
+        .config-nav-close .material-icons { font-size: 18px; }
+        .config-nav-close:hover { background: rgba(124, 92, 191, 0.2); border-color: var(--gold); }
+      }
     `,
   ],
   templateUrl: "./config.component.html",
@@ -1077,6 +1272,32 @@ export class ConfigComponent implements OnInit {
     ).padStart(2, "0")}:${String(this.countdownMin).padStart(2, "0")}:00`;
   }
 
+  // Navigation categories that group existing tabs
+  navCategories = [
+    { id: 'appearance', label: 'Apariencia', icon: 'palette', expanded: true, items: [
+      { key: 'theme', label: 'Tema y Colores', icon: 'color_lens' },
+      { key: 'styles', label: 'Tipografía', icon: 'text_fields' },
+    ]},
+    { id: 'entrance', label: 'Pantalla de Inicio', icon: 'play_circle', expanded: false, items: [
+      { key: 'envelope', label: 'Apertura', icon: 'mail' },
+      { key: 'intro', label: 'Intro', icon: 'auto_awesome' },
+      { key: 'hero', label: 'Carátula', icon: 'image' },
+    ]},
+    { id: 'content', label: 'Secciones', icon: 'view_list', expanded: false, items: [
+      { key: 'invitation', label: 'Invitación', icon: 'card_giftcard' },
+      { key: 'details', label: 'Detalles', icon: 'info' },
+      { key: 'venues', label: 'Lugares', icon: 'place' },
+      { key: 'itinerary', label: 'Itinerario', icon: 'schedule' },
+      { key: 'gallery', label: 'Galería', icon: 'photo_library' },
+      { key: 'dresscode', label: 'Vestimenta', icon: 'checkroom' },
+      { key: 'gifts', label: 'Regalos', icon: 'redeem' },
+      { key: 'rsvp', label: 'Confirmación', icon: 'how_to_reg' },
+    ]},
+    { id: 'preview', label: 'Vista Previa', icon: 'phone_iphone', expanded: false, items: [
+      { key: 'preview', label: 'Preview', icon: 'visibility' },
+    ]},
+  ];
+
   tabs = [
     { key: "theme", label: "Tema" },
     { key: "styles", label: "Estilos" },
@@ -1093,6 +1314,40 @@ export class ConfigComponent implements OnInit {
     { key: "rsvp", label: "Confirmaciones" },
     { key: "preview", label: "📱 Preview" },
   ];
+
+  configNavOpen = signal(false);
+
+  // Section descriptions for contextual help
+  sectionInfo: Record<string, { title: string; icon: string; description: string }> = {
+    theme: { title: 'Tema y Colores', icon: 'color_lens', description: 'Define la paleta de colores del tema, el fondo de la landing y el favicon. Estos colores se aplican globalmente a cards, botones y navegación.' },
+    styles: { title: 'Tipografía y Estilos', icon: 'text_fields', description: 'Configura las fuentes, tamaños y colores de los textos globales: encabezados, títulos, subtítulos y contenido.' },
+    envelope: { title: 'Pantalla de Apertura', icon: 'mail', description: 'La primera pantalla que ve el invitado. Puede ser un sobre animado, ticket, splash o pantalla plana.' },
+    intro: { title: 'Intro', icon: 'auto_awesome', description: 'Pantalla de transición con una frase de bienvenida y animaciones de partículas antes de la carátula.' },
+    hero: { title: 'Carátula', icon: 'image', description: 'La sección principal con nombres, countdown, frase y multimedia (imagen/video de fondo + audio).' },
+    invitation: { title: 'Invitación', icon: 'card_giftcard', description: 'Texto introductorio de la invitación. Aparece justo después de la carátula.' },
+    details: { title: 'Detalles del Evento', icon: 'info', description: 'Cards informativas con detalles del evento (fecha, hora, dress code, etc.). Cada card puede tener ícono y texto.' },
+    venues: { title: 'Lugares', icon: 'place', description: 'Locaciones del evento (ceremonia, recepción, etc.). Cada lugar puede tener dirección, mapa y horario.' },
+    itinerary: { title: 'Itinerario', icon: 'schedule', description: 'Timeline con las actividades del evento en orden cronológico.' },
+    gallery: { title: 'Galería de Fotos', icon: 'photo_library', description: 'Galería de fotos con 8 estilos de visualización. Las fotos se suben en calidad original.' },
+    dresscode: { title: 'Vestimenta', icon: 'checkroom', description: 'Ejemplos visuales del código de vestimenta con imágenes de referencia.' },
+    gifts: { title: 'Mesa de Regalos', icon: 'redeem', description: 'Link a mesa de regalos y/o datos de transferencia bancaria.' },
+    rsvp: { title: 'Confirmación de Asistencia', icon: 'how_to_reg', description: 'Formulario de confirmación para invitados o registro público para eventos abiertos.' },
+    preview: { title: 'Vista Previa', icon: 'visibility', description: 'Preview en tiempo real de cómo se ve tu invitación en un celular.' },
+  };
+
+  selectNavItem(key: string) {
+    this.activeTab = key;
+    this.configNavOpen.set(false);
+    // Auto-expand the category containing this key
+    for (const cat of this.navCategories) {
+      const hasKey = cat.items.some((i: any) => i.key === key);
+      if (hasKey) cat.expanded = true;
+    }
+  }
+
+  toggleCategory(cat: any) {
+    cat.expanded = !cat.expanded;
+  }
 
   scrollTabs(delta: number) {
     this.tabsEl.nativeElement.scrollBy({ left: delta, behavior: "smooth" });
@@ -1121,6 +1376,7 @@ export class ConfigComponent implements OnInit {
   eventSlug = '';
   private previewKey = signal(0);
   screenshotLoading = signal(false);
+  showFloatingPreview = signal(false);
 
   getPreviewUrl(): SafeResourceUrl {
     const k = this.previewKey();
@@ -1396,6 +1652,29 @@ export class ConfigComponent implements OnInit {
     return section.sectionStyle && section.sectionStyle.bgType !== 'inherit';
   }
   sectionStyleExpanded: Record<string, boolean> = {};
+  collapsedCards: Record<string, boolean> = {};
+
+  toggleCard(id: string) {
+    this.collapsedCards[id] = !this.collapsedCards[id];
+  }
+
+  isCardCollapsed(id: string): boolean {
+    return !!this.collapsedCards[id];
+  }
+
+  onContentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Find closest section-card-header
+    const header = target.closest('.section-card-header') as HTMLElement;
+    if (!header) return;
+    // Don't collapse if clicking on a toggle-pill (ON/OFF switches inside headers)
+    if (target.closest('.toggle-pill')) return;
+    // Toggle the parent section-card
+    const card = header.closest('.section-card') as HTMLElement;
+    if (card) {
+      card.classList.toggle('collapsed');
+    }
+  }
   toggleSectionStyleExpand(key: string) {
     this.sectionStyleExpanded[key] = !this.sectionStyleExpanded[key];
   }

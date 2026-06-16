@@ -4,20 +4,57 @@
     <a routerLink="/dashboard" class="back-link"><span class="material-icons">arrow_back</span> Volver</a>
     <h2 class="section-title">Configuración de Landing</h2>
   </div>
-  <button class="btn" [class.btn-primary]="saveStatus() === 'idle' || saveStatus() === 'saving'" [class.btn-success]="saveStatus() === 'saved'" [class.btn-danger]="saveStatus() === 'error'" (click)="save()" [disabled]="saving()">
-    <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : saveStatus() === 'error' ? 'error' : 'save' }}</span>
-    {{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado ✓' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}
-  </button>
-</div>
-<div class="tabs-wrapper">
-  <div class="tabs-arrow" (click)="scrollTabs(-200)"><span class="material-icons">chevron_left</span></div>
-  <div class="tabs" #tabsEl>
-    @for (tab of tabs; track tab.key) {
-      <button class="tab" [class.active]="activeTab === tab.key" (click)="activeTab = tab.key">{{ tab.label }}</button>
-    }
+  <div class="config-toolbar-actions">
+    <button class="btn btn-secondary btn-sm config-nav-toggle" (click)="configNavOpen.set(!configNavOpen())">
+      <span class="material-icons">menu</span>
+    </button>
+    <button class="btn" [class.btn-primary]="saveStatus() === 'idle' || saveStatus() === 'saving'" [class.btn-success]="saveStatus() === 'saved'" [class.btn-danger]="saveStatus() === 'error'" (click)="save()" [disabled]="saving()">
+      <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : saveStatus() === 'error' ? 'error' : 'save' }}</span>
+      {{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado ✓' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}
+    </button>
   </div>
-  <div class="tabs-arrow" (click)="scrollTabs(200)"><span class="material-icons">chevron_right</span></div>
 </div>
+
+<div class="config-layout">
+  <!-- Sidebar Navigation -->
+  <aside class="config-nav" [class.open]="configNavOpen()">
+    <button class="config-nav-close" (click)="configNavOpen.set(false)">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    @for (cat of navCategories; track cat.id) {
+      <div class="config-nav-category">
+        <button class="config-nav-cat-header" (click)="toggleCategory(cat)">
+          <span class="material-icons cat-icon">{{ cat.icon }}</span>
+          <span class="cat-label">{{ cat.label }}</span>
+          <span class="material-icons cat-arrow" [class.expanded]="cat.expanded">expand_more</span>
+        </button>
+        @if (cat.expanded) {
+          <div class="config-nav-items">
+            @for (item of cat.items; track item.key) {
+              <button class="config-nav-item" [class.active]="activeTab === item.key" (click)="selectNavItem(item.key)">
+                <span class="material-icons">{{ item.icon }}</span>
+                <span>{{ item.label }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </aside>
+
+  <!-- Content Area -->
+  <div class="config-content" (click)="onContentClick($event)">
+
+<!-- Section Header -->
+@if (sectionInfo[activeTab]; as info) {
+  <div class="config-section-header">
+    <div class="config-section-header-icon"><span class="material-icons">{{ info.icon }}</span></div>
+    <div>
+      <h3 class="config-section-title">{{ info.title }}</h3>
+      <p class="config-section-desc">{{ info.description }}</p>
+    </div>
+  </div>
+}
 
 @if (activeTab === 'styles') {
 <div class="section-card">
@@ -2208,6 +2245,42 @@
     </div>
   </div>
 </div>
+}
+
+</div><!-- /.config-content -->
+</div><!-- /.config-layout -->
+
+<!-- Floating Preview Button (visible when not on preview tab) -->
+@if (activeTab !== 'preview') {
+  <button class="config-fab-preview" (click)="showFloatingPreview.set(true)" title="Vista previa rápida">
+    <span class="material-icons">phone_iphone</span>
+  </button>
+}
+
+<!-- Floating Preview Modal -->
+@if (showFloatingPreview()) {
+  <div class="floating-preview-overlay" (click)="showFloatingPreview.set(false)">
+    <div class="floating-preview-modal" (click)="$event.stopPropagation()">
+      <div class="floating-preview-header">
+        <span>Vista previa</span>
+        <button class="floating-preview-close" (click)="showFloatingPreview.set(false)">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="floating-preview-phone">
+        <div class="preview-phone-notch"></div>
+        <iframe [src]="getPreviewUrl()" class="preview-iframe" allow="autoplay"></iframe>
+      </div>
+      <div class="floating-preview-actions">
+        <button class="btn btn-secondary btn-sm" (click)="refreshPreview()">
+          <span class="material-icons" style="font-size:14px;">refresh</span> Recargar
+        </button>
+        <a [href]="getLandingUrl()" target="_blank" class="btn btn-primary btn-sm">
+          <span class="material-icons" style="font-size:14px;">open_in_new</span> Abrir
+        </a>
+      </div>
+    </div>
+  </div>
 }
 
 }
