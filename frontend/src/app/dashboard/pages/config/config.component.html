@@ -1,16 +1,17 @@
 ﻿@if (config(); as c) {
 <div class="config-toolbar">
-  <div>
-    <a routerLink="/dashboard" class="back-link"><span class="material-icons">arrow_back</span> Volver</a>
-    <h2 class="section-title">Configuración de Landing</h2>
-  </div>
+  <a routerLink="/dashboard" class="config-toolbar-back" title="Volver al dashboard">
+    <span class="material-icons">arrow_back</span>
+    <span class="config-toolbar-back-text">Volver</span>
+  </a>
+  <h2 class="config-toolbar-title">Configuración</h2>
   <div class="config-toolbar-actions">
-    <button class="btn btn-secondary btn-sm config-nav-toggle" (click)="configNavOpen.set(!configNavOpen())">
+    <button class="config-nav-toggle" (click)="configNavOpen.set(!configNavOpen())" title="Menú de secciones">
       <span class="material-icons">menu</span>
     </button>
-    <button class="btn" [class.btn-primary]="saveStatus() === 'idle' || saveStatus() === 'saving'" [class.btn-success]="saveStatus() === 'saved'" [class.btn-danger]="saveStatus() === 'error'" (click)="save()" [disabled]="saving()">
+    <button class="config-toolbar-save" [class.saved]="saveStatus() === 'saved'" [class.error]="saveStatus() === 'error'" (click)="save()" [disabled]="saving()">
       <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : saveStatus() === 'error' ? 'error' : 'save' }}</span>
-      {{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado ✓' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}
+      <span class="config-toolbar-save-text">{{ saveStatus() === 'saving' ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado' : saveStatus() === 'error' ? 'Error' : 'Guardar' }}</span>
     </button>
   </div>
 </div>
@@ -638,7 +639,7 @@
 <div class="section-card">
   <div class="section-card-header">
     <span>Nombres de celebrantes</span>
-    <label class="toggle-pill"><span>{{ c.hero.showCelebrantNames !== false ? 'Visible' : 'Oculto' }}</span><div class="toggle-pill-dot" [class.active]="c.hero.showCelebrantNames !== false" (click)="c.hero.showCelebrantNames = c.hero.showCelebrantNames === false ? true : false"></div></label>
+    <label class="toggle-pill" (click)="c.hero.showCelebrantNames = c.hero.showCelebrantNames === false ? true : false"><span class="toggle-pill-dot" [class.active]="c.hero.showCelebrantNames !== false"></span>{{ c.hero.showCelebrantNames !== false ? 'ON' : 'OFF' }}</label>
   </div>
   @if (c.hero.showCelebrantNames !== false) {
   <div class="section-card-body">
@@ -668,7 +669,7 @@
 <div class="section-card">
   <div class="section-card-header">
     <span>Descripción adicional</span>
-    <label class="toggle-pill"><span>{{ c.hero.showDescription ? 'Visible' : 'Oculto' }}</span><div class="toggle-pill-dot" [class.active]="c.hero.showDescription" (click)="c.hero.showDescription = !c.hero.showDescription"></div></label>
+    <label class="toggle-pill" (click)="c.hero.showDescription = !c.hero.showDescription"><span class="toggle-pill-dot" [class.active]="c.hero.showDescription"></span>{{ c.hero.showDescription ? 'ON' : 'OFF' }}</label>
   </div>
   @if (c.hero.showDescription) {
   <div class="section-card-body">
@@ -765,6 +766,78 @@
 }
 
 @if (activeTab === 'invitation') {
+<!-- Section Style (collapsible, at top) -->
+<div class="section-card" style="margin-bottom:16px;">
+  <div class="section-card-header" style="cursor:pointer;" (click)="hasSectionStyle(c.invitation) ? toggleSectionStyleExpand('invitation') : null">
+    <span style="display:flex;align-items:center;gap:8px;">✨ Estilo de sección @if (hasSectionStyle(c.invitation)) { <span class="material-icons" style="font-size:18px;color:rgba(255,255,255,0.4);transition:transform 0.2s;" [style.transform]="sectionStyleExpanded['invitation'] ? 'rotate(180deg)' : ''">expand_more</span> }</span>
+    <label class="toggle-pill" (click)="$event.stopPropagation(); toggleSectionStyle(c.invitation); sectionStyleExpanded['invitation'] = hasSectionStyle(c.invitation)"><span class="toggle-pill-dot" [class.active]="hasSectionStyle(c.invitation)"></span>{{ hasSectionStyle(c.invitation) ? 'ON' : 'OFF' }}</label>
+  </div>
+  @if (hasSectionStyle(c.invitation) && sectionStyleExpanded['invitation']) {
+    <div class="section-card-body">
+      <div class="field mb-12"><label class="form-label">Tipo de fondo</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="icon-type-btn" [class.active]="ensureSectionStyle(c.invitation).bgType === 'solid'" (click)="c.invitation.sectionStyle!.bgType = 'solid'">Sólido</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.bgType === 'linear'" (click)="c.invitation.sectionStyle!.bgType = 'linear'">Degradado</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.bgType === 'image'" (click)="c.invitation.sectionStyle!.bgType = 'image'">Imagen</button>
+        </div>
+      </div>
+      @if (c.invitation.sectionStyle!.bgType === 'solid' || c.invitation.sectionStyle!.bgType === 'linear') {
+        <div class="field-row mb-12">
+          <div class="field field-xs"><label class="form-label">Color 1</label><app-color-picker [value]="c.invitation.sectionStyle!.bgColor1 || '#ffffff'" (valueChange)="c.invitation.sectionStyle!.bgColor1 = $event"></app-color-picker></div>
+          @if (c.invitation.sectionStyle!.bgType === 'linear') {
+            <div class="field field-xs"><label class="form-label">Color 2</label><app-color-picker [value]="c.invitation.sectionStyle!.bgColor2 || '#f0f0f0'" (valueChange)="c.invitation.sectionStyle!.bgColor2 = $event"></app-color-picker></div>
+          }
+        </div>
+        @if (c.invitation.sectionStyle!.bgType === 'linear') {
+          <div class="field mb-12" style="max-width:280px;"><label class="form-label">Ángulo</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="0" max="360" [ngModel]="c.invitation.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.invitation.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="0" max="360" [ngModel]="c.invitation.sectionStyle!.bgAngle ?? 180" (ngModelChange)="c.invitation.sectionStyle!.bgAngle = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        }
+      }
+      @if (c.invitation.sectionStyle!.bgType === 'image') {
+        <div class="field mb-12"><input type="file" accept="image/*" (change)="uploadSectionBgImage($event, c.invitation)">
+          @if (c.invitation.sectionStyle!.bgImage) { <small style="color:rgba(255,255,255,0.5);margin-top:4px;display:block;">Imagen cargada ✔</small> }
+        </div>
+        <div class="field mb-12" style="max-width:200px;"><label class="form-label">Overlay: {{ c.invitation.sectionStyle!.bgOverlay ?? 50 }}%</label><input type="range" min="0" max="90" [ngModel]="c.invitation.sectionStyle!.bgOverlay ?? 50" (ngModelChange)="c.invitation.sectionStyle!.bgOverlay = $event" [ngModelOptions]="{standalone:true}"></div>
+      }
+      <div class="field mb-12"><label class="form-label">Separador superior</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="icon-type-btn" [class.active]="(c.invitation.sectionStyle!.dividerType || 'none') === 'none'" (click)="c.invitation.sectionStyle!.dividerType = 'none'">Ninguno</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'wave'" (click)="c.invitation.sectionStyle!.dividerType = 'wave'">∿ Onda</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'curve'" (click)="c.invitation.sectionStyle!.dividerType = 'curve'">⌒ Curva</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'slant'" (click)="c.invitation.sectionStyle!.dividerType = 'slant'">╱ Diagonal</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'zigzag'" (click)="c.invitation.sectionStyle!.dividerType = 'zigzag'">∧ Zigzag</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'mountains'" (click)="c.invitation.sectionStyle!.dividerType = 'mountains'">⛰ Montañas</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'drops'" (click)="c.invitation.sectionStyle!.dividerType = 'drops'">◠ Gotas</button>
+          <button class="icon-type-btn" [class.active]="c.invitation.sectionStyle!.dividerType === 'arrow'" (click)="c.invitation.sectionStyle!.dividerType = 'arrow'">▽ Flecha</button>
+        </div>
+      </div>
+      @if (c.invitation.sectionStyle!.dividerType && c.invitation.sectionStyle!.dividerType !== 'none') {
+        <div class="field-row mb-8">
+          <label class="toggle-switch" style="gap:8px;"><input type="checkbox" [checked]="c.invitation.sectionStyle!.dividerFlip" (change)="c.invitation.sectionStyle!.dividerFlip = !c.invitation.sectionStyle!.dividerFlip"><span class="toggle"></span><span style="font-size:13px;color:rgba(255,255,255,0.6)">Invertir</span></label>
+        </div>
+        <div class="field mb-12" style="max-width:280px;"><label class="form-label">Alto</label><div style="display:flex;align-items:center;gap:8px;"><input type="range" min="20" max="100" [ngModel]="c.invitation.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.invitation.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><input type="number" min="20" max="100" [ngModel]="c.invitation.sectionStyle!.dividerHeight ?? 50" (ngModelChange)="c.invitation.sectionStyle!.dividerHeight = $event" [ngModelOptions]="{standalone:true}" style="width:72px;" class="form-control"></div></div>
+        <div class="field mb-12"><label class="form-label">Borde de transición</label>
+          <div class="field-row mb-8" style="align-items:center;">
+            <div class="field" style="max-width:200px;"><label class="form-label">Grosor</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="5" step="0.5" [ngModel]="c.invitation.sectionStyle!.dividerStrokeWidth ?? 0" (ngModelChange)="c.invitation.sectionStyle!.dividerStrokeWidth = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ c.invitation.sectionStyle!.dividerStrokeWidth ?? 0 }}px</span></div></div>
+            <div class="field field-xs"><label class="form-label">Color</label><app-color-picker [value]="c.invitation.sectionStyle!.dividerStrokeColor || '#ffffff'" (valueChange)="c.invitation.sectionStyle!.dividerStrokeColor = $event"></app-color-picker></div>
+          </div>
+          @if (c.invitation.sectionStyle!.dividerStrokeWidth) {
+            <div class="field" style="max-width:200px;"><label class="form-label">Opacidad</label><div style="display:flex;align-items:center;gap:6px;"><input type="range" min="0" max="1" step="0.1" [ngModel]="c.invitation.sectionStyle!.dividerStrokeOpacity ?? 1" (ngModelChange)="c.invitation.sectionStyle!.dividerStrokeOpacity = $event" [ngModelOptions]="{standalone:true}" style="flex:1;"><span style="font-size:12px;color:rgba(255,255,255,0.5);min-width:28px;">{{ (c.invitation.sectionStyle!.dividerStrokeOpacity ?? 1) | number:'1.1-1' }}</span></div></div>
+          }
+        </div>
+      }
+      <!-- Presets -->
+      <div class="field mb-12"><label class="form-label" style="font-weight:600;">Presets rápidos</label>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="icon-type-btn" (click)="applySectionPreset(c.invitation, 'light')">☀ Claro</button>
+          <button class="icon-type-btn" (click)="applySectionPreset(c.invitation, 'dark')">🌙 Oscuro</button>
+          <button class="icon-type-btn" (click)="applySectionPreset(c.invitation, 'wine')">🍷 Vino</button>
+          <button class="icon-type-btn" (click)="applySectionPreset(c.invitation, 'transparent')">◻ Transparente</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
 <div class="section-card">
   <div class="section-card-header"><span>Sección de Invitación</span></div>
   <div class="section-card-body">

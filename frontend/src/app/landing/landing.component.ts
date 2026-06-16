@@ -271,7 +271,7 @@ import { SectionStyle } from '../core/models/models';
     }
   `,
   styles: [`
-    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; }
+    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; }
     .landing-bg-solid {
       position: fixed; inset: -10vh -5vw; z-index: -3;
       background: var(--landing-bg, #0d1117);
@@ -353,17 +353,16 @@ import { SectionStyle } from '../core/models/models';
     }
     .landing-bg-overlay.visible { opacity: 1; }
     .landing-wrapper {
-      max-width: 520px;
+      max-width: clamp(520px, 50vw, 680px);
       margin: 0 auto;
       position: relative;
-      overflow-x: hidden;
     }
     .section-block {
       position: relative;
-      margin-left: -20px;
-      margin-right: -20px;
-      padding-left: 20px;
-      padding-right: 20px;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      padding-left: max(20px, calc(50vw - clamp(260px, 25vw, 340px)));
+      padding-right: max(20px, calc(50vw - clamp(260px, 25vw, 340px)));
       margin-top: -1px;
     }
     .section-block[style*="--section-h2-color"] ::ng-deep .section-heading,

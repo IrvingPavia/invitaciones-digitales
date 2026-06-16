@@ -270,5 +270,13 @@
 - [x] **Cards colapsables**: Click en cualquier section-card-header colapsa/expande el body. Event delegation con click en config-content. Flechita `::after` sutil. Headers con toggle-pill o expand-more inline no muestran flecha duplicada.
 - [x] **Header contextual por sección**: Banner con ícono + título + descripción en cada vista. Mapa `sectionInfo` con textos de ayuda para las 14 secciones.
 - [x] **Preview flotante (FAB)**: Botón circular púrpura fijo en esquina inferior derecha. Abre modal con mockup celular + iframe de la landing real. Botones Recargar + Abrir. Se oculta cuando ya está en tab Preview.
-- [x] **Fix toggles homologados**: Eliminada flecha duplicada en headers con toggle-pill/toggle-pill-dot y en headers de estilo de sección (que tienen su propio expand_more inline).
+- [x] **Fix toggles homologados**: Eliminada flecha duplicada en headers con toggle-pill/toggle-pill-dot y en headers de estilo de sección (que tienen su propio expand_more inline). Todos los toggles usan formato ON/OFF (eliminado Visible/Oculto).
 - [x] **Dockerfile optimizado**: Removido `package-lock.json` del COPY para evitar incompatibilidad de binarios Windows/Alpine.
+- [x] **Estilo de sección en Invitación**: Agregado panel "✨ Estilo de sección" completo (fondo, divider, stroke, presets) a la sección Invitación que era la única que no lo tenía.
+- [x] **Landing full-width sections**: Fondos de sección se expanden al 100% viewport en desktop. Contenido responsivo con `clamp(520px, 50vw, 680px)`. Fix de `overflow-x: clip` para no romper z-index de fondos fixed.
+- [x] **Fix Nginx uploads 404**: Agregado `^~` prefix en location `/uploads/` para evitar que regex de extensiones capture las imágenes del backend.
+- [x] **Toolbar del config rediseñado**: Barra sticky con backdrop-blur. Layout: ← Volver | Título | ☰ Guardar. En mobile: solo íconos. Botón guardar con estados (saved/error).
+- [x] **Page header global rediseñado**: `.flex-between` convertido en card contenedora con fondo semi-transparente, border sutil, border-radius 14px. Aplicado automáticamente a Eventos, Usuarios, Invitados, Registrados, etc. Compatible dark/light mode.
+- [x] **Section cards mejoradas**: Border-radius 14px, hover effect, header con hover feedback, collapsed state sin border-bottom.
+- [x] **Sidebar dashboard pulido**: Background más oscuro con backdrop-filter blur, nav links con border-radius y margin lateral, hover/active diferenciados, iconos con opacidad dinámica.
+- [x] **Back-link minimalista**: Eliminado borde y fondo del link "Volver", ahora es solo texto sutil con ícono.

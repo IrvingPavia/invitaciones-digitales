@@ -130,6 +130,7 @@ body.light-mode .btn-outline:hover { background: rgba(124,92,191,0.06) !importan
 
 /* Misc */
 body.light-mode .back-link { color: var(--gold) !important; }
+body.light-mode .flex-between { background: #ffffff !important; border-color: #e0e0e8 !important; }
 body.light-mode .venue-card, body.light-mode .itinerary-card { background: #fafafa !important; border-color: #e8e8e8 !important; }
 body.light-mode .venue-header strong { color: #333 !important; }
 body.light-mode .badge, body.light-mode .event-badge { color: #333 !important; }
@@ -245,8 +246,8 @@ body {
 
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #1a1a2a 0%, #12121a 100%);
-  border-right: 1px solid rgba(124,92,191,0.2);
+  background: linear-gradient(180deg, #1a1a2a 0%, #0f0f1a 100%);
+  border-right: 1px solid rgba(124,92,191,0.15);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -254,12 +255,13 @@ body {
   height: 100dvh;
   z-index: 100;
   transition: var(--transition);
+  backdrop-filter: blur(12px);
 
   &.collapsed { width: 70px; }
 
   .sidebar-logo {
     padding: 24px 20px;
-    border-bottom: 1px solid rgba(124,92,191,0.2);
+    border-bottom: 1px solid rgba(124,92,191,0.12);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -283,18 +285,27 @@ body {
       align-items: center;
       gap: 12px;
       padding: 12px 20px;
-      color: rgba(255,255,255,0.7);
+      margin: 2px 8px;
+      color: rgba(255,255,255,0.6);
       text-decoration: none;
       transition: var(--transition);
       border-left: 3px solid transparent;
+      border-radius: 0 8px 8px 0;
       font-size: 14px;
 
-      .material-icons { font-size: 20px; }
+      .material-icons { font-size: 20px; opacity: 0.7; }
 
-      &:hover, &.active {
+      &:hover {
+        color: rgba(255,255,255,0.9);
+        background: rgba(124,92,191,0.08);
+        .material-icons { opacity: 1; }
+      }
+
+      &.active {
         color: var(--gold-light);
-        background: rgba(124,92,191,0.1);
+        background: rgba(124,92,191,0.12);
         border-left-color: var(--gold);
+        .material-icons { opacity: 1; color: var(--gold-light); }
       }
     }
   }
@@ -318,11 +329,13 @@ body {
 
 /* ===== CARDS ===== */
 .card {
-  background: #1a1a2a;
-  border: 1px solid rgba(124,92,191,0.15);
+  background: rgba(26, 26, 42, 0.6);
+  border: 1px solid rgba(124,92,191,0.12);
   border-radius: var(--radius);
   padding: 24px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  transition: border-color 0.2s;
+  &:hover { border-color: rgba(124,92,191,0.2); }
 }
 
 .kpi-card {
@@ -629,7 +642,6 @@ body {
 /* ===== UTILS ===== */
 .flex { display: flex; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
-.flex-between { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .gap-8 { gap: 8px; }
 .gap-12 { gap: 12px; }
 .gap-16 { gap: 16px; }
@@ -785,31 +797,43 @@ textarea {
 
 /* ===== BACK LINK ===== */
 .back-link {
-  display: inline-flex; align-items: center; gap: 6px;
-  color: var(--gold-light); font-size: 14px; font-weight: 500;
-  text-decoration: none; margin-bottom: 12px;
-  padding: 6px 12px; border-radius: 8px;
-  border: 1px solid rgba(124,92,191,0.3);
-  background: rgba(124,92,191,0.05);
+  display: inline-flex; align-items: center; gap: 4px;
+  color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 400;
+  text-decoration: none; margin-bottom: 4px;
   transition: all 0.2s;
-  float: right;
-  .material-icons { font-size: 18px; }
-  &:hover { background: rgba(124,92,191,0.15); border-color: var(--gold); }
+  .material-icons { font-size: 14px; }
+  &:hover { color: var(--gold-light); }
 }
 
 /* ===== SECTION TITLE ===== */
 .section-title {
   font-family: var(--font-montserrat);
-  font-size: 28px;
+  font-size: 24px;
   color: var(--gold-light);
-  margin-bottom: 8px;
-  font-weight: 600;
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .section-subtitle {
-  color: rgba(255,255,255,0.6);
-  font-size: 14px;
-  margin-bottom: 24px;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+/* ===== PAGE HEADER (flex-between wrapper) ===== */
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  background: rgba(26, 26, 42, 0.6);
+  border: 1px solid rgba(124, 92, 191, 0.12);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {

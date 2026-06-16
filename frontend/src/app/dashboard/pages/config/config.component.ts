@@ -342,11 +342,58 @@ const FONT_OPTIONS = `
       }
       .config-toolbar {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
+        margin-bottom: 20px;
+        padding: 12px 16px;
+        background: rgba(26, 26, 42, 0.8);
+        border: 1px solid rgba(124, 92, 191, 0.15);
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
         gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .config-toolbar-back {
+        display: flex; align-items: center; gap: 6px;
+        color: rgba(255,255,255,0.6); text-decoration: none;
+        font-size: 13px; padding: 6px 10px; border-radius: 8px;
+        transition: all 0.2s;
+        &:hover { color: var(--gold-light); background: rgba(124,92,191,0.1); }
+        .material-icons { font-size: 18px; }
+      }
+      .config-toolbar-title {
+        font-size: 18px; font-weight: 700; color: var(--gold);
+        font-family: var(--font-montserrat);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .config-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+      .config-toolbar-save {
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 16px; border-radius: 8px; border: none;
+        background: linear-gradient(135deg, var(--gold), var(--gold-light));
+        color: white; font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: all 0.2s;
+        &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,92,191,0.4); }
+        &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        &.saved { background: #28a745; }
+        &.error { background: #dc3545; }
+        .material-icons { font-size: 16px; }
+      }
+      .config-nav-toggle {
+        display: none;
+        align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 8px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.2s;
+        &:hover { background: rgba(124,92,191,0.15); color: var(--gold-light); border-color: var(--gold); }
+      }
+      @media (max-width: 900px) {
+        .config-nav-toggle { display: flex; }
+        .config-toolbar-back-text { display: none; }
+        .config-toolbar-save-text { display: none; }
+        .config-toolbar-save { padding: 8px 10px; }
       }
       .tabs-wrapper {
         display: flex;
@@ -468,24 +515,33 @@ const FONT_OPTIONS = `
         margin-bottom: 12px;
       }
       .section-card {
-        border: 1px solid rgba(124, 92, 191, 0.15);
-        border-radius: 12px;
-        margin-bottom: 20px;
+        border: 1px solid rgba(124, 92, 191, 0.12);
+        border-radius: 14px;
+        margin-bottom: 16px;
         overflow: visible;
-        background: rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.015);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        &:hover { border-color: rgba(124, 92, 191, 0.25); }
       }
       .section-card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 14px 20px;
-        background: rgba(124, 92, 191, 0.05);
-        border-bottom: 1px solid rgba(124, 92, 191, 0.1);
+        padding: 16px 20px;
+        background: rgba(124, 92, 191, 0.04);
+        border-bottom: 1px solid rgba(124, 92, 191, 0.08);
+        border-radius: 14px 14px 0 0;
+        transition: background 0.2s;
+        &:hover { background: rgba(124, 92, 191, 0.08); }
         span {
           font-size: 14px;
           font-weight: 600;
           color: var(--gold-light);
         }
+      }
+      .section-card.collapsed .section-card-header {
+        border-bottom: none;
+        border-radius: 14px;
       }
       .section-card-body {
         padding: 20px;
@@ -802,8 +858,6 @@ const FONT_OPTIONS = `
       }
 
       /* === Config Layout with Sidebar Navigation === */
-      .config-toolbar-actions { display: flex; gap: 8px; align-items: center; }
-      .config-nav-toggle { display: none; }
 
       .config-layout {
         display: grid;
@@ -977,7 +1031,6 @@ const FONT_OPTIONS = `
       }
 
       @media (max-width: 900px) {
-        .config-nav-toggle { display: flex; }
         .config-layout { grid-template-columns: 1fr; }
         .config-nav {
           display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
