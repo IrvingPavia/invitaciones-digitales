@@ -112,17 +112,16 @@ import { ApiService } from '../core/services/api.service';
       background: rgba(0,0,0,0.6);
     }
     .sidebar-toggle {
-      position: absolute; top: 50%; right: -14px;
+      position: absolute; top: 50%; right: 8px;
       transform: translateY(-50%);
-      width: 28px; height: 48px;
-      background: linear-gradient(180deg, #1a1a2a, #12121a);
-      border: 1px solid rgba(124,92,191,0.3);
-      border-left: none;
-      border-radius: 0 8px 8px 0;
+      width: 28px; height: 40px;
+      background: rgba(124, 92, 191, 0.1);
+      border: 1px solid rgba(124, 92, 191, 0.25);
+      border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--gold); transition: all 0.2s;
-      .material-icons { font-size: 18px; }
-      &:hover { background: rgba(124,92,191,0.15); }
+      cursor: pointer; color: var(--gold-light); transition: all 0.2s;
+      .material-icons { font-size: 16px; }
+      &:hover { background: rgba(124, 92, 191, 0.2); border-color: rgba(139, 92, 246, 0.5); box-shadow: 0 0 8px rgba(139, 92, 246, 0.2); }
     }
     .mobile-menu-btn {
       display: none;
