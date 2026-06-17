@@ -14,7 +14,7 @@ import { environment } from '../../../../environments/environment';
     <div>
       <div class="flex-between mb-16">
         <div>
-          <h2 class="section-title">{{ isClient ? 'Mi Evento' : 'Dashboard' }}</h2>
+          <h2 class="section-title welcome-title">{{ getGreeting() }}, {{ user?.username }} 👋</h2>
           <p class="section-subtitle">{{ isClient ? 'Resumen de tu invitación digital' : 'Selecciona un evento para ver su resumen' }}</p>
         </div>
       </div>
@@ -469,9 +469,35 @@ export class HomeComponent implements OnInit {
     this.api.getEvents().subscribe(events => {
       this.events.set(events);
       this.loading.set(false);
-      if (events.length > 0) this.goTo(0);
+      if (events.length > 0) {
+        // Restore last active event position
+        const savedIndex = sessionStorage.getItem('vitely-active-event-index');
+        const idx = savedIndex ? Math.min(parseInt(savedIndex), events.length - 1) : 0;
+        this.goTo(idx);
+      }
     });
     this.api.getEventThemes().subscribe(themes => this.themes.set(themes));
+  }
+
+  getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Buenos días';
+    if (hour < 18) return 'Buenas tardes';
+    return 'Buenas noches';
+  }
+
+  goTo(index: number) {
+    this.activeIndex.set(index);
+    sessionStorage.setItem('vitely-active-event-index', String(index));
+    const event = this.events()[index];
+    if (event) {
+      this.selectedEvent.set(event);
+      this.kpis.set(null);
+      this.api.getKPIs(event.id).subscribe(k => this.kpis.set(k));
+      if (event.event_mode === 'open') {
+        this.api.getRegistrationStats(event.id).subscribe(s => this.registrationStats.set(s));
+      }
+    }
   }
 
   navigate(dir: number) {
@@ -601,19 +627,6 @@ export class HomeComponent implements OnInit {
   onCardClick(index: number) {
     if (!this.isDragging && Math.abs(this.dragOffset()) < 5) {
       this.goTo(index);
-    }
-  }
-
-  goTo(index: number) {
-    this.activeIndex.set(index);
-    const event = this.events()[index];
-    if (event) {
-      this.selectedEvent.set(event);
-      this.kpis.set(null);
-      this.api.getKPIs(event.id).subscribe(k => this.kpis.set(k));
-      if (event.event_mode === 'open') {
-        this.api.getRegistrationStats(event.id).subscribe(s => this.registrationStats.set(s));
-      }
     }
   }
 

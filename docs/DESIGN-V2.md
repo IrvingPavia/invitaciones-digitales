@@ -289,3 +289,26 @@ Reemplazar el sistema actual de tabs+formularios por un editor visual donde el u
 
 ### Fase 2 — Landing de Presentación (pendiente)
 ### Fase 3 — Page Builder Visual (pendiente)
+
+
+---
+
+## Ideas Adicionales (por implementar)
+
+### Animación de selección en sidebar
+- Al seleccionar un item del sidebar, el botón activo debe tener una animación tipo **flash/shimmer** que recorra el botón de derecha a izquierda (como un brillo que pasa sobre el fondo)
+- Implementación CSS: `@keyframes shimmer` con un gradiente lineal translúcido que se mueve con `background-position` o un pseudo-elemento `::after` que se desplaza
+
+### Transiciones de entrada del contenido
+- Al cambiar de módulo (click en sidebar), los elementos del contenido deben entrar con animaciones **staggered** (uno por uno con delay):
+  - Los cards/items aparecen con fade-in + translateY desde abajo
+  - Cada item tiene un delay incremental (0ms, 50ms, 100ms, 150ms...)
+  - Duración: ~300-400ms por item, easing: ease-out
+- Referencia: similar al comportamiento de las secciones de la landing (scroll reveal) pero activado por cambio de ruta
+- Implementación: CSS `animation` + Angular `@routeAnimations` o clases que se aplican al cargar el componente
+
+### Persistencia del evento activo
+- [x] Al navegar a Invitados/Config/Tarjetas y luego dar "Volver", el carrusel vuelve al evento que estaba seleccionado (sessionStorage)
+
+### Guard de cambios sin guardar
+- [x] En Config y Tarjetas, si hay cambios sin guardar y el usuario intenta salir, se muestra diálogo de confirmación

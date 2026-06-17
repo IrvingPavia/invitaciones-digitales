@@ -44,7 +44,7 @@
   </aside>
 
   <!-- Content Area -->
-  <div class="config-content" (click)="onContentClick($event)">
+  <div class="config-content" (click)="onContentClick($event)" (input)="markDirty()" (change)="markDirty()">
 
 <!-- Section Header -->
 @if (sectionInfo[activeTab]; as info) {

@@ -1055,6 +1055,17 @@ const FONT_OPTIONS = `
 export class ConfigComponent implements OnInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+
+  // Dirty tracking for unsaved changes guard
+  private isDirty = false;
+
+  hasUnsavedChanges(): boolean {
+    return this.isDirty;
+  }
+
+  markDirty() {
+    this.isDirty = true;
+  }
   eventId = 0;
   config = signal<EventConfig | null>(null);
   itinerary = signal<ItineraryItem[]>([]);
@@ -1472,7 +1483,7 @@ export class ConfigComponent implements OnInit {
     this.saving.set(true);
     this.saveStatus.set('saving');
     this.api.saveConfig(this.eventId, this.config()!).subscribe({
-      next: () => { this.saving.set(false); this.saveStatus.set('saved'); this.refreshPreview(); setTimeout(() => this.saveStatus.set('idle'), 3000); },
+      next: () => { this.saving.set(false); this.saveStatus.set('saved'); this.isDirty = false; this.refreshPreview(); setTimeout(() => this.saveStatus.set('idle'), 3000); },
       error: () => { this.saving.set(false); this.saveStatus.set('error'); setTimeout(() => this.saveStatus.set('idle'), 3000); },
     });
   }

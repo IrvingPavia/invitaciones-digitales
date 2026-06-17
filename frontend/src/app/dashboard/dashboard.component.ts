@@ -265,7 +265,28 @@ export class DashboardComponent implements OnInit {
   toggleTheme() {
     this.isDarkMode = !this.isDarkMode;
     localStorage.setItem('vitely-theme', this.isDarkMode ? 'dark' : 'light');
-    this.applyTheme();
+
+    // Animated transition with clip-path circle
+    const btn = document.querySelector('.topbar-theme-btn') as HTMLElement;
+    if (btn && (document as any).startViewTransition) {
+      const rect = btn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const endRadius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+
+      const transition = (document as any).startViewTransition(() => {
+        this.applyTheme();
+      });
+
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
+          { duration: 500, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
+        );
+      });
+    } else {
+      this.applyTheme();
+    }
   }
 
   @HostListener('document:click', ['$event'])
