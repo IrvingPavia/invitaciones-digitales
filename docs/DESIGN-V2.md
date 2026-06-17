@@ -215,18 +215,43 @@ Reemplazar el sistema actual de tabs+formularios por un editor visual donde el u
 14. Demo preview interactivo
 15. Responsive + partículas
 
-### Fase 3A — Page Builder Base (3-4 sesiones)
-16. Layout del editor (3 paneles)
-17. Lista de componentes arrastrables
-18. Canvas con preview de la landing
-19. Drag & drop para reordenar secciones
-20. Panel de propiedades al seleccionar bloque
+### Fase 3A — Page Builder Base (en progreso)
+16. [x] Layout del editor (3 paneles: componentes, preview, propiedades)
+17. [x] Lista de secciones con toggle enabled/disabled
+18. [x] Drag & drop para reordenar secciones (CDK)
+19. [x] Preview responsive (mobile/tablet/desktop)
+20. [x] Botón "Builder" accesible desde dashboard
+21. [ ] Edición inline: click en texto del preview → editar directamente
+22. [ ] Panel de propiedades funcional: al seleccionar sección muestra controles reales (colores, fuentes, toggles)
+23. [ ] Guardar cambios de propiedades en tiempo real al config JSON
+24. [ ] Preview reactivo: se actualiza al editar
 
-### Fase 3B — Page Builder Avanzado (2-3 sesiones)
-21. Asistente inteligente (reglas)
-22. Presets rápidos de diseño
-23. Responsive preview (toggle celular/tablet)
-24. Undo/Redo en el editor
+### Fase 3B — Libertad de posición (canvas por bloque)
+25. [ ] Cada sección es un "canvas" donde los elementos internos se posicionan libremente
+26. [ ] Drag de elementos dentro de su sección (x%, y%)
+27. [ ] Resize de elementos (width, height)
+28. [ ] Snap guides / alineación magnética
+29. [ ] Modelo de datos: posiciones por elemento en config JSON
+
+### Fase 3 — Concepto Híbrido
+
+El page builder usa un modelo **híbrido**:
+- **Entre secciones**: apiladas verticalmente, reordenables con drag
+- **Dentro de cada sección**: libertad de posición tipo canvas (Fase 3B)
+- **Panel de propiedades**: siempre visible al seleccionar un elemento
+- **Edición inline**: textos editables con click directo
+
+```
+┌─── SECCIÓN: HERO (canvas interno) ────────┐
+│  [Título] ← movible con drag (x%, y%)     │
+│  [Countdown] ← movible con drag           │
+│  [Frase] ← movible con drag               │
+└────────────────────────────────────────────┘
+         ↕ (drag vertical = reordenar secciones)
+┌─── SECCIÓN: DETALLES (canvas interno) ────┐
+│  [Card 1] [Card 2] ← movibles con drag    │
+└────────────────────────────────────────────┘
+```
 
 ---
 
@@ -378,3 +403,26 @@ La sección "Diseñado para cada ocasión" debe seguir este patrón:
 - [ ] Sección "Cómo funciona": línea conectora entre pasos, más visual
 - [ ] Animaciones adicionales: parallax sutil en el hero, partículas decorativas
 - [ ] Optimizar para SEO: meta tags específicos de la landing pública
+
+
+---
+
+## Notas de implementación — Builder (próxima sesión)
+
+### Problemas identificados:
+1. El iframe muestra toda la landing sin posicionarse en la sección seleccionada
+2. El builder se sale del viewport (overflow abajo)
+3. La edición en panel separado se siente desconectada del preview
+
+### Plan de acción:
+- El iframe debe scrollear automáticamente a la sección seleccionada (usar postMessage)
+- Todo el builder debe caber dentro del área de contenido (sin overflow en la página principal)
+- El scroll solo debe ocurrir DENTRO de cada panel (izquierdo, centro, derecho)
+- El panel de propiedades debe tener TODOS los controles de la sección (no solo título)
+- Al editar una propiedad, el iframe se recarga para reflejar el cambio
+
+### Enfoque técnico:
+- Comunicación builder → iframe con `window.postMessage` para scroll a sección
+- El iframe escucha mensajes y ejecuta `document.getElementById(sectionId).scrollIntoView()`
+- Propiedades completas: título, subtítulo, descripción, enabled, colores de fondo, fuentes
+- Auto-save o save explícito que recarga el iframe

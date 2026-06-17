@@ -122,6 +122,9 @@ import { environment } from '../../../../environments/environment';
             <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="action-btn">
               <span class="material-icons">settings</span> Configurar
             </a>
+            <a [routerLink]="['/dashboard/builder', selectedEvent()!.id]" class="action-btn">
+              <span class="material-icons">dashboard_customize</span> Builder
+            </a>
             <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="action-btn">
               <span class="material-icons">style</span> Tarjetas
             </a>

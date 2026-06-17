@@ -21,6 +21,7 @@ export const routes: Routes = [
       { path: 'guests/:eventId', loadComponent: () => import('./dashboard/pages/guests/guests.component').then(m => m.GuestsComponent) },
       { path: 'registrations/:eventId', loadComponent: () => import('./dashboard/pages/registrations/registrations.component').then(m => m.RegistrationsComponent) },
       { path: 'config/:eventId', loadComponent: () => import('./dashboard/pages/config/config.component').then(m => m.ConfigComponent), canDeactivate: [unsavedChangesGuard] },
+      { path: 'builder/:eventId', loadComponent: () => import('./dashboard/pages/builder/builder.component').then(m => m.BuilderComponent), canDeactivate: [unsavedChangesGuard] },
       { path: 'cards/:eventId', loadComponent: () => import('./dashboard/pages/cards/cards.component').then(m => m.CardsComponent), canDeactivate: [unsavedChangesGuard] },
       { path: 'users', loadComponent: () => import('./dashboard/pages/users/users.component').then(m => m.UsersComponent) },
       { path: 'suggestions', loadComponent: () => import('./dashboard/pages/suggestions/suggestions.component').then(m => m.SuggestionsComponent) }
