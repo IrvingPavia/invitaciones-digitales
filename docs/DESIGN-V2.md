@@ -259,3 +259,33 @@ Reemplazar el sistema actual de tabs+formularios por un editor visual donde el u
 - La landing de presentación es 100% frontend (componente estático + animaciones)
 - El asistente corre en frontend (reglas hardcodeadas, sin API)
 - Cada fase es independiente y deployable por separado
+
+
+---
+
+## Progreso de Implementación
+
+### Fase 1A — Dashboard Glow & Glass ✅
+- [x] Background oscuro profundo (#06060e) con glow ambiental sutil
+- [x] Sidebar flotante con border-radius 20px, glass bg, glow border púrpura
+- [x] Main content flotante con matching glass border + glow
+- [x] Layout con padding/gap 12px (paneles flotantes)
+- [x] Nav item activo: fondo translúcido + borde brillante + box-shadow glow
+- [x] Dark mode: glow intenso (rgba 101,32,246 0.4)
+- [x] Light mode: glow sutil + colores adaptados
+
+### Fase 1B — Dashboard UX (en progreso)
+- [x] Top bar con perfil de usuario (nombre + avatar circular púrpura)
+- [x] Botón toggle tema (sol/luna) movido al top bar
+- [x] Dropdown "Cerrar sesión" al click en avatar (cierra al click fuera)
+- [x] Sidebar footer eliminado (todo movido al top bar)
+- [x] Collapse del sidebar: flecha en zona del logo (solo visible expandido), click en favicon para expandir
+- [x] user-select: none en todo el dashboard
+- [x] Light mode fixes: username color, dropdown styling, hover states
+- [ ] Welcome message personalizado ("Hola, {nombre}")
+- [ ] Transición de tema animada (clip-path circle)
+- [ ] Cards con glassmorphism refinado
+- [ ] Responsive con glow adaptado
+
+### Fase 2 — Landing de Presentación (pendiente)
+### Fase 3 — Page Builder Visual (pendiente)

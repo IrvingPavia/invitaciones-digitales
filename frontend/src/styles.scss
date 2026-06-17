@@ -64,6 +64,13 @@ body.light-mode .sidebar-logo { border-bottom-color: #e0e0e8; }
 body.light-mode .sidebar-footer { border-top-color: #e0e0e8; }
 body.light-mode .sidebar-user span { color: #555; }
 body.light-mode .topbar { background: #ffffff; border-bottom: 1px solid #e0e0e8; }
+body.light-mode .topbar-user-name { color: #333 !important; }
+body.light-mode .topbar-theme-btn { background: #f0f0f5; border-color: #ddd; color: #555; }
+body.light-mode .topbar-user { background: #f0f0f5; border-color: #ddd; }
+body.light-mode .topbar-user-menu { background: #ffffff !important; border-color: rgba(124,92,191,0.25) !important; box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 0 8px rgba(124,92,191,0.1) !important; }
+body.light-mode .topbar-user-menu button { color: #333; }
+body.light-mode .topbar-user-menu button .material-icons { color: #888; }
+body.light-mode .topbar-user-menu button:hover { background: rgba(124,92,191,0.08); color: var(--gold) !important; }
 
 /* Cards & sections */
 body.light-mode .card, body.light-mode .section-card, body.light-mode .kpi-card {
@@ -247,6 +254,8 @@ body {
   position: relative;
   padding: 12px;
   gap: 12px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Ambient glow — subtle from bottom */
