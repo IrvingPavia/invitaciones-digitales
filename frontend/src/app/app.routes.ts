@@ -3,7 +3,10 @@ import { authGuard } from './core/guards/auth.guard';
 import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  {
+    path: '',
+    loadComponent: () => import('./public/landing-home.component').then(m => m.LandingHomeComponent)
+  },
   {
     path: 'login',
     loadComponent: () => import('./auth/login.component').then(m => m.LoginComponent)

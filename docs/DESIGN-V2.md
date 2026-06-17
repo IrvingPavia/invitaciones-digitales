@@ -312,3 +312,58 @@ Reemplazar el sistema actual de tabs+formularios por un editor visual donde el u
 
 ### Guard de cambios sin guardar
 - [x] En Config y Tarjetas, si hay cambios sin guardar y el usuario intenta salir, se muestra diálogo de confirmación
+
+
+---
+
+## Referencia Visual — Landing de Presentación (Fitonist)
+
+### Parte 1 — Hero
+- Fondo con gradiente claro suave (lavanda → púrpura → rosa)
+- Navbar oscuro flotante arriba con border-radius (logo + links + CTAs)
+- Título grande y bold centrado (tipografía gruesa, ~60px)
+- Subtítulo pequeño debajo con color acento
+- Botones CTA tipo pill (bordes redondeados, fondo claro con borde)
+- Mockups de celulares flotando con perspectiva/ángulo
+- Elementos decorativos fuera de los celulares (cards/badges que "salen" del frame, esferas 3D abstractas)
+- Todo con sombras suaves y profundidad
+
+### Parte 2 — Sección Categorías (patrón a replicar para "Diseñado para cada ocasión")
+- Layout 2 columnas: texto + controles a la izquierda, visual grande a la derecha
+- **Iconos circulares** como tabs seleccionables arriba del texto
+- Icono activo con color diferente (acento)
+- Al seleccionar un icono: cambia título + descripción + imagen/video de la derecha con transición
+- Imagen/video con border-radius grande (~20px)
+- Fondo general claro/neutro
+
+### Aplicación para Vitely
+
+La sección "Diseñado para cada ocasión" debe seguir este patrón:
+
+```
+┌──────────────────────────────────────────────────────┐
+│                                                      │
+│  ● ● ● ● ● ●   ← Iconos circulares (Material Icons)│
+│                                                      │
+│  Bodas                    ┌──────────────────┐       │
+│  ────────                 │                  │       │
+│  Están cordialmente       │   PREVIEW DEL    │       │
+│  invitados a celebrar     │   TEMPLATE       │       │
+│  nuestra unión...         │   (mockup con    │       │
+│                           │   colores/fuente │       │
+│                           │   del tema)      │       │
+│                           └──────────────────┘       │
+└──────────────────────────────────────────────────────┘
+```
+
+- Izquierda: iconos como tabs + título del evento + descripción
+- Derecha: mockup visual del template (gradiente + tipografía representativa)
+- Transición fade al cambiar de tab
+- En mobile: stacked (iconos arriba, preview abajo)
+
+### Hero para Vitely (inspirado en Fitonist)
+- Gradiente de fondo: púrpura oscuro → lavanda (estilo Vitely invertido — oscuro arriba, claro en centro)
+- O mantener dark con glow (como está ahora) que va más con la identidad
+- Agregar mockups de celulares con invitaciones ejemplo
+- Elementos decorativos abstractos (esferas, partículas) generados con CSS
+- Navbar: usar el logo PNG de Vitely más grande
