@@ -53,8 +53,8 @@ import { gsap } from 'gsap';
 
       <!-- Features Section -->
       <section class="lh-features" id="features">
-        <h2 class="lh-section-title">Todo lo que necesitas en un solo lugar</h2>
-        <p class="lh-section-sub">Una plataforma completa para gestionar tus invitaciones de principio a fin</p>
+        <h2 class="lh-section-title lh-reveal">Todo lo que necesitas en un solo lugar</h2>
+        <p class="lh-section-sub lh-reveal">Una plataforma completa para gestionar tus invitaciones de principio a fin</p>
         <div class="lh-features-grid">
           <div class="lh-feature-card">
             <div class="lh-feature-icon"><span class="material-icons">dashboard</span></div>
@@ -91,8 +91,8 @@ import { gsap } from 'gsap';
 
       <!-- How it works -->
       <section class="lh-how" id="how">
-        <h2 class="lh-section-title">Cómo funciona</h2>
-        <p class="lh-section-sub">En 3 simples pasos tu invitación estará lista</p>
+        <h2 class="lh-section-title lh-reveal">Cómo funciona</h2>
+        <p class="lh-section-sub lh-reveal">En 3 simples pasos tu invitación estará lista</p>
         <div class="lh-steps">
           <div class="lh-step">
             <div class="lh-step-number">1</div>
@@ -116,21 +116,23 @@ import { gsap } from 'gsap';
 
       <!-- Showcase Section -->
       <section class="lh-showcase" id="showcase">
-        <h2 class="lh-section-title">Diseñado para cada ocasión</h2>
-        <p class="lh-section-sub">Selecciona un tipo de evento y mira cómo se vería tu invitación</p>
-        <div class="lh-showcase-tabs">
-          @for (evt of eventTypes; track evt.key) {
-            <button class="lh-showcase-tab" [class.active]="activeShowcase === evt.key" (click)="activeShowcase = evt.key">
-              <span class="material-icons">{{ evt.icon }}</span>
-              <span>{{ evt.label }}</span>
-            </button>
-          }
-        </div>
-        <div class="lh-showcase-preview">
-          @for (evt of eventTypes; track evt.key) {
-            @if (activeShowcase === evt.key) {
-              <div class="lh-showcase-visual" [style.background]="evt.gradient">
-                <div class="lh-showcase-mockup">
+        <h2 class="lh-section-title lh-reveal">Diseñado para cada ocasión</h2>
+        <p class="lh-section-sub lh-reveal">Desliza para ver cómo se vería tu invitación</p>
+        <div class="lh-carousel lh-reveal">
+          <button class="lh-carousel-arrow lh-arrow-left" (click)="prevShowcase()">
+            <span class="material-icons">chevron_left</span>
+          </button>
+          <div class="lh-carousel-track" (mousedown)="onCarouselDragStart($event)" (touchstart)="onCarouselTouchStart($event)">
+            @for (evt of eventTypes; track evt.key; let i = $index) {
+              <div class="lh-carousel-card"
+                   [class.active]="i === showcaseIndex"
+                   [class.prev]="i === showcaseIndex - 1"
+                   [class.next]="i === showcaseIndex + 1"
+                   [style.transform]="getShowcaseTransform(i)"
+                   [style.opacity]="getShowcaseOpacity(i)"
+                   [style.z-index]="getShowcaseZ(i)"
+                   (click)="showcaseIndex = i">
+                <div class="lh-carousel-card-inner" [style.background]="evt.gradient">
                   <p class="lh-mock-type" [style.color]="evt.accentLight">{{ evt.typeText }}</p>
                   <h3 class="lh-mock-title" [style.font-family]="evt.font" [style.color]="evt.titleColor">{{ evt.example }}</h3>
                   <div class="lh-mock-date" [style.color]="evt.accentLight">{{ evt.date }}</div>
@@ -139,12 +141,24 @@ import { gsap } from 'gsap';
                 </div>
               </div>
             }
+          </div>
+          <button class="lh-carousel-arrow lh-arrow-right" (click)="nextShowcase()">
+            <span class="material-icons">chevron_right</span>
+          </button>
+        </div>
+        <div class="lh-carousel-info lh-reveal">
+          <span class="material-icons" style="color: var(--gold-light); font-size: 28px;">{{ eventTypes[showcaseIndex].icon }}</span>
+          <h3>{{ eventTypes[showcaseIndex].label }}</h3>
+        </div>
+        <div class="lh-carousel-dots">
+          @for (evt of eventTypes; track evt.key; let i = $index) {
+            <button class="lh-dot" [class.active]="i === showcaseIndex" (click)="showcaseIndex = i"></button>
           }
         </div>
       </section>
 
       <!-- CTA Section -->
-      <section class="lh-cta">
+      <section class="lh-cta lh-reveal">
         <div class="lh-cta-glow"></div>
         <h2>¿Listo para crear tu invitación?</h2>
         <p>Empieza gratis. Sin límites. Sin tarjeta de crédito.</p>
@@ -164,7 +178,7 @@ import { gsap } from 'gsap';
   `,
   styles: [`
     :host { display: block; }
-    .landing-home { background: #06060e; color: white; min-height: 100vh; overflow-x: hidden; font-family: var(--font-sans); }
+    .landing-home { background: #06060e; color: white; min-height: 100vh; overflow-x: hidden; font-family: var(--font-sans); user-select: none; -webkit-user-select: none; }
 
     /* Nav */
     .lh-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 40px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; backdrop-filter: blur(16px); background: rgba(6,6,14,0.85); border-bottom: 1px solid rgba(139,92,246,0.1); }
@@ -220,31 +234,52 @@ import { gsap } from 'gsap';
     .lh-step p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
     .lh-step-divider { width: 60px; height: 2px; background: linear-gradient(90deg, transparent, rgba(139,92,246,0.4), transparent); align-self: center; margin-top: 24px; }
 
-    /* Showcase */
+    /* Showcase Carousel */
     .lh-showcase { padding: 120px 40px; }
-    .lh-showcase-tabs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 40px; }
-    .lh-showcase-tab {
-      display: flex; align-items: center; gap: 8px; padding: 10px 20px;
-      border-radius: 12px; border: 1px solid rgba(139,92,246,0.15);
-      background: rgba(12,12,24,0.5); color: rgba(255,255,255,0.6);
-      font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.3s;
-      .material-icons { font-size: 18px; }
+    .lh-carousel { position: relative; max-width: 800px; margin: 0 auto; height: 340px; display: flex; align-items: center; }
+    .lh-carousel-track { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; perspective: 800px; cursor: grab; }
+    .lh-carousel-track:active { cursor: grabbing; }
+    .lh-carousel-card {
+      position: absolute; width: 280px; height: 300px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
     }
-    .lh-showcase-tab:hover { border-color: rgba(139,92,246,0.4); color: white; }
-    .lh-showcase-tab.active { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.5); color: white; box-shadow: 0 0 16px rgba(139,92,246,0.15); }
-    .lh-showcase-preview { max-width: 600px; margin: 0 auto; }
-    .lh-showcase-visual {
-      border-radius: 20px; padding: 48px 40px; text-align: center;
+    .lh-carousel-card-inner {
+      width: 100%; height: 100%; border-radius: 20px; padding: 36px 28px;
+      text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
       border: 1px solid rgba(255,255,255,0.08);
-      animation: contentFadeIn 0.4s ease-out;
-      position: relative; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
     }
-    .lh-showcase-mockup { position: relative; z-index: 1; }
-    .lh-mock-type { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; opacity: 0.8; }
-    .lh-mock-title { font-size: clamp(28px, 4vw, 42px); margin-bottom: 8px; font-weight: 400; }
-    .lh-mock-date { font-size: 14px; margin-bottom: 16px; opacity: 0.7; }
-    .lh-mock-divider { width: 60px; height: 2px; margin: 0 auto 16px; border-radius: 2px; }
-    .lh-mock-desc { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; opacity: 0.7; }
+    .lh-carousel-arrow {
+      position: absolute; z-index: 10; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3);
+      color: white; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .lh-carousel-arrow:hover { background: rgba(139,92,246,0.3); box-shadow: 0 0 12px rgba(139,92,246,0.3); }
+    .lh-arrow-left { left: 0; }
+    .lh-arrow-right { right: 0; }
+    .lh-carousel-info { text-align: center; margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .lh-carousel-info h3 { font-size: 20px; font-weight: 600; font-family: var(--font-montserrat); }
+    .lh-carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+    .lh-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; cursor: pointer; transition: all 0.3s; padding: 0; }
+    .lh-dot.active { background: var(--gold-light); transform: scale(1.4); }
+    .lh-mock-type { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; opacity: 0.8; }
+    .lh-mock-title { font-size: clamp(24px, 3vw, 34px); margin-bottom: 8px; font-weight: 400; line-height: 1.2; }
+    .lh-mock-date { font-size: 12px; margin-bottom: 14px; opacity: 0.7; }
+    .lh-mock-divider { width: 40px; height: 2px; margin: 0 auto 14px; border-radius: 2px; }
+    .lh-mock-desc { font-size: 12px; line-height: 1.5; max-width: 240px; margin: 0 auto; opacity: 0.6; }
+
+    /* Scroll reveal animation (both directions) */
+    .lh-reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+    .lh-reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      .lh-carousel { height: 280px; }
+      .lh-carousel-card { width: 220px; height: 240px; }
+      .lh-carousel-card-inner { padding: 24px 20px; }
+    }
 
     /* CTA */
     .lh-cta { padding: 120px 40px; text-align: center; position: relative; }
@@ -276,6 +311,7 @@ export class LandingHomeComponent implements AfterViewInit {
   @ViewChild('heroContent') heroContent!: ElementRef;
 
   activeShowcase = 'boda';
+  showcaseIndex = 0;
 
   eventTypes = [
     { key: 'boda', label: 'Bodas', icon: 'favorite', gradient: 'linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 100%)', accent: '#d4a017', accentLight: '#f0c040', titleColor: '#ffffff', textColor: 'rgba(255,255,255,0.7)', font: 'var(--font-script)', typeText: 'Nuestra Boda', example: 'María & Carlos', date: '24 de Noviembre, 2025', description: 'Están cordialmente invitados a celebrar nuestra unión en amor.' },
@@ -295,16 +331,80 @@ export class LandingHomeComponent implements AfterViewInit {
       .from('.lh-hero-stats', { y: 20, opacity: 0, duration: 0.5 }, '-=0.2')
       .from('.lh-hero-tag', { y: -10, opacity: 0, duration: 0.4 }, '-=0.8');
 
-    // Feature cards stagger on scroll
-    const observer = new IntersectionObserver((entries) => {
+    // Bidirectional scroll reveal — elements appear/disappear as you scroll up/down
+    const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          gsap.from(entry.target, { y: 30, opacity: 0, duration: 0.5, delay: 0.1 });
-          observer.unobserve(entry.target);
+          entry.target.classList.add('visible');
+        } else {
+          entry.target.classList.remove('visible');
         }
       });
     }, { threshold: 0.15 });
 
-    document.querySelectorAll('.lh-feature-card, .lh-step, .lh-showcase-card').forEach(el => observer.observe(el));
+    document.querySelectorAll('.lh-reveal').forEach(el => revealObserver.observe(el));
+
+    // Also add lh-reveal to feature cards and steps
+    document.querySelectorAll('.lh-feature-card').forEach((el, i) => {
+      el.classList.add('lh-reveal');
+      (el as HTMLElement).style.transitionDelay = `${i * 0.06}s`;
+      revealObserver.observe(el);
+    });
+    document.querySelectorAll('.lh-step').forEach((el, i) => {
+      el.classList.add('lh-reveal');
+      (el as HTMLElement).style.transitionDelay = `${i * 0.12}s`;
+      revealObserver.observe(el);
+    });
+  }
+
+  // Carousel methods
+  nextShowcase() {
+    this.showcaseIndex = (this.showcaseIndex + 1) % this.eventTypes.length;
+  }
+  prevShowcase() {
+    this.showcaseIndex = (this.showcaseIndex - 1 + this.eventTypes.length) % this.eventTypes.length;
+  }
+  getShowcaseTransform(i: number): string {
+    const diff = i - this.showcaseIndex;
+    const x = diff * 200;
+    const scale = diff === 0 ? 1 : 0.8;
+    const rotateY = diff * -5;
+    return `translateX(${x}px) scale(${scale}) rotateY(${rotateY}deg)`;
+  }
+  getShowcaseOpacity(i: number): number {
+    const diff = Math.abs(i - this.showcaseIndex);
+    if (diff === 0) return 1;
+    if (diff === 1) return 0.5;
+    return 0;
+  }
+  getShowcaseZ(i: number): number {
+    return 10 - Math.abs(i - this.showcaseIndex);
+  }
+
+  // Carousel swipe/drag
+  private carouselStartX = 0;
+  onCarouselDragStart(e: MouseEvent) {
+    e.preventDefault();
+    this.carouselStartX = e.clientX;
+    const onMove = (ev: MouseEvent) => { ev.preventDefault(); };
+    const onUp = (ev: MouseEvent) => {
+      const diff = ev.clientX - this.carouselStartX;
+      if (diff < -50) this.nextShowcase();
+      else if (diff > 50) this.prevShowcase();
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+  onCarouselTouchStart(e: TouchEvent) {
+    this.carouselStartX = e.touches[0].clientX;
+    const onEnd = (ev: TouchEvent) => {
+      const diff = ev.changedTouches[0].clientX - this.carouselStartX;
+      if (diff < -50) this.nextShowcase();
+      else if (diff > 50) this.prevShowcase();
+      document.removeEventListener('touchend', onEnd);
+    };
+    document.addEventListener('touchend', onEnd);
   }
 }

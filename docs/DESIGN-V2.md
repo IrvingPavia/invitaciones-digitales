@@ -367,3 +367,14 @@ La sección "Diseñado para cada ocasión" debe seguir este patrón:
 - Agregar mockups de celulares con invitaciones ejemplo
 - Elementos decorativos abstractos (esferas, partículas) generados con CSS
 - Navbar: usar el logo PNG de Vitely más grande
+
+
+---
+
+## Pendientes Landing de Presentación (Fase 2)
+
+- [ ] Hero visual: mockup de celular con CSS (o imagen generada con AI prompts)
+- [ ] Navbar mobile: menú hamburguesa para links en pantallas pequeñas
+- [ ] Sección "Cómo funciona": línea conectora entre pasos, más visual
+- [ ] Animaciones adicionales: parallax sutil en el hero, partículas decorativas
+- [ ] Optimizar para SEO: meta tags específicos de la landing pública
