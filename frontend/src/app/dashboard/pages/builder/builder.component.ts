@@ -567,6 +567,88 @@ interface BuilderSection {
                   }
                 </div>
               </div>
+              <div class="prop-field full">
+                <label>Nombres de celebrantes</label>
+                <input class="builder-input" [ngModel]="getSecProp('hero', 'celebrantNames')" (ngModelChange)="setSecProp('hero', 'celebrantNames', $event)">
+              </div>
+              <div class="prop-field full">
+                <label>Descripción del evento</label>
+                <input class="builder-input" [ngModel]="getSecProp('hero', 'eventDescription')" (ngModelChange)="setSecProp('hero', 'eventDescription', $event)">
+              </div>
+              <div class="prop-field full">
+                <label>Frase del hero</label>
+                <input class="builder-input" [ngModel]="getSecProp('hero', 'heroPhrase')" (ngModelChange)="setSecProp('hero', 'heroPhrase', $event)">
+              </div>
+              <div class="prop-field full">
+                <label>Fecha del countdown</label>
+                <input type="datetime-local" class="builder-input" [ngModel]="getSecProp('hero', 'countdownDate')" (ngModelChange)="setSecProp('hero', 'countdownDate', $event)">
+              </div>
+              <div class="prop-field full">
+                <div class="prop-toggle" (click)="setSecProp('hero', 'showCelebrantNames', !getSecProp('hero', 'showCelebrantNames'))">
+                  <span class="material-icons">{{ getSecProp('hero', 'showCelebrantNames') !== false ? 'check_box' : 'check_box_outline_blank' }}</span>
+                  <span>Mostrar nombres</span>
+                </div>
+              </div>
+            }
+
+            @if (canvasState.selectedSection() === 'envelope') {
+              <div class="builder-prop-category">Pantalla de Inicio</div>
+              <div class="prop-field full">
+                <label>Template</label>
+                <select class="builder-input" [ngModel]="getSecProp('envelope', 'template') || 'envelope'" (ngModelChange)="setSecProp('envelope', 'template', $event)">
+                  <option value="envelope">Sobre</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="minimal-splash">Splash</option>
+                  <option value="plain">Plano</option>
+                </select>
+              </div>
+              <div class="prop-field full">
+                <label>Texto de instrucción</label>
+                <input class="builder-input" [ngModel]="getSecProp('envelope', 'instructionText')" (ngModelChange)="setSecProp('envelope', 'instructionText', $event)">
+              </div>
+              <div class="prop-field full">
+                <label>Texto del sello</label>
+                <input class="builder-input" [ngModel]="getSecProp('envelope', 'sealText')" (ngModelChange)="setSecProp('envelope', 'sealText', $event)">
+              </div>
+              <div class="prop-field full">
+                <label>Color del sobre</label>
+                <app-color-picker [value]="getSecProp('envelope', 'envelopeColor') || '#1a1a2e'" (valueChange)="setSecProp('envelope', 'envelopeColor', $event)"></app-color-picker>
+              </div>
+              <div class="prop-field full">
+                <label>Color del sello</label>
+                <app-color-picker [value]="getSecProp('envelope', 'sealColor') || '#8b0000'" (valueChange)="setSecProp('envelope', 'sealColor', $event)"></app-color-picker>
+              </div>
+              <div class="prop-field full">
+                <label>Color de fondo</label>
+                <app-color-picker [value]="getSecProp('envelope', 'bgColor') || '#0d1117'" (valueChange)="setSecProp('envelope', 'bgColor', $event)"></app-color-picker>
+              </div>
+              <div class="prop-field full">
+                <label>Color de texto</label>
+                <app-color-picker [value]="getSecProp('envelope', 'textColor') || '#ffffff'" (valueChange)="setSecProp('envelope', 'textColor', $event)"></app-color-picker>
+              </div>
+            }
+
+            @if (canvasState.selectedSection() === 'intro') {
+              <div class="builder-prop-category">Intro</div>
+              <div class="prop-field full">
+                <label>Frase</label>
+                <textarea class="builder-input" style="min-height:60px" [ngModel]="getSecProp('intro', 'phrase')" (ngModelChange)="setSecProp('intro', 'phrase', $event)"></textarea>
+              </div>
+              <div class="prop-field full">
+                <label>Duración (segundos)</label>
+                <input type="number" class="builder-input" [ngModel]="getSecProp('intro', 'duration')" (ngModelChange)="setSecProp('intro', 'duration', +$event)" min="1" max="15">
+              </div>
+              <div class="prop-field full">
+                <label>Fondo (imagen/video)</label>
+                <div class="builder-upload-row">
+                  @if (getSecProp('intro', 'background')) {
+                    <span class="builder-upload-ok">✔ Cargado</span>
+                    <button class="builder-btn-small danger" (click)="setSecProp('intro', 'background', '')">Quitar</button>
+                  } @else {
+                    <button class="builder-btn-small" (click)="uploadSecProp('intro', 'background', 'gifs')">Subir</button>
+                  }
+                </div>
+              </div>
             }
 
             <!-- Section background style -->
@@ -1040,6 +1122,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   private buildSections(cfg: any) {
     this.sections.set([
+      { key: 'envelope', label: 'Pantalla de Inicio', icon: 'mail', enabled: cfg.envelope?.enabled ?? false },
+      { key: 'intro', label: 'Intro', icon: 'auto_awesome', enabled: cfg.intro?.enabled ?? false },
       { key: 'hero', label: 'Carátula', icon: 'image', enabled: true },
       { key: 'invitation', label: 'Invitación', icon: 'card_giftcard', enabled: true },
       { key: 'details', label: 'Detalles', icon: 'info', enabled: cfg.details?.enabled ?? false },
