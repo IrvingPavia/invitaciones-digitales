@@ -51,22 +51,22 @@ import { onDragMove, onResizeMove } from '../../utils/drag.utils';
               }
               @case ('countdown') {
                 <div class="el-countdown" [class.show-card-bg]="$any(el).showCardBg !== false">
-                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius ?? 0">
                     <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
                     <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">DÍAS</span>
                   </div>
                   <span class="cd-sep">:</span>
-                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius ?? 0">
                     <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
                     <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">HRS</span>
                   </div>
                   <span class="cd-sep">:</span>
-                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius ?? 0">
                     <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
                     <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">MIN</span>
                   </div>
                   <span class="cd-sep">:</span>
-                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius ?? 0">
                     <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
                     <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">SEG</span>
                   </div>

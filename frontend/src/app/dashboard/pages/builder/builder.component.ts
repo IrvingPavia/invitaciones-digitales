@@ -228,7 +228,7 @@ interface BuilderSection {
                   </div>
                 </div>
                 <div class="prop-field"><label>Radius cards</label>
-                  <input type="number" [ngModel]="$any(el).cardBorderRadius || 8" (ngModelChange)="updateProp('cardBorderRadius', +$event)" min="0" max="24">
+                  <input type="number" [ngModel]="$any(el).cardBorderRadius ?? 0" (ngModelChange)="updateProp('cardBorderRadius', +$event)" min="0" max="24">
                 </div>
               </div>
             }
