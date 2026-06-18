@@ -298,6 +298,34 @@ body.light-mode .builder-preview { background: #e8e8f0 !important; }
 body.light-mode .canvas-section-label { background: rgba(124,92,191,0.9) !important; }
 body.light-mode .canvas-empty-section .material-icons { color: rgba(124,92,191,0.25) !important; }
 body.light-mode .canvas-empty-section p { color: #999 !important; }
+body.light-mode .prop-btn-row button {
+  background: #f8f8fc !important; border-color: #ddd !important; color: #666 !important;
+}
+body.light-mode .prop-btn-row button:hover { background: rgba(124,92,191,0.08) !important; color: #333 !important; }
+body.light-mode .prop-btn-row button.active {
+  background: rgba(124,92,191,0.12) !important; border-color: var(--gold) !important; color: var(--gold) !important;
+}
+body.light-mode .prop-action-btn {
+  background: #f8f8fc !important; border-color: #ddd !important; color: #666 !important;
+}
+body.light-mode .prop-action-btn:hover { background: rgba(124,92,191,0.08) !important; color: var(--gold) !important; border-color: rgba(124,92,191,0.3) !important; }
+body.light-mode .prop-action-btn.danger:hover { background: rgba(239,68,68,0.08) !important; color: #ef4444 !important; }
+body.light-mode .prop-field label { color: #666 !important; }
+body.light-mode .prop-field input, body.light-mode .prop-field textarea, body.light-mode .prop-field select {
+  background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important;
+}
+body.light-mode .prop-toggle { color: #555 !important; }
+body.light-mode .add-el-btn {
+  background: #f8f8fc !important; border-color: #e0e0e8 !important; color: #555 !important;
+}
+body.light-mode .add-el-btn:hover { background: rgba(124,92,191,0.06) !important; border-color: rgba(124,92,191,0.3) !important; color: var(--gold) !important; }
+body.light-mode .add-el-btn .material-icons { color: var(--gold) !important; }
+body.light-mode .canvas-section-disabled { color: #999 !important; border-color: #e0e0e8 !important; }
+body.light-mode .btn-enable { color: var(--gold) !important; border-color: rgba(124,92,191,0.3) !important; background: rgba(124,92,191,0.06) !important; }
+body.light-mode .builder-tb-btn { background: #f0f0f5 !important; color: #666 !important; }
+body.light-mode .builder-tb-btn:hover:not(:disabled) { background: rgba(124,92,191,0.1) !important; color: var(--gold) !important; }
+body.light-mode .builder-advanced-link { color: var(--gold) !important; }
+body.light-mode .props-hint { color: #666 !important; }
 
 /* Cards editor panel */
 body.light-mode .panel { color: #333; }

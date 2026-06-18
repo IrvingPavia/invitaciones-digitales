@@ -212,6 +212,37 @@ interface BuilderSection {
                 <label>Fecha objetivo</label>
                 <input type="datetime-local" class="builder-input" [ngModel]="$any(el).targetDate" (ngModelChange)="updateProp('targetDate', $event)">
               </div>
+              <div class="prop-grid">
+                <div class="prop-field"><label>Color valores</label>
+                  <app-color-picker [value]="$any(el).valueColor || '#ffffff'" (valueChange)="updateProp('valueColor', $event)"></app-color-picker>
+                </div>
+                <div class="prop-field"><label>Color labels</label>
+                  <app-color-picker [value]="$any(el).labelColor || 'rgba(255,255,255,0.5)'" (valueChange)="updateProp('labelColor', $event)"></app-color-picker>
+                </div>
+              </div>
+              <div class="prop-grid">
+                <div class="prop-field"><label>Fondo cards</label>
+                  <div class="prop-toggle" (click)="updateProp('showCardBg', !$any(el).showCardBg)">
+                    <span class="material-icons">{{ $any(el).showCardBg !== false ? 'check_box' : 'check_box_outline_blank' }}</span>
+                    <span>{{ $any(el).showCardBg !== false ? 'Sí' : 'No' }}</span>
+                  </div>
+                </div>
+                <div class="prop-field"><label>Radius cards</label>
+                  <input type="number" [ngModel]="$any(el).cardBorderRadius || 8" (ngModelChange)="updateProp('cardBorderRadius', +$event)" min="0" max="24">
+                </div>
+              </div>
+            }
+
+            @if (el.type === 'decorator') {
+              <div class="builder-prop-category">Decorador</div>
+              <div class="prop-field full">
+                <label>Color</label>
+                <app-color-picker [value]="$any(el).color || '#d4a017'" (valueChange)="updateProp('color', $event)"></app-color-picker>
+              </div>
+              <div class="prop-grid">
+                <div class="prop-field"><label>Opacidad %</label><input type="number" [ngModel]="($any(el).opacity ?? 0.6) * 100" (ngModelChange)="updateProp('opacity', +$event / 100)" min="10" max="100"></div>
+                <div class="prop-field"><label>Rotación °</label><input type="number" [ngModel]="$any(el).rotation || 0" (ngModelChange)="updateProp('rotation', +$event)" min="0" max="360"></div>
+              </div>
             }
 
             <!-- Actions -->
@@ -237,7 +268,48 @@ interface BuilderSection {
               <span class="material-icons">{{ getSecIcon() }}</span>
               <span>{{ getSecLabel() }}</span>
             </div>
+
+            <!-- Section-level properties -->
+            @if (canvasState.selectedSection() === 'hero') {
+              <div class="builder-prop-category">Configuración del Hero</div>
+              <div class="prop-field full">
+                <label>Imagen/Video de fondo</label>
+                <div class="builder-upload-row">
+                  @if (getSecProp('hero', 'backgroundGif')) {
+                    <span class="builder-upload-ok">✔ Cargado</span>
+                    <button class="builder-btn-small danger" (click)="setSecProp('hero', 'backgroundGif', '')">Quitar</button>
+                  } @else {
+                    <button class="builder-btn-small" (click)="uploadSecProp('hero', 'backgroundGif', 'gifs')">Subir</button>
+                  }
+                </div>
+              </div>
+              <div class="prop-field full">
+                <label>Audio de fondo</label>
+                <div class="builder-upload-row">
+                  @if (getSecProp('hero', 'audioUrl')) {
+                    <span class="builder-upload-ok">✔ Audio cargado</span>
+                    <button class="builder-btn-small danger" (click)="setSecProp('hero', 'audioUrl', '')">Quitar</button>
+                  } @else {
+                    <button class="builder-btn-small" (click)="uploadSecProp('hero', 'audioUrl', 'audio')">Subir</button>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Section background style -->
+            <div class="builder-prop-category">Fondo de sección</div>
+            <div class="prop-field full">
+              <label>Color principal</label>
+              <app-color-picker [value]="getSecStyleProp('bgColor1') || '#0d1117'" (valueChange)="setSecStyleProp('bgColor1', $event)"></app-color-picker>
+            </div>
+
+            <div class="builder-prop-divider"></div>
             <p class="props-hint">Selecciona un elemento del canvas para editar sus propiedades, o agrega uno nuevo desde el panel izquierdo.</p>
+
+            <a [routerLink]="['/dashboard/config', eventId]" class="builder-advanced-link">
+              <span class="material-icons">settings</span>
+              Configuración avanzada
+            </a>
           </div>
         } @else {
           <div class="builder-props-empty">
@@ -478,6 +550,18 @@ interface BuilderSection {
       &:hover { background: rgba(139,92,246,0.2); }
       &.danger { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1); color: #ef4444; }
     }
+    .prop-toggle {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      color: rgba(255,255,255,0.7); font-size: 12px;
+      .material-icons { font-size: 18px; color: var(--gold-light); }
+    }
+    .builder-advanced-link {
+      display: flex; align-items: center; gap: 8px; font-size: 12px;
+      color: var(--gold-light); text-decoration: none; padding: 8px 10px;
+      border-radius: 6px; transition: all 0.2s; margin-top: 12px;
+      .material-icons { font-size: 14px; }
+      &:hover { background: rgba(139,92,246,0.1); }
+    }
 
     /* CDK Drag */
     .cdk-drag-preview { border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
@@ -688,6 +772,57 @@ export class BuilderComponent implements OnInit, OnDestroy {
   getSecLabel(): string {
     const sec = this.sections().find(s => s.key === this.canvasState.selectedSection());
     return sec?.label || '';
+  }
+
+  // ===== Section-level Properties =====
+
+  getSecProp(sectionKey: string, prop: string): any {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return null;
+    return (cfg as any)[sectionKey]?.[prop] ?? null;
+  }
+
+  setSecProp(sectionKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg as any)[sectionKey][prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  uploadSecProp(sectionKey: string, prop: string, type: 'images' | 'audio' | 'gifs') {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type === 'audio' ? 'audio/*' : 'image/*,video/*';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      this.api.uploadFile(type, file).subscribe({
+        next: (res) => { this.setSecProp(sectionKey, prop, res.url); }
+      });
+    };
+    input.click();
+  }
+
+  getSecStyleProp(prop: string): any {
+    const key = this.canvasState.selectedSection();
+    if (!key) return null;
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return null;
+    return (cfg as any)[key]?.sectionStyle?.[prop] ?? null;
+  }
+
+  setSecStyleProp(prop: string, value: any) {
+    const key = this.canvasState.selectedSection();
+    if (!key) return;
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    const section = (cfg as any)[key];
+    if (!section.sectionStyle) section.sectionStyle = { bgType: 'solid', dividerType: 'none' };
+    section.sectionStyle[prop] = value;
+    if (prop === 'bgColor1') section.sectionStyle.bgType = 'solid';
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
   }
 
   // ===== Save =====

@@ -50,14 +50,26 @@ import { onDragMove, onResizeMove } from '../../utils/drag.utils';
                 </p>
               }
               @case ('countdown') {
-                <div class="el-countdown">
-                  <div class="cd-item"><span class="cd-val">00</span><span class="cd-label">DÍAS</span></div>
+                <div class="el-countdown" [class.show-card-bg]="$any(el).showCardBg !== false">
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                    <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
+                    <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">DÍAS</span>
+                  </div>
                   <span class="cd-sep">:</span>
-                  <div class="cd-item"><span class="cd-val">00</span><span class="cd-label">HRS</span></div>
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                    <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
+                    <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">HRS</span>
+                  </div>
                   <span class="cd-sep">:</span>
-                  <div class="cd-item"><span class="cd-val">00</span><span class="cd-label">MIN</span></div>
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                    <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
+                    <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">MIN</span>
+                  </div>
                   <span class="cd-sep">:</span>
-                  <div class="cd-item"><span class="cd-val">00</span><span class="cd-label">SEG</span></div>
+                  <div class="cd-item" [style.border-radius.px]="$any(el).cardBorderRadius || 8">
+                    <span class="cd-val" [style.color]="$any(el).valueColor || 'var(--theme-text-primary, #fff)'">00</span>
+                    <span class="cd-label" [style.color]="$any(el).labelColor || 'rgba(255,255,255,0.5)'">SEG</span>
+                  </div>
                 </div>
               }
               @case ('image') {
@@ -117,7 +129,12 @@ import { onDragMove, onResizeMove } from '../../utils/drag.utils';
     .el-countdown {
       display: flex; align-items: center; gap: 8px; justify-content: center; width: 100%;
     }
-    .cd-item { display: flex; flex-direction: column; align-items: center; }
+    .el-countdown.show-card-bg .cd-item {
+      background: var(--theme-card-bg, rgba(255,255,255,0.08));
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      padding: 8px 12px;
+    }
+    .cd-item { display: flex; flex-direction: column; align-items: center; border-radius: 8px; }
     .cd-val { font-size: 24px; font-weight: 700; color: var(--theme-text-primary, #fff); }
     .cd-label { font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
     .cd-sep { font-size: 20px; color: var(--theme-nav-text, #d4a017); font-weight: 700; }
