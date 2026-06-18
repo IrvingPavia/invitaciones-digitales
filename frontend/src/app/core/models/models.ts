@@ -427,3 +427,6 @@ export interface Photo {
   url: string;
   sort_order: number;
 }
+
+// Re-export canvas models for convenience
+export * from './canvas.models';
