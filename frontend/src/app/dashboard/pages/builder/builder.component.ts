@@ -106,16 +106,53 @@ interface BuilderSection {
           @if (canvasState.config()) {
             @for (section of sections(); track section.key) {
               @if (section.enabled) {
-                <div class="canvas-section-wrapper"
-                     [class.active-section]="canvasState.selectedSection() === section.key"
-                     (click)="selectSection(section.key); $event.stopPropagation()">
-                  <div class="canvas-section-label">{{ section.label }}</div>
-                  <app-section-canvas
-                    [sectionKey]="section.key"
-                    [elements]="getSectionElements(section.key)"
-                    [minHeight]="getSectionMinHeight(section.key)"
-                    [background]="getSectionBg(section.key)" />
-                </div>
+                <!-- Special preview for Envelope -->
+                @if (section.key === 'envelope') {
+                  <div class="canvas-section-wrapper"
+                       [class.active-section]="canvasState.selectedSection() === 'envelope'"
+                       (click)="selectSection('envelope'); $event.stopPropagation()">
+                    <div class="canvas-section-label">Pantalla de Inicio</div>
+                    <div class="canvas-preview-envelope" [style.background]="getSecProp('envelope', 'bgColor') || '#0d1117'">
+                      <div class="envelope-preview-inner">
+                        <div class="envelope-icon" [style.background]="getSecProp('envelope', 'sealColor') || '#8b0000'">
+                          <span style="font-size:14px;color:white;">{{ getSecProp('envelope', 'sealText') || '♥' }}</span>
+                        </div>
+                        <p class="envelope-preview-text" [style.color]="getSecProp('envelope', 'textColor') || '#ffffff'">
+                          {{ getSecProp('envelope', 'instructionText') || 'Toca para abrir' }}
+                        </p>
+                        <span class="envelope-template-badge">{{ getSecProp('envelope', 'template') || 'envelope' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+                <!-- Special preview for Intro -->
+                @else if (section.key === 'intro') {
+                  <div class="canvas-section-wrapper"
+                       [class.active-section]="canvasState.selectedSection() === 'intro'"
+                       (click)="selectSection('intro'); $event.stopPropagation()">
+                    <div class="canvas-section-label">Intro</div>
+                    <div class="canvas-preview-intro">
+                      @if (getSecProp('intro', 'background')) {
+                        <div class="intro-preview-bg" [style.background-image]="'url(' + getSecProp('intro', 'background') + ')'"></div>
+                      }
+                      <p class="intro-preview-phrase">{{ getSecProp('intro', 'phrase') || 'Frase de intro...' }}</p>
+                      <span class="intro-preview-duration">{{ getSecProp('intro', 'duration') || 5 }}s</span>
+                    </div>
+                  </div>
+                }
+                <!-- Normal canvas sections -->
+                @else {
+                  <div class="canvas-section-wrapper"
+                       [class.active-section]="canvasState.selectedSection() === section.key"
+                       (click)="selectSection(section.key); $event.stopPropagation()">
+                    <div class="canvas-section-label">{{ section.label }}</div>
+                    <app-section-canvas
+                      [sectionKey]="section.key"
+                      [elements]="getSectionElements(section.key)"
+                      [minHeight]="getSectionMinHeight(section.key)"
+                      [background]="getSectionBg(section.key)" />
+                  </div>
+                }
               } @else {
                 <div class="canvas-section-disabled" (click)="selectSection(section.key); $event.stopPropagation()">
                   <span class="material-icons">{{ section.icon }}</span>
@@ -931,6 +968,42 @@ interface BuilderSection {
       border: 1px dashed rgba(139,92,246,0.1); transition: all 0.2s;
       .material-icons { font-size: 16px; }
       &:hover { background: rgba(139,92,246,0.03); border-color: rgba(139,92,246,0.2); color: rgba(255,255,255,0.4); }
+    }
+    .canvas-preview-envelope {
+      min-height: 180px; display: flex; align-items: center; justify-content: center;
+      position: relative; border-radius: 4px;
+    }
+    .envelope-preview-inner {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .envelope-icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .envelope-preview-text { font-size: 12px; color: rgba(255,255,255,0.6); }
+    .envelope-template-badge {
+      font-size: 9px; padding: 2px 8px; border-radius: 4px;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .canvas-preview-intro {
+      min-height: 140px; display: flex; align-items: center; justify-content: center;
+      position: relative; background: #0d1117; border-radius: 4px; overflow: hidden;
+    }
+    .intro-preview-bg {
+      position: absolute; inset: 0; background-size: cover; background-position: center;
+      opacity: 0.4;
+    }
+    .intro-preview-phrase {
+      position: relative; z-index: 1; font-family: var(--font-script, 'Great Vibes');
+      font-size: 20px; color: rgba(255,255,255,0.8); text-align: center;
+      padding: 0 20px; line-height: 1.4;
+    }
+    .intro-preview-duration {
+      position: absolute; bottom: 6px; right: 8px;
+      font-size: 9px; color: rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 3px;
     }
     .btn-enable {
       margin-left: auto; padding: 3px 8px; border-radius: 4px;
