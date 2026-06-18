@@ -9,6 +9,16 @@ import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS } from '../../../core/
 import { CanvasStateService } from './services/canvas-state.service';
 import { MigrationService } from './services/migration.service';
 import { SectionCanvasComponent } from './components/section-canvas/section-canvas.component';
+import { LandingEnvelopeComponent } from '../../../landing/sections/envelope/envelope.component';
+import { LandingIntroComponent } from '../../../landing/sections/intro/intro.component';
+import { LandingHeroComponent } from '../../../landing/sections/hero/hero.component';
+import { LandingInvitationComponent } from '../../../landing/sections/invitation/invitation.component';
+import { LandingDetailsComponent } from '../../../landing/sections/details/details.component';
+import { LandingVenuesComponent } from '../../../landing/sections/venues/venues.component';
+import { LandingItineraryComponent } from '../../../landing/sections/itinerary/itinerary.component';
+import { LandingGalleryComponent } from '../../../landing/sections/gallery/gallery.component';
+import { LandingDresscodeComponent } from '../../../landing/sections/dresscode/dresscode.component';
+import { LandingGiftsComponent } from '../../../landing/sections/gifts/gifts.component';
 
 interface BuilderSection {
   key: string;
@@ -20,7 +30,10 @@ interface BuilderSection {
 @Component({
   selector: 'app-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, SectionCanvasComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, SectionCanvasComponent,
+    LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
+    LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
+    LandingDresscodeComponent, LandingGiftsComponent],
   template: `
     <!-- Toolbar -->
     <div class="builder-toolbar">
@@ -36,6 +49,12 @@ interface BuilderSection {
         </button>
         <button class="builder-tb-btn" (click)="canvasState.redo()" [disabled]="!canvasState.canRedo" title="Rehacer">
           <span class="material-icons">redo</span>
+        </button>
+        <div class="builder-tb-sep"></div>
+        <!-- Mode toggle: Edit / Preview -->
+        <button class="builder-mode-toggle" [class.preview]="viewMode() === 'preview'" (click)="toggleViewMode()">
+          <span class="material-icons">{{ viewMode() === 'edit' ? 'visibility' : 'edit' }}</span>
+          <span>{{ viewMode() === 'edit' ? 'Preview' : 'Edición' }}</span>
         </button>
         <div class="builder-tb-sep"></div>
         <button class="builder-device-btn" [class.active]="previewDevice() === 'mobile'" (click)="previewDevice.set('mobile')">
@@ -104,6 +123,58 @@ interface BuilderSection {
       <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
         <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
           @if (canvasState.config()) {
+            <!-- ===== PREVIEW MODE: Real landing components ===== -->
+            @if (viewMode() === 'preview') {
+              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()!.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()!.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()!.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()!.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()!.theme.buttonText || '#1a1a2e'" [style.background]="getCanvasLandingBg()">
+                @if (canvasState.config()!.envelope.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('envelope'); $event.stopPropagation()">
+                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+                @if (canvasState.config()!.intro.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('intro'); $event.stopPropagation()">
+                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()!.theme.navFooterText || '#d4a017'" [themeBg]="canvasState.config()!.theme.cardBg || ''" [themeBorder]="canvasState.config()!.theme.cardBorder || ''" />
+                  </div>
+                }
+                <div class="preview-section-click" (click)="selectSection('hero'); $event.stopPropagation()">
+                  <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
+                </div>
+                <div class="preview-section-click" (click)="selectSection('invitation'); $event.stopPropagation()">
+                  <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="null" [styles]="canvasState.config()!.globalStyles" />
+                </div>
+                @if (canvasState.config()!.details.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('details'); $event.stopPropagation()">
+                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+                @if (canvasState.config()!.venues.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('venues'); $event.stopPropagation()">
+                    <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+                @if (canvasState.config()!.itinerary.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('itinerary'); $event.stopPropagation()">
+                    <app-landing-itinerary [config]="canvasState.config()!.itinerary" [items]="itineraryItems()" [styles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+                @if (canvasState.config()!.gallery.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('gallery'); $event.stopPropagation()">
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+                @if (canvasState.config()!.dresscode.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('dresscode'); $event.stopPropagation()">
+                    <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+                @if (canvasState.config()!.gifts.enabled) {
+                  <div class="preview-section-click" (click)="selectSection('gifts'); $event.stopPropagation()">
+                    <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()!.globalStyles" />
+                  </div>
+                }
+              </div>
+            } @else {
+            <!-- ===== EDIT MODE: Canvas with draggable elements ===== -->
             @for (section of sections(); track section.key) {
               @if (section.enabled) {
                 <!-- Special preview for Envelope -->
@@ -160,6 +231,7 @@ interface BuilderSection {
                   <button class="btn-enable" (click)="toggleSection(section.key); $event.stopPropagation()">Activar</button>
                 </div>
               }
+            }
             }
           }
         </div>
@@ -850,6 +922,15 @@ interface BuilderSection {
       &:disabled { opacity: 0.3; cursor: default; }
     }
     .builder-tb-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 8px; }
+    .builder-mode-toggle {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(139,92,246,0.3);
+      background: rgba(139,92,246,0.08); color: rgba(255,255,255,0.7);
+      font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      .material-icons { font-size: 16px; }
+      &:hover { background: rgba(139,92,246,0.15); color: white; }
+      &.preview { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #10b981; }
+    }
     .builder-device-btn {
       width: 32px; height: 32px; border-radius: 8px; border: none;
       background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5);
@@ -972,6 +1053,18 @@ interface BuilderSection {
     .canvas-preview-envelope {
       min-height: 180px; display: flex; align-items: center; justify-content: center;
       position: relative; border-radius: 4px;
+    }
+    .preview-mode-canvas {
+      min-height: 100%; position: relative;
+      --font-sans: 'Lato', sans-serif;
+      --font-serif: 'Playfair Display', serif;
+      --font-script: 'Great Vibes', cursive;
+      --gold: #d4a017; --gold-light: #e6c655;
+    }
+    .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 1 !important; }
+    .preview-section-click {
+      cursor: pointer; transition: outline 0.2s;
+      &:hover { outline: 2px dashed rgba(139,92,246,0.4); outline-offset: -2px; }
     }
     .envelope-preview-inner {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
@@ -1164,9 +1257,11 @@ export class BuilderComponent implements OnInit, OnDestroy {
   eventName = signal('');
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
+  viewMode = signal<'edit' | 'preview'>('edit');
   saving = signal(false);
   saveStatus = signal<'idle' | 'saved'>('idle');
   showProps = signal(false);
+  eventData = signal<any>({ name: '', event_date: '', slug: '' });
   private autoSaveTimer: any = null;
 
   /** Shortcut to active element for template */
@@ -1176,7 +1271,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
-    this.api.getEvent(this.eventId).subscribe(e => this.eventName.set(e.name));
+    this.api.getEvent(this.eventId).subscribe(e => {
+      this.eventName.set(e.name);
+      this.eventData.set(e);
+    });
     this.api.getConfig(this.eventId).subscribe(c => {
       const cfg = c.config_json;
       // Migrate to V2 with canvas data
@@ -1217,6 +1315,40 @@ export class BuilderComponent implements OnInit, OnDestroy {
   selectTheme() {
     this.canvasState.selectSection('_theme');
     this.showProps.set(true);
+  }
+
+  toggleViewMode() {
+    this.viewMode.set(this.viewMode() === 'edit' ? 'preview' : 'edit');
+  }
+
+  getCanvasLandingBg(): string {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return '#0d1117';
+    const theme = cfg.theme;
+    const c1 = theme.landingBgColor1 || '#0d1117';
+    const c2 = theme.landingBgColor2 || '#1a1a2e';
+    const type = theme.landingBgType || 'solid';
+    const angle = theme.landingBgAngle || 135;
+    switch (type) {
+      case 'solid': return c1;
+      case 'linear': return `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+      case 'radial': return `radial-gradient(ellipse at center, ${c2}, ${c1})`;
+      default: return c1;
+    }
+  }
+
+  getPreviewEnabledSections(): string[] {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return [];
+    const s: string[] = ['invitation'];
+    if (cfg.details.enabled) s.push('details');
+    if (cfg.venues.enabled) s.push('venues');
+    if (cfg.itinerary.enabled) s.push('itinerary');
+    if (cfg.gallery.enabled) s.push('gallery');
+    if (cfg.dresscode.enabled) s.push('dresscode');
+    if (cfg.gifts.enabled) s.push('gifts');
+    if (cfg.rsvp.enabled) s.push('rsvp');
+    return s;
   }
 
   setThemeProp(prop: string, value: any) {
