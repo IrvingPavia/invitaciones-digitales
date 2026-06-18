@@ -60,6 +60,11 @@ interface BuilderSection {
           <span class="material-icons">layers</span>
           <span>Secciones</span>
         </div>
+        <!-- Theme Global button -->
+        <div class="builder-theme-btn" [class.active]="canvasState.selectedSection() === '_theme'" (click)="selectTheme()">
+          <span class="material-icons">palette</span>
+          <span>Tema Global</span>
+        </div>
         <div class="builder-sections-list" cdkDropList (cdkDropListDropped)="onSectionDrop($event)">
           @for (section of sections(); track section.key) {
             <div class="builder-section-item" cdkDrag
@@ -134,53 +139,153 @@ interface BuilderSection {
           <span class="material-icons">tune</span>
           <span>Propiedades</span>
         </div>
-        @if (canvasState.activeElement(); as el) {
+        @if (canvasState.selectedSection() === '_theme' && canvasState.config()) {
           <div class="builder-props">
             <div class="builder-section-badge">
-              <span class="material-icons">{{ getElIcon(el.type) }}</span>
-              <span>{{ getElLabel(el.type) }}</span>
+              <span class="material-icons">palette</span>
+              <span>Tema Global</span>
+            </div>
+
+            <div class="builder-prop-category">Colores del tema</div>
+            <div class="prop-field full">
+              <label>Texto primario</label>
+              <app-color-picker [value]="canvasState.config()!.theme.textPrimary || '#ffffff'" (valueChange)="setThemeProp('textPrimary', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Texto secundario</label>
+              <app-color-picker [value]="canvasState.config()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" (valueChange)="setThemeProp('textSecondary', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Acento (nav/footer)</label>
+              <app-color-picker [value]="canvasState.config()!.theme.navFooterText || '#d4a017'" (valueChange)="setThemeProp('navFooterText', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Botones fondo</label>
+              <app-color-picker [value]="canvasState.config()!.theme.buttonBg || '#d4a017'" (valueChange)="setThemeProp('buttonBg', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Botones texto</label>
+              <app-color-picker [value]="canvasState.config()!.theme.buttonText || '#1a1a2e'" (valueChange)="setThemeProp('buttonText', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Fondo de cards</label>
+              <app-color-picker [value]="canvasState.config()!.theme.cardBg || 'rgba(255,255,255,0.05)'" (valueChange)="setThemeProp('cardBg', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Borde de cards</label>
+              <app-color-picker [value]="canvasState.config()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setThemeProp('cardBorder', $event)"></app-color-picker>
+            </div>
+
+            <div class="builder-prop-divider"></div>
+            <div class="builder-prop-category">Fondo de la landing</div>
+            <div class="prop-field full">
+              <label>Color 1</label>
+              <app-color-picker [value]="canvasState.config()!.theme.landingBgColor1 || '#0d1117'" (valueChange)="setThemeProp('landingBgColor1', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Color 2</label>
+              <app-color-picker [value]="canvasState.config()!.theme.landingBgColor2 || '#1a1a2e'" (valueChange)="setThemeProp('landingBgColor2', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Tipo</label>
+              <div class="prop-btn-row" style="flex-wrap:wrap;">
+                <button [class.active]="!canvasState.config()!.theme.landingBgType || canvasState.config()!.theme.landingBgType === 'solid'" (click)="setThemeProp('landingBgType', 'solid')">Sólido</button>
+                <button [class.active]="canvasState.config()!.theme.landingBgType === 'linear'" (click)="setThemeProp('landingBgType', 'linear')">Lineal</button>
+                <button [class.active]="canvasState.config()!.theme.landingBgType === 'radial'" (click)="setThemeProp('landingBgType', 'radial')">Radial</button>
+                <button [class.active]="canvasState.config()!.theme.landingBgType === 'mesh'" (click)="setThemeProp('landingBgType', 'mesh')">Difuminado</button>
+              </div>
+            </div>
+            @if (canvasState.config()!.theme.landingBgType === 'linear' || canvasState.config()!.theme.landingBgType === 'mesh') {
+              <div class="prop-field full">
+                <label>Ángulo: {{ canvasState.config()!.theme.landingBgAngle ?? 135 }}°</label>
+                <input type="range" min="0" max="360" [ngModel]="canvasState.config()!.theme.landingBgAngle ?? 135" (ngModelChange)="setThemeProp('landingBgAngle', +$event)">
+              </div>
+            }
+            <div class="prop-field full">
+              <label>Textura</label>
+              <select class="builder-input" [ngModel]="canvasState.config()!.theme.landingBgTexture || 'none'" (ngModelChange)="setThemeProp('landingBgTexture', $event)">
+                <option value="none">Ninguna</option>
+                <option value="noise">Noise</option>
+                <option value="grain">Grain</option>
+                <option value="dots">Dots</option>
+                <option value="lines">Lines</option>
+                <option value="cross">Cross</option>
+                <option value="paper">Paper</option>
+                <option value="linen">Linen</option>
+                <option value="stars">Stars</option>
+              </select>
+            </div>
+
+            <div class="builder-prop-divider"></div>
+            <div class="builder-prop-category">Animación global</div>
+            <div class="prop-field full">
+              <div class="prop-btn-row" style="flex-wrap:wrap;">
+                <button [class.active]="!canvasState.config()!.theme.scrollAnimation || canvasState.config()!.theme.scrollAnimation === 'fade-up'" (click)="setThemeProp('scrollAnimation', 'fade-up')">↑ Fade Up</button>
+                <button [class.active]="canvasState.config()!.theme.scrollAnimation === 'fade-in'" (click)="setThemeProp('scrollAnimation', 'fade-in')">◉ Fade In</button>
+                <button [class.active]="canvasState.config()!.theme.scrollAnimation === 'slide-left'" (click)="setThemeProp('scrollAnimation', 'slide-left')">← Slide L</button>
+                <button [class.active]="canvasState.config()!.theme.scrollAnimation === 'slide-right'" (click)="setThemeProp('scrollAnimation', 'slide-right')">→ Slide R</button>
+                <button [class.active]="canvasState.config()!.theme.scrollAnimation === 'scale'" (click)="setThemeProp('scrollAnimation', 'scale')">⊕ Scale</button>
+                <button [class.active]="canvasState.config()!.theme.scrollAnimation === 'none'" (click)="setThemeProp('scrollAnimation', 'none')">✕ Ninguna</button>
+              </div>
+            </div>
+
+            <div class="builder-prop-divider"></div>
+            <div class="builder-prop-category">Templates</div>
+            <div class="prop-btn-row" style="flex-wrap:wrap;">
+              <button (click)="applyTemplate('elegante')">🌙 Elegante</button>
+              <button (click)="applyTemplate('moderno')">💜 Moderno</button>
+              <button (click)="applyTemplate('romantico')">💕 Romántico</button>
+              <button (click)="applyTemplate('festivo')">🎉 Festivo</button>
+              <button (click)="applyTemplate('corporativo')">🏢 Corporativo</button>
+            </div>
+          </div>
+        } @else if (canvasState.activeElement()) {
+          <div class="builder-props">
+            <div class="builder-section-badge">
+              <span class="material-icons">{{ getElIcon(activeEl()!.type) }}</span>
+              <span>{{ getElLabel(activeEl()!.type) }}</span>
             </div>
 
             <!-- Position & Size -->
             <div class="builder-prop-category">Posición y tamaño</div>
             <div class="prop-grid">
-              <div class="prop-field"><label>X %</label><input type="number" [ngModel]="el.x" (ngModelChange)="updatePos('x', $event)" min="0" max="95"></div>
-              <div class="prop-field"><label>Y %</label><input type="number" [ngModel]="el.y" (ngModelChange)="updatePos('y', $event)" min="0" max="95"></div>
-              <div class="prop-field"><label>Ancho %</label><input type="number" [ngModel]="el.width" (ngModelChange)="updateSize('width', $event)" min="5" max="100"></div>
-              <div class="prop-field"><label>Alto %</label><input type="number" [ngModel]="el.height" (ngModelChange)="updateSize('height', $event)" min="5" max="100"></div>
+              <div class="prop-field"><label>X %</label><input type="number" [ngModel]="activeEl()!.x" (ngModelChange)="updatePos('x', $event)" min="0" max="95"></div>
+              <div class="prop-field"><label>Y %</label><input type="number" [ngModel]="activeEl()!.y" (ngModelChange)="updatePos('y', $event)" min="0" max="95"></div>
+              <div class="prop-field"><label>Ancho %</label><input type="number" [ngModel]="activeEl()!.width" (ngModelChange)="updateSize('width', $event)" min="5" max="100"></div>
+              <div class="prop-field"><label>Alto %</label><input type="number" [ngModel]="activeEl()!.height" (ngModelChange)="updateSize('height', $event)" min="5" max="100"></div>
             </div>
 
             <!-- Type-specific properties -->
-            @if (el.type === 'text') {
+            @if (activeEl()!.type === 'text') {
               <div class="builder-prop-category">Texto</div>
               <div class="prop-field full">
                 <label>Contenido</label>
-                <textarea class="builder-input" [ngModel]="$any(el).content" (ngModelChange)="updateProp('content', $event)"></textarea>
+                <textarea class="builder-input" [ngModel]="$any(activeEl()).content" (ngModelChange)="updateProp('content', $event)"></textarea>
               </div>
               <div class="prop-grid">
-                <div class="prop-field"><label>Tamaño</label><input type="number" [ngModel]="$any(el).fontSize" (ngModelChange)="updateProp('fontSize', +$event)" min="8" max="96"></div>
-                <div class="prop-field"><label>Peso</label><input type="number" [ngModel]="$any(el).fontWeight || 400" (ngModelChange)="updateProp('fontWeight', +$event)" min="100" max="900" step="100"></div>
+                <div class="prop-field"><label>Tamaño</label><input type="number" [ngModel]="$any(activeEl()).fontSize" (ngModelChange)="updateProp('fontSize', +$event)" min="8" max="96"></div>
+                <div class="prop-field"><label>Peso</label><input type="number" [ngModel]="$any(activeEl()).fontWeight || 400" (ngModelChange)="updateProp('fontWeight', +$event)" min="100" max="900" step="100"></div>
               </div>
               <div class="prop-field full">
                 <label>Color</label>
-                <app-color-picker [value]="$any(el).color || '#ffffff'" (valueChange)="updateProp('color', $event)"></app-color-picker>
+                <app-color-picker [value]="$any(activeEl()).color || '#ffffff'" (valueChange)="updateProp('color', $event)"></app-color-picker>
               </div>
               <div class="prop-field full">
                 <label>Alineación</label>
                 <div class="prop-btn-row">
-                  <button [class.active]="$any(el).textAlign === 'left'" (click)="updateProp('textAlign', 'left')"><span class="material-icons">format_align_left</span></button>
-                  <button [class.active]="$any(el).textAlign === 'center' || !$any(el).textAlign" (click)="updateProp('textAlign', 'center')"><span class="material-icons">format_align_center</span></button>
-                  <button [class.active]="$any(el).textAlign === 'right'" (click)="updateProp('textAlign', 'right')"><span class="material-icons">format_align_right</span></button>
+                  <button [class.active]="$any(activeEl()).textAlign === 'left'" (click)="updateProp('textAlign', 'left')"><span class="material-icons">format_align_left</span></button>
+                  <button [class.active]="$any(activeEl()).textAlign === 'center' || !$any(activeEl()).textAlign" (click)="updateProp('textAlign', 'center')"><span class="material-icons">format_align_center</span></button>
+                  <button [class.active]="$any(activeEl()).textAlign === 'right'" (click)="updateProp('textAlign', 'right')"><span class="material-icons">format_align_right</span></button>
                 </div>
               </div>
             }
 
-            @if (el.type === 'image') {
+            @if (activeEl()!.type === 'image') {
               <div class="builder-prop-category">Imagen</div>
               <div class="prop-field full">
                 <label>URL de imagen</label>
                 <div class="builder-upload-row">
-                  @if ($any(el).imageUrl) {
+                  @if ($any(activeEl()).imageUrl) {
                     <span class="builder-upload-ok">✔ Cargada</span>
                     <button class="builder-btn-small danger" (click)="updateProp('imageUrl', '')">Quitar</button>
                   } @else {
@@ -189,65 +294,65 @@ interface BuilderSection {
                 </div>
               </div>
               <div class="prop-grid">
-                <div class="prop-field"><label>Radius</label><input type="number" [ngModel]="$any(el).borderRadius || 0" (ngModelChange)="updateProp('borderRadius', +$event)" min="0" max="50"></div>
-                <div class="prop-field"><label>Opacidad</label><input type="number" [ngModel]="($any(el).opacity ?? 1) * 100" (ngModelChange)="updateProp('opacity', +$event / 100)" min="10" max="100"></div>
+                <div class="prop-field"><label>Radius</label><input type="number" [ngModel]="$any(activeEl()).borderRadius || 0" (ngModelChange)="updateProp('borderRadius', +$event)" min="0" max="50"></div>
+                <div class="prop-field"><label>Opacidad</label><input type="number" [ngModel]="($any(activeEl()).opacity ?? 1) * 100" (ngModelChange)="updateProp('opacity', +$event / 100)" min="10" max="100"></div>
               </div>
             }
 
-            @if (el.type === 'icon') {
+            @if (activeEl()!.type === 'icon') {
               <div class="builder-prop-category">Icono</div>
               <div class="prop-field full">
                 <label>Emoji / Icono</label>
-                <input class="builder-input" [ngModel]="$any(el).icon" (ngModelChange)="updateProp('icon', $event)" placeholder="✦ o favorite">
+                <input class="builder-input" [ngModel]="$any(activeEl()).icon" (ngModelChange)="updateProp('icon', $event)" placeholder="✦ o favorite">
               </div>
               <div class="prop-field full">
                 <label>Color</label>
-                <app-color-picker [value]="$any(el).iconColor || '#ffffff'" (valueChange)="updateProp('iconColor', $event)"></app-color-picker>
+                <app-color-picker [value]="$any(activeEl()).iconColor || '#ffffff'" (valueChange)="updateProp('iconColor', $event)"></app-color-picker>
               </div>
             }
 
-            @if (el.type === 'countdown') {
+            @if (activeEl()!.type === 'countdown') {
               <div class="builder-prop-category">Countdown</div>
               <div class="prop-field full">
                 <label>Fecha objetivo</label>
-                <input type="datetime-local" class="builder-input" [ngModel]="$any(el).targetDate" (ngModelChange)="updateProp('targetDate', $event)">
+                <input type="datetime-local" class="builder-input" [ngModel]="$any(activeEl()).targetDate" (ngModelChange)="updateProp('targetDate', $event)">
               </div>
               <div class="prop-grid">
                 <div class="prop-field"><label>Color valores</label>
-                  <app-color-picker [value]="$any(el).valueColor || '#ffffff'" (valueChange)="updateProp('valueColor', $event)"></app-color-picker>
+                  <app-color-picker [value]="$any(activeEl()).valueColor || '#ffffff'" (valueChange)="updateProp('valueColor', $event)"></app-color-picker>
                 </div>
                 <div class="prop-field"><label>Color labels</label>
-                  <app-color-picker [value]="$any(el).labelColor || 'rgba(255,255,255,0.5)'" (valueChange)="updateProp('labelColor', $event)"></app-color-picker>
+                  <app-color-picker [value]="$any(activeEl()).labelColor || 'rgba(255,255,255,0.5)'" (valueChange)="updateProp('labelColor', $event)"></app-color-picker>
                 </div>
               </div>
               <div class="prop-grid">
                 <div class="prop-field"><label>Fondo cards</label>
-                  <div class="prop-toggle" (click)="updateProp('showCardBg', !$any(el).showCardBg)">
-                    <span class="material-icons">{{ $any(el).showCardBg !== false ? 'check_box' : 'check_box_outline_blank' }}</span>
-                    <span>{{ $any(el).showCardBg !== false ? 'Sí' : 'No' }}</span>
+                  <div class="prop-toggle" (click)="updateProp('showCardBg', !$any(activeEl()).showCardBg)">
+                    <span class="material-icons">{{ $any(activeEl()).showCardBg !== false ? 'check_box' : 'check_box_outline_blank' }}</span>
+                    <span>{{ $any(activeEl()).showCardBg !== false ? 'Sí' : 'No' }}</span>
                   </div>
                 </div>
                 <div class="prop-field"><label>Radius cards</label>
-                  <input type="number" [ngModel]="$any(el).cardBorderRadius ?? 0" (ngModelChange)="updateProp('cardBorderRadius', +$event)" min="0" max="24">
+                  <input type="number" [ngModel]="$any(activeEl()).cardBorderRadius ?? 0" (ngModelChange)="updateProp('cardBorderRadius', +$event)" min="0" max="24">
                 </div>
               </div>
             }
 
-            @if (el.type === 'decorator') {
+            @if (activeEl()!.type === 'decorator') {
               <div class="builder-prop-category">Decorador</div>
               <div class="prop-field full">
                 <label>Color</label>
-                <app-color-picker [value]="$any(el).color || '#d4a017'" (valueChange)="updateProp('color', $event)"></app-color-picker>
+                <app-color-picker [value]="$any(activeEl()).color || '#d4a017'" (valueChange)="updateProp('color', $event)"></app-color-picker>
               </div>
               <div class="prop-grid">
-                <div class="prop-field"><label>Opacidad %</label><input type="number" [ngModel]="($any(el).opacity ?? 0.6) * 100" (ngModelChange)="updateProp('opacity', +$event / 100)" min="10" max="100"></div>
-                <div class="prop-field"><label>Rotación °</label><input type="number" [ngModel]="$any(el).rotation || 0" (ngModelChange)="updateProp('rotation', +$event)" min="0" max="360"></div>
+                <div class="prop-field"><label>Opacidad %</label><input type="number" [ngModel]="($any(activeEl()).opacity ?? 0.6) * 100" (ngModelChange)="updateProp('opacity', +$event / 100)" min="10" max="100"></div>
+                <div class="prop-field"><label>Rotación °</label><input type="number" [ngModel]="$any(activeEl()).rotation || 0" (ngModelChange)="updateProp('rotation', +$event)" min="0" max="360"></div>
               </div>
             }
 
             <!-- ===== COMPLEX BLOCKS ===== -->
 
-            @if (el.type === 'detail-cards') {
+            @if (activeEl()!.type === 'detail-cards') {
               <div class="builder-prop-category">Detalles</div>
               <div class="prop-field full">
                 <label>Título de sección</label>
@@ -269,7 +374,7 @@ interface BuilderSection {
               }
             }
 
-            @if (el.type === 'venue-cards') {
+            @if (activeEl()!.type === 'venue-cards') {
               <div class="builder-prop-category">Lugares</div>
               <div class="block-items-header">
                 <span>Venues ({{ getSecData('venues')?.items?.length || 0 }})</span>
@@ -289,7 +394,7 @@ interface BuilderSection {
               }
             }
 
-            @if (el.type === 'itinerary') {
+            @if (activeEl()!.type === 'itinerary') {
               <div class="builder-prop-category">Itinerario</div>
               <div class="prop-field full">
                 <label>Título</label>
@@ -312,11 +417,11 @@ interface BuilderSection {
               }
             }
 
-            @if (el.type === 'gallery') {
+            @if (activeEl()!.type === 'gallery') {
               <div class="builder-prop-category">Galería</div>
               <div class="prop-field full">
                 <label>Estilo</label>
-                <select class="builder-input" [ngModel]="$any(el).displayStyle || 'carousel-3d'" (ngModelChange)="updateProp('displayStyle', $event)">
+                <select class="builder-input" [ngModel]="$any(activeEl()).displayStyle || 'carousel-3d'" (ngModelChange)="updateProp('displayStyle', $event)">
                   <option value="carousel-3d">Carrusel 3D</option>
                   <option value="carousel-vertical">Carrusel Vertical</option>
                   <option value="coverflow">Coverflow</option>
@@ -341,7 +446,7 @@ interface BuilderSection {
               </div>
             }
 
-            @if (el.type === 'dresscode-block') {
+            @if (activeEl()!.type === 'dresscode-block') {
               <div class="builder-prop-category">Vestimenta</div>
               <div class="prop-field full">
                 <label>Título</label>
@@ -363,7 +468,7 @@ interface BuilderSection {
               }
             }
 
-            @if (el.type === 'gifts-block') {
+            @if (activeEl()!.type === 'gifts-block') {
               <div class="builder-prop-category">Mesa de Regalos</div>
               <div class="prop-field full">
                 <label>Título</label>
@@ -405,7 +510,7 @@ interface BuilderSection {
               }
             }
 
-            @if (el.type === 'rsvp-form') {
+            @if (activeEl()!.type === 'rsvp-form') {
               <div class="builder-prop-category">Confirmación / Registro</div>
               <div class="prop-field full">
                 <label>Título</label>
@@ -416,16 +521,16 @@ interface BuilderSection {
             <!-- Actions -->
             <div class="builder-prop-divider"></div>
             <div class="prop-actions">
-              <button class="prop-action-btn" (click)="canvasState.bringToFront(canvasState.selectedSection()!, el.id)" title="Traer al frente">
+              <button class="prop-action-btn" (click)="canvasState.bringToFront(canvasState.selectedSection()!, activeEl()!.id)" title="Traer al frente">
                 <span class="material-icons">flip_to_front</span>
               </button>
-              <button class="prop-action-btn" (click)="canvasState.sendToBack(canvasState.selectedSection()!, el.id)" title="Enviar atrás">
+              <button class="prop-action-btn" (click)="canvasState.sendToBack(canvasState.selectedSection()!, activeEl()!.id)" title="Enviar atrás">
                 <span class="material-icons">flip_to_back</span>
               </button>
-              <button class="prop-action-btn" (click)="canvasState.lockElement(canvasState.selectedSection()!, el.id, !el.locked)" title="{{ el.locked ? 'Desbloquear' : 'Bloquear' }}">
-                <span class="material-icons">{{ el.locked ? 'lock_open' : 'lock' }}</span>
+              <button class="prop-action-btn" (click)="canvasState.lockElement(canvasState.selectedSection()!, activeEl()!.id, !activeEl()!.locked)" title="{{ activeEl()!.locked ? 'Desbloquear' : 'Bloquear' }}">
+                <span class="material-icons">{{ activeEl()!.locked ? 'lock_open' : 'lock' }}</span>
               </button>
-              <button class="prop-action-btn danger" (click)="canvasState.removeElement(canvasState.selectedSection()!, el.id)" title="Eliminar">
+              <button class="prop-action-btn danger" (click)="canvasState.removeElement(canvasState.selectedSection()!, activeEl()!.id)" title="Eliminar">
                 <span class="material-icons">delete</span>
               </button>
             </div>
@@ -684,6 +789,18 @@ interface BuilderSection {
     .drag-handle { font-size: 14px; color: rgba(255,255,255,0.2); cursor: grab; }
     .section-icon { font-size: 16px; color: var(--gold-light); }
     .section-label { flex: 1; color: rgba(255,255,255,0.8); }
+    .builder-theme-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px; margin: 6px 6px 4px;
+      border-radius: 8px; cursor: pointer; transition: all 0.2s;
+      border: 1px solid rgba(139,92,246,0.15);
+      background: rgba(139,92,246,0.04);
+      .material-icons { font-size: 16px; color: #c084fc; }
+      span:last-child { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500; }
+      &:hover { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3); }
+      &.active { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.4); }
+      &.active span:last-child { color: white; }
+    }
     .section-toggle {
       background: none; border: none; cursor: pointer; padding: 2px;
       color: rgba(255,255,255,0.3); display: flex; transition: color 0.2s;
@@ -897,6 +1014,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
   showProps = signal(false);
   private autoSaveTimer: any = null;
 
+  /** Shortcut to active element for template */
+  activeEl = this.canvasState.activeElement;
+
   hasUnsavedChanges(): boolean { return this.canvasState.isDirty(); }
 
   ngOnInit() {
@@ -935,6 +1055,36 @@ export class BuilderComponent implements OnInit, OnDestroy {
   selectSection(key: string) {
     this.canvasState.selectSection(key);
     this.showProps.set(true);
+  }
+
+  selectTheme() {
+    this.canvasState.selectSection('_theme');
+    this.showProps.set(true);
+  }
+
+  setThemeProp(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.theme as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  applyTemplate(key: string) {
+    const templates: Record<string, any> = {
+      elegante: { landingBgColor1: '#0d1117', landingBgColor2: '#1a1a2e', landingBgType: 'linear', textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.7)', navFooterText: '#d4a017', buttonBg: '#d4a017', buttonText: '#1a1a2e', cardBg: 'rgba(255,255,255,0.05)', cardBorder: 'rgba(212,160,23,0.3)' },
+      moderno: { landingBgColor1: '#1e1e32', landingBgColor2: '#2d2d44', landingBgType: 'linear', textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.7)', navFooterText: '#a78bfa', buttonBg: '#a78bfa', buttonText: '#1a1a2e', cardBg: 'rgba(167,139,250,0.08)', cardBorder: 'rgba(167,139,250,0.3)' },
+      romantico: { landingBgColor1: '#2d1525', landingBgColor2: '#1a0a14', landingBgType: 'linear', textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.7)', navFooterText: '#f4a7c1', buttonBg: '#f4a7c1', buttonText: '#1a0a14', cardBg: 'rgba(244,167,193,0.08)', cardBorder: 'rgba(244,167,193,0.3)' },
+      festivo: { landingBgColor1: '#1a1a2e', landingBgColor2: '#2d2200', landingBgType: 'linear', textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.7)', navFooterText: '#fbbf24', buttonBg: '#fbbf24', buttonText: '#1a1a2e', cardBg: 'rgba(251,191,36,0.08)', cardBorder: 'rgba(251,191,36,0.3)' },
+      corporativo: { landingBgColor1: '#0f172a', landingBgColor2: '#1e293b', landingBgType: 'linear', textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.7)', navFooterText: '#60a5fa', buttonBg: '#60a5fa', buttonText: '#0f172a', cardBg: 'rgba(96,165,250,0.08)', cardBorder: 'rgba(96,165,250,0.3)' },
+    };
+    const tpl = templates[key];
+    if (!tpl) return;
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    Object.assign(cfg.theme, tpl);
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
   }
 
   onCanvasAreaClick() {
