@@ -155,9 +155,10 @@ export class MigrationService {
       fontSize: 32, textAlign: 'center'
     } as TextCanvasElement);
 
+    // Reference existing cards — don't duplicate data
     elements.push({
       id: this.id(), type: 'detail-cards', x: 5, y: 20, width: 90, height: 70, zIndex: z++,
-      cards: det.cards, layout: 'grid', showCardBg: det.showCardBg
+      layout: 'grid', showCardBg: det.showCardBg, cardBorderRadius: det.cardBorderRadius
     } as any);
 
     return { version: 2, minHeight: 60, elements };
@@ -168,9 +169,10 @@ export class MigrationService {
     const elements: CanvasElement[] = [];
     let z = 1;
 
+    // Reference existing items — don't duplicate data
     elements.push({
       id: this.id(), type: 'venue-cards', x: 5, y: 5, width: 90, height: 85, zIndex: z++,
-      items: ven.items, iconStyle: ven.iconStyle, showCardBg: ven.showCardBg
+      iconStyle: ven.iconStyle, showCardBg: ven.showCardBg, cardBorderRadius: ven.cardBorderRadius
     } as any);
 
     return { version: 2, minHeight: 50, elements };
@@ -188,9 +190,10 @@ export class MigrationService {
       } as TextCanvasElement);
     }
 
+    // Reference — photos come from config.gallery + photos table, not duplicated
     elements.push({
       id: this.id(), type: 'gallery', x: 5, y: 15, width: 90, height: 75, zIndex: z++,
-      displayStyle: gal.displayStyle || 'carousel-3d', title: gal.title
+      displayStyle: gal.displayStyle || 'carousel-3d'
     } as any);
 
     return { version: 2, minHeight: 55, elements };
@@ -206,9 +209,9 @@ export class MigrationService {
       content: gifts.title || 'Regalos', fontSize: 32, textAlign: 'center'
     } as TextCanvasElement);
 
+    // Reference — data comes from config.gifts directly
     elements.push({
       id: this.id(), type: 'gifts-block', x: 10, y: 20, width: 80, height: 70, zIndex: z++,
-      title: gifts.title, description: gifts.description
     } as any);
 
     return { version: 2, minHeight: 45, elements };
