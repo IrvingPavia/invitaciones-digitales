@@ -16,6 +16,8 @@ export class ScrollRevealDirective implements OnInit, OnDestroy {
   ngOnInit() {
     const anim = this.appScrollReveal || 'fade-up';
     if (anim === 'none') return; // no animation
+    // In builder mode, skip animations — show everything immediately
+    if (window.self !== window.top) return;
     this.el.nativeElement.classList.add('scroll-hidden', `scroll-anim-${anim}`);
     this.observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
@@ -136,10 +138,10 @@ import { SectionStyle } from '../core/models/models';
       @if (!showIntro() && !showEnvelope()) {
         <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)">
         <!-- Sticky nav -->
-        <app-landing-hero [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
+        <app-landing-hero id="section-hero" [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
         <!-- Sections -->
-        <div class="section-block" [style]="getSectionBg(data()!.config.invitation.sectionStyle)" [style.padding-top.px]="data()!.config.invitation.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.invitation.sectionStyle?.paddingBottom ?? 80">
+        <div id="section-invitation" class="section-block" [style]="getSectionBg(data()!.config.invitation.sectionStyle)" [style.padding-top.px]="data()!.config.invitation.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.invitation.sectionStyle?.paddingBottom ?? 80">
           @if (data()!.config.invitation.sectionStyle?.dividerType && data()!.config.invitation.sectionStyle?.dividerType !== 'none') {
             <app-section-divider [type]="data()!.config.invitation.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.invitation.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.invitation.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.invitation.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.invitation.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.invitation.sectionStyle!.dividerStrokeOpacity ?? 1" />
           }
@@ -151,7 +153,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         </div>
         @if (data()!.config.details.enabled && data()!.config.details.cards.length > 0) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.details.sectionStyle)" [style.padding-top.px]="data()!.config.details.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.details.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-details" class="section-block" [style]="getSectionBg(data()!.config.details.sectionStyle)" [style.padding-top.px]="data()!.config.details.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.details.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.details.sectionStyle?.dividerType && data()!.config.details.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.details.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.details.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.details.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.details.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.details.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.details.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -164,7 +166,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (data()!.config.venues.enabled && data()!.config.venues.items.length > 0) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.venues.sectionStyle)" [style.padding-top.px]="data()!.config.venues.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.venues.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-venues" class="section-block" [style]="getSectionBg(data()!.config.venues.sectionStyle)" [style.padding-top.px]="data()!.config.venues.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.venues.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.venues.sectionStyle?.dividerType && data()!.config.venues.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.venues.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.venues.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.venues.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.venues.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.venues.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.venues.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -177,7 +179,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (data()!.config.itinerary.enabled) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.itinerary.sectionStyle)" [style.padding-top.px]="data()!.config.itinerary.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.itinerary.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-itinerary" class="section-block" [style]="getSectionBg(data()!.config.itinerary.sectionStyle)" [style.padding-top.px]="data()!.config.itinerary.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.itinerary.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.itinerary.sectionStyle?.dividerType && data()!.config.itinerary.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.itinerary.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.itinerary.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.itinerary.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.itinerary.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.itinerary.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.itinerary.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -190,7 +192,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (data()!.config.gallery.enabled) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.gallery.sectionStyle)" [style.padding-top.px]="data()!.config.gallery.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gallery.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-gallery" class="section-block" [style]="getSectionBg(data()!.config.gallery.sectionStyle)" [style.padding-top.px]="data()!.config.gallery.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gallery.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.gallery.sectionStyle?.dividerType && data()!.config.gallery.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.gallery.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gallery.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gallery.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.gallery.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.gallery.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.gallery.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -203,7 +205,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (data()!.config.dresscode.enabled) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.dresscode.sectionStyle)" [style.padding-top.px]="data()!.config.dresscode.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.dresscode.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-dresscode" class="section-block" [style]="getSectionBg(data()!.config.dresscode.sectionStyle)" [style.padding-top.px]="data()!.config.dresscode.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.dresscode.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.dresscode.sectionStyle?.dividerType && data()!.config.dresscode.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.dresscode.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.dresscode.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -216,7 +218,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (data()!.config.gifts.enabled) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.gifts.sectionStyle)" [style.padding-top.px]="data()!.config.gifts.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gifts.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-gifts" class="section-block" [style]="getSectionBg(data()!.config.gifts.sectionStyle)" [style.padding-top.px]="data()!.config.gifts.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.gifts.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.gifts.sectionStyle?.dividerType && data()!.config.gifts.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.gifts.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gifts.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gifts.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.gifts.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.gifts.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.gifts.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -229,7 +231,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (data()!.config.rsvp.enabled && guest()) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-rsvp" class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.rsvp.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.rsvp.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -242,7 +244,7 @@ import { SectionStyle } from '../core/models/models';
           </div>
         }
         @if (isOpenEvent() && !guest()) {
-          <div class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
+          <div id="section-rsvp" class="section-block" [style]="getSectionBg(data()!.config.rsvp.sectionStyle)" [style.padding-top.px]="data()!.config.rsvp.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.rsvp.sectionStyle?.paddingBottom ?? 80">
             @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.rsvp.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.rsvp.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
@@ -472,6 +474,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   private scrollbarStyle: HTMLStyleElement | null = null;
+  private builderHighlightStyle: HTMLStyleElement | null = null;
+  private messageHandler: ((e: MessageEvent) => void) | null = null;
   data = signal<LandingData | null>(null);
   guest = signal<Guest | null>(null);
   loading = signal(true);
@@ -564,20 +568,30 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.slug = this.route.snapshot.params['slug'];
     const code = this.route.snapshot.queryParams['t'];
 
+    // Listen for builder postMessage commands (scroll, highlight)
+    this.setupBuilderListener();
+
     this.api.getLandingData(this.slug).subscribe({
       next: (d) => {
         this.data.set(d);
         this.loading.set(false);
-        if (d.config.envelope.enabled) {
-          this.showEnvelope.set(true);
-        } else if (d.config.intro.enabled) {
-          this.showIntro.set(true);
+        // In builder mode (iframe), skip envelope/intro to show sections immediately
+        const inBuilder = window.self !== window.top || this.route.snapshot.queryParams['builder'] === '1';
+        if (!inBuilder) {
+          if (d.config.envelope.enabled) {
+            this.showEnvelope.set(true);
+          } else if (d.config.intro.enabled) {
+            this.showIntro.set(true);
+          }
         }
         this.applyScrollbarColor(d.config.theme.cardBorder || '#d4a017');
         this.applyFavicon(d.config.favicon);
         this.applyTitle(d.event.name);
         // Preload background media so it doesn't render partially
-        if (d.config.hero.backgroundGif) {
+        if (inBuilder) {
+          // In builder mode, show bg immediately
+          this.bgLoaded = true;
+        } else if (d.config.hero.backgroundGif) {
           const url = d.config.hero.backgroundGif;
           const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
           if (['mp4', 'webm', 'ogg'].includes(ext)) {
@@ -612,8 +626,176 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.scrollbarStyle?.remove();
+    this.builderHighlightStyle?.remove();
+    if (this.messageHandler) {
+      window.removeEventListener('message', this.messageHandler);
+    }
     // Restore default favicon and title when leaving landing
     this.restoreFavicon();
+  }
+
+  /** Listen for postMessage from the builder to scroll/highlight sections */
+  private setupBuilderListener() {
+    this.messageHandler = (event: MessageEvent) => {
+      if (!event.data || event.data.source !== 'vitely-builder') return;
+      const { action, sectionKey } = event.data;
+
+      if (action === 'scrollTo' && sectionKey) {
+        const el = document.getElementById('section-' + sectionKey);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      if (action === 'highlight' && sectionKey) {
+        // Remove previous highlight
+        document.querySelectorAll('.builder-highlight').forEach(e => e.classList.remove('builder-highlight'));
+        const el = document.getElementById('section-' + sectionKey);
+        if (el) {
+          el.classList.add('builder-highlight');
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      if (action === 'clearHighlight') {
+        document.querySelectorAll('.builder-highlight').forEach(e => e.classList.remove('builder-highlight'));
+      }
+
+      // Respond with available sections info for the builder
+      if (action === 'getSections') {
+        const sections = Array.from(document.querySelectorAll('[id^="section-"]')).map(el => ({
+          key: el.id.replace('section-', ''),
+          top: el.getBoundingClientRect().top + window.scrollY
+        }));
+        window.parent.postMessage({ source: 'vitely-landing', action: 'sections', sections }, '*');
+      }
+    };
+    window.addEventListener('message', this.messageHandler);
+
+    // Inject builder highlight styles + click handlers when inside iframe
+    if (window.self !== window.top) {
+      this.builderHighlightStyle = document.createElement('style');
+      this.builderHighlightStyle.textContent = `
+        .builder-highlight {
+          outline: 2px dashed rgba(139,92,246,0.7) !important;
+          outline-offset: -2px;
+          position: relative;
+        }
+        .builder-highlight::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(139,92,246,0.04);
+          pointer-events: none;
+          z-index: 999;
+        }
+        [id^="section-"] {
+          cursor: pointer;
+          transition: outline 0.2s ease;
+        }
+        [id^="section-"]:hover:not(.builder-highlight) {
+          outline: 1px dashed rgba(139,92,246,0.3);
+          outline-offset: -1px;
+        }
+        [contenteditable="true"] {
+          cursor: text !important;
+          transition: background 0.2s ease;
+          border-radius: 4px;
+          padding: 2px 4px;
+          margin: -2px -4px;
+        }
+        [contenteditable="true"]:hover {
+          background: rgba(139,92,246,0.08) !important;
+        }
+        [contenteditable="true"]:focus {
+          background: rgba(139,92,246,0.12) !important;
+          outline: 1px solid rgba(139,92,246,0.5) !important;
+          outline-offset: 2px;
+        }
+      `;
+      document.head.appendChild(this.builderHighlightStyle);
+
+      // Delegate click events on sections to notify the builder parent
+      document.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        const sectionEl = target.closest('[id^="section-"]') as HTMLElement;
+        if (sectionEl) {
+          const key = sectionEl.id.replace('section-', '');
+          // Highlight this section
+          document.querySelectorAll('.builder-highlight').forEach(el => el.classList.remove('builder-highlight'));
+          sectionEl.classList.add('builder-highlight');
+          // Notify builder parent
+          window.parent.postMessage({ source: 'vitely-landing', action: 'sectionClicked', sectionKey: key }, '*');
+        }
+      });
+
+      // Enable inline editing: make editable elements contenteditable
+      this.setupInlineEditing();
+    }
+  }
+
+  /** Make text elements editable when in builder mode (iframe) */
+  private setupInlineEditing() {
+    // Wait for content to render, then mark editable elements
+    setTimeout(() => {
+      this.markEditableElements();
+    }, 2000);
+
+    // Re-mark after content changes (e.g., after navigation)
+    const obs = new MutationObserver(() => {
+      this.markEditableElements();
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    // Disconnect after 10s to avoid performance issues
+    setTimeout(() => obs.disconnect(), 10000);
+  }
+
+  private markEditableElements() {
+    // Map CSS selectors to config paths
+    const editableMap: { selector: string; section: string; prop: string }[] = [
+      { selector: '#section-hero .hero-names', section: 'hero', prop: 'celebrantNames' },
+      { selector: '#section-hero .hero-phrase', section: 'hero', prop: 'heroPhrase' },
+      { selector: '#section-invitation .invitation-title', section: 'invitation', prop: 'title' },
+      { selector: '#section-invitation .invitation-subtitle', section: 'invitation', prop: 'subtitle' },
+      { selector: '#section-details .section-heading', section: 'details', prop: 'title' },
+      { selector: '#section-itinerary .section-heading', section: 'itinerary', prop: 'title' },
+      { selector: '#section-gallery .section-heading', section: 'gallery', prop: 'title' },
+      { selector: '#section-dresscode .section-heading', section: 'dresscode', prop: 'title' },
+      { selector: '#section-gifts .section-heading', section: 'gifts', prop: 'title' },
+      { selector: '#section-rsvp .section-heading', section: 'rsvp', prop: 'title' },
+    ];
+
+    for (const item of editableMap) {
+      const elements = document.querySelectorAll(item.selector);
+      elements.forEach(el => {
+        if ((el as HTMLElement).contentEditable === 'true') return; // Already editable
+        (el as HTMLElement).contentEditable = 'true';
+        (el as HTMLElement).style.outline = 'none';
+        (el as HTMLElement).style.cursor = 'text';
+        (el as HTMLElement).dataset['builderSection'] = item.section;
+        (el as HTMLElement).dataset['builderProp'] = item.prop;
+
+        // On blur, send the new value to builder
+        el.addEventListener('blur', () => {
+          const text = (el as HTMLElement).innerText.trim();
+          window.parent.postMessage({
+            source: 'vitely-landing',
+            action: 'inlineEdit',
+            sectionKey: item.section,
+            prop: item.prop,
+            value: text
+          }, '*');
+        });
+
+        // Prevent Enter from adding newlines in single-line fields
+        el.addEventListener('keydown', (e: Event) => {
+          if ((e as KeyboardEvent).key === 'Enter' && item.prop === 'title') {
+            e.preventDefault();
+            (el as HTMLElement).blur();
+          }
+        });
+      });
+    }
   }
 
   /** Preload a media URL (image/gif/video) in background for faster display later */

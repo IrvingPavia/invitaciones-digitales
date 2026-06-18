@@ -221,10 +221,18 @@ Reemplazar el sistema actual de tabs+formularios por un editor visual donde el u
 18. [x] Drag & drop para reordenar secciones (CDK)
 19. [x] Preview responsive (mobile/tablet/desktop)
 20. [x] Botón "Builder" accesible desde dashboard
-21. [ ] Edición inline: click en texto del preview → editar directamente
-22. [ ] Panel de propiedades funcional: al seleccionar sección muestra controles reales (colores, fuentes, toggles)
-23. [ ] Guardar cambios de propiedades en tiempo real al config JSON
-24. [ ] Preview reactivo: se actualiza al editar
+21. [x] Comunicación builder↔iframe: postMessage bidireccional (scroll, highlight, click-to-select)
+22. [x] Panel de propiedades funcional: controles reales por sección (textos, colores, uploads, estilos de fondo)
+23. [x] Guardar cambios de propiedades en tiempo real al config JSON
+24. [x] Preview reactivo: iframe se recarga al guardar
+25. [x] Click en iframe selecciona sección en panel izquierdo (comunicación inversa)
+26. [x] Hover visual en secciones del iframe (outline sutil)
+27. [ ] Edición inline: click en texto del preview → editar directamente (contenteditable)
+28. [x] Agregar/eliminar items desde builder (cards, venues, dresscode)
+29. [x] Tema global editable desde builder (colores principales, fondo, animaciones)
+30. [x] Auto-save con debounce (3s después de inactividad)
+31. [x] Responsive mobile del builder (drawers para paneles laterales)
+32. [x] Edición inline: textos contenteditable en preview, postMessage al blur actualiza config
 
 ### Fase 3B — Libertad de posición (canvas por bloque)
 25. [ ] Cada sección es un "canvas" donde los elementos internos se posicionan libremente

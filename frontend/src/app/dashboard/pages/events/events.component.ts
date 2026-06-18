@@ -120,6 +120,7 @@ import { environment } from '../../../../environments/environment';
                       <a [routerLink]="['/dashboard/guests', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Invitados"><span class="material-icons" style="font-size:16px">people</span></a>
                     }
                     <a [routerLink]="['/dashboard/config', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Configurar"><span class="material-icons" style="font-size:16px">settings</span></a>
+                    <a [routerLink]="['/dashboard/builder', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Builder Visual"><span class="material-icons" style="font-size:16px">dashboard_customize</span></a>
                     <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
                     <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
                     <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
@@ -161,6 +162,7 @@ import { environment } from '../../../../environments/environment';
                 <a [routerLink]="['/dashboard/guests', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Invitados"><span class="material-icons" style="font-size:16px">people</span></a>
               }
               <a [routerLink]="['/dashboard/config', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Configurar"><span class="material-icons" style="font-size:16px">settings</span></a>
+              <a [routerLink]="['/dashboard/builder', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Builder Visual"><span class="material-icons" style="font-size:16px">dashboard_customize</span></a>
               <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
               <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
               <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>

@@ -75,6 +75,41 @@
 - **v2 — Campos dinámicos**: ✅ Completo. Campos configurables desde la pestaña Confirmaciones en config (nombre, email, teléfono, empresa, cargo). Cada campo puede activarse/desactivarse y marcarse como obligatorio. Selector de lada con banderas para teléfono.
 - **v3 — Tarjetas genéricas**: ✅ Completo. Tarjetas sin variables de invitado + QR que apunta a la landing genérica (sin `?t=code`). Dos modos de impresión: "Hoja única" (folleto/flyer centrado en página, tamaño configurable) y "Múltiples copias" (N tarjetas idénticas maximizando espacio por hoja). Variables de texto filtradas (solo {evento}, {fecha}, {tipo}). Vista previa proporcional al tamaño real.
 
+### 🆕 Page Builder Visual (feature grande — int-007)
+
+> **Contexto**: Editor visual que reemplaza el sistema de tabs con propiedades por un builder WYSIWYG. El usuario ve la landing en un iframe central, selecciona secciones clickeando directamente en el preview o desde un panel lateral, y edita sus propiedades desde un panel derecho con controles contextuales. La configuración se guarda al mismo `config_json` — zero breaking changes.
+
+> **Documentación completa**: `docs/DESIGN-V2.md` (Fase 3)
+
+**Implementado:**
+- [x] **Layout 3 paneles**: Panel izquierdo (secciones + drag reorder), Centro (preview iframe responsive), Panel derecho (propiedades)
+- [x] **Drag & drop secciones**: Reordenar con CDK, toggle enable/disable por sección
+- [x] **Preview responsive**: 3 modos (mobile 375px, tablet 768px, desktop full)
+- [x] **Comunicación builder→iframe**: postMessage para scroll y highlight de sección seleccionada
+- [x] **Comunicación iframe→builder**: Click en sección del preview selecciona en panel izquierdo
+- [x] **Hover visual en iframe**: Outline sutil al pasar mouse sobre secciones (solo en modo builder)
+- [x] **Panel de propiedades funcional**: Controles reales por sección:
+  - Hero: nombres, frase, descripción, countdown, fondo (upload), audio (upload)
+  - Invitación: título, subtítulo
+  - Detalles: título + cards editables (título, contenido)
+  - Lugares: items editables (nombre, dirección, hora)
+  - Galería: título, selector de estilo (8 opciones)
+  - Vestimenta: título + cards (título, descripción)
+  - Regalos: título, descripción, link, botón
+  - Confirmación: título
+  - Pantalla de Inicio: textos, colores (color pickers)
+  - Intro: frase, duración, fondo (upload)
+- [x] **Estilo de fondo per sección**: Tipo (hereda/sólido/degradado/imagen), color pickers, upload imagen
+- [x] **Upload de archivos**: Integrado con el sistema de uploads existente (images, audio, gifs)
+- [x] **Guardar + auto-refresh**: Al guardar el iframe se recarga mostrando cambios
+- [x] **Guard de cambios sin guardar**: Protegido con `unsavedChangesGuard`
+
+**Pendiente:**
+- [ ] Más elementos con edición inline (descripción de detalles, cards individuales)
+- [ ] Undo/Redo en el builder (historial de estados)
+- [ ] Drag de fotos a la galería directamente desde el builder
+- [ ] Templates rápidos seleccionables desde el builder
+
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.
 - [x] **Border-radius configurable en cards de landing**: Slider 0–24px en todas las secciones. Per-item en Detalles. Global en el resto.
@@ -280,3 +315,17 @@
 - [x] **Section cards mejoradas**: Border-radius 14px, hover effect, header con hover feedback, collapsed state sin border-bottom.
 - [x] **Sidebar dashboard pulido**: Background más oscuro con backdrop-filter blur, nav links con border-radius y margin lateral, hover/active diferenciados, iconos con opacidad dinámica.
 - [x] **Back-link minimalista**: Eliminado borde y fondo del link "Volver", ahora es solo texto sutil con ícono.
+
+### 2025-06-17 (int-007 — Page Builder Visual)
+- [x] **Comunicación builder→iframe (postMessage)**: Al seleccionar una sección en el panel izquierdo, el iframe hace scroll suave a esa sección y la resalta con outline punteado púrpura. Al deseleccionar, se limpia el highlight. IDs `section-{key}` agregados a todos los section-blocks del landing.
+- [x] **Comunicación iframe→builder (click inverso)**: Click en una sección del preview notifica al builder parent con postMessage. El builder selecciona automáticamente esa sección mostrando sus propiedades. Hover visual en secciones (outline sutil) solo cuando está embebido en iframe.
+- [x] **Panel de propiedades funcional por sección**: Controles reales para cada sección — Hero (nombres, frase, descripción, countdown, fondo upload, audio upload), Invitación (título, subtítulo), Detalles (título + cards editables), Lugares (items editables), Galería (título + selector de estilo 8 opciones), Vestimenta (título + cards), Regalos (título, descripción, link, botón), RSVP (título), Sobre (textos + color pickers), Intro (frase, duración, fondo upload).
+- [x] **Estilo de fondo per sección en builder**: Selector tipo (hereda/sólido/degradado/imagen), color pickers con `ColorPickerComponent`, upload de imagen de fondo. Se crea `sectionStyle` automáticamente si no existe.
+- [x] **Upload de archivos integrado**: File picker nativo que sube al backend (images/audio/gifs) y actualiza el config automáticamente. Feedback visual "✔ Archivo cargado" + botón "Quitar".
+- [x] **Refresh del preview al guardar**: Iframe se recarga automáticamente post-save para reflejar cambios.
+- [x] **Agregar/eliminar items desde builder**: Botones "+ Agregar" y "✕ Eliminar" en Detalles (cards), Lugares (venues) y Vestimenta (cards). Genera IDs únicos con timestamp. Numeración visual por item.
+- [x] **Tema global editable desde builder**: Botón "Tema Global" especial en panel izquierdo (ícono palette). Panel con color pickers para: texto primario, secundario, acento, botones (fondo/texto), fondo cards, borde cards. Fondo de landing (color 1, color 2, tipo). Animación de secciones (4 opciones).
+- [x] **Link Google Maps en venues**: Campo adicional en cada lugar para editar la URL de maps directamente.
+- [x] **Auto-save con debounce**: Guardado automático 3 segundos después del último cambio. Timer se reinicia con cada edición. No guarda si ya está en proceso de guardado.
+- [x] **Responsive mobile del builder**: En pantallas <900px los paneles laterales se ocultan y aparecen como drawers con botones toggle en la toolbar. Preview ocupa 100% del ancho. Texto "Guardar" se oculta dejando solo el ícono.
+- [x] **Edición inline en preview**: Textos clave de la landing se vuelven `contenteditable` cuando está en modo builder (iframe). Al hacer blur envía el cambio al builder via postMessage. Elementos editables: nombres celebrantes, frase hero, títulos de invitación/detalles/itinerario/galería/vestimenta/regalos/confirmación, subtítulo invitación. Hover con highlight sutil, focus con outline púrpura. Enter en títulos hace blur (sin newlines).

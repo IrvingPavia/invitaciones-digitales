@@ -125,7 +125,7 @@ body.light-mode .kpi-card .material-icons { color: var(--gold) !important; }
 body.light-mode .form-control, body.light-mode select, body.light-mode textarea,
 body.light-mode input[type="text"], body.light-mode input[type="number"],
 body.light-mode input[type="password"], body.light-mode input[type="email"],
-body.light-mode input[type="date"] {
+body.light-mode input[type="date"], body.light-mode input[type="datetime-local"] {
   background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important;
 }
 body.light-mode .form-control:focus, body.light-mode select:focus, body.light-mode input:focus {
@@ -134,6 +134,28 @@ body.light-mode .form-control:focus, body.light-mode select:focus, body.light-mo
 body.light-mode .form-label, body.light-mode label { color: #555 !important; }
 body.light-mode .text-muted { color: #888 !important; }
 body.light-mode .style-desc { color: #666 !important; }
+
+/* Placeholders */
+body.light-mode input::placeholder, body.light-mode textarea::placeholder {
+  color: #999 !important; opacity: 1 !important;
+}
+
+/* Time picker */
+body.light-mode .time-picker-field {
+  background: #f8f8fc !important; border-color: #ddd !important;
+}
+body.light-mode .time-picker-field small { color: #888 !important; }
+body.light-mode .time-picker-field button { color: var(--gold) !important; }
+body.light-mode .time-picker-val { color: #333 !important; }
+body.light-mode .time-picker-ampm button {
+  background: #f8f8fc !important; border-color: #ddd !important; color: #666 !important;
+}
+body.light-mode .time-picker-ampm button.active {
+  background: var(--gold) !important; border-color: var(--gold) !important; color: #fff !important;
+}
+
+/* Template cards in modal */
+body.light-mode .template-name { color: #555 !important; }
 
 /* Titles */
 body.light-mode .section-title { color: var(--gold) !important; }
@@ -190,6 +212,92 @@ body.light-mode .start-tpl-card { border-color: #e0e0e8; }
 body.light-mode .start-tpl-name { color: #555; background: #fafafa; }
 body.light-mode .mobile-menu-btn { color: #555; background: #ffffff; border-color: #e0e0e8; }
 body.light-mode .sidebar-toggle { color: #555; background: #ffffff; border-color: #e0e0e8; }
+
+/* Light mode — Builder */
+body.light-mode .builder-toolbar {
+  background: #ffffff !important;
+  border-bottom-color: #e0e0e8 !important;
+}
+body.light-mode .builder-event-name { color: #333 !important; }
+body.light-mode .builder-back { color: #555 !important; }
+body.light-mode .builder-back:hover { color: var(--gold) !important; background: rgba(124,92,191,0.08) !important; }
+body.light-mode .builder-device-btn {
+  background: #f0f0f5 !important; color: #666 !important; border-color: #ddd !important;
+}
+body.light-mode .builder-device-btn.active {
+  background: rgba(124,92,191,0.1) !important; color: var(--gold) !important; border-color: rgba(124,92,191,0.4) !important;
+}
+body.light-mode .builder-mobile-toggle {
+  background: #f0f0f5 !important; color: #555 !important;
+}
+body.light-mode .builder-panel {
+  background: #ffffff !important; border-color: #e0e0e8 !important;
+}
+body.light-mode .builder-panel-header {
+  color: #333 !important; border-bottom-color: #eee !important;
+}
+body.light-mode .builder-panel-header .material-icons { color: var(--gold) !important; }
+body.light-mode .builder-section-item {
+  color: #555;
+}
+body.light-mode .builder-section-item:hover { background: rgba(124,92,191,0.05) !important; }
+body.light-mode .builder-section-item.active {
+  background: rgba(124,92,191,0.08) !important; border-color: rgba(124,92,191,0.3) !important;
+}
+body.light-mode .section-label { color: #333 !important; }
+body.light-mode .section-icon { color: var(--gold) !important; }
+body.light-mode .drag-handle { color: #ccc !important; }
+body.light-mode .section-toggle { color: #999 !important; }
+body.light-mode .section-toggle:hover { color: var(--gold) !important; }
+body.light-mode .builder-theme-btn {
+  background: rgba(124,92,191,0.04) !important; border-color: #e0e0e8 !important;
+}
+body.light-mode .builder-theme-btn span:last-child { color: #555 !important; }
+body.light-mode .builder-theme-btn.active {
+  background: rgba(124,92,191,0.1) !important; border-color: rgba(124,92,191,0.3) !important;
+}
+body.light-mode .builder-theme-btn.active span:last-child { color: #333 !important; }
+body.light-mode .builder-props { color: #333; }
+body.light-mode .builder-section-badge {
+  background: rgba(124,92,191,0.06) !important; border-color: rgba(124,92,191,0.2) !important;
+}
+body.light-mode .builder-section-badge span:last-child { color: #333 !important; }
+body.light-mode .builder-prop-label { color: #666 !important; }
+body.light-mode .builder-prop-category { color: var(--gold) !important; }
+body.light-mode .builder-prop-category-row span { color: var(--gold) !important; }
+body.light-mode .builder-input {
+  background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important;
+}
+body.light-mode .builder-input:focus { border-color: var(--gold) !important; background: #fff !important; }
+body.light-mode .builder-input::placeholder { color: #999 !important; }
+body.light-mode .builder-prop-divider { background: #e8e8e8 !important; }
+body.light-mode .builder-advanced-link { color: var(--gold) !important; }
+body.light-mode .builder-advanced-link:hover { background: rgba(124,92,191,0.06) !important; }
+body.light-mode .builder-props-empty .material-icons { color: rgba(124,92,191,0.3) !important; }
+body.light-mode .builder-props-empty p { color: #999 !important; }
+body.light-mode .builder-card-item {
+  background: #fafafa !important; border-color: #e8e8e8 !important;
+}
+body.light-mode .builder-card-num { color: #666 !important; background: rgba(124,92,191,0.08) !important; }
+body.light-mode .builder-btn-small {
+  background: rgba(124,92,191,0.06) !important; border-color: rgba(124,92,191,0.2) !important; color: #555 !important;
+}
+body.light-mode .builder-btn-small:hover { background: rgba(124,92,191,0.12) !important; color: var(--gold) !important; }
+body.light-mode .builder-btn-small.danger { background: rgba(239,68,68,0.05) !important; border-color: rgba(239,68,68,0.2) !important; color: #ef4444 !important; }
+body.light-mode .builder-btn-chip {
+  background: #f8f8fc !important; border-color: #ddd !important; color: #666 !important;
+}
+body.light-mode .builder-btn-chip:hover { background: rgba(124,92,191,0.08) !important; color: #333 !important; }
+body.light-mode .builder-btn-chip.active {
+  background: rgba(124,92,191,0.12) !important; border-color: var(--gold) !important; color: var(--gold) !important;
+}
+body.light-mode .builder-upload-ok { color: #10b981 !important; }
+body.light-mode .builder-btn-icon { background: #f0f0f5 !important; color: #999 !important; }
+body.light-mode .builder-btn-icon:hover { background: #e8e8e8 !important; color: #555 !important; }
+body.light-mode .builder-preview { background: #e8e8f0 !important; }
+body.light-mode .canvas-section-label { background: rgba(124,92,191,0.9) !important; }
+body.light-mode .canvas-empty-section .material-icons { color: rgba(124,92,191,0.25) !important; }
+body.light-mode .canvas-empty-section p { color: #999 !important; }
 
 /* Cards editor panel */
 body.light-mode .panel { color: #333; }
