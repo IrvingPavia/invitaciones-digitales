@@ -245,6 +245,174 @@ interface BuilderSection {
               </div>
             }
 
+            <!-- ===== COMPLEX BLOCKS ===== -->
+
+            @if (el.type === 'detail-cards') {
+              <div class="builder-prop-category">Detalles</div>
+              <div class="prop-field full">
+                <label>Título de sección</label>
+                <input class="builder-input" [ngModel]="getSecData('details')?.title" (ngModelChange)="setSecData('details', 'title', $event)">
+              </div>
+              <div class="block-items-header">
+                <span>Cards ({{ getSecData('details')?.cards?.length || 0 }})</span>
+                <button class="builder-btn-small" (click)="addDetailCard()">+ Agregar</button>
+              </div>
+              @for (card of getSecData('details')?.cards || []; track card.id; let i = $index) {
+                <div class="block-item">
+                  <div class="block-item-header">
+                    <span class="block-item-num">{{ i + 1 }}</span>
+                    <button class="prop-action-btn danger" (click)="removeDetailCard(i)"><span class="material-icons">close</span></button>
+                  </div>
+                  <input class="builder-input" [ngModel]="card.title" (ngModelChange)="updateDetailCard(i, 'title', $event)" placeholder="Título">
+                  <textarea class="builder-input" style="min-height:40px" [ngModel]="card.content" (ngModelChange)="updateDetailCard(i, 'content', $event)" placeholder="Contenido"></textarea>
+                </div>
+              }
+            }
+
+            @if (el.type === 'venue-cards') {
+              <div class="builder-prop-category">Lugares</div>
+              <div class="block-items-header">
+                <span>Venues ({{ getSecData('venues')?.items?.length || 0 }})</span>
+                <button class="builder-btn-small" (click)="addVenue()">+ Agregar</button>
+              </div>
+              @for (item of getSecData('venues')?.items || []; track item.id; let i = $index) {
+                <div class="block-item">
+                  <div class="block-item-header">
+                    <span class="block-item-num">{{ i + 1 }}</span>
+                    <button class="prop-action-btn danger" (click)="removeVenue(i)"><span class="material-icons">close</span></button>
+                  </div>
+                  <input class="builder-input" [ngModel]="item.name" (ngModelChange)="updateVenueItem(i, 'name', $event)" placeholder="Nombre del lugar">
+                  <input class="builder-input" [ngModel]="item.address" (ngModelChange)="updateVenueItem(i, 'address', $event)" placeholder="Dirección">
+                  <input class="builder-input" [ngModel]="item.time" (ngModelChange)="updateVenueItem(i, 'time', $event)" placeholder="Hora">
+                  <input class="builder-input" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenueItem(i, 'mapsUrl', $event)" placeholder="Link Google Maps">
+                </div>
+              }
+            }
+
+            @if (el.type === 'itinerary') {
+              <div class="builder-prop-category">Itinerario</div>
+              <div class="prop-field full">
+                <label>Título</label>
+                <input class="builder-input" [ngModel]="getSecData('itinerary')?.title" (ngModelChange)="setSecData('itinerary', 'title', $event)">
+              </div>
+              <div class="block-items-header">
+                <span>Actividades ({{ itineraryItems().length }})</span>
+                <button class="builder-btn-small" (click)="addItineraryItem()">+ Agregar</button>
+              </div>
+              @for (item of itineraryItems(); track item.id; let i = $index) {
+                <div class="block-item">
+                  <div class="block-item-header">
+                    <span class="block-item-num">{{ i + 1 }}</span>
+                    <button class="prop-action-btn danger" (click)="removeItineraryItem(i)"><span class="material-icons">close</span></button>
+                  </div>
+                  <input class="builder-input" [ngModel]="item.time" (ngModelChange)="updateItineraryItem(i, 'time', $event)" placeholder="Hora (ej: 6:00 PM)">
+                  <input class="builder-input" [ngModel]="item.title" (ngModelChange)="updateItineraryItem(i, 'title', $event)" placeholder="Título">
+                  <input class="builder-input" [ngModel]="item.description" (ngModelChange)="updateItineraryItem(i, 'description', $event)" placeholder="Descripción">
+                </div>
+              }
+            }
+
+            @if (el.type === 'gallery') {
+              <div class="builder-prop-category">Galería</div>
+              <div class="prop-field full">
+                <label>Estilo</label>
+                <select class="builder-input" [ngModel]="$any(el).displayStyle || 'carousel-3d'" (ngModelChange)="updateProp('displayStyle', $event)">
+                  <option value="carousel-3d">Carrusel 3D</option>
+                  <option value="carousel-vertical">Carrusel Vertical</option>
+                  <option value="coverflow">Coverflow</option>
+                  <option value="stack">Stack/Abanico</option>
+                  <option value="flip">Flip/Album</option>
+                  <option value="polaroid">Polaroid</option>
+                  <option value="grid">Mosaico</option>
+                  <option value="slideshow">Slideshow</option>
+                </select>
+              </div>
+              <div class="block-items-header">
+                <span>Fotos ({{ photos().length }})</span>
+                <button class="builder-btn-small" (click)="uploadPhotos()">+ Subir fotos</button>
+              </div>
+              <div class="photo-mini-grid">
+                @for (photo of photos(); track photo.id; let i = $index) {
+                  <div class="photo-mini-item">
+                    <img [src]="photo.url">
+                    <button class="photo-mini-delete" (click)="deletePhoto(photo.id)"><span class="material-icons">close</span></button>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (el.type === 'dresscode-block') {
+              <div class="builder-prop-category">Vestimenta</div>
+              <div class="prop-field full">
+                <label>Título</label>
+                <input class="builder-input" [ngModel]="getSecData('dresscode')?.title" (ngModelChange)="setSecData('dresscode', 'title', $event)">
+              </div>
+              <div class="block-items-header">
+                <span>Cards ({{ getSecData('dresscode')?.cards?.length || 0 }})</span>
+                <button class="builder-btn-small" (click)="addDresscodeCard()">+ Agregar</button>
+              </div>
+              @for (card of getSecData('dresscode')?.cards || []; track card.id; let i = $index) {
+                <div class="block-item">
+                  <div class="block-item-header">
+                    <span class="block-item-num">{{ i + 1 }}</span>
+                    <button class="prop-action-btn danger" (click)="removeDresscodeCard(i)"><span class="material-icons">close</span></button>
+                  </div>
+                  <input class="builder-input" [ngModel]="card.title" (ngModelChange)="updateDresscodeCard(i, 'title', $event)" placeholder="Título">
+                  <textarea class="builder-input" style="min-height:40px" [ngModel]="card.description" (ngModelChange)="updateDresscodeCard(i, 'description', $event)" placeholder="Descripción"></textarea>
+                </div>
+              }
+            }
+
+            @if (el.type === 'gifts-block') {
+              <div class="builder-prop-category">Mesa de Regalos</div>
+              <div class="prop-field full">
+                <label>Título</label>
+                <input class="builder-input" [ngModel]="getSecData('gifts')?.title" (ngModelChange)="setSecData('gifts', 'title', $event)">
+              </div>
+              <div class="prop-field full">
+                <label>Descripción</label>
+                <textarea class="builder-input" style="min-height:40px" [ngModel]="getSecData('gifts')?.description" (ngModelChange)="setSecData('gifts', 'description', $event)"></textarea>
+              </div>
+              <div class="prop-field full">
+                <label>Link de mesa</label>
+                <input class="builder-input" [ngModel]="getSecData('gifts')?.link" (ngModelChange)="setSecData('gifts', 'link', $event)" placeholder="https://...">
+              </div>
+              <div class="prop-field full">
+                <label>Texto del botón</label>
+                <input class="builder-input" [ngModel]="getSecData('gifts')?.buttonText" (ngModelChange)="setSecData('gifts', 'buttonText', $event)">
+              </div>
+              <div class="builder-prop-divider"></div>
+              <div class="builder-prop-category">Transferencia Bancaria</div>
+              <div class="prop-field full">
+                <div class="prop-toggle" (click)="setSecNestedData('gifts', 'transfer', 'enabled', !getSecData('gifts')?.transfer?.enabled)">
+                  <span class="material-icons">{{ getSecData('gifts')?.transfer?.enabled ? 'check_box' : 'check_box_outline_blank' }}</span>
+                  <span>{{ getSecData('gifts')?.transfer?.enabled ? 'Activa' : 'Desactivada' }}</span>
+                </div>
+              </div>
+              @if (getSecData('gifts')?.transfer?.enabled) {
+                <div class="prop-field full">
+                  <label>Banco</label>
+                  <input class="builder-input" [ngModel]="getSecData('gifts')?.transfer?.bank" (ngModelChange)="setSecNestedData('gifts', 'transfer', 'bank', $event)">
+                </div>
+                <div class="prop-field full">
+                  <label>Titular</label>
+                  <input class="builder-input" [ngModel]="getSecData('gifts')?.transfer?.accountName" (ngModelChange)="setSecNestedData('gifts', 'transfer', 'accountName', $event)">
+                </div>
+                <div class="prop-field full">
+                  <label>Número de cuenta/tarjeta</label>
+                  <input class="builder-input" [ngModel]="getSecData('gifts')?.transfer?.accountNumber" (ngModelChange)="setSecNestedData('gifts', 'transfer', 'accountNumber', $event)">
+                </div>
+              }
+            }
+
+            @if (el.type === 'rsvp-form') {
+              <div class="builder-prop-category">Confirmación / Registro</div>
+              <div class="prop-field full">
+                <label>Título</label>
+                <input class="builder-input" [ngModel]="getSecData('rsvp')?.title" (ngModelChange)="setSecData('rsvp', 'title', $event)">
+              </div>
+            }
+
             <!-- Actions -->
             <div class="builder-prop-divider"></div>
             <div class="prop-actions">
@@ -555,6 +723,41 @@ interface BuilderSection {
       color: rgba(255,255,255,0.7); font-size: 12px;
       .material-icons { font-size: 18px; color: var(--gold-light); }
     }
+    .block-items-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 12px 0 8px; padding: 0 2px;
+      span { font-size: 11px; color: rgba(139,92,246,0.8); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    }
+    .block-item {
+      padding: 8px; margin-bottom: 6px; border-radius: 6px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .block-item-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .block-item-num {
+      font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 600;
+      width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: rgba(139,92,246,0.1);
+    }
+    .photo-mini-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 4px;
+      margin-top: 8px;
+    }
+    .photo-mini-item {
+      position: relative; aspect-ratio: 1; border-radius: 4px; overflow: hidden;
+      img { width: 100%; height: 100%; object-fit: cover; }
+    }
+    .photo-mini-delete {
+      position: absolute; top: 1px; right: 1px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: rgba(0,0,0,0.7); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+      .material-icons { font-size: 10px; color: #ef4444; }
+    }
+    .photo-mini-item:hover .photo-mini-delete { opacity: 1; }
     .builder-advanced-link {
       display: flex; align-items: center; gap: 8px; font-size: 12px;
       color: var(--gold-light); text-decoration: none; padding: 8px 10px;
@@ -602,6 +805,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
       this.canvasState.initializeState(v2);
       this.buildSections(v2);
     });
+    // Load related data
+    this.loadItinerary();
+    this.loadPhotos();
   }
 
   ngOnDestroy() {
@@ -788,6 +994,169 @@ export class BuilderComponent implements OnInit, OnDestroy {
     (cfg as any)[sectionKey][prop] = value;
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();
+  }
+
+  /** Get section data object for reading block properties */
+  getSecData(sectionKey: string): any {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return null;
+    return (cfg as any)[sectionKey] || null;
+  }
+
+  /** Set a property on a section's config (not canvas element) */
+  setSecData(sectionKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg as any)[sectionKey][prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Set nested property (e.g., gifts.transfer.bank) */
+  setSecNestedData(sectionKey: string, nestedKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    const section = (cfg as any)[sectionKey];
+    if (!section[nestedKey]) section[nestedKey] = {};
+    section[nestedKey][prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== Detail Cards =====
+
+  addDetailCard() {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    if (!cfg.details.cards) cfg.details.cards = [];
+    cfg.details.cards.push({
+      id: 'card-' + Date.now(), iconType: 'none', icon: '', iconUrl: '',
+      title: 'Nuevo detalle', content: '', textAlign: 'center'
+    });
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  removeDetailCard(index: number) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    cfg.details.cards.splice(index, 1);
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  updateDetailCard(index: number, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg || !cfg.details.cards[index]) return;
+    (cfg.details.cards[index] as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== Venues =====
+
+  addVenue() {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    if (!cfg.venues.items) cfg.venues.items = [];
+    cfg.venues.items.push({
+      id: 'venue-' + Date.now(), title: '', icon: 'place',
+      name: 'Nuevo lugar', address: '', time: '', mapsUrl: ''
+    });
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  removeVenue(index: number) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    cfg.venues.items.splice(index, 1);
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  updateVenueItem(index: number, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg || !cfg.venues.items[index]) return;
+    (cfg.venues.items[index] as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== Itinerary =====
+
+  itineraryItems = signal<any[]>([]);
+
+  addItineraryItem() {
+    this.api.addItineraryItem(this.eventId, {
+      time: '', title: 'Nueva actividad', description: '', icon: '⏰', iconType: 'emoji', sort_order: this.itineraryItems().length
+    }).subscribe(() => this.loadItinerary());
+  }
+
+  removeItineraryItem(index: number) {
+    const item = this.itineraryItems()[index];
+    if (!item?.id) return;
+    this.api.deleteItineraryItem(this.eventId, item.id).subscribe(() => this.loadItinerary());
+  }
+
+  updateItineraryItem(index: number, prop: string, value: any) {
+    const item = this.itineraryItems()[index];
+    if (!item?.id) return;
+    (item as any)[prop] = value;
+    this.api.updateItineraryItem(this.eventId, item.id, item).subscribe();
+  }
+
+  private loadItinerary() {
+    this.api.getItinerary(this.eventId).subscribe(items => this.itineraryItems.set(items));
+  }
+
+  // ===== Dresscode =====
+
+  addDresscodeCard() {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    if (!cfg.dresscode.cards) cfg.dresscode.cards = [];
+    cfg.dresscode.cards.push({ id: 'dc-' + Date.now(), title: 'Nuevo ejemplo', description: '', images: [] });
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  removeDresscodeCard(index: number) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg || !cfg.dresscode.cards) return;
+    cfg.dresscode.cards.splice(index, 1);
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  updateDresscodeCard(index: number, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg || !cfg.dresscode.cards?.[index]) return;
+    (cfg.dresscode.cards[index] as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== Photos =====
+
+  photos = signal<any[]>([]);
+
+  uploadPhotos() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
+    input.onchange = () => {
+      if (!input.files?.length) return;
+      this.api.uploadPhotos(this.eventId, input.files).subscribe(() => this.loadPhotos());
+    };
+    input.click();
+  }
+
+  deletePhoto(photoId: number) {
+    this.api.deletePhoto(this.eventId, photoId).subscribe(() => this.loadPhotos());
+  }
+
+  private loadPhotos() {
+    this.api.getPhotos(this.eventId).subscribe(p => this.photos.set(p));
   }
 
   uploadSecProp(sectionKey: string, prop: string, type: 'images' | 'audio' | 'gifs') {
