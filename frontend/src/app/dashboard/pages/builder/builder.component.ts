@@ -467,12 +467,116 @@ interface BuilderSection {
             <!-- Section background style -->
             <div class="builder-prop-category">Fondo de sección</div>
             <div class="prop-field full">
-              <label>Color principal</label>
-              <app-color-picker [value]="getSecStyleProp('bgColor1') || '#0d1117'" (valueChange)="setSecStyleProp('bgColor1', $event)"></app-color-picker>
+              <label>Tipo</label>
+              <div class="prop-btn-row">
+                <button [class.active]="!getSecStyleProp('bgType') || getSecStyleProp('bgType') === 'inherit'" (click)="setSecStyleProp('bgType', 'inherit')">Hereda</button>
+                <button [class.active]="getSecStyleProp('bgType') === 'solid'" (click)="setSecStyleProp('bgType', 'solid')">Sólido</button>
+                <button [class.active]="getSecStyleProp('bgType') === 'linear'" (click)="setSecStyleProp('bgType', 'linear')">Degradado</button>
+                <button [class.active]="getSecStyleProp('bgType') === 'image'" (click)="setSecStyleProp('bgType', 'image')">Imagen</button>
+              </div>
+            </div>
+            @if (getSecStyleProp('bgType') === 'solid' || getSecStyleProp('bgType') === 'linear') {
+              <div class="prop-field full">
+                <label>Color 1</label>
+                <app-color-picker [value]="getSecStyleProp('bgColor1') || '#ffffff'" (valueChange)="setSecStyleProp('bgColor1', $event)"></app-color-picker>
+              </div>
+            }
+            @if (getSecStyleProp('bgType') === 'linear') {
+              <div class="prop-field full">
+                <label>Color 2</label>
+                <app-color-picker [value]="getSecStyleProp('bgColor2') || '#f0f0f0'" (valueChange)="setSecStyleProp('bgColor2', $event)"></app-color-picker>
+              </div>
+              <div class="prop-field full">
+                <label>Ángulo: {{ getSecStyleProp('bgAngle') || 180 }}°</label>
+                <input type="range" min="0" max="360" [ngModel]="getSecStyleProp('bgAngle') || 180" (ngModelChange)="setSecStyleProp('bgAngle', +$event)">
+              </div>
+            }
+            @if (getSecStyleProp('bgType') === 'image') {
+              <div class="prop-field full">
+                <label>Imagen de fondo</label>
+                <div class="builder-upload-row">
+                  @if (getSecStyleProp('bgImage')) {
+                    <span class="builder-upload-ok">✔ Cargada</span>
+                    <button class="builder-btn-small danger" (click)="setSecStyleProp('bgImage', '')">Quitar</button>
+                  } @else {
+                    <button class="builder-btn-small" (click)="uploadSecBgImage()">Subir</button>
+                  }
+                </div>
+              </div>
+              <div class="prop-field full">
+                <label>Overlay: {{ getSecStyleProp('bgOverlay') ?? 50 }}%</label>
+                <input type="range" min="0" max="100" [ngModel]="getSecStyleProp('bgOverlay') ?? 50" (ngModelChange)="setSecStyleProp('bgOverlay', +$event)">
+              </div>
+            }
+
+            <!-- Transición / Divider -->
+            <div class="builder-prop-category">Transición superior</div>
+            <div class="prop-field full">
+              <label>Forma</label>
+              <div class="prop-btn-row" style="flex-wrap:wrap;">
+                <button [class.active]="!getSecStyleProp('dividerType') || getSecStyleProp('dividerType') === 'none'" (click)="setSecStyleProp('dividerType', 'none')">Ninguna</button>
+                <button [class.active]="getSecStyleProp('dividerType') === 'wave'" (click)="setSecStyleProp('dividerType', 'wave')">∿ Onda</button>
+                <button [class.active]="getSecStyleProp('dividerType') === 'curve'" (click)="setSecStyleProp('dividerType', 'curve')">⌒ Curva</button>
+                <button [class.active]="getSecStyleProp('dividerType') === 'slant'" (click)="setSecStyleProp('dividerType', 'slant')">╱ Diagonal</button>
+                <button [class.active]="getSecStyleProp('dividerType') === 'zigzag'" (click)="setSecStyleProp('dividerType', 'zigzag')">∧∧ Zigzag</button>
+                <button [class.active]="getSecStyleProp('dividerType') === 'mountains'" (click)="setSecStyleProp('dividerType', 'mountains')">⛰ Montañas</button>
+                <button [class.active]="getSecStyleProp('dividerType') === 'arrow'" (click)="setSecStyleProp('dividerType', 'arrow')">▽ Flecha</button>
+              </div>
+            </div>
+            @if (getSecStyleProp('dividerType') && getSecStyleProp('dividerType') !== 'none') {
+              <div class="prop-grid">
+                <div class="prop-field">
+                  <label>Alto: {{ getSecStyleProp('dividerHeight') || 50 }}px</label>
+                  <input type="range" min="20" max="100" [ngModel]="getSecStyleProp('dividerHeight') || 50" (ngModelChange)="setSecStyleProp('dividerHeight', +$event)">
+                </div>
+                <div class="prop-field">
+                  <label>Invertir</label>
+                  <div class="prop-toggle" (click)="setSecStyleProp('dividerFlip', !getSecStyleProp('dividerFlip'))">
+                    <span class="material-icons">{{ getSecStyleProp('dividerFlip') ? 'check_box' : 'check_box_outline_blank' }}</span>
+                    <span>{{ getSecStyleProp('dividerFlip') ? 'Sí' : 'No' }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Colores de texto override -->
+            <div class="builder-prop-category">Colores de texto (override)</div>
+            <div class="prop-field full">
+              <label>Color títulos</label>
+              <app-color-picker [value]="getSecStyleProp('headingColor') || ''" (valueChange)="setSecStyleProp('headingColor', $event)"></app-color-picker>
+            </div>
+            <div class="prop-field full">
+              <label>Color contenido</label>
+              <app-color-picker [value]="getSecStyleProp('contentColor') || ''" (valueChange)="setSecStyleProp('contentColor', $event)"></app-color-picker>
+            </div>
+            <button class="builder-btn-small" style="margin-top:4px" (click)="clearSecTextOverrides()">Limpiar colores</button>
+
+            <!-- Animación de entrada -->
+            <div class="builder-prop-category">Animación de entrada</div>
+            <div class="prop-field full">
+              <div class="prop-btn-row" style="flex-wrap:wrap;">
+                <button [class.active]="!getSecStyleProp('animation') || getSecStyleProp('animation') === 'inherit'" (click)="setSecStyleProp('animation', 'inherit')">Hereda</button>
+                <button [class.active]="getSecStyleProp('animation') === 'fade-up'" (click)="setSecStyleProp('animation', 'fade-up')">↑ Fade</button>
+                <button [class.active]="getSecStyleProp('animation') === 'scale'" (click)="setSecStyleProp('animation', 'scale')">⊕ Scale</button>
+                <button [class.active]="getSecStyleProp('animation') === 'none'" (click)="setSecStyleProp('animation', 'none')">✕ Ninguna</button>
+              </div>
+            </div>
+
+            <!-- Spacing -->
+            <div class="builder-prop-category">Espaciado</div>
+            <div class="prop-grid">
+              <div class="prop-field">
+                <label>Padding top: {{ getSecStyleProp('paddingTop') ?? 80 }}px</label>
+                <input type="range" min="0" max="160" [ngModel]="getSecStyleProp('paddingTop') ?? 80" (ngModelChange)="setSecStyleProp('paddingTop', +$event)">
+              </div>
+              <div class="prop-field">
+                <label>Padding bottom: {{ getSecStyleProp('paddingBottom') ?? 80 }}px</label>
+                <input type="range" min="0" max="160" [ngModel]="getSecStyleProp('paddingBottom') ?? 80" (ngModelChange)="setSecStyleProp('paddingBottom', +$event)">
+              </div>
             </div>
 
             <div class="builder-prop-divider"></div>
-            <p class="props-hint">Selecciona un elemento del canvas para editar sus propiedades, o agrega uno nuevo desde el panel izquierdo.</p>
+            <p class="props-hint">Selecciona un elemento para editar sus propiedades individuales.</p>
 
             <a [routerLink]="['/dashboard/config', eventId]" class="builder-advanced-link">
               <span class="material-icons">settings</span>
@@ -1187,11 +1291,41 @@ export class BuilderComponent implements OnInit, OnDestroy {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return;
     const section = (cfg as any)[key];
-    if (!section.sectionStyle) section.sectionStyle = { bgType: 'solid', dividerType: 'none' };
+    if (!section.sectionStyle) section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
     section.sectionStyle[prop] = value;
-    if (prop === 'bgColor1') section.sectionStyle.bgType = 'solid';
+    if (prop === 'bgColor1' && !section.sectionStyle.bgType) section.sectionStyle.bgType = 'solid';
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();
+  }
+
+  clearSecTextOverrides() {
+    const key = this.canvasState.selectedSection();
+    if (!key) return;
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    const section = (cfg as any)[key];
+    if (section?.sectionStyle) {
+      section.sectionStyle.headingColor = '';
+      section.sectionStyle.contentColor = '';
+    }
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  uploadSecBgImage() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      this.api.uploadFile('images', file).subscribe({
+        next: (res) => {
+          this.setSecStyleProp('bgImage', res.url);
+          this.setSecStyleProp('bgType', 'image');
+        }
+      });
+    };
+    input.click();
   }
 
   // ===== Save =====
