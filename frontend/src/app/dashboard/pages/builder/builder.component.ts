@@ -51,12 +51,6 @@ interface BuilderSection {
           <span class="material-icons">redo</span>
         </button>
         <div class="builder-tb-sep"></div>
-        <!-- Mode toggle: Edit / Preview -->
-        <button class="builder-mode-toggle" [class.preview]="viewMode() === 'preview'" (click)="toggleViewMode()">
-          <span class="material-icons">{{ viewMode() === 'edit' ? 'visibility' : 'edit' }}</span>
-          <span>{{ viewMode() === 'edit' ? 'Preview' : 'Edición' }}</span>
-        </button>
-        <div class="builder-tb-sep"></div>
         <button class="builder-device-btn" [class.active]="previewDevice() === 'mobile'" (click)="previewDevice.set('mobile')">
           <span class="material-icons">phone_iphone</span>
         </button>
@@ -119,120 +113,58 @@ interface BuilderSection {
         }
       </aside>
 
-      <!-- Center: Canvas -->
+      <!-- Center: Canvas (renders real landing components) -->
       <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
         <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
           @if (canvasState.config()) {
-            <!-- ===== PREVIEW MODE: Real landing components ===== -->
-            @if (viewMode() === 'preview') {
               <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()!.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()!.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()!.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()!.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()!.theme.buttonText || '#1a1a2e'" [style.background]="getCanvasLandingBg()">
                 @if (canvasState.config()!.envelope.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('envelope'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
                     <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
                 @if (canvasState.config()!.intro.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('intro'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
                     <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()!.theme.navFooterText || '#d4a017'" [themeBg]="canvasState.config()!.theme.cardBg || ''" [themeBorder]="canvasState.config()!.theme.cardBorder || ''" />
                   </div>
                 }
-                <div class="preview-section-click" (click)="selectSection('hero'); $event.stopPropagation()">
+                <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
                   <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
                 </div>
-                <div class="preview-section-click" (click)="selectSection('invitation'); $event.stopPropagation()">
+                <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'invitation'" (click)="selectSection('invitation'); $event.stopPropagation()">
                   <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="null" [styles]="canvasState.config()!.globalStyles" />
                 </div>
                 @if (canvasState.config()!.details.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('details'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'details'" (click)="selectSection('details'); $event.stopPropagation()">
                     <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
                 @if (canvasState.config()!.venues.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('venues'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'venues'" (click)="selectSection('venues'); $event.stopPropagation()">
                     <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
                 @if (canvasState.config()!.itinerary.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('itinerary'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'itinerary'" (click)="selectSection('itinerary'); $event.stopPropagation()">
                     <app-landing-itinerary [config]="canvasState.config()!.itinerary" [items]="itineraryItems()" [styles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
                 @if (canvasState.config()!.gallery.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('gallery'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'gallery'" (click)="selectSection('gallery'); $event.stopPropagation()">
                     <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
                 @if (canvasState.config()!.dresscode.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('dresscode'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'dresscode'" (click)="selectSection('dresscode'); $event.stopPropagation()">
                     <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
                 @if (canvasState.config()!.gifts.enabled) {
-                  <div class="preview-section-click" (click)="selectSection('gifts'); $event.stopPropagation()">
+                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'gifts'" (click)="selectSection('gifts'); $event.stopPropagation()">
                     <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()!.globalStyles" />
                   </div>
                 }
               </div>
-            } @else {
-            <!-- ===== EDIT MODE: Canvas with draggable elements ===== -->
-            @for (section of sections(); track section.key) {
-              @if (section.enabled) {
-                <!-- Special preview for Envelope -->
-                @if (section.key === 'envelope') {
-                  <div class="canvas-section-wrapper"
-                       [class.active-section]="canvasState.selectedSection() === 'envelope'"
-                       (click)="selectSection('envelope'); $event.stopPropagation()">
-                    <div class="canvas-section-label">Pantalla de Inicio</div>
-                    <div class="canvas-preview-envelope" [style.background]="getSecProp('envelope', 'bgColor') || '#0d1117'">
-                      <div class="envelope-preview-inner">
-                        <div class="envelope-icon" [style.background]="getSecProp('envelope', 'sealColor') || '#8b0000'">
-                          <span style="font-size:14px;color:white;">{{ getSecProp('envelope', 'sealText') || '♥' }}</span>
-                        </div>
-                        <p class="envelope-preview-text" [style.color]="getSecProp('envelope', 'textColor') || '#ffffff'">
-                          {{ getSecProp('envelope', 'instructionText') || 'Toca para abrir' }}
-                        </p>
-                        <span class="envelope-template-badge">{{ getSecProp('envelope', 'template') || 'envelope' }}</span>
-                      </div>
-                    </div>
-                  </div>
-                }
-                <!-- Special preview for Intro -->
-                @else if (section.key === 'intro') {
-                  <div class="canvas-section-wrapper"
-                       [class.active-section]="canvasState.selectedSection() === 'intro'"
-                       (click)="selectSection('intro'); $event.stopPropagation()">
-                    <div class="canvas-section-label">Intro</div>
-                    <div class="canvas-preview-intro">
-                      @if (getSecProp('intro', 'background')) {
-                        <div class="intro-preview-bg" [style.background-image]="'url(' + getSecProp('intro', 'background') + ')'"></div>
-                      }
-                      <p class="intro-preview-phrase">{{ getSecProp('intro', 'phrase') || 'Frase de intro...' }}</p>
-                      <span class="intro-preview-duration">{{ getSecProp('intro', 'duration') || 5 }}s</span>
-                    </div>
-                  </div>
-                }
-                <!-- Normal canvas sections -->
-                @else {
-                  <div class="canvas-section-wrapper"
-                       [class.active-section]="canvasState.selectedSection() === section.key"
-                       (click)="selectSection(section.key); $event.stopPropagation()">
-                    <div class="canvas-section-label">{{ section.label }}</div>
-                    <app-section-canvas
-                      [sectionKey]="section.key"
-                      [elements]="getSectionElements(section.key)"
-                      [minHeight]="getSectionMinHeight(section.key)"
-                      [background]="getSectionBg(section.key)" />
-                  </div>
-                }
-              } @else {
-                <div class="canvas-section-disabled" (click)="selectSection(section.key); $event.stopPropagation()">
-                  <span class="material-icons">{{ section.icon }}</span>
-                  <span>{{ section.label }} (deshabilitada)</span>
-                  <button class="btn-enable" (click)="toggleSection(section.key); $event.stopPropagation()">Activar</button>
-                </div>
-              }
-            }
-            }
           }
         </div>
       </div>
@@ -872,8 +804,107 @@ interface BuilderSection {
             </div>
 
             <div class="builder-prop-divider"></div>
-            <p class="props-hint">Selecciona un elemento para editar sus propiedades individuales.</p>
 
+            <!-- Section-specific content properties -->
+            @if (canvasState.selectedSection() === 'gallery') {
+              <div class="builder-prop-category">Galería</div>
+              <div class="prop-field full">
+                <label>Estilo de galería</label>
+                <select class="builder-input" [ngModel]="getSecProp('gallery', 'displayStyle') || 'carousel-3d'" (ngModelChange)="setSecData('gallery', 'displayStyle', $event)">
+                  <option value="carousel-3d">Carrusel 3D</option>
+                  <option value="carousel-vertical">Carrusel Vertical</option>
+                  <option value="coverflow">Coverflow</option>
+                  <option value="stack">Stack/Abanico</option>
+                  <option value="flip">Flip/Album</option>
+                  <option value="polaroid">Polaroid</option>
+                  <option value="grid">Mosaico</option>
+                  <option value="slideshow">Slideshow</option>
+                </select>
+              </div>
+              <div class="block-items-header">
+                <span>Fotos ({{ photos().length }})</span>
+                <button class="builder-btn-small" (click)="uploadPhotos()">+ Subir fotos</button>
+              </div>
+              <div class="photo-mini-grid">
+                @for (photo of photos(); track photo.id) {
+                  <div class="photo-mini-item">
+                    <img [src]="photo.url">
+                    <button class="photo-mini-delete" (click)="deletePhoto(photo.id)"><span class="material-icons">close</span></button>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (canvasState.selectedSection() === 'details') {
+              <div class="builder-prop-category">Cards de detalles</div>
+              <div class="prop-field full"><label>Título</label><input class="builder-input" [ngModel]="getSecData('details')?.title" (ngModelChange)="setSecData('details', 'title', $event)"></div>
+              <div class="block-items-header"><span>Cards ({{ getSecData('details')?.cards?.length || 0 }})</span><button class="builder-btn-small" (click)="addDetailCard()">+ Agregar</button></div>
+              @for (card of getSecData('details')?.cards || []; track card.id; let i = $index) {
+                <div class="block-item"><div class="block-item-header"><span class="block-item-num">{{ i + 1 }}</span><button class="prop-action-btn danger" (click)="removeDetailCard(i)"><span class="material-icons">close</span></button></div>
+                  <input class="builder-input" [ngModel]="card.title" (ngModelChange)="updateDetailCard(i, 'title', $event)" placeholder="Título">
+                  <textarea class="builder-input" style="min-height:40px" [ngModel]="card.content" (ngModelChange)="updateDetailCard(i, 'content', $event)" placeholder="Contenido"></textarea>
+                </div>
+              }
+            }
+
+            @if (canvasState.selectedSection() === 'venues') {
+              <div class="builder-prop-category">Lugares</div>
+              <div class="block-items-header"><span>Venues ({{ getSecData('venues')?.items?.length || 0 }})</span><button class="builder-btn-small" (click)="addVenue()">+ Agregar</button></div>
+              @for (item of getSecData('venues')?.items || []; track item.id; let i = $index) {
+                <div class="block-item"><div class="block-item-header"><span class="block-item-num">{{ i + 1 }}</span><button class="prop-action-btn danger" (click)="removeVenue(i)"><span class="material-icons">close</span></button></div>
+                  <input class="builder-input" [ngModel]="item.name" (ngModelChange)="updateVenueItem(i, 'name', $event)" placeholder="Nombre">
+                  <input class="builder-input" [ngModel]="item.address" (ngModelChange)="updateVenueItem(i, 'address', $event)" placeholder="Dirección">
+                  <input class="builder-input" [ngModel]="item.time" (ngModelChange)="updateVenueItem(i, 'time', $event)" placeholder="Hora">
+                  <input class="builder-input" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenueItem(i, 'mapsUrl', $event)" placeholder="Link Maps">
+                </div>
+              }
+            }
+
+            @if (canvasState.selectedSection() === 'itinerary') {
+              <div class="builder-prop-category">Itinerario</div>
+              <div class="prop-field full"><label>Título</label><input class="builder-input" [ngModel]="getSecData('itinerary')?.title" (ngModelChange)="setSecData('itinerary', 'title', $event)"></div>
+              <div class="block-items-header"><span>Actividades ({{ itineraryItems().length }})</span><button class="builder-btn-small" (click)="addItineraryItem()">+ Agregar</button></div>
+              @for (item of itineraryItems(); track item.id; let i = $index) {
+                <div class="block-item"><div class="block-item-header"><span class="block-item-num">{{ i + 1 }}</span><button class="prop-action-btn danger" (click)="removeItineraryItem(i)"><span class="material-icons">close</span></button></div>
+                  <input class="builder-input" [ngModel]="item.time" (ngModelChange)="updateItineraryItem(i, 'time', $event)" placeholder="Hora">
+                  <input class="builder-input" [ngModel]="item.title" (ngModelChange)="updateItineraryItem(i, 'title', $event)" placeholder="Título">
+                  <input class="builder-input" [ngModel]="item.description" (ngModelChange)="updateItineraryItem(i, 'description', $event)" placeholder="Descripción">
+                </div>
+              }
+            }
+
+            @if (canvasState.selectedSection() === 'dresscode') {
+              <div class="builder-prop-category">Vestimenta</div>
+              <div class="prop-field full"><label>Título</label><input class="builder-input" [ngModel]="getSecData('dresscode')?.title" (ngModelChange)="setSecData('dresscode', 'title', $event)"></div>
+              <div class="block-items-header"><span>Cards ({{ getSecData('dresscode')?.cards?.length || 0 }})</span><button class="builder-btn-small" (click)="addDresscodeCard()">+ Agregar</button></div>
+              @for (card of getSecData('dresscode')?.cards || []; track card.id; let i = $index) {
+                <div class="block-item"><div class="block-item-header"><span class="block-item-num">{{ i + 1 }}</span><button class="prop-action-btn danger" (click)="removeDresscodeCard(i)"><span class="material-icons">close</span></button></div>
+                  <input class="builder-input" [ngModel]="card.title" (ngModelChange)="updateDresscodeCard(i, 'title', $event)" placeholder="Título">
+                  <textarea class="builder-input" style="min-height:40px" [ngModel]="card.description" (ngModelChange)="updateDresscodeCard(i, 'description', $event)" placeholder="Descripción"></textarea>
+                </div>
+              }
+            }
+
+            @if (canvasState.selectedSection() === 'gifts') {
+              <div class="builder-prop-category">Regalos</div>
+              <div class="prop-field full"><label>Título</label><input class="builder-input" [ngModel]="getSecData('gifts')?.title" (ngModelChange)="setSecData('gifts', 'title', $event)"></div>
+              <div class="prop-field full"><label>Descripción</label><textarea class="builder-input" style="min-height:40px" [ngModel]="getSecData('gifts')?.description" (ngModelChange)="setSecData('gifts', 'description', $event)"></textarea></div>
+              <div class="prop-field full"><label>Link mesa</label><input class="builder-input" [ngModel]="getSecData('gifts')?.link" (ngModelChange)="setSecData('gifts', 'link', $event)" placeholder="https://..."></div>
+              <div class="prop-field full"><label>Texto botón</label><input class="builder-input" [ngModel]="getSecData('gifts')?.buttonText" (ngModelChange)="setSecData('gifts', 'buttonText', $event)"></div>
+            }
+
+            @if (canvasState.selectedSection() === 'rsvp') {
+              <div class="builder-prop-category">Confirmación</div>
+              <div class="prop-field full"><label>Título</label><input class="builder-input" [ngModel]="getSecData('rsvp')?.title" (ngModelChange)="setSecData('rsvp', 'title', $event)"></div>
+            }
+
+            @if (canvasState.selectedSection() === 'invitation') {
+              <div class="builder-prop-category">Invitación</div>
+              <div class="prop-field full"><label>Título</label><input class="builder-input" [ngModel]="getSecData('invitation')?.title" (ngModelChange)="setSecData('invitation', 'title', $event)"></div>
+              <div class="prop-field full"><label>Subtítulo</label><textarea class="builder-input" style="min-height:50px" [ngModel]="getSecData('invitation')?.subtitle" (ngModelChange)="setSecData('invitation', 'subtitle', $event)"></textarea></div>
+            }
+
+            <div class="builder-prop-divider"></div>
             <a [routerLink]="['/dashboard/config', eventId]" class="builder-advanced-link">
               <span class="material-icons">settings</span>
               Configuración avanzada
@@ -1064,7 +1095,8 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 1 !important; }
     .preview-section-click {
       cursor: pointer; transition: outline 0.2s;
-      &:hover { outline: 2px dashed rgba(139,92,246,0.4); outline-offset: -2px; }
+      &:hover { outline: 2px dashed rgba(139,92,246,0.3); outline-offset: -2px; }
+      &.section-active { outline: 2px solid rgba(139,92,246,0.6); outline-offset: -2px; }
     }
     .envelope-preview-inner {
       display: flex; flex-direction: column; align-items: center; gap: 12px;

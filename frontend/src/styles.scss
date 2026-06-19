@@ -326,6 +326,12 @@ body.light-mode .builder-tb-btn { background: #f0f0f5 !important; color: #666 !i
 body.light-mode .builder-tb-btn:hover:not(:disabled) { background: rgba(124,92,191,0.1) !important; color: var(--gold) !important; }
 body.light-mode .builder-advanced-link { color: var(--gold) !important; }
 body.light-mode .props-hint { color: #666 !important; }
+body.light-mode .color-swatch { border-color: #ccc !important; }
+body.light-mode .color-hex-input { background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important; }
+body.light-mode .color-copy-btn { color: #999 !important; }
+body.light-mode .color-copy-btn:hover { color: var(--gold) !important; }
+body.light-mode input[type="range"] { accent-color: var(--gold); }
+body.light-mode .builder-props .prop-field input[type="range"] { accent-color: var(--gold); }
 
 /* Cards editor panel */
 body.light-mode .panel { color: #333; }
