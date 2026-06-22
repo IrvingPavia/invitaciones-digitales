@@ -68,7 +68,7 @@ interface BuilderSection {
 
     <div class="builder-layout">
       <!-- Left Panel: Sections + Elements -->
-      <aside class="builder-panel builder-panel-left">
+      <aside class="builder-panel builder-panel-left" [class.mobile-open]="showLeftPanel()">
         <div class="builder-panel-header">
           <span class="material-icons">layers</span>
           <span>Secciones</span>
@@ -168,6 +168,11 @@ interface BuilderSection {
           }
         </div>
       </div>
+
+      <!-- FAB toggle sections panel (mobile) -->
+      <button class="builder-sections-fab" (click)="showLeftPanel.set(!showLeftPanel())" title="Secciones">
+        <span class="material-icons">{{ showLeftPanel() ? 'close' : 'layers' }}</span>
+      </button>
 
       <!-- FAB toggle props -->
       <button class="builder-props-fab" [class.active]="showProps()" (click)="showProps.set(!showProps())" title="Propiedades">
@@ -1086,18 +1091,26 @@ interface BuilderSection {
       position: relative; border-radius: 4px;
     }
     .preview-mode-canvas {
-      min-height: 100%; position: relative;
+      min-height: 100%; position: relative; overflow: hidden;
       --font-sans: 'Lato', sans-serif;
       --font-serif: 'Playfair Display', serif;
       --font-script: 'Great Vibes', cursive;
       --gold: #d4a017; --gold-light: #e6c655;
     }
     .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 1 !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; min-height: 300px; inset: auto !important; }
+    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; min-height: 300px; inset: auto !important; }
+    .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
+    .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
+    .preview-mode-canvas ::ng-deep [style*="position: fixed"],
+    .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
-      cursor: pointer; transition: outline 0.2s;
+      cursor: pointer; transition: outline 0.2s; position: relative;
       &:hover { outline: 2px dashed rgba(139,92,246,0.3); outline-offset: -2px; }
       &.section-active { outline: 2px solid rgba(139,92,246,0.6); outline-offset: -2px; }
     }
+    /* Block pointer events on inner content so clicks go to the wrapper */
+    .preview-section-click > * { pointer-events: none; }
     .envelope-preview-inner {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
     }
@@ -1148,6 +1161,17 @@ interface BuilderSection {
       &:hover { transform: scale(1.1); }
       &.active { background: rgba(239,68,68,0.85); }
       &.active .material-icons { transform: rotate(90deg); }
+    }
+    .builder-sections-fab {
+      position: absolute; top: 8px; left: 8px; z-index: 25;
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: rgba(139,92,246,0.9); color: white;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(139,92,246,0.4);
+      transition: transform 0.3s, background 0.2s;
+      display: none;
+      .material-icons { font-size: 18px; }
+      &:hover { transform: scale(1.1); }
     }
 
     .builder-props { padding: 14px; }
@@ -1273,7 +1297,13 @@ interface BuilderSection {
 
     @media (max-width: 768px) {
       .builder-layout { grid-template-columns: 1fr; }
-      .builder-panel-left { display: none; }
+      .builder-panel-left {
+        display: none;
+        position: fixed; top: 48px; bottom: 0; left: 0; z-index: 100;
+        width: 260px; box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+      }
+      .builder-panel-left.mobile-open { display: block; }
+      .builder-sections-fab { display: flex; }
       .builder-save-text { display: none; }
       .builder-canvas-viewport.mobile { width: 100%; border-radius: 0; }
     }
@@ -1293,6 +1323,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   saving = signal(false);
   saveStatus = signal<'idle' | 'saved'>('idle');
   showProps = signal(false);
+  showLeftPanel = signal(false);
   eventData = signal<any>({ name: '', event_date: '', slug: '' });
   private autoSaveTimer: any = null;
 
