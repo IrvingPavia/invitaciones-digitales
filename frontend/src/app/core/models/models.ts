@@ -202,6 +202,9 @@ export interface IntroConfig {
   videoStart?: number;
   videoEnd?: number;
   videoDuration?: number;
+  useVideoDuration?: boolean;
+  showSkip?: boolean;
+  transition?: 'fade' | 'slide-up' | 'slide-down' | 'zoom-in' | 'zoom-out' | 'blur' | 'none';
   phraseStyle?: {
     fontFamily: string;
     fontSize: number;

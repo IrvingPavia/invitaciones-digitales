@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, DoCheck, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
 
@@ -7,10 +7,10 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="intro-overlay" [class.fade-out]="fading" (click)="onTap()">
+    <div class="intro-overlay" [class.fade-out]="fading" [attr.data-transition]="config.transition || 'fade'" (click)="onTap()">
       @if (config.background) {
         @if (isVideo(config.background)) {
-          <video #introVideo class="intro-bg-video" loop muted playsinline [src]="config.background"></video>
+          <video #introVideo class="intro-bg-video" [attr.loop]="previewLoop ? null : true" muted playsinline [src]="config.background"></video>
           <div class="intro-bg-overlay"></div>
           @if (showPlayHint) {
             <div class="play-hint"><span class="material-icons">touch_app</span><span>Toca para iniciar</span></div>
@@ -37,9 +37,14 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
            [style.font-weight]="config.phraseStyle?.fontWeight || 400"
         >{{ config.phrase }}</p>
         <div class="intro-progress">
-          <div class="intro-progress-bar" [style.background]="themeColor" [style.animation-duration]="config.duration + 's'"></div>
+          @if (!fading || !previewLoop) {
+            <div class="intro-progress-bar" [style.background]="themeColor" [style.animation-duration]="effectiveDuration + 's'"></div>
+          }
         </div>
       </div>
+      @if (config.showSkip !== false) {
+        <button class="intro-skip" (click)="skip(); $event.stopPropagation()">Saltar</button>
+      }
     </div>
   `,
   styles: [`
@@ -47,10 +52,17 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       position: fixed; inset: 0; z-index: 9999;
       display: flex; align-items: flex-end; justify-content: center;
       padding-bottom: 80px;
-      transition: opacity 1.2s ease;
       animation: introFadeIn 0.8s ease both;
     }
-    .intro-overlay.fade-out { opacity: 0; pointer-events: none; }
+    .intro-overlay.fade-out { pointer-events: none; transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease; }
+    /* Transition variants - only apply on fade-out */
+    .intro-overlay[data-transition="fade"].fade-out { opacity: 0; }
+    .intro-overlay[data-transition="slide-up"].fade-out { opacity: 0; transform: translateY(-100%); }
+    .intro-overlay[data-transition="slide-down"].fade-out { opacity: 0; transform: translateY(100%); }
+    .intro-overlay[data-transition="zoom-in"].fade-out { opacity: 0; transform: scale(1.5); }
+    .intro-overlay[data-transition="zoom-out"].fade-out { opacity: 0; transform: scale(0.3); }
+    .intro-overlay[data-transition="blur"].fade-out { opacity: 0; filter: blur(20px); transform: scale(1.1); }
+    .intro-overlay[data-transition="none"].fade-out { opacity: 0; transition: opacity 0.05s; }
     @keyframes introFadeIn { from { opacity: 0; } to { opacity: 1; } }
     .intro-bg {
       position: absolute; inset: 0;
@@ -91,6 +103,14 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
     .intro-progress-bar {
       height: 100%; width: 0;
       animation: progressFill linear forwards;
+    }
+    .intro-skip {
+      position: absolute; top: 16px; right: 16px; z-index: 5;
+      padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+      color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+      &:hover { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.5); }
     }
     .intro-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
     .particle {
@@ -192,18 +212,21 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
     }
   `]
 })
-export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
+export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, DoCheck {
   @Input() config!: IntroConfig;
   @Input() themeColor: string = '#d4a017';
   @Input() themeBg: string = '';
   @Input() themeBorder: string = '';
+  @Input() previewLoop = false;
   @Output() done = new EventEmitter<void>();
   @ViewChild('introVideo') introVideo?: ElementRef<HTMLVideoElement>;
   fading = false;
   particles: string[] = [];
   showPlayHint = false;
+  loopKey = 0;
   private timer: any;
   private timerStarted = false;
+  private lastParticlesKey = '';
 
   isVideo(url: string): boolean {
     if (!url) return false;
@@ -218,12 +241,17 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.config.videoStart) {
         video.currentTime = this.config.videoStart;
       }
-      // Try autoplay — if blocked, show tap hint
+      // Try autoplay — if blocked, show tap hint (only in non-loop mode)
       video.play().then(() => {
         this.startVideoMonitor();
         this.startTimer();
       }).catch(() => {
-        this.showPlayHint = true;
+        if (this.previewLoop) {
+          // In builder preview, start timer anyway even if video can't play
+          this.startTimer();
+        } else {
+          this.showPlayHint = true;
+        }
       });
     }
   }
@@ -257,12 +285,49 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
   private startTimer() {
     if (this.timerStarted) return;
     this.timerStarted = true;
-    const dur = Math.min(this.config.duration || 4, 5) * 1000;
+    const dur = this.effectiveDuration * 1000;
+    // Start transition slightly before the end so it overlaps with media still playing
+    const transitionDuration = 1000; // 1s animation
+    const triggerTime = Math.max(0, dur - transitionDuration);
     this.timer = setTimeout(() => {
-      this.fading = true;
-      // Wait for fade-out to complete before removing component
-      setTimeout(() => this.done.emit(), 1200);
-    }, dur - 1200);
+      if (this.previewLoop) {
+        // Builder loop: transition out, show landing bg briefly, restart
+        this.fading = true;
+        // Wait for animation to complete (1s keyframe)
+        setTimeout(() => {
+          this.done.emit();
+          // Reset video while faded out
+          if (this.introVideo?.nativeElement) {
+            const video = this.introVideo.nativeElement;
+            video.currentTime = this.config.videoStart || 0;
+            video.play().catch(() => {});
+          }
+          // Hold on landing background for 1s, then restart
+          setTimeout(() => {
+            this.loopKey++;
+            this.fading = false;
+            this.timerStarted = false;
+            this.startTimer();
+          }, 1000);
+        }, 1100);
+      } else {
+        // Normal landing: fade out and emit done
+        this.fading = true;
+        setTimeout(() => this.done.emit(), 1200);
+      }
+    }, triggerTime);
+  }
+
+  get effectiveDuration(): number {
+    // If "use video duration" is on and we have the duration
+    if (this.config.useVideoDuration && this.config.videoDuration) {
+      return this.config.videoDuration;
+    }
+    // If video is trimmed, use the trim segment duration
+    if (this.config.videoStart != null && this.config.videoEnd != null) {
+      return Math.min(this.config.videoEnd - this.config.videoStart, this.config.duration || 5);
+    }
+    return this.config.duration || 5;
   }
 
   get defaultBg(): string {
@@ -310,6 +375,27 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() { clearTimeout(this.timer); }
+
+  skip() {
+    if (this.fading) return;
+    this.fading = true;
+    clearTimeout(this.timer);
+    setTimeout(() => this.done.emit(), 800);
+  }
+
+  ngDoCheck() {
+    // Regenerate particles when config changes (for builder real-time updates)
+    const pc = this.particlesConfig;
+    const key = `${pc.enabled}-${pc.type}-${pc.direction}-${pc.color1}-${pc.color2}-${pc.quantity}-${pc.speed}-${pc.size}-${pc.opacity}`;
+    if (key !== this.lastParticlesKey) {
+      this.lastParticlesKey = key;
+      if (pc.enabled) {
+        this.particles = this.generateParticles(pc);
+      } else {
+        this.particles = [];
+      }
+    }
+  }
 
   private generateParticles(pc: IntroParticlesConfig): string[] {
     const count = pc.quantity || 20;

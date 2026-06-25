@@ -1,7 +1,8 @@
-﻿import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../../core/services/api.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
@@ -58,17 +59,28 @@ interface BuilderSection {
         <button class="builder-device-btn" [class.active]="previewDevice() === 'desktop'" (click)="previewDevice.set('desktop')">
           <span class="material-icons">monitor</span>
         </button>
+        <div class="builder-tb-sep"></div>
+        <button class="builder-mode-toggle" [class.preview]="canvasMode() === 'preview'" (click)="toggleCanvasMode()">
+          <span class="material-icons">{{ canvasMode() === 'canvas' ? 'edit' : 'visibility' }}</span>
+          <span>{{ canvasMode() === 'canvas' ? 'Canvas' : 'Preview' }}</span>
+        </button>
+        @if (canvasMode() === 'preview') {
+          <button class="builder-tb-btn" (click)="reloadPreview()" title="Recargar preview">
+            <span class="material-icons">refresh</span>
+          </button>
+        }
       </div>
       <div class="builder-toolbar-right">
-        <button class="builder-save-btn" (click)="save()" [disabled]="saving()">
+        <button class="builder-save-btn" [class.saved]="saveStatus() === 'saved'" (click)="save()" [disabled]="saving()">
           <span class="material-icons">{{ saveStatus() === 'saved' ? 'check_circle' : 'save' }}</span>
           <span class="builder-save-text">{{ saving() ? 'Guardando...' : saveStatus() === 'saved' ? 'Guardado' : 'Guardar' }}</span>
         </button>
       </div>
     </div>
 
-    <div class="builder-layout">
-      <!-- Left Panel: Sections + Elements -->
+    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'">
+      <!-- Left Panel: Sections + Elements (hidden in preview) -->
+      @if (canvasMode() === 'canvas') {
       <aside class="builder-panel builder-panel-left" [class.mobile-open]="showLeftPanel()">
         <div class="builder-panel-header">
           <span class="material-icons">layers</span>
@@ -113,86 +125,118 @@ interface BuilderSection {
           </div>
         }
       </aside>
+      }
 
-      <!-- Center: Canvas (renders real landing components) -->
+      <!-- Center: Canvas or Preview iframe -->
+      @if (canvasMode() === 'canvas') {
       <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
-        <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
-          @if (canvasState.config()) {
-              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()!.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()!.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()!.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()!.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()!.theme.buttonText || '#1a1a2e'" [style.background]="getCanvasLandingBg()">
-                @if (canvasState.config()!.envelope.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
-                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()!.globalStyles" />
+        <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'">          @if (canvasState.config()) {
+              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.background]="getCanvasLandingBg()">
+                @if (canvasState.config()?.hero?.backgroundGif) {
+                  @if (isCanvasBgVideo()) {
+                    <video class="canvas-bg-media" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
+                  }
+                  <div class="canvas-bg-overlay"></div>
+                }
+                @if (canvasState.config()?.envelope?.enabled) {
+                  <div class="preview-section-click" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
+                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" />
                   </div>
                 }
-                @if (canvasState.config()!.intro.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
-                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()!.theme.navFooterText || '#d4a017'" [themeBg]="canvasState.config()!.theme.cardBg || ''" [themeBorder]="canvasState.config()!.theme.cardBorder || ''" />
+                @if (canvasState.config()?.intro?.enabled) {
+                  <div class="preview-section-click" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
+                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.cardBg || ''" [themeBorder]="canvasState.config()?.theme?.cardBorder || ''" [previewLoop]="true" />
                   </div>
                 }
-                <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
-                  <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
+                <div class="preview-section-click" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
+                  @if (canvasState.config()!.hero) {
+                    <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
+                  }
                 </div>
-                <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'invitation'" (click)="selectSection('invitation'); $event.stopPropagation()">
-                  <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="null" [styles]="canvasState.config()!.globalStyles" />
+                <div class="preview-section-click" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" (click)="selectSection('invitation'); $event.stopPropagation()">
+                  @if (canvasState.config()!.invitation) {
+                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="null" [styles]="canvasState.config()?.globalStyles!" />
+                  }
                 </div>
-                @if (canvasState.config()!.details.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'details'" (click)="selectSection('details'); $event.stopPropagation()">
-                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()!.globalStyles" />
+                @if (canvasState.config()?.details?.enabled) {
+                  <div class="preview-section-click" data-section="details" [class.section-active]="canvasState.selectedSection() === 'details'" (click)="selectSection('details'); $event.stopPropagation()">
+                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
-                @if (canvasState.config()!.venues.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'venues'" (click)="selectSection('venues'); $event.stopPropagation()">
-                    <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()!.globalStyles" />
+                @if (canvasState.config()?.venues?.enabled) {
+                  <div class="preview-section-click" data-section="venues" [class.section-active]="canvasState.selectedSection() === 'venues'" (click)="selectSection('venues'); $event.stopPropagation()">
+                    <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
-                @if (canvasState.config()!.itinerary.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'itinerary'" (click)="selectSection('itinerary'); $event.stopPropagation()">
-                    <app-landing-itinerary [config]="canvasState.config()!.itinerary" [items]="itineraryItems()" [styles]="canvasState.config()!.globalStyles" />
+                @if (canvasState.config()?.itinerary?.enabled) {
+                  <div class="preview-section-click" data-section="itinerary" [class.section-active]="canvasState.selectedSection() === 'itinerary'" (click)="selectSection('itinerary'); $event.stopPropagation()">
+                    <app-landing-itinerary [config]="canvasState.config()!.itinerary" [items]="itineraryItems()" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
-                @if (canvasState.config()!.gallery.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'gallery'" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()!.globalStyles" />
+                @if (canvasState.config()?.gallery?.enabled) {
+                  <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" (click)="selectSection('gallery'); $event.stopPropagation()">
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
-                @if (canvasState.config()!.dresscode.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'dresscode'" (click)="selectSection('dresscode'); $event.stopPropagation()">
-                    <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()!.globalStyles" />
+                @if (canvasState.config()?.dresscode?.enabled) {
+                  <div class="preview-section-click" data-section="dresscode" [class.section-active]="canvasState.selectedSection() === 'dresscode'" (click)="selectSection('dresscode'); $event.stopPropagation()">
+                    <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
-                @if (canvasState.config()!.gifts.enabled) {
-                  <div class="preview-section-click" [class.section-active]="canvasState.selectedSection() === 'gifts'" (click)="selectSection('gifts'); $event.stopPropagation()">
-                    <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()!.globalStyles" />
+                @if (canvasState.config()?.gifts?.enabled) {
+                  <div class="preview-section-click" data-section="gifts" [class.section-active]="canvasState.selectedSection() === 'gifts'" (click)="selectSection('gifts'); $event.stopPropagation()">
+                    <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
               </div>
           }
         </div>
       </div>
+      }
+
+      <!-- Preview mode: iframe with real landing -->
+      @if (canvasMode() === 'preview') {
+      <div class="builder-preview-area">
+        <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
+          <iframe [src]="previewUrl()" class="preview-iframe" allow="autoplay"></iframe>
+        </div>
+      </div>
+      }
 
       <!-- FAB toggle sections panel (mobile) -->
       <button class="builder-sections-fab" (click)="showLeftPanel.set(!showLeftPanel())" title="Secciones">
         <span class="material-icons">{{ showLeftPanel() ? 'close' : 'layers' }}</span>
       </button>
 
-      <!-- FAB toggle props -->
+      <!-- FAB toggle props (hidden in preview mode) -->
+      @if (canvasMode() === 'canvas') {
       <button class="builder-props-fab" [class.active]="showProps()" (click)="showProps.set(!showProps())" title="Propiedades">
         <span class="material-icons">{{ showProps() ? 'close' : 'tune' }}</span>
       </button>
+      }
 
-      <!-- Right Panel: Properties -->
-      <aside class="builder-panel builder-panel-right" [class.panel-visible]="showProps()">
-        <div class="builder-panel-header">
-          <span class="material-icons">tune</span>
-          <span>Propiedades</span>
-        </div>
-        <app-builder-props-panel [eventId]="eventId" [photos]="photos" />
-      </aside>
+      <!-- Right Panel: Properties (only in canvas mode) -->
+      @if (showProps() && canvasMode() === 'canvas') {
+        <aside class="builder-panel builder-panel-right panel-visible">
+          <div class="builder-panel-header">
+            <span class="material-icons">tune</span>
+            <span>Propiedades</span>
+          </div>
+          <app-builder-props-panel
+            [selectedSection]="currentSection()"
+            [config]="canvasState.config()"
+            [eventId]="eventId"
+            [photos]="photos"
+            [itineraryItems]="itineraryItems"
+          />
+        </aside>
+      }
     </div>
   `,
   styles: [`
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
       position: fixed;
       inset: 0;
       z-index: 200;
@@ -200,12 +244,18 @@ interface BuilderSection {
       background: #0a0a14;
     }
     .builder-toolbar {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center;
       padding: 8px 16px; background: rgba(10,10,20,0.95);
       border-bottom: 1px solid rgba(139,92,246,0.15);
-      z-index: 10; position: relative; height: 48px;
+      z-index: 10; position: relative; min-height: 48px; flex-wrap: wrap; gap: 4px 12px;
     }
-    .builder-toolbar-left { display: flex; align-items: center; gap: 12px; }
+    .builder-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 1 0 100%; }
+    .builder-toolbar-center { display: flex; align-items: center; gap: 4px; order: 1; }
+    .builder-toolbar-right { display: flex; align-items: center; order: 2; margin-left: auto; }
+    @media (min-width: 850px) {
+      .builder-toolbar-left { flex: 0 0 auto; }
+      .builder-toolbar-center { flex: 1; justify-content: center; }
+    }
     .builder-back {
       display: flex; align-items: center; justify-content: center;
       width: 32px; height: 32px; border-radius: 8px; color: rgba(255,255,255,0.6);
@@ -242,22 +292,35 @@ interface BuilderSection {
       &.active { background: rgba(139,92,246,0.2); color: #c084fc; border: 1px solid rgba(139,92,246,0.4); }
       &:hover:not(.active) { background: rgba(255,255,255,0.1); color: white; }
     }
-    .builder-toolbar-right { display: flex; align-items: center; }
     .builder-save-btn {
-      display: flex; align-items: center; gap: 6px;
-      padding: 7px 14px; border-radius: 8px; border: none;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 7px 14px; min-width: 120px; border-radius: 8px; border: none;
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.4s, box-shadow 0.4s;
       .material-icons { font-size: 16px; }
-      &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,92,191,0.4); }
-      &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+      &:hover { box-shadow: 0 4px 12px rgba(124,92,191,0.4); }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+      &.saved { background: #28a745; box-shadow: 0 4px 12px rgba(40,167,69,0.3); }
     }
     .builder-save-text { }
 
     .builder-layout {
       display: grid; grid-template-columns: 220px 1fr;
-      height: calc(100vh - 48px); overflow: hidden; position: relative;
+      flex: 1; overflow: hidden; position: relative;
     }
+    .builder-layout.preview-layout { grid-template-columns: 1fr; }
+    .builder-preview-area {
+      display: flex; align-items: flex-start; justify-content: center;
+      background: #06060e; padding: 16px; overflow: hidden; height: 100%;
+    }
+    .builder-preview-frame {
+      border-radius: 16px; overflow: hidden; height: 100%;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
+      transition: width 0.3s; background: #0d1117;
+      &.mobile { width: 375px; }
+      &.desktop { width: 100%; max-width: 900px; }
+    }
+    .preview-iframe { width: 100%; height: 100%; border: none; }
     .builder-panel {
       background: rgba(10,10,20,0.9); backdrop-filter: blur(12px);
       border-right: 1px solid rgba(139,92,246,0.1);
@@ -270,8 +333,10 @@ interface BuilderSection {
       transform: translateX(100%); opacity: 0; pointer-events: none;
       transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
       transform-origin: top right;
+      display: flex; flex-direction: column; overflow: hidden;
     }
     .builder-panel-right.panel-visible { transform: translateX(0); opacity: 1; pointer-events: all; }
+    .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; }
     .builder-panel-header {
       display: flex; align-items: center; gap: 8px;
       padding: 12px 14px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7);
@@ -357,26 +422,63 @@ interface BuilderSection {
       position: relative; border-radius: 4px;
     }
     .preview-mode-canvas {
-      min-height: 100%; position: relative; overflow: hidden;
+      min-height: 100%; position: relative;
       --font-sans: 'Lato', sans-serif;
       --font-serif: 'Playfair Display', serif;
       --font-script: 'Great Vibes', cursive;
       --gold: #d4a017; --gold-light: #e6c655;
     }
-    .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 1 !important; }
-    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; min-height: 300px; inset: auto !important; }
-    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; min-height: 300px; inset: auto !important; }
+    .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.6; }
+    .canvas-bg-image { background-size: cover; background-position: center; }
+    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 0; background: rgba(0,0,0,0.3); }
+    .preview-mode-canvas > .preview-section-click { position: relative; z-index: 1; }
+    .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-card-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(12px) !important; border-bottom: 1px solid var(--theme-card-border, rgba(212,160,23,0.2)) !important; }
+    .preview-mode-canvas ::ng-deep .hero-section { min-height: 500px !important; padding-top: 60px !important; }
+    .preview-mode-canvas ::ng-deep .countdown { justify-content: center !important; }
+    .preview-mode-canvas ::ng-deep .countdown-item { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; }
+    .preview-mode-canvas ::ng-deep .countdown-value { display: block !important; text-align: center !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="fade"] { animation: builderFade 1s ease forwards !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-up"] { animation: builderSlideUp 1s ease forwards !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-down"] { animation: builderSlideDown 1s ease forwards !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="zoom-in"] { animation: builderZoomIn 1s ease forwards !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="zoom-out"] { animation: builderZoomOut 1s ease forwards !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="blur"] { animation: builderBlur 1s ease forwards !important; }
+    .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="none"] { animation: builderFade 0.05s linear forwards !important; }
+    @keyframes builderFade { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes builderSlideUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100%); } }
+    @keyframes builderSlideDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
+    @keyframes builderZoomIn { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.4); } }
+    @keyframes builderZoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.3); } }
+    @keyframes builderBlur { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(15px); } }
+    .preview-mode-canvas ::ng-deep .intro-bg-overlay { opacity: 0.4 !important; }
+    .preview-mode-canvas ::ng-deep .intro-bg-overlay { opacity: 0.4 !important; }
+    .preview-mode-canvas ::ng-deep .intro-bg-video,
+    .preview-mode-canvas ::ng-deep .intro-bg { animation: none !important; }
+    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
+    /* In canvas mode, prevent envelope from disappearing after being opened */
+    .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 1 !important; pointer-events: auto !important; }
+    /* In live preview, overlays stay same height but are fully interactive */
+    .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay { height: 500px; cursor: pointer; }
+    .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 0 !important; pointer-events: none !important; }
+    .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: 500px; cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
-      cursor: pointer; transition: outline 0.2s; position: relative;
+      cursor: pointer; transition: outline 0.2s; position: relative; overflow: hidden;
       &:hover { outline: 2px dashed rgba(139,92,246,0.3); outline-offset: -2px; }
       &.section-active { outline: 2px solid rgba(139,92,246,0.6); outline-offset: -2px; }
     }
+    .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper */
     .preview-section-click > * { pointer-events: none; }
+    /* Live preview mode — enable interactions, remove selection UI */
+    .live-preview .preview-section-click { cursor: default; }
+    .live-preview .preview-section-click > * { pointer-events: all; }
+    .live-preview .preview-section-click:hover { outline: none; }
+    .live-preview .preview-section-click.section-active { outline: none; }
     .envelope-preview-inner {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
     }
@@ -578,6 +680,7 @@ interface BuilderSection {
 export class BuilderComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+  private sanitizer = inject(DomSanitizer);
   canvasState = inject(CanvasStateService);
   private migration = inject(MigrationService);
 
@@ -585,12 +688,22 @@ export class BuilderComponent implements OnInit, OnDestroy {
   eventName = signal('');
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
+  canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
   saving = signal(false);
   saveStatus = signal<'idle' | 'saved'>('idle');
   showProps = signal(false);
   showLeftPanel = signal(false);
   eventData = signal<any>({ name: '', event_date: '', slug: '' });
+  previewKey = signal(0);
+  previewUrl = computed<SafeResourceUrl>(() => {
+    const slug = this.eventData()?.slug || '';
+    const baseUrl = window.location.origin;
+    const key = this.previewKey();
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${baseUrl}/invitacion/${slug}?preview=1&_=${key}`);
+  });
+  currentSection = signal<string | null>(null);
+  currentConfig = signal<any>(null);
   private autoSaveTimer: any = null;
 
   /** Shortcut to active element for template */
@@ -606,9 +719,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
     });
     this.api.getConfig(this.eventId).subscribe(c => {
       const cfg = c.config_json;
-      // Migrate to V2 with canvas data
       const v2 = this.migration.migrateConfig(cfg);
       this.canvasState.initializeState(v2);
+      this.currentConfig.set(v2);
       this.buildSections(v2);
     });
     // Load related data
@@ -624,25 +737,66 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.sections.set([
       { key: 'envelope', label: 'Pantalla de Inicio', icon: 'mail', enabled: cfg.envelope?.enabled ?? false },
       { key: 'intro', label: 'Intro', icon: 'auto_awesome', enabled: cfg.intro?.enabled ?? false },
-      { key: 'hero', label: 'CarÃ¡tula', icon: 'image', enabled: true },
-      { key: 'invitation', label: 'InvitaciÃ³n', icon: 'card_giftcard', enabled: true },
+      { key: 'hero', label: 'Carátula', icon: 'image', enabled: true },
+      { key: 'invitation', label: 'Invitación', icon: 'card_giftcard', enabled: true },
       { key: 'details', label: 'Detalles', icon: 'info', enabled: cfg.details?.enabled ?? false },
       { key: 'venues', label: 'Lugares', icon: 'place', enabled: cfg.venues?.enabled ?? false },
       { key: 'itinerary', label: 'Itinerario', icon: 'schedule', enabled: cfg.itinerary?.enabled ?? false },
-      { key: 'gallery', label: 'GalerÃ­a', icon: 'photo_library', enabled: cfg.gallery?.enabled ?? false },
+      { key: 'gallery', label: 'Galería', icon: 'photo_library', enabled: cfg.gallery?.enabled ?? false },
       { key: 'dresscode', label: 'Vestimenta', icon: 'checkroom', enabled: cfg.dresscode?.enabled ?? false },
       { key: 'gifts', label: 'Regalos', icon: 'redeem', enabled: cfg.gifts?.enabled ?? false },
-      { key: 'rsvp', label: 'ConfirmaciÃ³n', icon: 'how_to_reg', enabled: cfg.rsvp?.enabled ?? false },
+      { key: 'rsvp', label: 'Confirmación', icon: 'how_to_reg', enabled: cfg.rsvp?.enabled ?? false },
     ]);
   }
 
   selectSection(key: string) {
+    if (this.canvasMode() === 'preview') return; // In preview mode, don't select
     this.canvasState.selectSection(key);
+    this.currentSection.set(key);
     this.showProps.set(true);
+    this.scrollToSection(key);
+  }
+
+  private scrollToSection(key: string) {
+    setTimeout(() => {
+      const el = document.querySelector(`.preview-section-click[data-section="${key}"]`);
+      const container = document.querySelector('.builder-canvas-area');
+      if (el && container) {
+        const elRect = el.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const offset = elRect.top - containerRect.top + container.scrollTop;
+        container.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    }, 50);
+  }
+
+  toggleCanvasMode() {
+    if (this.canvasMode() === 'canvas') {
+      // Switching to preview: save first so iframe shows latest
+      if (this.canvasState.isDirty()) {
+        this.save();
+      }
+      this.canvasMode.set('preview');
+      this.reloadPreview();
+      this.canvasState.selectSection(null);
+      this.currentSection.set(null);
+    } else {
+      this.canvasMode.set('canvas');
+      // Reset envelope overlay when back to canvas
+      const envelopeEl = document.querySelector('.preview-mode-canvas .envelope-overlay');
+      if (envelopeEl) {
+        envelopeEl.classList.remove('opened');
+      }
+    }
+  }
+
+  reloadPreview() {
+    this.previewKey.set(Date.now());
   }
 
   selectTheme() {
     this.canvasState.selectSection('_theme');
+    this.currentSection.set('_theme');
     this.showProps.set(true);
   }
 
@@ -658,26 +812,51 @@ export class BuilderComponent implements OnInit, OnDestroy {
     const c2 = theme.landingBgColor2 || '#1a1a2e';
     const type = theme.landingBgType || 'solid';
     const angle = theme.landingBgAngle || 135;
+
+    let colorBg = c1;
     switch (type) {
-      case 'solid': return c1;
-      case 'linear': return `linear-gradient(${angle}deg, ${c1}, ${c2})`;
-      case 'radial': return `radial-gradient(ellipse at center, ${c2}, ${c1})`;
-      default: return c1;
+      case 'solid': colorBg = c1; break;
+      case 'linear': colorBg = `linear-gradient(${angle}deg, ${c1}, ${c2})`; break;
+      case 'radial': colorBg = `radial-gradient(ellipse at center, ${c2}, ${c1})`; break;
+      default: colorBg = c1;
     }
+
+    // If there's a non-video background image, layer it over the color
+    const bgGif = cfg.hero?.backgroundGif;
+    if (bgGif && !this.isCanvasBgVideo()) {
+      return `url(${bgGif}) center/cover fixed, ${colorBg}`;
+    }
+    return colorBg;
+  }
+
+  isCanvasBgVideo(): boolean {
+    const url = this.canvasState.getConfig()?.hero?.backgroundGif || '';
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg'].includes(ext);
   }
 
   getPreviewEnabledSections(): string[] {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return [];
     const s: string[] = ['invitation'];
-    if (cfg.details.enabled) s.push('details');
-    if (cfg.venues.enabled) s.push('venues');
-    if (cfg.itinerary.enabled) s.push('itinerary');
-    if (cfg.gallery.enabled) s.push('gallery');
-    if (cfg.dresscode.enabled) s.push('dresscode');
-    if (cfg.gifts.enabled) s.push('gifts');
-    if (cfg.rsvp.enabled) s.push('rsvp');
+    if (cfg.details?.enabled) s.push('details');
+    if (cfg.venues?.enabled) s.push('venues');
+    if (cfg.itinerary?.enabled) s.push('itinerary');
+    if (cfg.gallery?.enabled) s.push('gallery');
+    if (cfg.dresscode?.enabled) s.push('dresscode');
+    if (cfg.gifts?.enabled) s.push('gifts');
+    if (cfg.rsvp?.enabled) s.push('rsvp');
     return s;
+  }
+
+  getSecIcon2(key: string): string {
+    const m: Record<string,string> = {_theme:'palette',hero:'image',invitation:'card_giftcard',details:'info',venues:'place',itinerary:'schedule',gallery:'photo_library',dresscode:'checkroom',gifts:'redeem',rsvp:'how_to_reg',envelope:'mail',intro:'auto_awesome'};
+    return m[key] || 'layers';
+  }
+
+  getSecLabel2(key: string): string {
+    const m: Record<string,string> = {_theme:'Tema Global',hero:'Carátula',invitation:'Invitación',details:'Detalles',venues:'Lugares',itinerary:'Itinerario',gallery:'Galería',dresscode:'Vestimenta',gifts:'Regalos',rsvp:'Confirmación',envelope:'Pantalla de Inicio',intro:'Intro'};
+    return m[key] || key;
   }
 
   setThemeProp(prop: string, value: any) {
@@ -706,6 +885,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   onCanvasAreaClick() {
+    if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(null);
   }
 
@@ -835,8 +1015,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   getElLabel(type: string): string {
     const m: Record<string, string> = {
       'text': 'Texto', 'image': 'Imagen', 'icon': 'Icono', 'decorator': 'Decorador',
-      'countdown': 'Countdown', 'gallery': 'GalerÃ­a', 'detail-cards': 'Detalles', 'venue-cards': 'Lugares',
-      'itinerary': 'Itinerario', 'rsvp-form': 'ConfirmaciÃ³n', 'gifts-block': 'Regalos',
+      'countdown': 'Countdown', 'gallery': 'Galería', 'detail-cards': 'Detalles', 'venue-cards': 'Lugares',
+      'itinerary': 'Itinerario', 'rsvp-form': 'Confirmación', 'gifts-block': 'Regalos',
       'dresscode-block': 'Vestimenta', 'separator': 'Separador', 'spacer': 'Espacio'
     };
     return m[type] || type;
@@ -1109,12 +1289,18 @@ export class BuilderComponent implements OnInit, OnDestroy {
         (cfg as any)[sec.key].enabled = sec.enabled;
       }
     }
+    const startTime = Date.now();
     this.api.saveConfig(this.eventId, cfg).subscribe({
       next: () => {
-        this.saving.set(false);
-        this.saveStatus.set('saved');
-        this.canvasState.isDirty.set(false);
-        setTimeout(() => this.saveStatus.set('idle'), 3000);
+        // Ensure "Guardando..." shows at least 800ms
+        const elapsed = Date.now() - startTime;
+        const delay = Math.max(0, 800 - elapsed);
+        setTimeout(() => {
+          this.saving.set(false);
+          this.saveStatus.set('saved');
+          this.canvasState.isDirty.set(false);
+          setTimeout(() => this.saveStatus.set('idle'), 2500);
+        }, delay);
       },
       error: () => { this.saving.set(false); }
     });

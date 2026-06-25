@@ -17,7 +17,8 @@ export class ScrollRevealDirective implements OnInit, OnDestroy {
     const anim = this.appScrollReveal || 'fade-up';
     if (anim === 'none') return; // no animation
     // In builder mode, skip animations — show everything immediately
-    if (window.self !== window.top) return;
+    // But allow animations in preview mode (?preview=1)
+    if (window.self !== window.top && !window.location.search.includes('preview=1')) return;
     this.el.nativeElement.classList.add('scroll-hidden', `scroll-anim-${anim}`);
     this.observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
@@ -576,7 +577,9 @@ export class LandingComponent implements OnInit, OnDestroy {
         this.data.set(d);
         this.loading.set(false);
         // In builder mode (iframe), skip envelope/intro to show sections immediately
-        const inBuilder = window.self !== window.top || this.route.snapshot.queryParams['builder'] === '1';
+        // But in preview mode (?preview=1), show them normally
+        const isPreview = this.route.snapshot.queryParams['preview'] === '1';
+        const inBuilder = (window.self !== window.top && !isPreview) || this.route.snapshot.queryParams['builder'] === '1';
         if (!inBuilder) {
           if (d.config.envelope.enabled) {
             this.showEnvelope.set(true);

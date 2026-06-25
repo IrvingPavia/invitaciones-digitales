@@ -60,7 +60,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           }
         </div>
 
-        @if (config.transfer.enabled) {
+        @if (config.transfer?.enabled) {
           <div class="transfer-card reveal" [class.no-bg]="config.transfer.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" style="animation-delay:0.2s">
             <!-- Animation overlay -->
             @if (config.transfer.animation !== 'none') {
@@ -236,7 +236,7 @@ export class LandingGiftsComponent {
   particles = Array.from({ length: 15 }, (_, i) => i);
 
   get accountTypeLabel(): string {
-    switch (this.config.transfer.accountType) {
+    switch (this.config.transfer?.accountType) {
       case 'tarjeta': return 'No. Tarjeta';
       case 'cuenta': return 'No. Cuenta';
       case 'clabe': return 'CLABE';
@@ -258,7 +258,7 @@ export class LandingGiftsComponent {
   }
 
   getTransferIcon(): { type: string; value: string } | null {
-    const si = this.config.transfer.sectionIcon;
+    const si = this.config.transfer?.sectionIcon;
     if (si?.iconType === 'none') return null;
     if (!si || si.iconType === 'material') return { type: 'material', value: 'account_balance' };
     if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };

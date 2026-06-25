@@ -40,9 +40,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
     <section id="hero" class="hero-section">
       <div class="hero-content">
         <p class="hero-event-type animate-in" style="animation-delay:0.2s"
-           [style.font-family]="getFontFamily(config.eventDescriptionStyle.fontFamily)"
-           [style.font-size.px]="config.eventDescriptionStyle.fontSize || 22"
-           [style.font-weight]="config.eventDescriptionStyle.fontWeight || 400"
+           [style.font-family]="getFontFamily(config.eventDescriptionStyle?.fontFamily)"
+           [style.font-size.px]="config.eventDescriptionStyle?.fontSize || 22"
+           [style.font-weight]="config.eventDescriptionStyle?.fontWeight || 400"
            [style.background]="getEventDescGradient()"
            [style.-webkit-background-clip]="'text'"
            [style.background-clip]="'text'"
@@ -50,9 +50,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
         >{{ config.eventDescription }}</p>
         @if (config.showCelebrantNames !== false && config.celebrantNames) {
         <h1 class="hero-names animate-in" style="animation-delay:0.5s"
-            [style.font-family]="getFontFamily(config.celebrantNamesStyle.fontFamily)"
-            [style.font-size.px]="config.celebrantNamesStyle.fontSize || 80"
-            [style.font-weight]="config.celebrantNamesStyle.fontWeight || 400"
+            [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
+            [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
+            [style.font-weight]="config.celebrantNamesStyle?.fontWeight || 400"
             [style.background]="getGradient()"
             [style.-webkit-background-clip]="'text'"
             [style.background-clip]="'text'"
@@ -66,9 +66,9 @@ import { HeroConfig, Event } from '../../../core/models/models';
 
         @if (config.heroPhrase) {
           <p class="hero-phrase animate-in" style="animation-delay:0.65s"
-             [style.font-family]="getFontFamily(config.heroPhraseStyle.fontFamily)"
-             [style.font-size.px]="config.heroPhraseStyle.fontSize || 16"
-             [style.color]="config.heroPhraseStyle.color || '#ffffff'"
+             [style.font-family]="getFontFamily(config.heroPhraseStyle?.fontFamily)"
+             [style.font-size.px]="config.heroPhraseStyle?.fontSize || 16"
+             [style.color]="config.heroPhraseStyle?.color || '#ffffff'"
           >{{ config.heroPhrase }}</p>
         }
 
@@ -181,15 +181,15 @@ import { HeroConfig, Event } from '../../../core/models/models';
     .countdown-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
-      border-radius: 12px; padding: 14px 12px; flex: 1; min-width: 60px;
-      overflow: hidden;
+      border-radius: 12px; padding: 14px 0; flex: 1; min-width: 55px;
+      text-align: center; box-sizing: border-box;
       &.no-bg { background: transparent; border-color: transparent; }
     }
     .countdown-value {
       font-size: clamp(20px, 5vw, 36px); font-weight: 700; color: var(--theme-nav-text, var(--gold));
-      line-height: 1.2; font-family: var(--font-serif);
+      line-height: 1.2; font-family: var(--font-serif); text-align: center; width: 100%;
     }
-    .countdown-label { font-size: clamp(8px, 2vw, 10px); color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .countdown-label { font-size: clamp(8px, 2vw, 10px); color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; text-align: center; width: 100%; }
     .countdown-sep { font-size: clamp(16px, 3vw, 28px); color: var(--theme-nav-text, var(--gold)); font-weight: 700; opacity: 0.5; flex-shrink: 0; }
     .scroll-indicator { display: flex; flex-direction: column; align-items: center; gap: 0; }
     .scroll-arrow {

@@ -331,6 +331,7 @@ import { EnvelopeConfig } from '../../../core/models/models';
 export class LandingEnvelopeComponent {
   @Input() config!: EnvelopeConfig;
   @Input() globalStyles?: any;
+  @Input() previewLoop = false;
   @Output() done = new EventEmitter<void>();
   opened = false;
   Math = Math;
@@ -356,7 +357,10 @@ export class LandingEnvelopeComponent {
 
   open() {
     this.opened = true;
-    // Emit done sooner so intro starts while envelope is still fading
     setTimeout(() => this.done.emit(), 1200);
+    // In preview loop mode, reset after animation completes
+    if (this.previewLoop) {
+      setTimeout(() => { this.opened = false; }, 3000);
+    }
   }
 }

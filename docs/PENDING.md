@@ -77,38 +77,37 @@
 
 ### 🆕 Page Builder Visual (feature grande — int-007)
 
-> **Contexto**: Editor visual que reemplaza el sistema de tabs con propiedades por un builder WYSIWYG. El usuario ve la landing en un iframe central, selecciona secciones clickeando directamente en el preview o desde un panel lateral, y edita sus propiedades desde un panel derecho con controles contextuales. La configuración se guarda al mismo `config_json` — zero breaking changes.
+> **Contexto**: Editor visual que reemplaza el sistema de tabs con propiedades por un builder WYSIWYG. El usuario ve los componentes reales de la landing en un canvas central, selecciona secciones clickeando directamente, y edita sus propiedades desde un panel derecho con acordeones colapsables estilo IDE/Photoshop. La configuración se guarda al mismo `config_json` — zero breaking changes.
 
-> **Documentación completa**: `docs/DESIGN-V2.md` (Fase 3)
+> **Documentación completa**: `docs/DESIGN-V2.md` (Fase 3), `docs/BUILDER-PROPS-REDESIGN.md`
 
 **Implementado:**
-- [x] **Layout 3 paneles**: Panel izquierdo (secciones + drag reorder), Centro (preview iframe responsive), Panel derecho (propiedades)
+- [x] **Layout 3 paneles**: Panel izquierdo (secciones + drag reorder), Centro (canvas con componentes reales), Panel derecho (propiedades con acordeones)
+- [x] **Canvas con componentes reales**: Las secciones de la landing se renderizan directamente en el canvas (no iframe), con click para seleccionar
+- [x] **Toggle Canvas / Preview**: Botón en toolbar para alternar modo edición (estático, selecciona secciones) y preview (interactivo, animaciones en loop)
 - [x] **Drag & drop secciones**: Reordenar con CDK, toggle enable/disable por sección
-- [x] **Preview responsive**: 3 modos (mobile 375px, tablet 768px, desktop full)
-- [x] **Comunicación builder→iframe**: postMessage para scroll y highlight de sección seleccionada
-- [x] **Comunicación iframe→builder**: Click en sección del preview selecciona en panel izquierdo
-- [x] **Hover visual en iframe**: Outline sutil al pasar mouse sobre secciones (solo en modo builder)
-- [x] **Panel de propiedades funcional**: Controles reales por sección:
-  - Hero: nombres, frase, descripción, countdown, fondo (upload), audio (upload)
-  - Invitación: título, subtítulo
-  - Detalles: título + cards editables (título, contenido)
-  - Lugares: items editables (nombre, dirección, hora)
-  - Galería: título, selector de estilo (8 opciones)
-  - Vestimenta: título + cards (título, descripción)
-  - Regalos: título, descripción, link, botón
-  - Confirmación: título
-  - Pantalla de Inicio: textos, colores (color pickers)
-  - Intro: frase, duración, fondo (upload)
-- [x] **Estilo de fondo per sección**: Tipo (hereda/sólido/degradado/imagen), color pickers, upload imagen
-- [x] **Upload de archivos**: Integrado con el sistema de uploads existente (images, audio, gifs)
-- [x] **Guardar + auto-refresh**: Al guardar el iframe se recarga mostrando cambios
+- [x] **Preview responsive**: Mobile (375px) / Desktop, navbar sticky visible
+- [x] **Panel de propiedades completo**: Acordeones colapsables con TODAS las propiedades de cada sección:
+  - Pantalla de Inicio: templates visuales, estilos sobre/sello, colores, contenido sello (emoji/icono/vacío), opciones por template
+  - Intro: frase + estilo tipográfico, fondo multimedia, duración, partículas completas (tipo, dirección, colores, sliders)
+  - Carátula: nombres, countdown, estilos de texto por elemento (fuente/tamaño/colores gradiente), multimedia
+  - Invitación, Detalles, Lugares, Itinerario, Galería, Vestimenta, Regalos, RSVP: contenido + items CRUD + apariencia
+  - Tema Global: templates, colores del tema, fondo landing, animación global
+- [x] **15 fuentes** en todos los selectores (mismas que Configuraciones)
+- [x] **Propiedades comunes por sección**: Fondo (hereda/sólido/degradado/imagen), Transición Superior, Colores de Texto, Animación — excluidas en secciones que tienen manejo propio (envelope, intro, hero)
+- [x] **Animaciones en loop (builder)**: Envelope se resetea después de abrirse, Intro siempre en loop
+- [x] **MigrationService robusta**: ensureDefaults() garantiza todos los sub-objetos requeridos
+- [x] **Upload de archivos**: Integrado con el sistema de uploads (images, audio, gifs)
+- [x] **Guardar + auto-save**: Auto-save a 4s, botón guardar manual, estado dirty tracking
+- [x] **Undo/Redo**: Stacks con máximo 50 estados
 - [x] **Guard de cambios sin guardar**: Protegido con `unsavedChangesGuard`
 
 **Pendiente:**
-- [ ] Más elementos con edición inline (descripción de detalles, cards individuales)
-- [ ] Undo/Redo en el builder (historial de estados)
-- [ ] Drag de fotos a la galería directamente desde el builder
-- [ ] Templates rápidos seleccionables desde el builder
+- [ ] Verificar reflejo en tiempo real de cambios en propiedades → canvas
+- [ ] Light mode del builder
+- [ ] Video trimmer simplificado para intro
+- [ ] Gestión de imágenes en cards de vestimenta
+- [ ] Verificar mobile (FAB secciones + props)
 
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.

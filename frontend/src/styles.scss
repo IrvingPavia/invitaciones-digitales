@@ -333,6 +333,60 @@ body.light-mode .color-copy-btn:hover { color: var(--gold) !important; }
 body.light-mode input[type="range"] { accent-color: var(--gold); }
 body.light-mode .builder-props .prop-field input[type="range"] { accent-color: var(--gold); }
 
+/* Light mode — Builder Mode Toggle + Props Panel */
+body.light-mode .builder-mode-toggle { background: #f0f0f5 !important; border-color: #ddd !important; color: #555 !important; }
+body.light-mode .builder-mode-toggle:hover { background: rgba(124,92,191,0.08) !important; color: #333 !important; }
+body.light-mode .builder-mode-toggle.preview { background: rgba(16,185,129,0.08) !important; border-color: rgba(16,185,129,0.3) !important; color: #10b981 !important; }
+body.light-mode .builder-save-btn { color: white !important; }
+body.light-mode .builder-canvas-area { background: #e8e8f0 !important; }
+body.light-mode .builder-canvas-viewport { background: #fff !important; }
+
+/* Props Panel Light Mode */
+body.light-mode .props-panel-content { color: #333; }
+body.light-mode .props-badge { background: rgba(124,92,191,0.04) !important; border-bottom-color: #eee !important; }
+body.light-mode .props-badge span:last-child { color: #333 !important; }
+body.light-mode .section-desc { color: #7c5cbf !important; border-bottom-color: rgba(124,92,191,0.1) !important; }
+body.light-mode .accordion-header { color: #5a3d8a !important; border-bottom-color: rgba(124,92,191,0.1) !important; }
+body.light-mode .accordion-header:hover { background: rgba(124,92,191,0.04) !important; }
+body.light-mode .accordion.open .accordion-header { color: #4a2d7a !important; background: rgba(124,92,191,0.06) !important; }
+body.light-mode .accordion-body { border-bottom-color: #f0f0f0 !important; }
+body.light-mode .pf label { color: #7c5cbf !important; }
+body.light-mode .pinput { background: #faf8ff !important; border-color: rgba(124,92,191,0.25) !important; color: #333 !important; }
+body.light-mode .pinput:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 2px rgba(124,92,191,0.1) !important; }
+body.light-mode .pinput-range { accent-color: var(--gold) !important; }
+body.light-mode .chip { background: #f5f0ff !important; border-color: rgba(124,92,191,0.2) !important; color: #6b4fa0 !important; }
+body.light-mode .chip:hover { background: rgba(124,92,191,0.1) !important; color: #4a2d7a !important; border-color: rgba(124,92,191,0.35) !important; }
+body.light-mode .chip.active { background: rgba(124,92,191,0.1) !important; border-color: var(--gold) !important; color: var(--gold) !important; }
+body.light-mode .sm-btn { background: rgba(124,92,191,0.05) !important; border-color: #ddd !important; color: #555 !important; }
+body.light-mode .sm-btn:hover { background: rgba(124,92,191,0.1) !important; }
+body.light-mode .sm-btn.danger { color: #ef4444 !important; border-color: rgba(239,68,68,0.2) !important; }
+body.light-mode .tpl-card { background: #f8f8fc !important; border-color: #ddd !important; color: #555 !important; }
+body.light-mode .tpl-card:hover { background: rgba(124,92,191,0.06) !important; border-color: rgba(124,92,191,0.2) !important; }
+body.light-mode .tpl-card.active { background: rgba(124,92,191,0.1) !important; border-color: var(--gold) !important; color: var(--gold) !important; }
+body.light-mode .toggle-title { color: #5a3d8a !important; }
+body.light-mode .toggle-switch .slider { background: #ccc !important; }
+body.light-mode .toggle-switch input:checked + .slider { background: var(--gold) !important; }
+body.light-mode .items-header span { color: var(--gold) !important; }
+body.light-mode .item-card { background: #fafafa !important; border-color: #e8e8e8 !important; }
+body.light-mode .item-head span { color: #999 !important; }
+body.light-mode .file-name { background: #f0f0f5 !important; border-color: #ddd !important; color: #555 !important; }
+body.light-mode .stepper-row { border-color: rgba(124,92,191,0.25) !important; }
+body.light-mode .stepper-btn { background: rgba(124,92,191,0.08) !important; color: #5a3d8a !important; }
+body.light-mode .stepper-btn:hover { background: rgba(124,92,191,0.15) !important; }
+body.light-mode .stepper-value { background: #faf8ff !important; color: #333 !important; }
+body.light-mode .media-info { background: rgba(124,92,191,0.04) !important; border-color: #e0e0e8 !important; }
+body.light-mode .media-badge { color: var(--gold) !important; }
+body.light-mode .media-duration { color: #666 !important; }
+body.light-mode .section-style-toggle { border-top-color: #eee !important; }
+body.light-mode .empty-state .material-icons { color: rgba(124,92,191,0.2) !important; }
+body.light-mode .empty-state p { color: #999 !important; }
+body.light-mode .hint { color: #888 !important; }
+body.light-mode .upload-ok { color: #10b981 !important; }
+body.light-mode .x-btn { color: #bbb !important; }
+body.light-mode .x-btn:hover { color: #ef4444 !important; }
+body.light-mode .builder-sections-fab { background: var(--gold) !important; }
+body.light-mode .builder-props-fab { background: var(--gold) !important; }
+
 /* Cards editor panel */
 body.light-mode .panel { color: #333; }
 body.light-mode .panel-section { background: #fafafa !important; border-color: #e0e0e8 !important; }

@@ -17,9 +17,9 @@ import {
 export class MigrationService {
 
   migrateConfig(config: EventConfig): EventConfigV2 {
-    // Already V2? Return as-is
+    // Already V2? Ensure defaults and return
     if ((config as EventConfigV2)._version === 2) {
-      return config as EventConfigV2;
+      return this.ensureDefaults(config as EventConfigV2);
     }
 
     const migrated = { ...config, _version: 2 } as EventConfigV2;
@@ -49,7 +49,7 @@ export class MigrationService {
       try { migrated.rsvp = { ...config.rsvp, canvas: this.buildGenericCanvas('rsvp-form', config.rsvp.title, 40) }; } catch (e) {} 
     }
 
-    return migrated;
+    return this.ensureDefaults(migrated);
   }
 
   /** Migrate a single section (user-triggered) */
@@ -67,6 +67,123 @@ export class MigrationService {
       case 'rsvp': updated.rsvp = { ...config.rsvp, canvas: this.buildGenericCanvas('rsvp-form', config.rsvp.title, 40) }; break;
     }
     return updated;
+  }
+
+  // ===== Ensure Defaults =====
+
+  /**
+   * Ensures all required sub-properties have sensible defaults.
+   * This prevents "Cannot read properties of undefined" errors when
+   * landing components access nested config properties.
+   */
+  private ensureDefaults(config: EventConfigV2): EventConfigV2 {
+    // Hero: ensure style objects exist
+    if (!config.hero) {
+      config.hero = {
+        backgroundGif: '', audioUrl: '', eventDescription: '', celebrantNames: '',
+        heroPhrase: '', countdownDate: '',
+        eventDescriptionStyle: { fontFamily: 'sans', fontSize: 22, color1: '#ffffff', color2: '', gradientAngle: 0 },
+        celebrantNamesStyle: { fontFamily: 'script', fontSize: 80, color1: '#d4a017', color2: '#b8860b', gradientAngle: 0 },
+        heroPhraseStyle: { fontFamily: 'serif', fontSize: 16, color: '#ffffff' }
+      } as any;
+    } else {
+      if (!config.hero.eventDescriptionStyle) {
+        config.hero.eventDescriptionStyle = { fontFamily: 'sans', fontSize: 22, color1: '#ffffff', color2: '', gradientAngle: 0 };
+      }
+      if (!config.hero.celebrantNamesStyle) {
+        config.hero.celebrantNamesStyle = { fontFamily: 'script', fontSize: 80, color1: '#d4a017', color2: '#b8860b', gradientAngle: 0 };
+      }
+      if (!config.hero.heroPhraseStyle) {
+        config.hero.heroPhraseStyle = { fontFamily: 'serif', fontSize: 16, color: '#ffffff' };
+      }
+    }
+
+    // Invitation: ensure exists
+    if (!config.invitation) {
+      config.invitation = { title: '', subtitle: '' } as any;
+    }
+
+    // Envelope: ensure exists
+    if (!config.envelope) {
+      config.envelope = {
+        enabled: false, template: 'envelope', style: 'classic', sealStyle: 'wax-circle',
+        envelopeColor: '#1a1a2e', sealColor: '#d4a017', sealText: '', sealImage: '',
+        instructionText: 'Desliza para abrir', bgColor: '#0d1117', bgColor2: '#1a1a2e', textColor: '#ffffff'
+      } as any;
+    }
+
+    // Intro: ensure exists
+    if (!config.intro) {
+      config.intro = {
+        enabled: false, background: '', phrase: '', duration: 5
+      } as any;
+    }
+
+    // Details: ensure exists
+    if (!config.details) {
+      config.details = { enabled: false, title: 'Detalles', cards: [] } as any;
+    }
+    if (!config.details.cards) config.details.cards = [];
+
+    // Venues: ensure exists
+    if (!config.venues) {
+      config.venues = { enabled: false, items: [] } as any;
+    }
+    if (!config.venues.items) config.venues.items = [];
+
+    // Itinerary: ensure exists
+    if (!config.itinerary) {
+      config.itinerary = { enabled: false, title: 'Itinerario', items: [] } as any;
+    }
+    if (!config.itinerary.items) config.itinerary.items = [];
+
+    // Gallery: ensure exists
+    if (!config.gallery) {
+      config.gallery = { enabled: false, title: 'Galería', description: '' } as any;
+    }
+
+    // Dresscode: ensure exists
+    if (!config.dresscode) {
+      config.dresscode = { enabled: false, title: 'Código de Vestimenta', cards: [] } as any;
+    }
+    if (!config.dresscode.cards) config.dresscode.cards = [];
+
+    // Gifts: ensure exists WITH transfer sub-object
+    if (!config.gifts) {
+      config.gifts = {
+        enabled: false, title: 'Regalos', description: '', link: '', buttonText: 'Ver Lista',
+        transfer: { enabled: false, title: '', description: '', accountName: '', bank: '', accountType: 'cuenta', accountNumber: '', animation: 'none' }
+      } as any;
+    } else if (!config.gifts.transfer) {
+      config.gifts.transfer = { enabled: false, title: '', description: '', accountName: '', bank: '', accountType: 'cuenta', accountNumber: '', animation: 'none' };
+    }
+
+    // RSVP: ensure exists
+    if (!config.rsvp) {
+      config.rsvp = { enabled: false, title: 'Confirmación' } as any;
+    }
+
+    // GlobalStyles: ensure exists
+    if (!config.globalStyles) {
+      config.globalStyles = {
+        titleStyle: { fontFamily: 'script', fontSize: 36, color: '#d4a017' },
+        subtitleStyle: { fontFamily: 'serif', fontSize: 18, color: '#ffffff' },
+        contentStyle: { fontFamily: 'sans', fontSize: 14, color: 'rgba(255,255,255,0.7)' },
+        sectionHeadingStyle: { fontFamily: 'script', fontSize: 32, color: '#d4a017' },
+        separatorStyle: { type: 'elegant', color: '#d4a017' }
+      } as any;
+    }
+
+    // Theme: ensure exists
+    if (!config.theme) {
+      config.theme = {
+        cardBg: 'rgba(255,255,255,0.05)', cardBorder: 'rgba(212,160,23,0.3)',
+        textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.7)',
+        navFooterText: '#d4a017', buttonBg: '#d4a017', buttonText: '#1a1a2e'
+      };
+    }
+
+    return config;
   }
 
   // ===== Section Builders =====
