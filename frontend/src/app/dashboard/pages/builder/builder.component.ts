@@ -107,23 +107,7 @@ interface BuilderSection {
           }
         </div>
 
-        <!-- Add Element buttons -->
-        @if (canvasState.selectedSection()) {
-          <div class="builder-add-elements">
-            <div class="builder-panel-header" style="border-top: 1px solid rgba(139,92,246,0.1);">
-              <span class="material-icons">add_circle</span>
-              <span>Agregar elemento</span>
-            </div>
-            <div class="add-el-grid">
-              <button class="add-el-btn" (click)="addElement('text')"><span class="material-icons">text_fields</span>Texto</button>
-              <button class="add-el-btn" (click)="addElement('image')"><span class="material-icons">image</span>Imagen</button>
-              <button class="add-el-btn" (click)="addElement('icon')"><span class="material-icons">emoji_emotions</span>Icono</button>
-              <button class="add-el-btn" (click)="addElement('decorator')"><span class="material-icons">auto_awesome</span>Decorador</button>
-              <button class="add-el-btn" (click)="addElement('separator')"><span class="material-icons">horizontal_rule</span>Separador</button>
-              <button class="add-el-btn" (click)="addElement('spacer')"><span class="material-icons">height</span>Espacio</button>
-            </div>
-          </div>
-        }
+        <!-- Add Element buttons (hidden — see docs/BUILDER-FREE-ELEMENTS.md for future implementation) -->
       </aside>
       }
 
