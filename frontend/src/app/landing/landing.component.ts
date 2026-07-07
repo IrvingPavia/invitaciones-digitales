@@ -675,8 +675,8 @@ export class LandingComponent implements OnInit, OnDestroy {
     };
     window.addEventListener('message', this.messageHandler);
 
-    // Inject builder highlight styles + click handlers when inside iframe
-    if (window.self !== window.top) {
+    // Inject builder highlight styles + click handlers when inside iframe (not in preview mode)
+    if (window.self !== window.top && !window.location.search.includes('preview=1')) {
       this.builderHighlightStyle = document.createElement('style');
       this.builderHighlightStyle.textContent = `
         .builder-highlight {
@@ -732,8 +732,10 @@ export class LandingComponent implements OnInit, OnDestroy {
         }
       });
 
-      // Enable inline editing: make editable elements contenteditable
-      this.setupInlineEditing();
+      // Enable inline editing only in builder mode (not preview)
+      if (!window.location.search.includes('preview=1')) {
+        this.setupInlineEditing();
+      }
     }
   }
 

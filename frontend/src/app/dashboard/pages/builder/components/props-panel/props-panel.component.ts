@@ -606,10 +606,46 @@ import { ApiService } from '../../../../../core/services/api.service';
               @for (item of itineraryItems(); track item.id; let i=$index) {
                 <div class="item-card">
                   <div class="item-head"><span>{{i+1}}</span><button class="x-btn" (click)="removeItineraryItem(i);$event.stopPropagation()">X</button></div>
-                  <input class="pinput" [ngModel]="item.time" (ngModelChange)="updateItineraryItem(i,'time',$event)" placeholder="Hora">
-                  <input class="pinput" [ngModel]="item.title" (ngModelChange)="updateItineraryItem(i,'title',$event)" placeholder="Titulo">
+                  <div class="pf"><label>Hora</label>
+                    <div class="time-picker-row">
+                      <select class="pinput time-select" [ngModel]="getHour(item.time)" (ngModelChange)="setTime(i, $event, getMinute(item.time), getAmPm(item.time))">
+                        @for (h of hours; track h) { <option [value]="h">{{h}}</option> }
+                      </select>
+                      <span class="time-sep">:</span>
+                      <select class="pinput time-select" [ngModel]="getMinute(item.time)" (ngModelChange)="setTime(i, getHour(item.time), $event, getAmPm(item.time))">
+                        @for (m of minutes; track m) { <option [value]="m">{{m}}</option> }
+                      </select>
+                      <select class="pinput time-select ampm" [ngModel]="getAmPm(item.time)" (ngModelChange)="setTime(i, getHour(item.time), getMinute(item.time), $event)">
+                        <option value="AM">AM</option><option value="PM">PM</option>
+                      </select>
+                    </div>
+                  </div>
+                  <input class="pinput" [ngModel]="item.title" (ngModelChange)="updateItineraryItem(i,'title',$event)" placeholder="Titulo de actividad">
                   <textarea class="pinput sm" [ngModel]="item.description" (ngModelChange)="updateItineraryItem(i,'description',$event)" placeholder="Descripcion"></textarea>
-                  <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="item.icon" (ngModelChange)="updateItineraryItem(i,'icon',$event)" placeholder="Emoji"></div>
+                  <div class="pf"><label>Icono</label>
+                    <div class="btn-row" style="margin-bottom:6px">
+                      <button class="chip" [class.active]="item.iconType==='none'" (click)="updateItineraryItem(i,'iconType','none');$event.stopPropagation()">Sin icono</button>
+                      <button class="chip" [class.active]="item.iconType==='emoji'||!item.iconType" (click)="updateItineraryItem(i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
+                      <button class="chip" [class.active]="item.iconType==='custom'" (click)="updateItineraryItem(i,'iconType','custom');$event.stopPropagation()">Imagen</button>
+                    </div>
+                    @if (item.iconType === 'emoji' || !item.iconType) {
+                      <div class="emoji-grid">
+                        @for (e of emojiOptions; track e) {
+                          <button class="emoji-btn" [class.active]="item.icon === e" (click)="updateItineraryItem(i,'icon',e);$event.stopPropagation()">{{e}}</button>
+                        }
+                      </div>
+                    }
+                    @if (item.iconType === 'custom') {
+                      <div class="upload-row">
+                        @if (item.iconUrl) {
+                          <span class="file-name">{{getFileName(item.iconUrl)}}</span>
+                          <button class="sm-btn danger" (click)="updateItineraryItem(i,'iconUrl','');$event.stopPropagation()">X</button>
+                        } @else {
+                          <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()">Subir imagen</button>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               }
             </div>
@@ -621,10 +657,39 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['itin-appear']) {
             <div class="accordion-body">
               <div class="toggle-row">
+                <span class="toggle-title">Mostrar iconos</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showIcons !== false" (ngModelChange)="setSec('itinerary','showIcons',$event)"><span class="slider"></span></label>
+              </div>
+              <div class="pf"><label>Alineacion de linea</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="sec('itinerary')?.timelineAlign==='left'" (click)="setSec('itinerary','timelineAlign','left');$event.stopPropagation()">Izquierda</button>
+                  <button class="chip" [class.active]="!sec('itinerary')?.timelineAlign||sec('itinerary')?.timelineAlign==='center'" (click)="setSec('itinerary','timelineAlign','center');$event.stopPropagation()">Centro</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.timelineAlign==='right'" (click)="setSec('itinerary','timelineAlign','right');$event.stopPropagation()">Derecha</button>
+                </div>
+              </div>
+              <div class="pf"><label>Estilo de linea</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="!sec('itinerary')?.lineStyle||sec('itinerary')?.lineStyle==='solid'" (click)="setSec('itinerary','lineStyle','solid');$event.stopPropagation()">Solida</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='dashed'" (click)="setSec('itinerary','lineStyle','dashed');$event.stopPropagation()">Discontinua</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='dotted'" (click)="setSec('itinerary','lineStyle','dotted');$event.stopPropagation()">Punteada</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='none'" (click)="setSec('itinerary','lineStyle','none');$event.stopPropagation()">Sin linea</button>
+                </div>
+              </div>
+              <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showCardBg" (ngModelChange)="setSec('itinerary','showCardBg',$event)"><span class="slider"></span></label>
               </div>
               <div class="pf"><label>Radio borde ({{sec('itinerary')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('itinerary')?.cardBorderRadius||8" (ngModelChange)="setSec('itinerary','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Tamano titulo ({{sec('itinerary')?.titleFontSize||16}}px)</label><input type="range" class="pinput-range" min="12" max="28" [ngModel]="sec('itinerary')?.titleFontSize||16" (ngModelChange)="setSec('itinerary','titleFontSize',+$event)"></div>
+              <div class="pf"><label>Tamano descripcion ({{sec('itinerary')?.descFontSize||13}}px)</label><input type="range" class="pinput-range" min="10" max="20" [ngModel]="sec('itinerary')?.descFontSize||13" (ngModelChange)="setSec('itinerary','descFontSize',+$event)"></div>
+              <div class="pf"><label>Tamano horario ({{sec('itinerary')?.timeFontSize||12}}px)</label><input type="range" class="pinput-range" min="9" max="16" [ngModel]="sec('itinerary')?.timeFontSize||12" (ngModelChange)="setSec('itinerary','timeFontSize',+$event)"></div>
+              <div class="pf"><label>Orientacion del texto</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="!sec('itinerary')?.textAlign||sec('itinerary')?.textAlign==='left'" (click)="setSec('itinerary','textAlign','left');$event.stopPropagation()">Izquierda</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.textAlign==='center'" (click)="setSec('itinerary','textAlign','center');$event.stopPropagation()">Centro</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.textAlign==='right'" (click)="setSec('itinerary','textAlign','right');$event.stopPropagation()">Derecha</button>
+                </div>
+              </div>
             </div>
           }
         }
@@ -916,6 +981,12 @@ import { ApiService } from '../../../../../core/services/api.service';
     .stepper-row { display:flex;align-items:center;gap:0;border:1px solid rgba(139,92,246,0.2);border-radius:6px;overflow:hidden; }
     .stepper-btn { width:36px;height:34px;border:none;background:rgba(139,92,246,0.1);color:white;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.25)} &:active{background:rgba(139,92,246,0.35)} }
     .stepper-value { flex:1;text-align:center;font-size:13px;font-weight:600;color:white;padding:6px 8px;background:rgba(255,255,255,0.03); }
+    .time-picker-row { display:flex;align-items:center;gap:4px; }
+    .time-select { width:auto !important;flex:1;padding:6px 4px !important;text-align:center;font-size:13px; }
+    .time-sep { color:rgba(255,255,255,0.5);font-weight:700;font-size:14px; }
+    .ampm { flex:0 0 50px !important; }
+    .emoji-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(32px,1fr));gap:3px;max-height:120px;overflow-y:auto;padding:4px;background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.15);border-radius:6px; }
+    .emoji-btn { width:32px;height:32px;border:none;background:transparent;border-radius:4px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.15)} &.active{background:rgba(139,92,246,0.25);outline:1px solid rgba(139,92,246,0.5)} }
     .media-info { display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;background:rgba(139,92,246,0.06);border-radius:5px;border:1px solid rgba(139,92,246,0.1); }
     .media-badge { font-size:10px;color:rgba(139,92,246,0.9);font-weight:600;text-transform:uppercase;letter-spacing:0.3px; }
     .media-duration { font-size:11px;color:rgba(255,255,255,0.5);margin-left:auto; }
@@ -1129,11 +1200,62 @@ export class BuilderPropsPanelComponent {
     const item = this.itineraryItems()[index];
     if (!item?.id) return;
     (item as any)[prop] = value;
-    this.api.updateItineraryItem(this.eventId, item.id, { [prop]: value }).subscribe();
+    this.api.updateItineraryItem(this.eventId, item.id, item).subscribe();
   }
 
   loadItinerary() {
     this.api.getItinerary(this.eventId).subscribe(items => this.itineraryItems.set(items));
+  }
+
+  // Time picker helpers
+  hours = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+  minutes = ['00','15','30','45'];
+
+  // Emoji picker options for itinerary
+  emojiOptions = [
+    '⛪','🏛️','👰','✝️','🤝','⏰','🎥','🍰','🎬','🍸','🍾','🎵','🍷','🍺','🖼️','🎶','🎸','💃',
+    '🏇','🎠','🌟','🌙','🚌','🍽️','🚕','🏃','✈️','🌹','🌸','🌿',
+    '🎁','👑','🏆','❤️','💕','🎲','🎨','🧩','🏃','🕯️','🌅','🌄'
+  ];
+
+  getHour(time: string): string {
+    if (!time) return '12';
+    const match = time.match(/(\d+)/);
+    if (!match) return '12';
+    let h = parseInt(match[1]);
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return h.toString();
+  }
+
+  getMinute(time: string): string {
+    if (!time) return '00';
+    const match = time.match(/:(\d+)/);
+    return match ? match[1] : '00';
+  }
+
+  getAmPm(time: string): string {
+    if (!time) return 'PM';
+    return time.toUpperCase().includes('AM') ? 'AM' : 'PM';
+  }
+
+  setTime(index: number, hour: string, minute: string, ampm: string) {
+    const timeStr = `${hour}:${minute} ${ampm}`;
+    this.updateItineraryItem(index, 'time', timeStr);
+  }
+
+  uploadItineraryIcon(index: number) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0];
+      if (!f) return;
+      this.api.uploadFile('images', f).subscribe({
+        next: (r) => this.updateItineraryItem(index, 'iconUrl', r.url)
+      });
+    };
+    input.click();
   }
 
   getParticlesProp(prop: string): any {

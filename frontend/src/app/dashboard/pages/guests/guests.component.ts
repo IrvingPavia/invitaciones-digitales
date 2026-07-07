@@ -82,7 +82,7 @@ import { environment } from '../../../../environments/environment';
             <span class="material-icons">arrow_back</span> Volver a Eventos
           </a>
           <h2 class="section-title">Invitados</h2>
-          <p class="section-subtitle">{{ filtered().length }} de {{ guests().length }} invitados</p>
+          <p class="section-subtitle">{{ eventName ? eventName + ' — ' : '' }}{{ filtered().length }} de {{ guests().length }} invitados</p>
         </div>
         <div class="flex gap-8" style="flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" (click)="downloadTemplate()"><span class="material-icons">download</span> Plantilla</button>
@@ -109,7 +109,7 @@ import { environment } from '../../../../environments/environment';
         </div>
       </div>
 
-      <div class="card desktop-table" style="overflow:auto">
+      <div class="card desktop-table">
         <table class="data-table">
           <thead>
             <tr><th>Código</th><th>Tipo</th><th>Familia/Nombre</th><th>Teléfono</th><th>Estado</th><th>Enviado</th><th>Acciones</th></tr>
@@ -145,11 +145,17 @@ import { environment } from '../../../../environments/environment';
                   }
                 </td>
                 <td>
-                  <div class="flex gap-8">
-                    <button class="btn btn-secondary btn-sm btn-icon" (click)="shareGuest(g)" title="Compartir invitación"><span class="material-icons" style="font-size:16px">share</span></button>
-                    <button class="btn btn-secondary btn-sm btn-icon" (click)="showQR(g)" title="QR"><span class="material-icons" style="font-size:16px">qr_code</span></button>
-                    <button class="btn btn-secondary btn-sm btn-icon" (click)="editGuest(g)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
-                    <button class="btn btn-danger btn-sm btn-icon" (click)="deleteGuest(g)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
+                  <div class="action-menu-wrapper">
+                    <button class="btn btn-secondary btn-sm btn-icon" (click)="toggleMenu(g.id); $event.stopPropagation()" title="Acciones"><span class="material-icons" style="font-size:18px">more_vert</span></button>
+                    @if (openMenuId === g.id) {
+                      <div class="action-dropdown" (click)="$event.stopPropagation()">
+                        <button class="dropdown-item" (click)="shareGuest(g); closeMenu()"><span class="material-icons">share</span>Compartir</button>
+                        <button class="dropdown-item" (click)="showQR(g); closeMenu()"><span class="material-icons">qr_code</span>Ver QR</button>
+                        <button class="dropdown-item" (click)="editGuest(g); closeMenu()"><span class="material-icons">edit</span>Editar</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" (click)="deleteGuest(g); closeMenu()"><span class="material-icons">delete</span>Eliminar</button>
+                      </div>
+                    }
                   </div>
                 </td>
               </tr>
@@ -281,6 +287,9 @@ export class GuestsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   eventId = 0;
   eventSlug = '';
+  eventName = '';
+  openMenuId: number | null = null;
+  private menuListener: any = null;
   guests = signal<Guest[]>([]);
   filtered = signal<Guest[]>([]);
   showModal = signal(false);
@@ -291,9 +300,15 @@ export class GuestsComponent implements OnInit {
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
-    this.api.getEvent(this.eventId).subscribe(e => this.eventSlug = e.slug);
+    this.api.getEvent(this.eventId).subscribe(e => { this.eventSlug = e.slug; this.eventName = e.name; });
     this.load();
+    this.menuListener = () => { this.openMenuId = null; };
+    document.addEventListener('click', this.menuListener);
   }
+
+  ngOnDestroy() { if (this.menuListener) document.removeEventListener('click', this.menuListener); }
+  toggleMenu(id: number) { this.openMenuId = this.openMenuId === id ? null : id; }
+  closeMenu() { this.openMenuId = null; }
 
   load() {
     this.api.getGuests(this.eventId).subscribe(g => { this.guests.set(g); this.filterGuests(); });

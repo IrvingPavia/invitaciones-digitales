@@ -97,6 +97,9 @@ import { environment } from '../../../../environments/environment';
           <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="mobile-action" title="Configurar">
             <span class="material-icons">settings</span>
           </a>
+          <a [routerLink]="['/dashboard/builder', selectedEvent()!.id]" class="mobile-action" title="Builder">
+            <span class="material-icons">dashboard_customize</span>
+          </a>
           <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="mobile-action" title="Tarjetas">
             <span class="material-icons">style</span>
           </a>

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -96,7 +96,7 @@ import { environment } from '../../../../environments/environment';
         </button>
       </div>
 
-      <div class="card desktop-table" style="overflow:auto">
+      <div class="card desktop-table">
         <table class="data-table">
           <thead>
             <tr>
@@ -113,19 +113,25 @@ import { environment } from '../../../../environments/environment';
                 <td>{{ e.confirmed_guests || 0 }}</td>
                 <td><span class="badge" [class.badge-success]="e.active" [class.badge-danger]="!e.active">{{ e.active ? 'Activo' : 'Inactivo' }}</span></td>
                 <td>
-                  <div class="flex gap-8">
-                    @if (e.event_mode === 'open') {
-                      <a [routerLink]="['/dashboard/registrations', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Registrados"><span class="material-icons" style="font-size:16px">how_to_reg</span></a>
-                    } @else {
-                      <a [routerLink]="['/dashboard/guests', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Invitados"><span class="material-icons" style="font-size:16px">people</span></a>
+                  <div class="action-menu-wrapper">
+                    <button class="btn btn-secondary btn-sm btn-icon" (click)="toggleMenu(e.id); $event.stopPropagation()" title="Acciones"><span class="material-icons" style="font-size:18px">more_vert</span></button>
+                    @if (openMenuId === e.id) {
+                      <div class="action-dropdown" (click)="$event.stopPropagation()">
+                        @if (e.event_mode === 'open') {
+                          <a [routerLink]="['/dashboard/registrations', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">how_to_reg</span>Registrados</a>
+                        } @else {
+                          <a [routerLink]="['/dashboard/guests', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">people</span>Invitados</a>
+                        }
+                        <a [routerLink]="['/dashboard/config', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">settings</span>Configurar</a>
+                        <a [routerLink]="['/dashboard/builder', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">dashboard_customize</span>Builder</a>
+                        <a [routerLink]="['/dashboard/cards', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">style</span>Tarjetas</a>
+                        <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">open_in_new</span>Ver Landing</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" (click)="editEvent(e); closeMenu()"><span class="material-icons">edit</span>Editar</button>
+                        <button class="dropdown-item" (click)="duplicateEvent(e); closeMenu()"><span class="material-icons">content_copy</span>Duplicar</button>
+                        <button class="dropdown-item danger" (click)="deleteEvent(e); closeMenu()"><span class="material-icons">delete</span>Eliminar</button>
+                      </div>
                     }
-                    <a [routerLink]="['/dashboard/config', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Configurar"><span class="material-icons" style="font-size:16px">settings</span></a>
-                    <a [routerLink]="['/dashboard/builder', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Builder Visual"><span class="material-icons" style="font-size:16px">dashboard_customize</span></a>
-                    <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
-                    <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
-                    <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
-                    <button class="btn btn-secondary btn-sm btn-icon" (click)="duplicateEvent(e)" title="Duplicar"><span class="material-icons" style="font-size:16px">content_copy</span></button>
-                    <button class="btn btn-danger btn-sm btn-icon" (click)="deleteEvent(e)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
                   </div>
                 </td>
               </tr>
@@ -289,7 +295,7 @@ import { environment } from '../../../../environments/environment';
     }
   `
 })
-export class EventsComponent implements OnInit {
+export class EventsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private dialog = inject(DialogService);
   events = signal<Event[]>([]);
@@ -298,6 +304,8 @@ export class EventsComponent implements OnInit {
   editing = false;
   editId = 0;
   environment = environment;
+  openMenuId: number | null = null;
+  private menuListener: any = null;
   form: any = { name: '', event_type: 'Boda', event_date: '', slug: '', active: 1, event_mode: 'private', max_capacity: null, landing_template: 'elegante' };
   formDate = '';
   formHour = 19;
@@ -311,7 +319,19 @@ export class EventsComponent implements OnInit {
     { key: 'corporativo', name: 'Corporativo', bg: 'linear-gradient(135deg, #0f172a, #1e293b)', accent: '#60a5fa' },
   ];
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+    this.menuListener = (e: MouseEvent) => { this.openMenuId = null; };
+    document.addEventListener('click', this.menuListener);
+  }
+
+  ngOnDestroy() {
+    if (this.menuListener) document.removeEventListener('click', this.menuListener);
+  }
+
+  toggleMenu(id: number) { this.openMenuId = this.openMenuId === id ? null : id; }
+  closeMenu() { this.openMenuId = null; }
+
   load() { this.api.getEvents().subscribe(e => this.events.set(e)); }
 
   openModal() {

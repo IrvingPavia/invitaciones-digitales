@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -85,7 +85,7 @@ import { Event } from '../../../core/models/models';
       }
 
       <!-- Desktop table -->
-      <div class="card desktop-table" style="overflow:auto">
+      <div class="card desktop-table">
         <table class="data-table">
           <thead>
             <tr><th>Usuario</th><th>Rol</th><th>Contraseña</th><th>Gestión</th><th>Eventos</th><th>Creado</th><th>Acciones</th></tr>
@@ -121,13 +121,19 @@ import { Event } from '../../../core/models/models';
                 </td>
                 <td>{{ u.created_at | date:'dd/MM/yy' }}</td>
                 <td>
-                  <div class="flex gap-8">
-                    @if (u.role !== 'root' || currentUser?.role === 'root') {
-                      <button class="btn btn-secondary btn-sm btn-icon" (click)="editUser(u)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
-                      <button class="btn btn-secondary btn-sm btn-icon" (click)="resetPassword(u)" title="Resetear contraseña"><span class="material-icons" style="font-size:16px">lock_reset</span></button>
-                    }
-                    @if (u.role !== 'root' && u.id !== currentUser?.id) {
-                      <button class="btn btn-danger btn-sm btn-icon" (click)="deleteUser(u)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
+                  <div class="action-menu-wrapper">
+                    <button class="btn btn-secondary btn-sm btn-icon" (click)="toggleMenu(u.id); $event.stopPropagation()" title="Acciones"><span class="material-icons" style="font-size:18px">more_vert</span></button>
+                    @if (openMenuId === u.id) {
+                      <div class="action-dropdown" (click)="$event.stopPropagation()">
+                        @if (u.role !== 'root' || currentUser?.role === 'root') {
+                          <button class="dropdown-item" (click)="editUser(u); closeMenu()"><span class="material-icons">edit</span>Editar</button>
+                          <button class="dropdown-item" (click)="resetPassword(u); closeMenu()"><span class="material-icons">lock_reset</span>Resetear contrasena</button>
+                        }
+                        @if (u.role !== 'root' && u.id !== currentUser?.id) {
+                          <div class="dropdown-divider"></div>
+                          <button class="dropdown-item danger" (click)="deleteUser(u); closeMenu()"><span class="material-icons">delete</span>Eliminar</button>
+                        }
+                      </div>
                     }
                   </div>
                 </td>
@@ -249,6 +255,8 @@ import { Event } from '../../../core/models/models';
 export class UsersComponent implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(DialogService);
+  openMenuId: number | null = null;
+  private menuListener: any = null;
   private auth = inject(AuthService);
   users = signal<any[]>([]);
   allEvents = signal<Event[]>([]);
@@ -266,7 +274,13 @@ export class UsersComponent implements OnInit {
     this.currentUser = this.auth.getUser();
     this.load();
     this.api.getEvents().subscribe(e => this.allEvents.set(e));
+    this.menuListener = () => { this.openMenuId = null; };
+    document.addEventListener('click', this.menuListener);
   }
+
+  ngOnDestroy() { if (this.menuListener) document.removeEventListener('click', this.menuListener); }
+  toggleMenu(id: number) { this.openMenuId = this.openMenuId === id ? null : id; }
+  closeMenu() { this.openMenuId = null; }
 
   load() { this.api.getUsers().subscribe(u => this.users.set(u)); }
 

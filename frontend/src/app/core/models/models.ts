@@ -313,6 +313,14 @@ export interface ItineraryConfig {
   title: string;
   showCardBg?: boolean;
   cardBorderRadius?: number;
+  showIcons?: boolean;
+  titleFontSize?: number;
+  descFontSize?: number;
+  timeFontSize?: number;
+  textAlign?: 'left' | 'center' | 'right';
+  timelineAlign?: 'left' | 'center' | 'right';
+  lineStyle?: 'solid' | 'dashed' | 'dotted' | 'none';
+  dotStyle?: 'diamond' | 'circle' | 'star' | 'none';
   items: ItineraryItem[];
   sectionStyle?: SectionStyle;
 }

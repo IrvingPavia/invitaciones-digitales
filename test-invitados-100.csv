@@ -1,0 +1,101 @@
+familia,nombre,tipo,acompanantes,telefono,notas
+García López,Juan García y Familia,family,4,5551234001,Mesa principal
+Hernández Ruiz,María Hernández,individual,0,5551234002,Vegetariana
+Martínez Flores,Los Martínez,family,3,5551234003,
+Rodríguez Sánchez,Pedro Rodríguez y Sra.,couple,1,5551234004,Alergia al maní
+López Torres,Familia López Torres,family,5,5551234005,Necesitan silla para bebé
+González Ramírez,Ana González,individual,0,5551234006,
+Pérez Morales,Roberto y Laura Pérez,couple,1,5551234007,
+Díaz Gutiérrez,Familia Díaz,family,6,5551234008,Mesa 3
+Sánchez Ortega,Carlos Sánchez,individual,0,5551234009,DJ del evento
+Torres Vega,Familia Torres Vega,family,4,5551234010,
+Ramírez Castro,Sofía Ramírez,individual,0,5551234011,Fotógrafa
+Flores Mendoza,Los Flores Mendoza,family,3,5551234012,
+Morales Rivera,Eduardo Morales y Esposa,couple,1,5551234013,
+Jiménez Herrera,Familia Jiménez,family,7,5551234014,Reservar 2 mesas
+Ruiz Delgado,Patricia Ruiz,individual,0,5551234015,Madrina
+Castro Vargas,Familia Castro Vargas,family,4,5551234016,
+Ortega Luna,Miguel Ortega,individual,0,5551234017,Padrino
+Vega Salazar,Los Vega Salazar,family,5,5551234018,
+Rivera Aguilar,Carmen Rivera y Acompañante,couple,1,5551234019,
+Mendoza Cruz,Familia Mendoza Cruz,family,3,5551234020,Llegan tarde
+Herrera Reyes,Luis Herrera,individual,0,5551234021,
+Delgado Ramos,Familia Delgado,family,4,5551234022,
+Vargas Peña,Sandra Vargas y Novio,couple,1,5551234023,
+Luna Guerrero,Los Luna Guerrero,family,6,5551234024,
+Salazar Medina,Fernando Salazar,individual,0,5551234025,Tío del festejado
+Aguilar Chávez,Familia Aguilar Chávez,family,3,5551234026,
+Cruz Domínguez,Verónica Cruz,individual,0,5551234027,
+Reyes Ibarra,Los Reyes Ibarra,family,5,5551234028,
+Ramos Contreras,Alejandro Ramos y Sra.,couple,1,5551234029,
+Peña Navarro,Familia Peña Navarro,family,4,5551234030,
+Guerrero Silva,Gabriela Guerrero,individual,0,5551234031,
+Medina Rojas,Los Medina Rojas,family,3,5551234032,
+Chávez Fuentes,Héctor Chávez y Esposa,couple,1,5551234033,
+Domínguez Arias,Familia Domínguez,family,5,5551234034,
+Ibarra Campos,Leticia Ibarra,individual,0,5551234035,Tía
+Contreras León,Familia Contreras León,family,4,5551234036,
+Navarro Valdez,Ricardo Navarro,individual,0,5551234037,
+Silva Sandoval,Los Silva Sandoval,family,6,5551234038,Reservar mesa grande
+Rojas Pacheco,Mónica Rojas y Acompañante,couple,1,5551234039,
+Fuentes Méndez,Familia Fuentes,family,3,5551234040,
+Arias Cortés,Oscar Arias,individual,0,5551234041,
+Campos Figueroa,Los Campos Figueroa,family,4,5551234042,
+León Bustamante,Claudia León y Novio,couple,1,5551234043,
+Valdez Espinoza,Familia Valdez Espinoza,family,5,5551234044,
+Sandoval Palacios,Enrique Sandoval,individual,0,5551234045,
+Pacheco Miranda,Familia Pacheco,family,3,5551234046,
+Méndez Quintero,Rosa Méndez,individual,0,5551234047,Abuela
+Cortés Zapata,Los Cortés Zapata,family,4,5551234048,
+Figueroa Lara,Daniel Figueroa y Sra.,couple,1,5551234049,
+Bustamante Ochoa,Familia Bustamante,family,6,5551234050,
+Espinoza Téllez,Adriana Espinoza,individual,0,5551234051,
+Palacios Huerta,Los Palacios Huerta,family,3,5551234052,
+Miranda Solís,Jorge Miranda y Esposa,couple,1,5551234053,
+Quintero Bernal,Familia Quintero,family,4,5551234054,
+Zapata Cisneros,Alicia Zapata,individual,0,5551234055,Prima
+Lara Galván,Los Lara Galván,family,5,5551234056,
+Ochoa Montes,Familia Ochoa Montes,family,3,5551234057,
+Téllez Villegas,Francisco Téllez,individual,0,5551234058,
+Huerta Coronado,Los Huerta Coronado,family,4,5551234059,
+Solís Barrera,Mariana Solís y Acompañante,couple,1,5551234060,
+Bernal Arellano,Familia Bernal,family,5,5551234061,
+Cisneros Trujillo,Raúl Cisneros,individual,0,5551234062,
+Galván Estrada,Los Galván Estrada,family,6,5551234063,
+Montes Cabrera,Familia Montes Cabrera,family,3,5551234064,
+Villegas Serrano,Diana Villegas y Novio,couple,1,5551234065,
+Coronado Acosta,Los Coronado Acosta,family,4,5551234066,
+Barrera Montoya,Familia Barrera,family,5,5551234067,
+Arellano Duarte,Sergio Arellano,individual,0,5551234068,
+Trujillo Leal,Los Trujillo Leal,family,3,5551234069,
+Estrada Meza,Laura Estrada y Esposo,couple,1,5551234070,
+Cabrera Nava,Familia Cabrera Nava,family,4,5551234071,
+Serrano Orozco,Familia Serrano,family,6,5551234072,Primos
+Acosta Pineda,Manuel Acosta,individual,0,5551234073,
+Montoya Bravo,Los Montoya Bravo,family,3,5551234074,
+Duarte Camacho,Familia Duarte,family,5,5551234075,
+Leal Rosales,Fabiola Leal y Acompañante,couple,1,5551234076,
+Meza Cervantes,Familia Meza Cervantes,family,4,5551234077,
+Nava Maldonado,Arturo Nava,individual,0,5551234078,Primo
+Orozco Tapia,Los Orozco Tapia,family,3,5551234079,
+Pineda Carrillo,Familia Pineda,family,5,5551234080,
+Bravo Velasco,Teresa Bravo,individual,0,5551234081,
+Camacho Zavala,Los Camacho Zavala,family,4,5551234082,
+Rosales Juárez,Familia Rosales Juárez,family,6,5551234083,
+Cervantes Molina,David Cervantes y Sra.,couple,1,5551234084,
+Maldonado Rico,Los Maldonado Rico,family,3,5551234085,
+Tapia Galindo,Familia Tapia,family,4,5551234086,
+Carrillo Salas,Irma Carrillo,individual,0,5551234087,Madrina de bautizo
+Velasco Monroy,Los Velasco Monroy,family,5,5551234088,
+Zavala Ponce,Familia Zavala Ponce,family,3,5551234089,
+Juárez Ávila,Roberto Juárez y Esposa,couple,1,5551234090,
+Molina Cárdenas,Familia Molina,family,4,5551234091,
+Rico Valenzuela,Gloria Rico,individual,0,5551234092,
+Galindo Suárez,Los Galindo Suárez,family,6,5551234093,Mesa VIP
+Salas Partida,Familia Salas,family,3,5551234094,
+Monroy Escobar,Esteban Monroy y Novia,couple,1,5551234095,
+Ponce Anguiano,Familia Ponce Anguiano,family,5,5551234096,
+Ávila Tovar,Isabel Ávila,individual,0,5551234097,
+Cárdenas Rangel,Los Cárdenas Rangel,family,4,5551234098,
+Valenzuela Ojeda,Familia Valenzuela,family,3,5551234099,
+Suárez Alvarado,Armando Suárez y Familia,family,7,5551234100,Reservar mesa completa
