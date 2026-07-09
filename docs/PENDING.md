@@ -27,6 +27,9 @@
 - [x] **Editor de tarjetas mejorado**: Drag & drop para reordenar elementos (z-index), duplicar elementos, Undo/Redo (Ctrl+Z/Y + botones + historial 30 estados)
 - [x] **Duplicar evento completo**: Botón en lista de eventos que clona config, tarjetas, itinerario y fotos a un nuevo evento con slug único
 - [x] **Preview de landing en iframe**: Pestaña "📱 Preview" en configuración con mockup tipo celular que muestra la landing real embebida + botón recargar
+- [x] **AG Grid en Dashboard**: Tablas HTML reemplazadas por AG Grid Community v31 en Eventos, Usuarios, Invitados y Registrados. Tema custom dark/light, paginación, sorting, filtros, columnas centradas, scroll horizontal inteligente.
+- [x] **Mobile UX Dashboard**: Cards responsivas, botón "Acciones" con shimmer, menú desplegable, header fijo, scroll independiente de cards, botón "Volver" fijo abajo, scrollbar oculta, búsqueda dinámica en todos los módulos.
+- [x] **Itinerario — iconos centrados**: Iconos alineados al centro de la línea timeline (sin fondo negro).
 
 ### 🆕 Estilos por Sección (feature grande — int-006)
 

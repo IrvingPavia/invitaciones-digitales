@@ -40,21 +40,67 @@ Al entrar verás:
 
 - **Carrusel 3D de eventos**: Tus eventos como tarjetas interactivas. Navega con flechas, dots o arrastrando.
 - **KPIs del evento activo**: Invitados confirmados, pendientes, capacidad.
-- **Botones de acción**: Invitados, Configurar, Builder, Tarjetas.
+- **Botones de acción**: Invitados, Configurar, Builder, Tarjetas, Ver Landing.
 
 ### Navegación del Sidebar:
-- 🏠 Inicio — Vista general con carrusel
+- 🏠 Dashboard — Vista general con carrusel
 - 📅 Eventos — Lista y crear nuevos eventos
 - 👤 Usuarios — Gestionar usuarios (root/admin)
 - 💡 Sugerencias — Retroalimentación de clientes
+
+### Tablas con AG Grid (Desktop)
+
+Los módulos de Eventos, Usuarios, Invitados y Registrados usan **AG Grid** con:
+- **Paginación**: 50 registros por página (configurable: 25, 50, 100)
+- **Ordenar**: Click en cualquier header de columna
+- **Filtrar**: Click en el ícono de filtro en cada columna
+- **Buscar**: Input de búsqueda arriba del grid (filtra todas las columnas en tiempo real)
+- **Scroll horizontal**: Si la ventana es angosta, las columnas mantienen su tamaño mínimo
+- **Acciones**: Botón ⋮ en la última columna abre menú contextual
+
+### Vista Mobile (Cards)
+
+En pantallas menores a 768px, los grids se reemplazan por **cards** optimizadas para touch:
+- **Header fijo**: Título, botones y búsqueda se mantienen arriba siempre
+- **Cards scrollables**: Solo las tarjetas se desplazan (sin scrollbar visible)
+- **Búsqueda dinámica**: Filtra las cards en tiempo real conforme escribes
+- **Botón "Acciones"**: Un solo botón centrado por card que despliega menú con todas las opciones
+- **Botón "Volver"**: Aparece fijo abajo al scrollear, regresa al inicio suavemente
+- **Sin scrollbar**: Estilo app nativa — scroll por touch sin barra visible
+
+### Temas
+
+- **Modo Oscuro** (default): Fondo negro con acentos púrpura/dorado
+- **Modo Claro**: Fondo blanco con acentos púrpura. Cambia con el ícono ☀/🌙 en la topbar.
+- El nombre de usuario siempre es visible en la topbar (incluso en mobile)
 
 ---
 
 ## 3. Crear un Evento
 
-1. Ve a **Eventos** en el sidebar
-2. Click en **"+ Nuevo Evento"**
-3. Completa:
+### Lista de Eventos
+
+El módulo de Eventos muestra todos tus eventos en un grid interactivo:
+
+**Desktop (AG Grid):**
+| Columna | Descripción |
+|---------|-------------|
+| Nombre | Nombre + slug del evento |
+| Tipo | Badge del tipo (Boda, XV Años, etc.) — centrado |
+| Fecha | Formato dd/mm/yyyy — centrado |
+| Invitados | Total de invitados — centrado |
+| Confirm. | Confirmados — centrado |
+| Estado | Activo/Inactivo (badge) — centrado |
+| ⋮ | Menú de acciones |
+
+**Mobile (Cards):**
+- Cada evento como card con nombre, tipo, fecha, invitados y URL
+- Botón "Acciones" para: Invitados, Configurar, Builder, Tarjetas, Ver Landing, Editar, Duplicar, Eliminar
+
+### Crear nuevo evento
+
+1. Click en **"+ Nuevo Evento"**
+2. Completa:
    - **Nombre** del evento (ej: "Boda de Ana y Carlos")
    - **Slug** (URL amigable, ej: `boda-ana-carlos`)
    - **Tipo** (Boda, XV Años, Cumpleaños, Bautizo, Graduación, Empresarial, Conferencia)
@@ -208,12 +254,12 @@ Puedes editar estos textos haciendo click directamente sobre ellos en el preview
 Al seleccionar una sección, muestra controles específicos:
 
 #### Carátula (Hero):
-- Nombres de celebrantes
-- Frase del hero
-- Descripción del evento
-- Fecha del countdown
+- Nombres de celebrantes (con degradado de color configurable, ocultables)
+- Frase del hero (descripción opcional)
+- Fecha del countdown (con formato dinámico)
 - Fondo (imagen/video/GIF) — con botón de upload
-- Audio de fondo — con botón de upload
+- Audio de fondo — con botón de upload y controles de reproducción
+- Estilo de frase configurable (fuente, tamaño, color)
 
 #### Invitación:
 - Título
@@ -221,20 +267,35 @@ Al seleccionar una sección, muestra controles específicos:
 
 #### Detalles:
 - Título de la sección
-- Cards editables (título + contenido)
+- Cards editables (título + contenido + ícono)
+- Fondo y border-radius individual por card
 - **+ Agregar** nueva card / **✕** eliminar
 
 #### Lugares:
 - Items editables (nombre, dirección, hora, link de Maps)
+- Fondo y border-radius individual por venue
 - **+ Agregar** nuevo lugar / **✕** eliminar
+
+#### Itinerario:
+- Título de la sección
+- Items del timeline: hora, título, descripción, ícono
+- **Tipos de ícono**: Material Icons, Emoji, Imagen personalizada, o ninguno
+- **Estilo del timeline**: Alineación (centro, izquierda, derecha), tipo de línea (sólida, punteada, segmentada, ninguna)
+- **Personalización visual**: Tamaño de fuentes (hora, título, descripción), fondo de cards on/off, border-radius
+- **Selector de hora**: Time picker visual con AM/PM
+- **Grid de emojis**: Selector rápido de emojis temáticos
+- Los iconos se centran verticalmente sobre la línea del timeline
 
 #### Galería:
 - Título
-- Estilo de visualización (8 opciones: Carrusel 3D, Coverflow, Stack, etc.)
+- Estilo de visualización (8 opciones: Carrusel 3D, Vertical 3D, Coverflow, Stack, Flip, Polaroid, Grid, Slideshow)
+- Upload múltiple de fotos (calidad original, sin compresión)
 
 #### Vestimenta:
 - Título
-- Cards editables (título + descripción)
+- Cards dinámicas (ilimitadas)
+- Cada card: título, descripción, hasta 4 imágenes de ejemplo
+- Fondo y border-radius individuales por card
 - **+ Agregar** / **✕** eliminar
 
 #### Regalos:
@@ -246,16 +307,21 @@ Al seleccionar una sección, muestra controles específicos:
 #### Pantalla de Inicio:
 - Textos de instrucción y sello
 - Color del sobre y del sello
+- Template: Sobre, Ticket, Splash, Plano
 
 #### Intro:
-- Frase animada
-- Duración (segundos)
-- Fondo (imagen/video)
+- Frase animada (texto que aparece durante la intro)
+- Duración (segundos con stepper)
+- Fondo (imagen/video/GIF)
+- **Partículas**: 6 tipos (confeti, estrellas, corazones, burbujas, nieve, polvo)
+  - Dirección, cantidad, velocidad, colores, opacidad
+- **Transición de salida**: 7 tipos de animación al terminar la intro
+- **Loop**: Opción de repetir la intro continuamente
 
 #### Estilo de fondo (en todas las secciones):
 - Tipo: Hereda del tema / Sólido / Degradado / Imagen
 - Color pickers
-- Upload de imagen de fondo
+- Upload de imagen de fondo con overlay configurable
 
 ### 5.7 Tema Global
 
@@ -265,7 +331,9 @@ Click en **"🎨 Tema Global"** en el panel izquierdo para editar:
 - **Botones**: Color de fondo y texto
 - **Cards**: Fondo y borde
 - **Fondo de la landing**: Color principal, secundario, tipo (sólido/lineal/radial)
-- **Animación de scroll**: Fade Up, Fade In, Scale, Ninguna
+- **Animación de scroll**: Fade Up, Fade In, Slide Left, Slide Right, Scale, Ninguna
+- **Fuentes globales**: 15 tipografías disponibles para títulos, subtítulos y contenido
+- **Separadores**: Estilo (elegante, formal, festivo, minimal, ornamental), color, grosor
 
 ### 5.8 Auto-guardado
 
@@ -290,10 +358,13 @@ En pantallas pequeñas (<900px):
 | Agregar/eliminar items | ✅ | ✅ |
 | Estilos avanzados (fuentes, tamaños, gradientes) | Parcial | ✅ Completo |
 | Partículas, separadores, adornos | ❌ | ✅ |
+| Estilos por sección (fondos, dividers, transiciones) | ❌ | ✅ |
+| Itinerario (iconos, emojis, estilo timeline) | ❌ | ✅ |
+| Vestimenta (cards con imágenes) | Parcial | ✅ |
 | Rapidez para cambios simples | ⚡ Rápido | Más lento |
 | Control granular | Básico | Total |
 
-**Recomendación**: Usa el Builder para edición rápida y el Configurador para ajustes finos.
+**Recomendación**: Usa el Builder para edición rápida de textos y colores. Usa el Configurador para personalización profunda (partículas, dividers, estilos per sección, itinerario avanzado).
 
 ---
 
@@ -302,23 +373,39 @@ En pantallas pequeñas (<900px):
 ### Eventos Privados (con lista)
 
 1. Ve a **Invitados** desde el dashboard
-2. Opciones:
-   - **+ Nuevo**: Agregar invitado manualmente (nombre, tipo, teléfono)
-   - **📥 Importar Excel**: Subir lista masiva
-   - **📤 Exportar**: Descargar lista en Excel
-   - **QR**: Ver código QR de cada invitado
+2. Opciones (iconos compactos en mobile, botones con label en desktop):
+   - **📥 Plantilla**: Descargar template Excel para llenar
+   - **📄 Importar**: Subir lista masiva desde Excel
+   - **📊 Exportar**: Descargar lista actual en Excel
+   - **📤 Enviar**: Envío masivo por WhatsApp
+   - **+ Agregar**: Nuevo invitado manualmente
+
+### Búsqueda y filtrado:
+- **Desktop**: Input de búsqueda arriba del AG Grid — filtra por nombre, familia o código
+- **Mobile**: Input arriba de las cards — filtra en tiempo real conforme escribes
 
 ### Tipos de invitado:
-- **Individual**: 1 persona
-- **Pareja**: 2 personas (titular + acompañante)
-- **Familia**: N personas (titular + lista de nombres)
+- **Individual**: 1 persona + acompañantes opcionales
+- **Familia**: N personas (nombre de familia + lista de integrantes)
+
+### Columnas del Grid (Desktop):
+| Columna | Descripción |
+|---------|-------------|
+| Código | Código único del invitado (centrado) |
+| Tipo | Individual/Familia (badge, centrado) |
+| Familia/Nombre | Nombre principal + integrantes |
+| Teléfono | Número WhatsApp (centrado) |
+| Estado | Pendiente/Confirmado (badge, centrado) |
+| Enviado | Si ya se compartió la invitación (centrado) |
+| ⋮ | Menú: Compartir, QR, Editar, Eliminar |
 
 ### Eventos Abiertos (con registro)
 
 No hay lista previa — los asistentes se registran solos desde la landing. Desde el dashboard puedes:
-- Ver la lista de registrados
+- Ver la lista de registrados en AG Grid (con paginación y filtros)
 - Ver estadísticas de cupo (registrados / capacidad máxima)
-- Eliminar registros
+- Buscar por nombre o email
+- Eliminar registros individuales
 
 ---
 
@@ -387,6 +474,13 @@ Al compartir el link en WhatsApp, Facebook, o Twitter, se muestra un preview bon
 - **Ctrl+Shift+R** en el navegador para limpiar cache después de cambios
 - Los cambios requieren **Guardar** para reflejarse en la landing real
 - El **modo oscuro/claro** del dashboard se cambia con el ícono sol/luna en la barra superior
+- El nombre del usuario logueado siempre es visible en la topbar
+
+### Gestión de Usuarios
+- Los usuarios se ordenan automáticamente: **root** primero, luego **admin**, luego **client**
+- Búsqueda dinámica por nombre de usuario o rol
+- Columnas del grid: Usuario, Rol, Contraseña (oculta), Gestión, Eventos, Creado, Acciones
+- En mobile: Cards con botón "Acciones" → Editar, Restablecer contraseña, Eliminar
 
 ### Configurador
 - Las **cards son colapsables** — click en el header para expandir/colapsar
@@ -429,8 +523,17 @@ No. Cada invitado accede con su link único (con código QR) y confirma sin logi
 Sí. En la sección de Configuración → RSVP → "Mensaje para compartir". Admite variables como {nombre}, {evento}, {link}.
 
 ### ¿Cuántas fotos puedo subir a la galería?
-No hay límite técnico, pero se recomienda máximo 15-20 para carga rápida en dispositivos móviles.
+No hay límite técnico, pero se recomienda máximo 15-20 para carga rápida en dispositivos móviles. Las fotos se mantienen en calidad original.
 
 ### ¿Builder o Configurador?
 - **Builder** para cambios rápidos visuales (textos, colores, activar/desactivar secciones)
-- **Configurador** para ajustes finos (fuentes específicas, tamaños, partículas, separadores, adornos)
+- **Configurador** para ajustes finos (fuentes específicas, tamaños, partículas, separadores, adornos, estilos por sección, itinerario avanzado)
+
+### ¿Cómo funciona el modo oscuro/claro?
+Click en el ícono ☀/🌙 en la topbar. Afecta solo al dashboard — la landing siempre usa su propio tema configurado.
+
+### ¿Puedo buscar en las tablas?
+Sí. Todos los módulos (Eventos, Usuarios, Invitados) tienen un input de búsqueda que filtra en tiempo real tanto el grid desktop como las cards mobile.
+
+### ¿El itinerario acepta emojis como iconos?
+Sí. En el Configurador → Itinerario → cada item tiene un selector de tipo de ícono (Material Icon, Emoji, Imagen, o ninguno). Los emojis se seleccionan de un grid temático.

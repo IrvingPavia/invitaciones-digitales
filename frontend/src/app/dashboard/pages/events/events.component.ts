@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AgGridAngular } from 'ag-grid-angular';
+import { ColDef, GridReadyEvent, GridApi } from 'ag-grid-community';
 import { ApiService } from '../../../core/services/api.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { Event } from '../../../core/models/models';
@@ -10,8 +12,9 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AgGridAngular],
   styles: [`
+    :host { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .event-cards { display: none; }
     .event-card {
       background: rgba(255,255,255,0.03);
@@ -20,6 +23,7 @@ import { environment } from '../../../../environments/environment';
       padding: 16px;
       margin-bottom: 12px;
       transition: border-color 0.2s;
+      overflow: hidden;
     }
     .event-card:hover { border-color: rgba(124,92,191,0.4); }
     .event-card-header {
@@ -27,25 +31,112 @@ import { environment } from '../../../../environments/environment';
       margin-bottom: 12px; gap: 8px;
     }
     .event-card-name {
-      font-size: 15px; font-weight: 600; color: white;
+      font-size: 16px; font-weight: 700; color: white;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       flex: 1; min-width: 0;
     }
     .event-card-body {
-      display: grid; grid-template-columns: auto 1fr; gap: 6px 12px;
-      font-size: 13px; margin-bottom: 12px;
+      display: flex; flex-direction: column; gap: 8px;
+      font-size: 13px; margin-bottom: 0;
     }
-    .event-card-label { color: rgba(255,255,255,0.4); white-space: nowrap; }
-    .event-card-value { color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; }
+    .event-card-row { display: flex; align-items: center; gap: 12px; }
+    .event-card-label { color: rgba(255,255,255,0.5); min-width: 70px; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+    .event-card-value { color: rgba(255,255,255,0.9); flex: 1; overflow: hidden; text-overflow: ellipsis; }
     .event-card-actions {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 12px; padding-top: 0; border-top: none;
     }
-    .desktop-table { display: block; }
+    .card-action-btn {
+      display: flex; align-items: center; justify-content: center; width: 100%;
+      background: rgba(124,92,191,0.15); border: none;
+      border-radius: 8px; padding: 10px 24px;
+      color: #c084fc; font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+      cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+      &:hover { background: rgba(124,92,191,0.25); }
+      &:active { transform: scale(0.98); }
+      &:active::after {
+        content: ''; position: absolute;
+        top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(192,132,252,0.4), transparent);
+        animation: cardShimmer 0.6s ease-out forwards;
+      }
+    }
+    @keyframes cardShimmer { 0% { left: -100%; } 100% { left: 100%; } }
+    .card-action-menu {
+      display: flex; flex-direction: column; gap: 2px;
+      margin-top: 8px; padding: 8px;
+      background: rgba(12,12,24,0.95); border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 10px; animation: menuSlide 0.2s ease;
+    }
+    @keyframes menuSlide { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .card-action-menu {
+      display: flex; flex-direction: column; gap: 2px;
+      margin-top: 10px; padding: 8px;
+      background: rgba(12,12,24,0.9); border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 12px; animation: menuSlide 0.2s ease;
+    }
+    @keyframes menuSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .card-menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      color: rgba(255,255,255,0.8); font-size: 13px;
+      background: none; border: none; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+      .material-icons { font-size: 18px; color: rgba(255,255,255,0.5); }
+      &:hover { background: rgba(139,92,246,0.12); color: white; .material-icons { color: #c084fc; } }
+      &.danger { color: #f87171; .material-icons { color: #f87171; } }
+      &.danger:hover { background: rgba(248,113,113,0.1); }
+    }
+    .grid-wrapper { width: 100%; flex: 1; min-height: 0; }
+    .desktop-table { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     @media (max-width: 768px) {
-      .desktop-table { display: none; }
-      .event-cards { display: block; }
+      :host { overflow: hidden; display: flex; flex-direction: column; }
+      :host::-webkit-scrollbar { display: none; }
+      .desktop-table { display: none !important; }
+      .mobile-header { flex-shrink: 0; }
+      .search-inline { display: flex; flex-shrink: 0; }
+      .event-cards {
+        display: block; flex: 1; overflow-y: auto; overflow-x: hidden;
+        scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        padding-bottom: 16px;
+      }
+      .event-cards::-webkit-scrollbar { display: none; }
+    }
+    .scroll-top-bar {
+      display: none;
+    }
+    .search-inline {
+      display: flex;
+      align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(124,92,191,0.2);
+      border-radius: 10px; padding: 6px 12px;
+      transition: all 0.3s;
+    }
+    .search-inline:focus-within {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(124,92,191,0.1);
+    }
+    .search-icon { color: rgba(124,92,191,0.6); font-size: 20px; flex-shrink: 0; }
+    .search-input {
+      flex: 1; background: none; border: none; outline: none;
+      color: white; font-size: 14px; font-family: var(--font-sans);
+      &::placeholder { color: rgba(255,255,255,0.3); }
+    }
+    .search-clear {
+      background: none; border: none; cursor: pointer; padding: 2px;
+      color: rgba(255,255,255,0.3); display: flex; align-items: center;
+      border-radius: 50%; transition: all 0.2s; flex-shrink: 0;
+      .material-icons { font-size: 16px; }
+      &:hover { color: white; background: rgba(255,255,255,0.1); }
+    }
+    @media (max-width: 768px) {
+      .scroll-top-bar {
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; padding: 14px;
+        background: rgba(124,92,191,0.12); border: none; border-radius: 0;
+        color: #c084fc; font-size: 14px; font-weight: 600;
+        cursor: pointer; margin: 0; flex-shrink: 0;
+      }
     }
     .time-picker-field {
       display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -85,8 +176,8 @@ import { environment } from '../../../../environments/environment';
     .template-name { font-size: 11px; color: rgba(255,255,255,0.7); text-align: center; }
   `],
   template: `
-    <div>
-      <div class="flex-between mb-24">
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="flex-between mb-24 mobile-header">
         <div>
           <h2 class="section-title">Eventos</h2>
           <p class="section-subtitle">Gestiona tus eventos de invitaciones</p>
@@ -96,85 +187,102 @@ import { environment } from '../../../../environments/environment';
         </button>
       </div>
 
-      <div class="card desktop-table">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nombre</th><th>Tipo</th><th>Fecha</th><th>Invitados</th><th>Confirmados</th><th>Estado</th><th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
+      <!-- Search -->
+      <div class="search-inline mb-8">
+        <span class="material-icons search-icon">search</span>
+        <input type="text" [(ngModel)]="search" (ngModelChange)="onSearchChange()" placeholder="Buscar evento..." class="search-input">
+        @if (search) {
+          <button class="search-clear" (click)="search=''; onSearchChange()">
+            <span class="material-icons">close</span>
+          </button>
+        }
+      </div>
+
+      <div class="card desktop-table" style="position:relative">
+        <div class="grid-wrapper ag-theme-quartz ag-theme-custom-dark">
+          <ag-grid-angular
+            style="width: 100%; height: 100%;"
+            [rowData]="events()"
+            [columnDefs]="colDefs"
+            [defaultColDef]="defaultColDef"
+            [pagination]="true"
+            [paginationPageSize]="50"
+            [paginationPageSizeSelector]="[25, 50, 100]"
+            [animateRows]="true"
+            [quickFilterText]="search"
+            (gridReady)="onGridReady($event)"
+          />
+        </div>
+        @if (openMenuId !== null) {
+          <div class="action-dropdown ag-dropdown-overlay" (click)="$event.stopPropagation()">
             @for (e of events(); track e.id) {
-              <tr>
-                <td><strong>{{ e.name }}</strong><br><small class="text-muted">{{ environment.baseUrl }}/invitacion/{{ e.slug }}</small></td>
-                <td><span class="badge badge-info">{{ e.event_type }}</span></td>
-                <td>{{ e.event_date | date:'dd/MM/yyyy' }}</td>
-                <td>{{ e.total_guests || 0 }}</td>
-                <td>{{ e.confirmed_guests || 0 }}</td>
-                <td><span class="badge" [class.badge-success]="e.active" [class.badge-danger]="!e.active">{{ e.active ? 'Activo' : 'Inactivo' }}</span></td>
-                <td>
-                  <div class="action-menu-wrapper">
-                    <button class="btn btn-secondary btn-sm btn-icon" (click)="toggleMenu(e.id); $event.stopPropagation()" title="Acciones"><span class="material-icons" style="font-size:18px">more_vert</span></button>
-                    @if (openMenuId === e.id) {
-                      <div class="action-dropdown" (click)="$event.stopPropagation()">
-                        @if (e.event_mode === 'open') {
-                          <a [routerLink]="['/dashboard/registrations', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">how_to_reg</span>Registrados</a>
-                        } @else {
-                          <a [routerLink]="['/dashboard/guests', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">people</span>Invitados</a>
-                        }
-                        <a [routerLink]="['/dashboard/config', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">settings</span>Configurar</a>
-                        <a [routerLink]="['/dashboard/builder', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">dashboard_customize</span>Builder</a>
-                        <a [routerLink]="['/dashboard/cards', e.id]" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">style</span>Tarjetas</a>
-                        <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="dropdown-item" (click)="closeMenu()"><span class="material-icons">open_in_new</span>Ver Landing</a>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" (click)="editEvent(e); closeMenu()"><span class="material-icons">edit</span>Editar</button>
-                        <button class="dropdown-item" (click)="duplicateEvent(e); closeMenu()"><span class="material-icons">content_copy</span>Duplicar</button>
-                        <button class="dropdown-item danger" (click)="deleteEvent(e); closeMenu()"><span class="material-icons">delete</span>Eliminar</button>
-                      </div>
-                    }
-                  </div>
-                </td>
-              </tr>
+              @if (e.id === openMenuId) {
+                @if (e.event_mode === 'open') {
+                  <a class="dropdown-item" (click)="navigate('/dashboard/registrations', e.id)"><span class="material-icons">how_to_reg</span>Registrados</a>
+                } @else {
+                  <a class="dropdown-item" (click)="navigate('/dashboard/guests', e.id)"><span class="material-icons">people</span>Invitados</a>
+                }
+                <a class="dropdown-item" (click)="navigate('/dashboard/config', e.id)"><span class="material-icons">settings</span>Configurar</a>
+                <a class="dropdown-item" (click)="navigate('/dashboard/builder', e.id)"><span class="material-icons">dashboard_customize</span>Builder</a>
+                <a class="dropdown-item" (click)="navigate('/dashboard/cards', e.id)"><span class="material-icons">style</span>Tarjetas</a>
+                <a class="dropdown-item" [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" (click)="closeMenu()"><span class="material-icons">open_in_new</span>Ver Landing</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" (click)="editEvent(e); closeMenu()"><span class="material-icons">edit</span>Editar</button>
+                <button class="dropdown-item" (click)="duplicateEvent(e); closeMenu()"><span class="material-icons">content_copy</span>Duplicar</button>
+                <button class="dropdown-item danger" (click)="deleteEvent(e); closeMenu()"><span class="material-icons">delete</span>Eliminar</button>
+              }
             }
-            @empty {
-              <tr><td colspan="7" class="text-center text-muted" style="padding:40px">No hay eventos. Crea el primero.</td></tr>
-            }
-          </tbody>
-        </table>
+          </div>
+        }
       </div>
 
       <!-- Mobile cards -->
-      <div class="event-cards">
-        @for (e of events(); track e.id) {
+      <div class="event-cards" #cardsContainer>
+        @for (e of filteredEvents(); track e.id) {
           <div class="event-card">
             <div class="event-card-header">
               <span class="event-card-name">{{ e.name }}</span>
               <span class="badge" [class.badge-success]="e.active" [class.badge-danger]="!e.active">{{ e.active ? 'Activo' : 'Inactivo' }}</span>
             </div>
             <div class="event-card-body">
-              <span class="event-card-label">Tipo</span>
-              <span class="event-card-value"><span class="badge badge-info">{{ e.event_type }}</span></span>
-              <span class="event-card-label">Fecha</span>
-              <span class="event-card-value">{{ e.event_date | date:'dd/MM/yyyy' }}</span>
-              <span class="event-card-label">Invitados</span>
-              <span class="event-card-value">{{ e.total_guests || 0 }} total · {{ e.confirmed_guests || 0 }} confirmados</span>
-              <span class="event-card-label">URL</span>
-              <span class="event-card-value" style="font-size:11px;color:var(--gold);">/invitacion/{{ e.slug }}</span>
+              <div class="event-card-row">
+                <span class="event-card-label">Tipo</span>
+                <span class="event-card-value"><span class="badge badge-info">{{ e.event_type }}</span></span>
+              </div>
+              <div class="event-card-row">
+                <span class="event-card-label">Fecha</span>
+                <span class="event-card-value">{{ e.event_date | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="event-card-row">
+                <span class="event-card-label">Invitados</span>
+                <span class="event-card-value">{{ e.total_guests || 0 }} total · {{ e.confirmed_guests || 0 }} confirmados</span>
+              </div>
+              <div class="event-card-row">
+                <span class="event-card-label">URL</span>
+                <span class="event-card-value" style="font-size:11px;color:var(--gold);">/invitacion/{{ e.slug }}</span>
+              </div>
             </div>
             <div class="event-card-actions">
-              @if (e.event_mode === 'open') {
-                <a [routerLink]="['/dashboard/registrations', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Registrados"><span class="material-icons" style="font-size:16px">how_to_reg</span></a>
-              } @else {
-                <a [routerLink]="['/dashboard/guests', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Invitados"><span class="material-icons" style="font-size:16px">people</span></a>
-              }
-              <a [routerLink]="['/dashboard/config', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Configurar"><span class="material-icons" style="font-size:16px">settings</span></a>
-              <a [routerLink]="['/dashboard/builder', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Builder Visual"><span class="material-icons" style="font-size:16px">dashboard_customize</span></a>
-              <a [routerLink]="['/dashboard/cards', e.id]" class="btn btn-secondary btn-sm btn-icon" title="Tarjetas"><span class="material-icons" style="font-size:16px">style</span></a>
-              <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="btn btn-primary btn-sm btn-icon" title="Ver Landing"><span class="material-icons" style="font-size:16px">open_in_new</span></a>
-              <button class="btn btn-secondary btn-sm btn-icon" (click)="editEvent(e)" title="Editar"><span class="material-icons" style="font-size:16px">edit</span></button>
-              <button class="btn btn-secondary btn-sm btn-icon" (click)="duplicateEvent(e)" title="Duplicar"><span class="material-icons" style="font-size:16px">content_copy</span></button>
-              <button class="btn btn-danger btn-sm btn-icon" (click)="deleteEvent(e)" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>
+              <button class="card-action-btn" (click)="mobileMenuId = mobileMenuId === e.id ? null : e.id">
+                <span>Acciones</span>
+              </button>
             </div>
+            @if (mobileMenuId === e.id) {
+              <div class="card-action-menu">
+                @if (e.event_mode === 'open') {
+                  <a [routerLink]="['/dashboard/registrations', e.id]" class="card-menu-item"><span class="material-icons">how_to_reg</span>Registrados</a>
+                } @else {
+                  <a [routerLink]="['/dashboard/guests', e.id]" class="card-menu-item"><span class="material-icons">people</span>Invitados</a>
+                }
+                <a [routerLink]="['/dashboard/config', e.id]" class="card-menu-item"><span class="material-icons">settings</span>Configurar</a>
+                <a [routerLink]="['/dashboard/builder', e.id]" class="card-menu-item"><span class="material-icons">dashboard_customize</span>Builder</a>
+                <a [routerLink]="['/dashboard/cards', e.id]" class="card-menu-item"><span class="material-icons">style</span>Tarjetas</a>
+                <a [href]="environment.baseUrl + '/invitacion/' + e.slug" target="_blank" class="card-menu-item"><span class="material-icons">open_in_new</span>Ver Landing</a>
+                <button class="card-menu-item" (click)="editEvent(e); mobileMenuId = null"><span class="material-icons">edit</span>Editar</button>
+                <button class="card-menu-item" (click)="duplicateEvent(e); mobileMenuId = null"><span class="material-icons">content_copy</span>Duplicar</button>
+                <button class="card-menu-item danger" (click)="deleteEvent(e); mobileMenuId = null"><span class="material-icons">delete</span>Eliminar</button>
+              </div>
+            }
           </div>
         }
         @empty {
@@ -183,6 +291,9 @@ import { environment } from '../../../../environments/environment';
           </div>
         }
       </div>
+      @if (showScrollTop) {
+        <button class="scroll-top-bar" (click)="scrollToTop()">Volver</button>
+      }
     </div>
 
     <!-- Modal -->
@@ -298,6 +409,7 @@ import { environment } from '../../../../environments/environment';
 export class EventsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private dialog = inject(DialogService);
+  private router = inject(Router);
   events = signal<Event[]>([]);
   showModal = signal(false);
   saving = signal(false);
@@ -305,11 +417,105 @@ export class EventsComponent implements OnInit, OnDestroy {
   editId = 0;
   environment = environment;
   openMenuId: number | null = null;
+  mobileMenuId: number | null = null;
+  showScrollTop = false;
+  @ViewChild('cardsContainer') cardsContainer!: ElementRef;
   private menuListener: any = null;
+  private gridApi!: GridApi;
   form: any = { name: '', event_type: 'Boda', event_date: '', slug: '', active: 1, event_mode: 'private', max_capacity: null, landing_template: 'elegante' };
   formDate = '';
   formHour = 19;
   formMin = 0;
+  search = '';
+  filteredEvents = signal<Event[]>([]);
+
+  defaultColDef: ColDef = {
+    sortable: true,
+    resizable: true,
+    filter: true,
+    suppressSizeToFit: false,
+  };
+
+  colDefs: ColDef[] = [
+    {
+      headerName: 'Nombre',
+      field: 'name',
+      minWidth: 200,
+      cellRenderer: (params: any) => {
+        if (!params.data) return '';
+        return `<strong>${params.data.name}</strong><br><small style="color:rgba(255,255,255,0.4);font-size:11px">/invitacion/${params.data.slug}</small>`;
+      }
+    },
+    {
+      headerName: 'Tipo',
+      field: 'event_type',
+      minWidth: 120,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-header-center',
+      cellRenderer: (params: any) => params.value ? `<span class="badge badge-info">${params.value}</span>` : ''
+    },
+    {
+      headerName: 'Fecha',
+      field: 'event_date',
+      minWidth: 120,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-header-center',
+      cellRenderer: (params: any) => {
+        if (!params.value) return '';
+        const d = new Date(params.value);
+        return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+    },
+    {
+      headerName: 'Invitados',
+      field: 'total_guests',
+      headerTooltip: 'Invitados',
+      width: 90,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-header-center',
+      cellRenderer: (params: any) => params.value || '0'
+    },
+    {
+      headerName: 'Confirm.',
+      field: 'confirmed_guests',
+      headerTooltip: 'Confirmados',
+      width: 90,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-header-center',
+      cellRenderer: (params: any) => params.value || '0'
+    },
+    {
+      headerName: 'Estado',
+      field: 'active',
+      width: 90,
+      cellStyle: { textAlign: 'center' },
+      headerClass: 'ag-header-center',
+      cellRenderer: (params: any) => {
+        if (params.data == null) return '';
+        return params.data.active
+          ? '<span class="badge badge-success">Activo</span>'
+          : '<span class="badge badge-danger">Inactivo</span>';
+      }
+    },
+    {
+      headerName: '',
+      field: 'id',
+      width: 60,
+      maxWidth: 60,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      cellStyle: { textAlign: 'center' },
+      cellRenderer: (params: any) => {
+        return `<button class="btn btn-secondary btn-sm btn-icon ag-action-btn" title="Acciones"><span class="material-icons" style="font-size:18px">more_vert</span></button>`;
+      },
+      onCellClicked: (params: any) => {
+        if (params.data) {
+          this.toggleMenu(params.data.id);
+        }
+      }
+    }
+  ];
 
   landingTemplates = [
     { key: 'elegante', name: 'Elegante', bg: 'linear-gradient(135deg, #1a1a2e, #0d1117)', accent: '#d4a017' },
@@ -323,6 +529,38 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.load();
     this.menuListener = (e: MouseEvent) => { this.openMenuId = null; };
     document.addEventListener('click', this.menuListener);
+    setTimeout(() => this.setupScrollListener(), 500);
+  }
+
+  private setupScrollListener() {
+    const el = this.cardsContainer?.nativeElement;
+    if (el) {
+      el.addEventListener('scroll', () => {
+        this.showScrollTop = el.scrollTop > 100;
+      });
+    }
+  }
+
+  scrollToTop() {
+    const el = this.cardsContainer?.nativeElement;
+    if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onGridReady(params: GridReadyEvent) {
+    this.gridApi = params.api;
+    this.fitColumns();
+    window.addEventListener('resize', () => {
+      setTimeout(() => this.fitColumns(), 100);
+    });
+  }
+
+  private fitColumns() {
+    if (!this.gridApi) return;
+    const totalMinWidth = this.colDefs.reduce((sum, col) => sum + ((col as any).minWidth || (col as any).width || 80), 0);
+    const gridWidth = document.querySelector('.grid-wrapper')?.clientWidth || 0;
+    if (gridWidth > totalMinWidth) {
+      this.gridApi.sizeColumnsToFit();
+    }
   }
 
   ngOnDestroy() {
@@ -332,7 +570,25 @@ export class EventsComponent implements OnInit, OnDestroy {
   toggleMenu(id: number) { this.openMenuId = this.openMenuId === id ? null : id; }
   closeMenu() { this.openMenuId = null; }
 
-  load() { this.api.getEvents().subscribe(e => this.events.set(e)); }
+  navigate(path: string, id: number) {
+    this.closeMenu();
+    this.router.navigate([path, id]);
+  }
+
+  load() { this.api.getEvents().subscribe(e => { this.events.set(e); this.filterEvents(); }); }
+
+  filterEvents() {
+    const s = this.search.toLowerCase();
+    this.filteredEvents.set(s ? this.events().filter(e =>
+      e.name.toLowerCase().includes(s) ||
+      e.event_type.toLowerCase().includes(s) ||
+      e.slug.toLowerCase().includes(s)
+    ) : this.events());
+  }
+
+  onSearchChange() {
+    this.filterEvents();
+  }
 
   openModal() {
     this.editing = false;

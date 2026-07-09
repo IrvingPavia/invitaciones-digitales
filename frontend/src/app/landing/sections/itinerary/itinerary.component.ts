@@ -115,14 +115,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     /* Right aligned */
     .timeline[data-align="right"] .timeline-item { padding-left: 0; padding-right: 50px; justify-content: flex-end; }
     .timeline[data-align="right"] .timeline-item.right { padding-right: 50px; justify-content: flex-end; }
-    .timeline[data-align="right"] .timeline-dot { left: auto; right: 20px; transform: translateX(50%); }
+    .timeline[data-align="right"] .timeline-dot { left: auto; right: 20px; transform: translate(50%, -50%); }
     .timeline-dot {
-      position: absolute; left: 50%; top: 12px;
+      position: absolute; left: 50%; top: 50%;
       width: 36px; height: 36px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 14px; color: var(--theme-text-primary, var(--gold));
-      transform: translateX(-50%);
-      background: var(--bg-solid, #0d1117);
+      transform: translate(-50%, -50%);
+      background: transparent;
       border: 2px solid var(--theme-card-border, rgba(212,160,23,0.5));
       opacity: 0;
       animation: none;
@@ -149,9 +149,9 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .reveal { animation: revealUp 0.8s ease both; }
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes diamondAppear {
-      0% { opacity: 0; transform: translateX(-50%) scale(0); }
-      60% { opacity: 1; transform: translateX(-50%) scale(1.3); text-shadow: 0 0 16px currentColor; }
-      100% { opacity: 1; transform: translateX(-50%) scale(1); text-shadow: 0 0 8px currentColor; }
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+      60% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); text-shadow: 0 0 16px currentColor; }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); text-shadow: 0 0 8px currentColor; }
     }
 
     @media (max-width: 640px) {

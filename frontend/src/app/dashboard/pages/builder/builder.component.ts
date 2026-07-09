@@ -78,7 +78,7 @@ interface BuilderSection {
       </div>
     </div>
 
-    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'" [class.panel-hidden]="!panelVisible()">
+    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'" [class.panel-hidden]="!panelVisible()" [class.props-open]="showProps() && canvasMode() === 'canvas'">
       <!-- Left Panel: Sections + Elements (hidden in preview) -->
       @if (canvasMode() === 'canvas' && panelVisible()) {
       <aside class="builder-panel builder-panel-left" [class.mobile-open]="showLeftPanel()">
@@ -299,6 +299,8 @@ interface BuilderSection {
     }
     .builder-layout.panel-hidden { grid-template-columns: 1fr; }
     .builder-layout.preview-layout { grid-template-columns: 1fr; }
+    .builder-layout.props-open { grid-template-columns: 220px 1fr 280px; }
+    .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr 280px; }
     .builder-preview-area {
       display: flex; align-items: flex-start; justify-content: center;
       background: #06060e; padding: 16px; overflow: hidden; height: 100%;
@@ -318,14 +320,10 @@ interface BuilderSection {
     }
     .builder-panel-right {
       border-right: none; border-left: 1px solid rgba(139,92,246,0.1);
-      position: absolute; right: 0; top: 0; bottom: 0;
       width: 280px; z-index: 20;
-      transform: translateX(100%); opacity: 0; pointer-events: none;
-      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
-      transform-origin: top right;
-      display: flex; flex-direction: column; overflow: hidden;
+      display: none; flex-direction: column; overflow: hidden;
     }
-    .builder-panel-right.panel-visible { transform: translateX(0); opacity: 1; pointer-events: all; }
+    .builder-panel-right.panel-visible { display: flex; }
     .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; }
     .builder-panel-header {
       display: flex; align-items: center; gap: 8px;
@@ -664,7 +662,7 @@ interface BuilderSection {
     .cdk-drag-placeholder { opacity: 0.3; }
 
     @media (max-width: 768px) {
-      .builder-layout { grid-template-columns: 1fr; }
+      .builder-layout, .builder-layout.props-open, .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr; }
       .builder-panel-left {
         display: none;
         position: fixed; top: 48px; bottom: 0; left: 0; z-index: 100;

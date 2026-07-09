@@ -2,6 +2,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AgGridAngular } from 'ag-grid-angular';
+import { ColDef, GridReadyEvent, GridApi } from 'ag-grid-community';
 import { ApiService } from '../../../core/services/api.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { Registration } from '../../../core/models/models';
@@ -9,7 +11,7 @@ import { Registration } from '../../../core/models/models';
 @Component({
   selector: 'app-registrations',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AgGridAngular],
   styles: [`
     .stats-bar {
       display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
@@ -76,6 +78,7 @@ import { Registration } from '../../../core/models/models';
       padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);
     }
     .desktop-table { display: block; }
+    .grid-wrapper { width: 100%; }
     @media (max-width: 768px) {
       .desktop-table { display: none; }
       .reg-cards { display: block; }
@@ -124,41 +127,31 @@ import { Registration } from '../../../core/models/models';
       <div class="card mb-16">
         <div class="search-box">
           <span class="material-icons search-icon">search</span>
-          <input type="text" [(ngModel)]="search" (ngModelChange)="filter()" placeholder="Buscar por nombre o email..." class="search-input">
+          <input type="text" [(ngModel)]="search" (ngModelChange)="onQuickFilter()" placeholder="Buscar por nombre o email..." class="search-input">
           @if (search) {
-            <button class="search-clear" (click)="search=''; filter()">
+            <button class="search-clear" (click)="search=''; onQuickFilter()">
               <span class="material-icons">close</span>
             </button>
           }
         </div>
       </div>
 
-      <!-- Desktop table -->
-      <div class="card desktop-table" style="overflow:auto">
-        <table class="data-table">
-          <thead>
-            <tr><th>#</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Fecha registro</th><th>Acciones</th></tr>
-          </thead>
-          <tbody>
-            @for (r of filtered(); track r.id; let i = $index) {
-              <tr>
-                <td>{{ i + 1 }}</td>
-                <td><strong>{{ r.name }}</strong></td>
-                <td>{{ r.email || '—' }}</td>
-                <td>{{ r.phone || '—' }}</td>
-                <td>{{ r.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>
-                  <button class="btn btn-danger btn-sm btn-icon" (click)="deleteReg(r)" title="Eliminar">
-                    <span class="material-icons" style="font-size:16px">delete</span>
-                  </button>
-                </td>
-              </tr>
-            }
-            @empty {
-              <tr><td colspan="6" class="text-center text-muted" style="padding:40px">No hay registros aún.</td></tr>
-            }
-          </tbody>
-        </table>
+      <!-- Desktop AG Grid -->
+      <div class="card desktop-table" style="position:relative;">
+        <div class="grid-wrapper ag-theme-quartz ag-theme-custom-dark">
+          <ag-grid-angular
+            style="width: 100%; height: 100%;"
+            [rowData]="registrations()"
+            [columnDefs]="colDefs"
+            [defaultColDef]="defaultColDef"
+            [pagination]="true"
+            [paginationPageSize]="50"
+            [paginationPageSizeSelector]="[25, 50, 100]"
+            [animateRows]="true"
+            [quickFilterText]="search"
+            (gridReady)="onGridReady($event)"
+          />
+        </div>
       </div>
 
       <!-- Mobile cards -->
@@ -206,11 +199,78 @@ export class RegistrationsComponent implements OnInit {
   filtered = signal<Registration[]>([]);
   capacity = signal<number | null>(null);
   search = '';
+  private gridApi!: GridApi;
+
+  defaultColDef: ColDef = {
+    sortable: true,
+    resizable: true,
+    filter: true,
+  };
+
+  colDefs: ColDef[] = [
+    {
+      headerName: '#',
+      valueGetter: 'node.rowIndex + 1',
+      minWidth: 60,
+      maxWidth: 60,
+      sortable: false,
+      filter: false,
+    },
+    {
+      headerName: 'Nombre',
+      field: 'name',
+      minWidth: 180,
+      cellRenderer: (params: any) => params.value ? `<strong>${params.value}</strong>` : ''
+    },
+    {
+      headerName: 'Email',
+      field: 'email',
+      minWidth: 200,
+      cellRenderer: (params: any) => params.value || '<span style="color:rgba(255,255,255,0.3)">—</span>'
+    },
+    {
+      headerName: 'Teléfono',
+      field: 'phone',
+      minWidth: 130,
+      cellRenderer: (params: any) => params.value || '<span style="color:rgba(255,255,255,0.3)">—</span>'
+    },
+    {
+      headerName: 'Fecha registro',
+      field: 'created_at',
+      minWidth: 150,
+      cellRenderer: (params: any) => {
+        if (!params.value) return '';
+        const d = new Date(params.value);
+        return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+    },
+    {
+      headerName: 'Acciones',
+      field: 'id',
+      minWidth: 90,
+      maxWidth: 90,
+      sortable: false,
+      filter: false,
+      cellRenderer: () => `<button class="btn btn-danger btn-sm btn-icon ag-action-btn" title="Eliminar"><span class="material-icons" style="font-size:16px">delete</span></button>`,
+      onCellClicked: (params: any) => {
+        if (params.data) this.deleteReg(params.data);
+      }
+    }
+  ];
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
     this.load();
     this.api.getRegistrationStats(this.eventId).subscribe(s => this.capacity.set(s.capacity));
+  }
+
+  onGridReady(params: GridReadyEvent) {
+    this.gridApi = params.api;
+    this.gridApi.sizeColumnsToFit();
+  }
+
+  onQuickFilter() {
+    // quickFilterText binding handles it automatically
   }
 
   load() {

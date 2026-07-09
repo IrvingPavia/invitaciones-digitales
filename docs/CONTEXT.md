@@ -31,29 +31,41 @@ Plataforma SaaS para crear y gestionar invitaciones digitales (bodas, XV años, 
 - **PDF compatible con Android Chrome**: Preview abre en nueva pestaña en mobile (window.open con blob URL), descarga usa appendChild para compatibilidad cross-browser.
 ### Dashboard (admin)
 - Gestión de eventos (CRUD, tipos: Boda, Cumpleaños, XV Años, Bautizo, Graduación, Empresarial, Conferencia)
+- **AG Grid** en todos los módulos (Eventos, Usuarios, Invitados, Registrados) con:
+  - Paginación (50 por página), sorting, filtros por columna
+  - Columnas centradas para datos numéricos/fechas/estados/tipos
+  - Scroll horizontal inteligente (sizeColumnsToFit cuando hay espacio)
+  - Tema personalizado (ag-theme-quartz + ag-theme-custom-dark)
+  - Búsqueda dinámica con quickFilterText en todos los grids
+- **Mobile UX optimizado** (estilo app nativa):
+  - Cards responsivas con layout flex-row (labels uppercase, valores alineados)
+  - Botón "Acciones" centralizado con efecto shimmer on-click y menú desplegable
+  - Header fijo + cards scrollables independientes
+  - Botón "Volver" fijo en la parte inferior para scroll-to-top
+  - Scrollbar oculta (touch scrolling sin barra visible)
+  - Input de búsqueda dinámico (filtra cards en tiempo real)
 - **Carrusel 3D de eventos**: Selector visual con cards verticales estilizadas, card activa al centro con perspectiva 3D, fondo refleja el tema del evento (colores/degradado/imagen/gif/video del hero), reflejo espejo, navegación con flechas/dots/click. **Drag continuo iPhone-style** (cards se mueven 1:1 con cursor, snap al soltar con momentum). Botones de acción centrados debajo del carrusel — en mobile aparecen como iconos integrados con backdrop blur.
 - **Duplicar evento**: Botón que clona configuración completa (config, tarjetas, itinerario, fotos) a un nuevo evento. Slug secuencial (`-copia-01`, `-copia-02`).
 - Selector de template al crear evento
 - Modo de evento: privado (invitados) / abierto (registro con cupo)
 - Gestión de invitados (CRUD, import/export Excel, QR) — solo eventos privados
-- Vista de registrados (lista, stats, eliminar) — solo eventos abiertos
+- Vista de registrados (lista con AG Grid, stats, eliminar) — solo eventos abiertos
 - KPIs adaptados según tipo de evento (invitados vs registrados)
 - Configuración visual completa de la landing (13 tabs + preview en iframe tipo celular)
 - Campos de registro configurables: diseño add/remove dinámico — campo "Nombre" fijo, campos adicionales como cards con icono, etiqueta editable, badge obligatorio/opcional, botón eliminar + formulario inline "Agregar campo"
 - Editor de tarjetas físicas (drag & drop, elementos posicionables, PDF con Puppeteer)
 - **Compresión automática de imágenes** al subir (sharp: max 1920px, JPEG 80%)
 - **Rate limiting en login** (5 intentos/15min por IP)
-- Gestión de usuarios (root/admin/client con permisos)
+- Gestión de usuarios (root/admin/client con permisos, ordenados root→admin→client)
 - **Compartir invitaciones**: Botón share individual (WhatsApp en mobile, copiar link en desktop). Envío masivo asistido. Tracking de enviados. Campo teléfono en invitados + import Excel.
 - **Exportar landing como screenshot**: Captura PNG full-page con Puppeteer desde pestaña Preview.
 - **Validación de input con Joi**: Schemas centralizados para todas las rutas del backend.
 - **Sanitización HTML**: Prevención XSS al guardar config JSON.
 - **Audit log**: Historial de cambios por evento (config_save, event_create, update, delete, duplicate).
 - **Forzar cambio de contraseña**: Usuarios client deben cambiar contraseña en primer login.
-- Gestión de usuarios (root/admin/client con permisos)
 - Diálogos personalizados (sin confirm/alert nativos del navegador)
 - Selector de hora personalizado (sin datetime-local nativo)
-- Responsive (cards en mobile, tabla en desktop)
+- **Light mode completo**: Tema claro con paleta púrpura para todo el dashboard (cards, grids, botones, menús, topbar)
 - Branding Vitely (púrpura, logo, favicon)
 - Módulo de sugerencias (retroalimentación de clientes)
 - **Pantalla de inicio configurable**: 4 templates (Sobre, Ticket, Splash, Plano) con colores y textos personalizables

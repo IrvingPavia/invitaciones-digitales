@@ -4,7 +4,7 @@
 
 | Componente | Tecnología |
 |---|---|
-| Frontend | Angular 18 (Standalone Components, Signals) |
+| Frontend | Angular 18 (Standalone Components, Signals) + AG Grid Community v31 |
 | Backend | Node.js + Express |
 | Base de Datos | MySQL 8.0 (mysql2/promise) |
 | PDF | Puppeteer + Chromium (HTML → PDF) |
@@ -43,7 +43,8 @@ invitaciones-digitales/
 │   │   ├── app/
 │   │   │   ├── auth/             # Login component
 │   │   │   ├── core/             # Guards, interceptors, services, models
-│   │   │   ├── dashboard/        # Dashboard layout + pages (home, events, guests, config, cards, users)
+│   │   ├── dashboard/        # Dashboard layout + pages (home, events, guests, registrations, config, cards, users, suggestions)
+│   │   │   └── pages/        # AG Grid tables (desktop) + mobile cards con búsqueda + scroll-to-top
 │   │   │   └── landing/          # Public landing + sections (envelope, intro, hero, invitation, details, venues, itinerary, gallery, dresscode, gifts, rsvp)
 │   │   ├── assets/icons/         # Vitely logo + favicon
 │   │   ├── environments/         # Dev/prod config
@@ -68,6 +69,7 @@ invitaciones-digitales/
 | `photos` | Galería de fotos por evento |
 | `card_templates` | Plantillas de tarjetas (front/back JSON) |
 | `suggestions` | Sugerencias/retroalimentación de clientes |
+| `registrations` | Registros de eventos abiertos (nombre, email, phone, timestamps) |
 | `audit_log` | Historial de cambios (user, action, entity, timestamp) |
 
 ## Roles de usuario

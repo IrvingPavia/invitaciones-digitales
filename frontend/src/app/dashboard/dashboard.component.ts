@@ -180,7 +180,6 @@ import { ApiService } from '../core/services/api.service';
     }
     @media (max-width: 768px) {
       .mobile-menu-btn-inline { display: flex; }
-      .topbar-user-name { display: none; }
     }
 
     .logo-icon-img {

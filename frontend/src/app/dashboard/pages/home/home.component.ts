@@ -398,6 +398,12 @@ import { environment } from '../../../../environments/environment';
     :host-context(body.light-mode) .dot.active { background: var(--gold); }
     :host-context(body.light-mode) .action-btn { background: #fff; border-color: #e0e0e8; color: #555; }
     :host-context(body.light-mode) .action-btn:hover { background: #fafafa; border-color: var(--gold); color: var(--gold); }
+    :host-context(body.light-mode) .action-btn.highlight { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #fff !important; border-color: transparent; }
+    :host-context(body.light-mode) .action-btn.highlight .material-icons { color: #fff !important; }
+    :host-context(body.light-mode) .mobile-card-actions { background: #ffffff; border-color: rgba(124,92,191,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    :host-context(body.light-mode) .mobile-action { background: #f8f8fc; border-color: rgba(124,92,191,0.15); color: #555; }
+    :host-context(body.light-mode) .mobile-action .material-icons { color: #7c5cbf; }
+    :host-context(body.light-mode) .mobile-action:active { background: rgba(124,92,191,0.1); border-color: var(--gold); }
     :host-context(body.light-mode) .progress-section { background: #fff; border-color: #e0e0e8; }
     :host-context(body.light-mode) .progress-label { color: #555; }
     :host-context(body.light-mode) .progress-track { background: rgba(0,0,0,0.06); }
