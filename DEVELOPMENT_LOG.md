@@ -1,228 +1,124 @@
-# 📋 DEVELOPMENT LOG - Gestor de Invitaciones Digitales
+# DEVELOPMENT LOG — Vitely
 
-> Última actualización: 2026-05-18
-> Este archivo sirve como contexto para retomar el desarrollo. Compártelo con `@DEVELOPMENT_LOG.md` al iniciar una nueva sesión.
-
----
-
-## 🏗️ Stack Real (difiere del README original)
-
-| Componente | Tecnología |
-|---|---|
-| Frontend | Angular 18 (Standalone Components, Signals) |
-| Backend | Node.js + Express |
-| Base de Datos | **MySQL 8.0** (mysql2/promise) — NO SQLite |
-| Contenedores | Docker + Docker Compose |
-| Servidor web | Nginx (frontend en producción) |
+> **Documentacion distribuida en `docs/`**
+> - `docs/CONTEXT.md` — Contexto general del proyecto
+> - `docs/ARCHITECTURE.md` — Stack, estructura, BD, roles
+> - `docs/DEPLOY.md` — Instrucciones de despliegue
+> - `docs/MIGRATIONS.md` — Scripts SQL para produccion
+> - `docs/PENDING.md` — Pendientes y mejoras
+> - `docs/BUILDER-FREE-ELEMENTS.md` — Plan de elementos libres (futuro)
+> - `docs/BUILDER-PROPS-REDESIGN.md` — Diseno del panel de propiedades
 
 ---
 
-## 📁 Estructura Actual
+## Estado actual del proyecto: 2025-07-07
 
-```
-Portafolio/
-├── backend/
-│   ├── src/
-│   │   ├── index.js              # Express app, rutas, middleware
-│   │   ├── middleware/auth.js    # JWT verification
-│   │   ├── models/database.js    # MySQL pool + schema + seed
-│   │   └── routes/
-│   │       ├── auth.js           # Login, me, change-password
-│   │       ├── events.js         # CRUD eventos + getDefaultConfig
-│   │       ├── guests.js         # CRUD + import/export Excel + QR
-│   │       ├── config.js         # Config JSON + itinerary + photos
-│   │       ├── uploads.js        # Multer: images, audio, gifs, photos
-│   │       ├── rsvp.js           # Confirmación pública
-│   │       ├── cards.js          # Template + PDF generation
-│   │       └── public.js         # Landing data + KPIs (sin auth)
-│   ├── .env                      # DB_HOST, JWT_SECRET, BASE_URL, etc.
-│   └── Dockerfile
-├── frontend/
-│   ├── src/app/
-│   │   ├── app.config.ts         # provideRouter, provideHttpClient, provideAnimations
-│   │   ├── app.routes.ts         # Lazy loading routes
-│   │   ├── auth/login.component.ts
-│   │   ├── core/
-│   │   │   ├── guards/auth.guard.ts
-│   │   │   ├── interceptors/auth.interceptor.ts
-│   │   │   ├── models/models.ts          # ⚠️ Interfaces actualizadas (ver abajo)
-│   │   │   └── services/
-│   │   │       ├── api.service.ts
-│   │   │       └── auth.service.ts
-│   │   ├── dashboard/
-│   │   │   ├── dashboard.component.ts    # Sidebar con overlay mobile, arrow toggle
-│   │   │   └── pages/
-│   │   │       ├── home/home.component.ts
-│   │   │       ├── events/events.component.ts
-│   │   │       ├── guests/guests.component.ts
-│   │   │       ├── config/config.component.ts  # ⚠️ Componente más grande
-│   │   │       └── cards/cards.component.ts
-│   │   └── landing/
-│   │       ├── landing.component.ts      # ScrollRevealDirective + wrapper
-│   │       └── sections/
-│   │           ├── intro/intro.component.ts
-│   │           ├── hero/hero.component.ts       # Countdown, gradient names, phrase
-│   │           ├── invitation/invitation.component.ts
-│   │           ├── details/details.component.ts # N cards dinámicas con estilos globales
-│   │           ├── venues/venues.component.ts   # N lugares con maps
-│   │           ├── itinerary/itinerary.component.ts
-│   │           ├── gallery/gallery.component.ts # Carrusel + lightbox sin fondo
-│   │           ├── dresscode/dresscode.component.ts
-│   │           ├── gifts/gifts.component.ts
-│   │           └── rsvp/rsvp.component.ts
-│   ├── src/styles.scss           # Estilos globales + responsive
-│   ├── nginx.conf
-│   └── Dockerfile
-├── docker-compose.yml
-├── .env.example
-└── DEVELOPMENT_LOG.md            # Este archivo
-```
+### Rama activa: `feature/dashboard-redesign`
+
+### Lo que esta funcionando:
+- **Page Builder Visual** completo con canvas + preview iframe
+- **Panel de propiedades** con acordeones para todas las secciones
+- **Toggle Canvas/Preview** — Canvas para editar, Preview con landing real en iframe
+- **Intro con loop**, transiciones de salida (7 tipos), particulas reactivas, stepper duracion
+- **AG Grid** en Eventos, Usuarios, Invitados y Registrados
+- **Dropdown menus** para acciones en grids (overlay posicionado)
+- **Itinerario rediseñado** — iconos centrados en la linea (sin fondo negro), time picker, emoji grid
+- **Dashboard layout** — height 100vh, sidebar fixed, main-content scrollable
+- **Light mode** completo (dashboard, cards mobile, grids, builder)
+- **Responsive toolbar** del builder (wrap a 850px)
+- **Mobile cards** con boton "Acciones" centrado (shimmer on-click) y menu desplegable
+- **Busqueda dinamica** en todos los modulos (filtra grid en desktop + cards en mobile)
+- **Boton "Volver"** fijo en la parte inferior en mobile para scroll-to-top
+- **Scrollbar oculta en mobile** (estilo app nativa)
+- **Header fijo en mobile** — solo las cards se scrolean
 
 ---
 
-## 🔧 Cambios Realizados en Esta Sesión
+## PROXIMA SESION — Plan de trabajo
 
-### Landing - Secciones
+### 1. AG Grid (Prioridad Alta) ✅ COMPLETADO
+**Objetivo**: Reemplazar tablas HTML por AG Grid Community para resolver sticky headers, scroll horizontal visible, y paginacion.
 
-1. **Venues (NUEVO)** — Componente que renderiza N lugares del evento con icono, nombre, dirección, horario (AM/PM) y botón "Cómo llegar" (Google Maps). Botón alineado debajo del horario.
+**Fase 1 — Eventos** ✅
+- AG Grid con ColDef: Nombre, Tipo, Fecha, Invitados, Confirmados, Estado, Acciones
+- Cell renderer para badges (tipo, estado)
+- Cell renderer para acciones (dropdown menu overlay)
+- Tema oscuro personalizado (ag-theme-quartz + ag-theme-custom-dark)
+- Paginacion 50 por pagina
 
-2. **Details (REESCRITO)** — Ya no usa padres/padrinos fijos. Ahora es un array de `DetailCard[]` con:
-   - `iconUrl` (imagen subida, opcional — si no hay, no se muestra nada)
-   - `title` (opcional)
-   - `content` (texto libre con saltos de línea)
-   - `textAlign` (left/center/right por card)
-   - Estilos globales: `titleStyle` y `contentStyle` (fontFamily, fontSize, color)
-   - Título de sección configurable
+**Fase 2 — Usuarios** ✅
+- Columnas: Usuario, Rol, Contraseña, Gestión, Eventos, Creado, Acciones
+- Cell renderer para chips de eventos y badges de rol
 
-3. **Gallery (REESCRITO)** — Carrusel tipo álbum:
-   - Deslizamiento derecha→izquierda con transición suave
-   - Auto-play cada 4s
-   - Swipe táctil en mobile
-   - Flechas + dots + contador
-   - Lightbox sin fondo negro, botón "Cerrar" abajo
-   - Se cierra al scroll o click fuera
+**Fase 3 — Invitados** ✅
+- Columnas: Código, Tipo, Familia/Nombre, Teléfono, Estado, Enviado, Acciones
+- quickFilterText integrado (reemplaza barra de búsqueda manual)
 
-4. **Hero (MODIFICADO)**:
-   - Nuevo campo `heroPhrase` entre nombres y countdown
-   - Estilos individuales para cada texto (fontFamily, fontSize, color)
-   - Nombres con degradado 2 colores + ángulo configurable
-   - Countdown responsivo: `flex-wrap: nowrap`, items con `flex:1`, `overflow:hidden`
-   - Navbar muestra "Descripción + Nombres" (ej: "XV Años Valeria"), full width
+**Fase 4 — Estilos globales** ✅
+- CSS tema oscuro para ag-grid (colores purpura/gold)
+- Light mode overrides
+- Responsive: ajuste de padding y font-size en mobile
+- Cards mobile preservados como fallback
+- Columnas centradas para datos numericos/fechas/estados/tipos
+- sizeColumnsToFit() inteligente (solo si hay espacio, sino scroll horizontal)
+- Busqueda con quickFilterText integrada en todos los grids
 
-5. **Scroll Reveal** — Directiva `ScrollRevealDirective` con IntersectionObserver, fade-in + translateY al entrar al viewport.
+**Fase 5 — Mobile UX** ✅
+- Cards rediseñadas con layout flex-row (labels uppercase, alineados)
+- Boton "Acciones" unico (full-width, fondo morado, shimmer on-click)
+- Menu desplegable con animacion slide-down
+- Header fijo + cards scrollables independientes
+- Boton "Volver" fijo en la parte inferior (aparece al scrollear >100px)
+- Scrollbar oculta en mobile (scrollbar-width: none + webkit)
+- Input de busqueda en todos los modulos (filtra cards en tiempo real)
+- Overflow-x bloqueado a nivel html/body en mobile
 
-### Dashboard
+**Notas tecnicas:**
+- AG Grid v31.3.4 instalado (ag-grid-community + ag-grid-angular)
+- Usar `AgGridAngular` standalone component
+- `ColDef` con `cellRenderer` para badges/acciones
+- Layout flex completo: :host → div raiz → header(fixed) + cards(scroll) + boton volver
+- `pagination: true, paginationPageSize: 50`
+- Tema base: ag-theme-quartz con overrides en .ag-theme-custom-dark
+- `.ag-header-center` class para centrar headers
+- Budget angular actualizado a 800kb warning / 1.5mb error
+- Dockerfile usa `npm install` (no npm ci) por compatibilidad Alpine/rollup
+- Usuarios ordenados: root → admin → client
+- Registrations component migrado a AG Grid
 
-6. **Responsive completo**:
-   - Sidebar como overlay en mobile con botón flecha sutil en el borde izquierdo
-   - Botón de colapsar/expandir como pestaña-flecha en el borde derecho del sidebar (desktop)
-   - Eliminado el topbar — usuario y logout están en el sidebar footer
-   - Tabs con scroll horizontal + flechas de navegación
-   - Grids responsivos (1 col mobile, 2 col tablet, 4 col desktop)
-   - `overflow-x: hidden` en todos los contenedores
-   - Tablas con scroll interno
+### 2. Otros pendientes (post AG Grid)
+- [ ] Nombre del evento visible en modulos Invitados/Config/Tarjetas
+- [ ] Fondo de landing en canvas (mejorar escala de imagen)
+- [ ] Estilo de seccion completo en canvas (dividers/transiciones)
+- [ ] Video trimmer simplificado para intro
+- [ ] Gestion de imagenes en cards de vestimenta
+- [ ] Mobile responsive del builder completo
+- [ ] Pruebas de cada seccion en el canvas
 
-7. **Navegación**:
-   - Botón "Volver a Eventos" (`.back-link`) alineado a la derecha en config, guests y cards
-   - Eliminado `withViewTransitions()` que causaba error `InvalidStateError`
-
-8. **Config Component**:
-   - Tabs con wrapper + flechas para scroll
-   - Toggle "Visible" en itinerario y galería
-   - Sección Venues con N lugares configurables
-   - Sección Detalles con N cards + estilos globales
-   - Hero con controles de color (picker + hex input)
-   - `ensureDefaults()` que migra configs viejas al formato nuevo
-   - `migrateDetails()` convierte formato padres/padrinos → cards
-
-9. **Estilos globales**:
-   - `input[type="color"]` con tamaño 48x40px visible
-   - `.back-link` con borde dorado, float right
-   - Mobile: cards con `overflow-x: hidden`, `word-break: break-word`
-
-### Backend
-
-10. **events.js** — `getDefaultConfig()` actualizado con formato nuevo de details (`{ enabled, title, cards: [] }`)
-
----
-
-## 📐 Modelos Actuales (models.ts)
-
-```typescript
-interface EventConfig {
-  intro: IntroConfig;
-  hero: HeroConfig;
-  invitation: InvitationConfig;
-  details: DetailsConfig;
-  venues: VenuesConfig;
-  itinerary: ItineraryConfig;
-  gallery: GalleryConfig;
-  dresscode: DresscodeConfig;
-  gifts: GiftsConfig;
-  rsvp: RsvpConfig;
-}
-
-interface HeroConfig {
-  backgroundGif, audioUrl, eventDescription, celebrantNames, heroPhrase, countdownDate
-  eventDescriptionStyle: HeroTextStyle    // { fontFamily, fontSize, color }
-  celebrantNamesStyle: HeroGradientStyle  // { fontFamily, fontSize, color1, color2, gradientAngle }
-  heroPhraseStyle: HeroTextStyle          // { fontFamily, fontSize, color }
-}
-
-interface DetailsConfig {
-  enabled: boolean;
-  title: string;
-  titleStyle: DetailTextStyle;    // { fontFamily, fontSize, color }
-  contentStyle: DetailTextStyle;
-  cards: DetailCard[];            // { id, iconUrl, title, content, textAlign }
-}
-
-interface VenuesConfig {
-  enabled: boolean;
-  items: VenueItem[];  // { id, title, icon, name, address, time, mapsUrl }
-}
-```
+### 3. Elementos Libres (futuro, post-pruebas)
+- Documentado en `docs/BUILDER-FREE-ELEMENTS.md`
+- 5 fases: render basico, drag&drop, props panel, pulido, landing real
 
 ---
 
-## ⚠️ Bugs/Pendientes Conocidos
+## Archivos clave modificados en esta sesion
 
-- [x] CSS warning en config.component.ts línea 27 (`.countdown-picker` tenía CSS suelto sin selector) — **CORREGIDO**
-- [ ] Warnings de `?.` innecesarios en templates (no afectan funcionalidad)
-- [ ] CSS budget warnings en hero, gallery, rsvp (componentes exceden 2KB de CSS inline — es un warning de Angular, no un bug)
-- [ ] No hay git inicializado en el proyecto
-- [x] README.md sigue diciendo SQLite (debería decir MySQL) — **CORREGIDO**
-- [ ] La carpeta `frontend/src/app/landing/sections/venues/` ya tiene componente funcional
-- [x] El `flex: wrap` en `.flex` global puede afectar layouts que no lo esperan — **CORREGIDO**
-
----
-
-## 🐳 Comandos Útiles
-
-```bash
-# Levantar todo
-docker-compose up -d --build
-
-# Solo frontend
-docker-compose up -d --build frontend
-
-# Ver logs
-docker-compose logs -f
-
-# Acceso
-# Frontend: http://localhost
-# Login: admin / admin123
-# Landing ejemplo: http://localhost/invitacion/{slug}?t={codigo}
-```
+- `frontend/src/app/dashboard/pages/events/events.component.ts` — AG Grid + mobile cards + busqueda + scroll-to-top
+- `frontend/src/app/dashboard/pages/users/users.component.ts` — AG Grid + mobile cards + busqueda + scroll-to-top
+- `frontend/src/app/dashboard/pages/guests/guests.component.ts` — AG Grid + mobile cards compactos + busqueda + scroll-to-top
+- `frontend/src/app/dashboard/pages/registrations/registrations.component.ts` — Migrado a AG Grid
+- `frontend/src/app/dashboard/pages/home/home.component.ts` — Light mode fixes (action buttons, mobile actions)
+- `frontend/src/app/dashboard/dashboard.component.ts` — Nombre usuario visible en mobile
+- `frontend/src/app/landing/sections/itinerary/itinerary.component.ts` — Iconos centrados, sin fondo negro
+- `frontend/src/styles.scss` — Tema AG Grid, light mode cards, mobile layout, scrollbar hidden, overflow fixes
+- `frontend/angular.json` — CSS imports de ag-grid + budgets actualizados
+- `frontend/package.json` — ag-grid-community@31.3.4, ag-grid-angular@31.3.4
+- `frontend/Dockerfile` — Restaurado a npm install (compatibilidad Alpine)
 
 ---
 
-## 🎨 Decisiones de Diseño
+## Docker
 
-- **Landing mobile-first**: wrapper de 520px max-width, background full viewport con cover
-- **Dark theme**: fondo #0d1117, acentos dorados (#d4a017), glassmorphism en cards
-- **Secciones opcionales**: todas tienen toggle `enabled` excepto hero e invitation
-- **Estilos de texto configurables**: fontFamily (sans/serif/script), fontSize (px), color (hex)
-- **Nombres con degradado**: background-clip text, 2 colores + ángulo
-- **Gallery**: carrusel single-image, aspect-ratio 3:4, auto-play 4s
-- **Dashboard sidebar**: fixed en desktop, overlay en mobile, arrow toggle en borde
+- **Rebuild frontend**: `docker-compose up -d --build frontend` en `c:\Portafolio\invitaciones-digitales`
+- **GitHub**: IrvingPavia/invitaciones-digitales
+- **Rama**: feature/dashboard-redesign

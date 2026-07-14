@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Event, Guest, EventConfig, KPIs, LandingData, ItineraryItem } from '../models/models';
+import { Event, Guest, EventConfig, KPIs, LandingData, ItineraryItem, Registration, RegistrationStatus } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -11,9 +11,12 @@ export class ApiService {
   // Events
   getEvents() { return this.http.get<Event[]>(`${this.api}/events`); }
   getEvent(id: number) { return this.http.get<Event>(`${this.api}/events/${id}`); }
+  getEventThemes() { return this.http.get<Record<number, { theme: any; heroBackground: string | null; globalStyles: any }>>(`${this.api}/events/themes`); }
   createEvent(data: Partial<Event>) { return this.http.post<any>(`${this.api}/events`, data); }
   updateEvent(id: number, data: Partial<Event>) { return this.http.put<any>(`${this.api}/events/${id}`, data); }
   deleteEvent(id: number) { return this.http.delete<any>(`${this.api}/events/${id}`); }
+  duplicateEvent(id: number) { return this.http.post<{ id: number; slug: string; name: string }>(`${this.api}/events/${id}/duplicate`, {}); }
+  screenshotEvent(id: number) { return this.http.get(`${this.api}/events/${id}/screenshot`, { responseType: 'blob' }); }
 
   // Guests
   getGuests(eventId: number) { return this.http.get<Guest[]>(`${this.api}/guests/event/${eventId}`); }
@@ -21,6 +24,8 @@ export class ApiService {
   updateGuest(id: number, data: Partial<Guest>) { return this.http.put<any>(`${this.api}/guests/${id}`, data); }
   deleteGuest(id: number) { return this.http.delete<any>(`${this.api}/guests/${id}`); }
   getGuestQR(id: number) { return this.http.get<{ qr: string; url: string }>(`${this.api}/guests/${id}/qr`); }
+  markGuestSent(id: number) { return this.http.put<any>(`${this.api}/guests/${id}/mark-sent`, {}); }
+  bulkMarkSent(eventId: number, guestIds: number[]) { return this.http.put<any>(`${this.api}/guests/bulk-mark-sent/${eventId}`, { guest_ids: guestIds }); }
   importGuests(eventId: number, file: File) {
     const fd = new FormData(); fd.append('file', file);
     return this.http.post<any>(`${this.api}/guests/import/${eventId}`, fd);
@@ -73,6 +78,9 @@ export class ApiService {
   downloadCardsPDF(eventId: number) {
     return this.http.get(`${this.api}/cards/${eventId}/pdf`, { responseType: 'blob' });
   }
+  previewCardsPDF(eventId: number) {
+    return this.http.get(`${this.api}/cards/${eventId}/pdf/preview`, { responseType: 'blob' });
+  }
 
   // Public
   getLandingData(slug: string) { return this.http.get<LandingData>(`${this.api}/public/invitation/${slug}`); }
@@ -84,4 +92,32 @@ export class ApiService {
   // RSVP
   getRsvpGuest(code: string) { return this.http.get<any>(`${this.api}/rsvp/${code}`); }
   confirmRsvp(code: string, data: any) { return this.http.post<any>(`${this.api}/rsvp/${code}/confirm`, data); }
+
+  // Users
+  getUsers() { return this.http.get<any[]>(`${this.api}/users`); }
+  createUser(data: any) { return this.http.post<any>(`${this.api}/users`, data); }
+  updateUser(id: number, data: any) { return this.http.put<any>(`${this.api}/users/${id}`, data); }
+  deleteUser(id: number) { return this.http.delete<any>(`${this.api}/users/${id}`); }
+  resetUserPassword(id: number) { return this.http.post<{ password: string }>(`${this.api}/users/${id}/reset-password`, {}); }
+
+  // Registrations (dashboard)
+  getRegistrations(eventId: number) { return this.http.get<Registration[]>(`${this.api}/registrations/${eventId}`); }
+  deleteRegistration(eventId: number, id: number) { return this.http.delete<any>(`${this.api}/registrations/${eventId}/${id}`); }
+  getRegistrationStats(eventId: number) { return this.http.get<{ registered: number; capacity: number | null }>(`${this.api}/registrations/${eventId}/stats`); }
+
+  // Registrations (public)
+  getRegistrationStatus(slug: string) { return this.http.get<RegistrationStatus>(`${this.api}/public/register/${slug}/status`); }
+  publicRegister(slug: string, data: { name: string; email?: string; phone?: string }) {
+    return this.http.post<{ message: string; registered: number; capacity: number | null }>(`${this.api}/public/register/${slug}`, data);
+  }
+
+  // Suggestions
+  getSuggestions() { return this.http.get<any[]>(`${this.api}/suggestions`); }
+  createSuggestion(data: { text: string; category?: string; event_id?: number }) {
+    return this.http.post<any>(`${this.api}/suggestions`, data);
+  }
+  updateSuggestion(id: number, data: { status?: string; admin_note?: string }) {
+    return this.http.put<any>(`${this.api}/suggestions/${id}`, data);
+  }
+  deleteSuggestion(id: number) { return this.http.delete<any>(`${this.api}/suggestions/${id}`); }
 }

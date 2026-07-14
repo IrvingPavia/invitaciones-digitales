@@ -23,7 +23,11 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "node_modules/ag-grid-community/styles/ag-grid.css",
+              "node_modules/ag-grid-community/styles/ag-theme-quartz.css",
+              "src/styles.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -32,8 +36,8 @@
                 { "replace": "src/environments/environment.ts", "with": "src/environments/environment.production.ts" }
               ],
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kb", "maximumError": "1mb" },
-                { "type": "anyComponentStyle", "maximumWarning": "2kb", "maximumError": "4kb" }
+                { "type": "initial", "maximumWarning": "800kb", "maximumError": "1.5mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "28kb", "maximumError": "32kb" }
               ],
               "outputHashing": "all"
             },
@@ -51,5 +55,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

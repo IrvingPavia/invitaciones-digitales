@@ -9,6 +9,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const token = auth.getToken();
 
+  // Check if token is expired or about to expire
+  if (token && isTokenExpired(token)) {
+    auth.logout();
+    router.navigate(['/login']);
+    return throwError(() => new Error('Sesión expirada'));
+  }
+
   const authReq = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
@@ -23,3 +30,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     })
   );
 };
+
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000; // Convert to ms
+    return Date.now() >= exp;
+  } catch {
+    return true;
+  }
+}

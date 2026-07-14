@@ -1,6 +1,10 @@
 const router = require('express').Router();
+const fs = require('fs');
+const path = require('path');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { sanitizeConfigJson } = require('../utils/sanitize');
+const { logAudit } = require('../utils/audit');
 
 router.get('/:eventId', auth, async (req, res) => {
   try {
@@ -14,26 +18,46 @@ router.get('/:eventId', auth, async (req, res) => {
 
 router.put('/:eventId', auth, async (req, res) => {
   try {
-    const { config_json } = req.body;
-    const [existing] = await getDB().query('SELECT id FROM event_config WHERE event_id = ?', [req.params.eventId]);
+    const config_json = sanitizeConfigJson(req.body.config_json);
+    const [existing] = await getDB().query('SELECT id, config_json FROM event_config WHERE event_id = ?', [req.params.eventId]);
+    
     if (existing.length) {
+      // Cleanup orphaned upload files
+      try {
+        const oldJson = existing[0].config_json;
+        const oldUrls = extractUploadUrls(oldJson);
+        const newUrls = extractUploadUrls(JSON.stringify(config_json));
+        const orphaned = oldUrls.filter(u => !newUrls.includes(u));
+        for (const url of orphaned) {
+          const filePath = path.join(__dirname, '../..', url);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+      } catch (e) { /* non-critical, don't block save */ }
+
       await getDB().query('UPDATE event_config SET config_json=? WHERE event_id=?',
         [JSON.stringify(config_json), req.params.eventId]);
     } else {
       await getDB().query('INSERT INTO event_config (event_id, config_json) VALUES (?, ?)',
         [req.params.eventId, JSON.stringify(config_json)]);
     }
+    logAudit(req.user.id, req.user.username, 'config_save', 'event', parseInt(req.params.eventId));
     res.json({ message: 'Configuración guardada' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+function extractUploadUrls(jsonStr) {
+  if (!jsonStr) return [];
+  const matches = jsonStr.match(/\/uploads\/[^"'\s,}]+/g);
+  return matches ? [...new Set(matches)] : [];
+}
+
 // Itinerary
 router.get('/:eventId/itinerary', auth, async (req, res) => {
   try {
     const [items] = await getDB().query('SELECT * FROM itinerary WHERE event_id = ? ORDER BY sort_order', [req.params.eventId]);
-    res.json(items);
+    res.json(items.map(i => ({ ...i, iconType: i.icon_type || 'emoji', iconUrl: i.icon_url || '' })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -41,10 +65,10 @@ router.get('/:eventId/itinerary', auth, async (req, res) => {
 
 router.post('/:eventId/itinerary', auth, async (req, res) => {
   try {
-    const { icon, time, title, description, sort_order } = req.body;
+    const { icon, iconType, icon_type, iconUrl, icon_url, time, title, description, sort_order } = req.body;
     const [result] = await getDB().query(
-      'INSERT INTO itinerary (event_id, icon, time, title, description, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
-      [req.params.eventId, icon || 'event', time, title, description || '', sort_order || 0]
+      'INSERT INTO itinerary (event_id, icon, icon_type, icon_url, time, title, description, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.params.eventId, icon || '🎉', iconType || icon_type || 'emoji', iconUrl || icon_url || null, time, title, description || '', sort_order || 0]
     );
     res.status(201).json({ id: result.insertId });
   } catch (err) {
@@ -54,10 +78,10 @@ router.post('/:eventId/itinerary', auth, async (req, res) => {
 
 router.put('/:eventId/itinerary/:id', auth, async (req, res) => {
   try {
-    const { icon, time, title, description, sort_order } = req.body;
+    const { icon, iconType, icon_type, iconUrl, icon_url, time, title, description, sort_order } = req.body;
     await getDB().query(
-      'UPDATE itinerary SET icon=?, time=?, title=?, description=?, sort_order=? WHERE id=? AND event_id=?',
-      [icon, time, title, description, sort_order, req.params.id, req.params.eventId]
+      'UPDATE itinerary SET icon=?, icon_type=?, icon_url=?, time=?, title=?, description=?, sort_order=? WHERE id=? AND event_id=?',
+      [icon, iconType || icon_type || 'emoji', iconUrl || icon_url || null, time, title, description, sort_order, req.params.id, req.params.eventId]
     );
     res.json({ message: 'Actividad actualizada' });
   } catch (err) {

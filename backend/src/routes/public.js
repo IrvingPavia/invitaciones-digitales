@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const { getDB } = require('../models/database');
+const { ensureConfigDefaults } = require('../utils/ensureConfigDefaults');
+const { validate, publicRegisterSchema } = require('../middleware/validate');
 
 router.get('/invitation/:slug', async (req, res) => {
   try {
@@ -13,8 +15,8 @@ router.get('/invitation/:slug', async (req, res) => {
 
     res.json({
       event,
-      config: configs[0] ? JSON.parse(configs[0].config_json) : {},
-      itinerary,
+      config: ensureConfigDefaults(configs[0] ? JSON.parse(configs[0].config_json) : {}),
+      itinerary: itinerary.map(i => ({ ...i, iconType: i.icon_type || 'emoji', iconUrl: i.icon_url || '' })),
       photos
     });
   } catch (err) {
@@ -31,6 +33,55 @@ router.get('/invitation/:slug/guest/:code', async (req, res) => {
     `, [req.params.slug, req.params.code]);
     if (!rows[0]) return res.status(404).json({ error: 'Invitado no encontrado' });
     res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Public registration for open events
+router.post('/register/:slug', validate(publicRegisterSchema), async (req, res) => {
+  try {
+    const { name, email, phone, company, position } = req.body;
+
+    const [events] = await getDB().query('SELECT * FROM events WHERE slug = ? AND active = 1 AND event_mode = ?', [req.params.slug, 'open']);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado o no acepta registros' });
+    const event = events[0];
+
+    // Check capacity
+    const [[{ count }]] = await getDB().query('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', [event.id]);
+    if (event.max_capacity && count >= event.max_capacity) {
+      return res.status(409).json({ error: 'Cupo lleno', full: true });
+    }
+
+    // Check duplicate email if provided
+    if (email) {
+      const [existing] = await getDB().query('SELECT id FROM registrations WHERE event_id = ? AND email = ?', [event.id, email]);
+      if (existing.length) return res.status(409).json({ error: 'Este email ya está registrado' });
+    }
+
+    await getDB().query(
+      'INSERT INTO registrations (event_id, name, email, phone, company, position) VALUES (?, ?, ?, ?, ?, ?)',
+      [event.id, name, email || null, phone || null, company || null, position || null]
+    );
+
+    const [[{ count: newCount }]] = await getDB().query('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', [event.id]);
+    res.json({ message: 'Registro exitoso', registered: newCount, capacity: event.max_capacity });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get registration status for open events (public)
+router.get('/register/:slug/status', async (req, res) => {
+  try {
+    const [events] = await getDB().query('SELECT id, event_mode, max_capacity FROM events WHERE slug = ? AND active = 1', [req.params.slug]);
+    if (!events[0]) return res.status(404).json({ error: 'Evento no encontrado' });
+    const event = events[0];
+
+    if (event.event_mode !== 'open') return res.json({ mode: 'private' });
+
+    const [[{ count }]] = await getDB().query('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', [event.id]);
+    res.json({ mode: 'open', registered: count, capacity: event.max_capacity, full: event.max_capacity ? count >= event.max_capacity : false });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -64,6 +115,54 @@ router.get('/kpis/:eventId', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Open Graph meta tags for social media bots (WhatsApp, Facebook, Twitter)
+router.get('/og/:slug', async (req, res) => {
+  try {
+    const [events] = await getDB().query('SELECT * FROM events WHERE slug = ? AND active = 1', [req.params.slug]);
+    if (!events[0]) return res.status(404).json({ error: 'Not found' });
+    const event = events[0];
+
+    const [configs] = await getDB().query('SELECT config_json FROM event_config WHERE event_id = ?', [event.id]);
+    const config = configs[0] ? JSON.parse(configs[0].config_json) : {};
+
+    const title = event.name || 'Invitación Digital';
+    const description = config.hero?.eventDescription || config.invitation?.subtitle || `${event.event_type} — ${new Date(event.event_date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+    const baseUrl = process.env.BASE_URL || 'http://localhost';
+    const url = `${baseUrl}/invitacion/${event.slug}`;
+    const image = config.hero?.backgroundGif
+      ? `${baseUrl}/${config.hero.backgroundGif}`
+      : `${baseUrl}/assets/icons/vitely-logo.png`;
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${image}">
+  <meta property="og:url" content="${url}">
+  <meta property="og:site_name" content="Vitely">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${image}">
+  <meta http-equiv="refresh" content="0;url=${url}">
+</head>
+<body>
+  <p>Redirigiendo a <a href="${url}">${title}</a>...</p>
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (err) {
+    res.status(500).send('Error');
   }
 });
 

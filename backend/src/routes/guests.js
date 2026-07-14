@@ -5,11 +5,16 @@ const { v4: uuidv4 } = require('uuid');
 const XLSX = require('xlsx');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
+const { validate, createGuestSchema, updateGuestSchema } = require('../middleware/validate');
+
+// In-memory QR cache (LRU, max 500 entries)
+const QR_CACHE_MAX = 500;
+const qrCache = new Map();
 
 router.get('/template/download', auth, (req, res) => {
   const template = [
-    { guest_type: 'family', family_name: 'Familia García', guest_names: 'Juan García, María García', max_companions: 0, notes: '' },
-    { guest_type: 'individual', family_name: '', guest_names: 'Pedro López', max_companions: 2, notes: 'Mesa VIP' }
+    { guest_type: 'family', family_name: 'Familia García', guest_names: 'Juan García, María García', max_companions: 0, phone: '5211234567890', notes: '' },
+    { guest_type: 'individual', family_name: '', guest_names: 'Pedro López', max_companions: 2, phone: '5219876543210', notes: 'Mesa VIP' }
   ];
   const ws = XLSX.utils.json_to_sheet(template);
   const wb = XLSX.utils.book_new();
@@ -40,10 +45,13 @@ router.get('/export/:eventId', auth, async (req, res) => {
     const data = guests.map(g => ({
       Codigo: g.unique_code, Tipo: g.guest_type, Familia: g.family_name,
       Nombres: g.guest_names, Acompanantes: g.max_companions,
+      Telefono: g.phone || '',
       Confirmado: g.confirmed ? 'Sí' : 'No',
       'Nombres Confirmados': g.confirmed_names || '',
       'Total Confirmados': g.confirmed_count || 0,
-      'Fecha Confirmacion': g.confirmed_at || '', Notas: g.notes
+      'Fecha Confirmacion': g.confirmed_at || '',
+      'Invitacion Enviada': g.invitation_sent ? 'Sí' : 'No',
+      Notas: g.notes
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -66,7 +74,21 @@ router.get('/:id/qr', auth, async (req, res) => {
     const [events] = await getDB().query('SELECT slug FROM events WHERE id = ?', [guests[0].event_id]);
     const QRCode = require('qrcode');
     const url = `${process.env.BASE_URL}/invitacion/${events[0].slug}?t=${guests[0].unique_code}`;
+
+    // Check cache first
+    if (qrCache.has(url)) {
+      return res.json({ qr: qrCache.get(url), url });
+    }
+
     const qrDataUrl = await QRCode.toDataURL(url, { width: 300, margin: 2 });
+
+    // Store in cache (LRU eviction when limit reached)
+    if (qrCache.size >= QR_CACHE_MAX) {
+      const firstKey = qrCache.keys().next().value;
+      qrCache.delete(firstKey);
+    }
+    qrCache.set(url, qrDataUrl);
+
     res.json({ qr: qrDataUrl, url });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -83,13 +105,13 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validate(createGuestSchema), async (req, res) => {
   try {
-    const { event_id, guest_type, family_name, guest_names, max_companions, notes } = req.body;
+    const { event_id, guest_type, family_name, guest_names, max_companions, phone, notes } = req.body;
     const unique_code = uuidv4().split('-')[0].toUpperCase();
     const [result] = await getDB().query(
-      'INSERT INTO guests (event_id, unique_code, guest_type, family_name, guest_names, max_companions, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [event_id, unique_code, guest_type || 'individual', family_name || '', guest_names, max_companions || 0, notes || '']
+      'INSERT INTO guests (event_id, unique_code, guest_type, family_name, guest_names, max_companions, phone, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [event_id, unique_code, guest_type || 'individual', family_name || '', guest_names, max_companions || 0, phone || null, notes || '']
     );
     res.status(201).json({ id: result.insertId, unique_code });
   } catch (err) {
@@ -97,12 +119,12 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, validate(updateGuestSchema), async (req, res) => {
   try {
-    const { guest_type, family_name, guest_names, max_companions, notes } = req.body;
+    const { guest_type, family_name, guest_names, max_companions, phone, notes } = req.body;
     await getDB().query(
-      'UPDATE guests SET guest_type=?, family_name=?, guest_names=?, max_companions=?, notes=? WHERE id=?',
-      [guest_type, family_name || '', guest_names, max_companions || 0, notes || '', req.params.id]
+      'UPDATE guests SET guest_type=?, family_name=?, guest_names=?, max_companions=?, phone=?, notes=? WHERE id=?',
+      [guest_type, family_name || '', guest_names, max_companions || 0, phone || null, notes || '', req.params.id]
     );
     res.json({ message: 'Invitado actualizado' });
   } catch (err) {
@@ -119,6 +141,32 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// Mark a guest's invitation as sent
+router.put('/:id/mark-sent', auth, async (req, res) => {
+  try {
+    await getDB().query('UPDATE guests SET invitation_sent = 1, sent_at = NOW() WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Marcado como enviado' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk mark invitations as sent
+router.put('/bulk-mark-sent/:eventId', auth, async (req, res) => {
+  try {
+    const { guest_ids } = req.body;
+    if (!guest_ids || !guest_ids.length) return res.status(400).json({ error: 'guest_ids requerido' });
+    const placeholders = guest_ids.map(() => '?').join(',');
+    await getDB().query(
+      `UPDATE guests SET invitation_sent = 1, sent_at = NOW() WHERE id IN (${placeholders}) AND event_id = ?`,
+      [...guest_ids, req.params.eventId]
+    );
+    res.json({ message: `${guest_ids.length} invitaciones marcadas como enviadas` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/import/:eventId', auth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
   const conn = await getDB().getConnection();
@@ -126,20 +174,40 @@ router.post('/import/:eventId', auth, upload.single('file'), async (req, res) =>
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
+    // Get existing guests for dedup
+    const [existing] = await conn.query(
+      'SELECT guest_names, family_name FROM guests WHERE event_id = ?',
+      [req.params.eventId]
+    );
+    const existingSet = new Set(existing.map(g => 
+      `${(g.family_name || '').toLowerCase().trim()}|${(g.guest_names || '').toLowerCase().trim()}`
+    ));
+
     await conn.beginTransaction();
     const results = [];
+    let skipped = 0;
     for (const row of rows) {
+      const guestNames = (row.guest_names || row.nombre || '').trim();
+      const familyName = (row.family_name || '').trim();
+      if (!guestNames) continue;
+
+      // Check for duplicate
+      const key = `${familyName.toLowerCase()}|${guestNames.toLowerCase()}`;
+      if (existingSet.has(key)) { skipped++; continue; }
+      existingSet.add(key);
+
       const code = uuidv4().split('-')[0].toUpperCase();
       const [r] = await conn.query(
-        'INSERT INTO guests (event_id, unique_code, guest_type, family_name, guest_names, max_companions, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [req.params.eventId, code, row.guest_type || 'individual', row.family_name || '',
-          row.guest_names || row.nombre || '', parseInt(row.max_companions || row.acompanantes || 0),
+        'INSERT INTO guests (event_id, unique_code, guest_type, family_name, guest_names, max_companions, phone, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [req.params.eventId, code, row.guest_type || 'individual', familyName,
+          guestNames, parseInt(row.max_companions || row.acompanantes || 0),
+          (row.phone || row.telefono || row.celular || '').toString().trim() || null,
           row.notes || row.notas || '']
       );
       results.push({ id: r.insertId, code });
     }
     await conn.commit();
-    res.json({ imported: results.length, guests: results });
+    res.json({ imported: results.length, skipped, guests: results });
   } catch (err) {
     await conn.rollback();
     res.status(500).json({ error: err.message });
