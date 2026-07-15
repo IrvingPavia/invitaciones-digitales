@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { requireActiveEvent } = require('../middleware/packageAccess');
 const { sanitizeConfigJson } = require('../utils/sanitize');
 const { logAudit } = require('../utils/audit');
 
@@ -16,7 +17,7 @@ router.get('/:eventId', auth, async (req, res) => {
   }
 });
 
-router.put('/:eventId', auth, async (req, res) => {
+router.put('/:eventId', auth, requireActiveEvent, async (req, res) => {
   try {
     const config_json = sanitizeConfigJson(req.body.config_json);
     const [existing] = await getDB().query('SELECT id, config_json FROM event_config WHERE event_id = ?', [req.params.eventId]);
@@ -63,7 +64,7 @@ router.get('/:eventId/itinerary', auth, async (req, res) => {
   }
 });
 
-router.post('/:eventId/itinerary', auth, async (req, res) => {
+router.post('/:eventId/itinerary', auth, requireActiveEvent, async (req, res) => {
   try {
     const { icon, iconType, icon_type, iconUrl, icon_url, time, title, description, sort_order } = req.body;
     const [result] = await getDB().query(
@@ -76,7 +77,7 @@ router.post('/:eventId/itinerary', auth, async (req, res) => {
   }
 });
 
-router.put('/:eventId/itinerary/:id', auth, async (req, res) => {
+router.put('/:eventId/itinerary/:id', auth, requireActiveEvent, async (req, res) => {
   try {
     const { icon, iconType, icon_type, iconUrl, icon_url, time, title, description, sort_order } = req.body;
     await getDB().query(
@@ -89,7 +90,7 @@ router.put('/:eventId/itinerary/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/:eventId/itinerary/:id', auth, async (req, res) => {
+router.delete('/:eventId/itinerary/:id', auth, requireActiveEvent, async (req, res) => {
   try {
     await getDB().query('DELETE FROM itinerary WHERE id=? AND event_id=?', [req.params.id, req.params.eventId]);
     res.json({ message: 'Actividad eliminada' });
@@ -108,7 +109,7 @@ router.get('/:eventId/photos', auth, async (req, res) => {
   }
 });
 
-router.delete('/:eventId/photos/:id', auth, async (req, res) => {
+router.delete('/:eventId/photos/:id', auth, requireActiveEvent, async (req, res) => {
   try {
     const [rows] = await getDB().query('SELECT * FROM photos WHERE id=? AND event_id=?', [req.params.id, req.params.eventId]);
     if (rows[0]) {

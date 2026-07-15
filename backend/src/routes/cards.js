@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { requirePackageFeature } = require('../middleware/packageAccess');
 const QRCode = require('qrcode');
 
 router.get('/:eventId', auth, async (req, res) => {
@@ -17,7 +18,7 @@ router.get('/:eventId', auth, async (req, res) => {
   }
 });
 
-router.put('/:eventId', auth, async (req, res) => {
+router.put('/:eventId', auth, requirePackageFeature('card_editor'), async (req, res) => {
   try {
     const { front_config, back_config } = req.body;
     const [existing] = await getDB().query('SELECT id FROM card_templates WHERE event_id = ?', [req.params.eventId]);

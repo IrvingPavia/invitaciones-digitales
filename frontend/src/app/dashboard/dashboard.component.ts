@@ -62,6 +62,39 @@ import { ApiService } from '../core/services/api.service';
             <span class="material-icons">lightbulb</span>
             @if (!collapsed()) { <span>Sugerencias</span> }
           </a>
+          @if (user?.self_registered) {
+            <a routerLink="/dashboard/mis-eventos" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">event_available</span>
+              @if (!collapsed()) { <span>Mis Eventos</span> }
+            </a>
+            <a routerLink="/dashboard/perfil" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">account_circle</span>
+              @if (!collapsed()) { <span>Perfil</span> }
+            </a>
+            <a routerLink="/dashboard/paquetes" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">shopping_bag</span>
+              @if (!collapsed()) { <span>Paquetes</span> }
+            </a>
+          }
+          @if (user?.role === 'root' || user?.role === 'admin') {
+            <div class="sidebar-divider"></div>
+            <a routerLink="/dashboard/admin/compras" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">receipt_long</span>
+              @if (!collapsed()) { <span>Compras</span> }
+            </a>
+            <a routerLink="/dashboard/admin/metricas" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">analytics</span>
+              @if (!collapsed()) { <span>Métricas</span> }
+            </a>
+            <a routerLink="/dashboard/admin/eventos-expirados" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">event_busy</span>
+              @if (!collapsed()) { <span>Eventos Expirados</span> }
+            </a>
+            <a routerLink="/dashboard/admin/paquetes" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">inventory_2</span>
+              @if (!collapsed()) { <span>Paquetes</span> }
+            </a>
+          }
         </nav>
       </aside>
 
@@ -192,6 +225,11 @@ import { ApiService } from '../core/services/api.service';
       padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
       border-top: 1px solid rgba(124,92,191,0.2);
       display: flex; flex-direction: column; gap: 12px;
+    }
+    .sidebar-divider {
+      height: 1px;
+      background: rgba(124,92,191,0.2);
+      margin: 8px 16px;
     }
     .sidebar-user {
       display: flex; align-items: center; gap: 10px;
