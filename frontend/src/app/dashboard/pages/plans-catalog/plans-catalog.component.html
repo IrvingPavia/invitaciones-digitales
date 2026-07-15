@@ -1,0 +1,131 @@
+<div class="plans-catalog">
+  <div class="catalog-header">
+    <h1>Paquetes disponibles</h1>
+    <p>Selecciona el paquete ideal para tu evento</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="material-icons spin">hourglass_empty</span>
+      <p>Cargando paquetes...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <span class="material-icons">error_outline</span>
+      <p>{{ error() }}</p>
+      <button class="btn btn-secondary" (click)="loadPlans()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="plans-grid">
+      @for (plan of plans(); track plan.id) {
+        <div class="plan-card" [class.recommended]="isRecommended(plan)" [class.trial]="plan.is_trial">
+          @if (isRecommended(plan)) {
+            <div class="recommended-badge">
+              <span class="material-icons">star</span> Recomendado
+            </div>
+          }
+
+          <div class="plan-header">
+            <h2>{{ plan.name }}</h2>
+            <p class="plan-description">{{ plan.description }}</p>
+          </div>
+
+          <div class="plan-pricing">
+            @if (plan.is_trial) {
+              <span class="price-amount">Gratis</span>
+              <span class="price-period">{{ plan.trial_days }} días de prueba</span>
+            } @else {
+              <span class="price-amount">${{ plan.price | number:'1.0-0' }}</span>
+              <span class="price-period">MXN por evento</span>
+            }
+          </div>
+
+          <div class="plan-features">
+            <h3>Incluye:</h3>
+            <ul>
+              @for (feature of getFeatureLabels(plan.features); track feature) {
+                <li>
+                  <span class="material-icons check-icon">check_circle</span>
+                  {{ feature }}
+                </li>
+              }
+            </ul>
+            @if (plan.max_guests) {
+              <p class="guest-limit">
+                <span class="material-icons">group</span>
+                Hasta {{ plan.max_guests }} invitados
+              </p>
+            } @else if (!plan.is_trial) {
+              <p class="guest-limit unlimited">
+                <span class="material-icons">group</span>
+                Invitados ilimitados
+              </p>
+            }
+          </div>
+
+          @if (plan.volume_discount && plan.volume_discount.length > 0 && !plan.is_trial) {
+            <div class="volume-discounts">
+              <h4>Descuentos por volumen:</h4>
+              @for (tier of plan.volume_discount; track tier.min_qty) {
+                <span class="discount-tier">
+                  {{ tier.min_qty }}+ eventos: -{{ tier.discount_pct }}%
+                </span>
+              }
+            </div>
+          }
+
+          <div class="plan-actions">
+            @if (plan.is_trial) {
+              <button
+                class="btn btn-trial"
+                (click)="activateTrial(plan)"
+                [disabled]="activatingTrial()"
+              >
+                <span class="material-icons">play_circle</span>
+                Activar gratis
+              </button>
+            } @else {
+              <div class="quantity-selector">
+                <label [for]="'qty-' + plan.id">Cantidad de eventos:</label>
+                <input
+                  type="number"
+                  [id]="'qty-' + plan.id"
+                  [min]="1"
+                  [max]="50"
+                  [value]="getQuantity(plan.id)"
+                  (input)="onQuantityChange(plan.id, $event)"
+                  aria-label="Cantidad de eventos"
+                >
+              </div>
+
+              <div class="price-calculation">
+                <div class="calc-row">
+                  <span>Precio unitario:</span>
+                  <span>${{ plan.price | number:'1.2-2' }}</span>
+                </div>
+                @if (getAppliedDiscount(plan) > 0) {
+                  <div class="calc-row discount">
+                    <span>Descuento ({{ getAppliedDiscount(plan) }}%):</span>
+                    <span>-${{ getDiscountAmount(plan) | number:'1.2-2' }}</span>
+                  </div>
+                }
+                <div class="calc-row total">
+                  <span>Total:</span>
+                  <span>${{ calculateTotal(plan) | number:'1.2-2' }} MXN</span>
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary"
+                (click)="goToCheckout(plan)"
+              >
+                <span class="material-icons">shopping_cart</span>
+                Comprar
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
