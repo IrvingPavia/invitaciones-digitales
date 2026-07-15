@@ -1,9 +1,10 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { PlansService, Plan } from '../../../core/services/plans.service';
 import { PaymentService } from '../../../core/services/payment.service';
-
+import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-checkout',
   standalone: true,
@@ -86,7 +87,8 @@ import { PaymentService } from '../../../core/services/payment.service';
 
             <!-- Gateway selection -->
             <div class="gateway-card">
-              <h3 class="card-title">Método de pago</h3>
+              <h3 class="card-title">{{ isFree() ? 'Activación gratuita' : 'Método de pago' }}</h3>
+              @if (!isFree()) {
               <div class="gateway-options">
                 <label class="gateway-option" [class.selected]="selectedGateway() === 'stripe'">
                   <input
@@ -126,6 +128,11 @@ import { PaymentService } from '../../../core/services/payment.service';
                   <span class="radio-check"></span>
                 </label>
               </div>
+              } @else {
+                <p style="color: rgba(255,255,255,0.6); margin-bottom: 24px; font-size: 0.9rem;">
+                  Este plan es gratuito. Se activará inmediatamente sin cobro.
+                </p>
+              }
 
               <button
                 class="pay-btn"
@@ -134,6 +141,9 @@ import { PaymentService } from '../../../core/services/payment.service';
                 @if (creatingSession()) {
                   <span class="material-icons spin">sync</span>
                   Procesando...
+                } @else if (isFree()) {
+                  <span class="material-icons">rocket_launch</span>
+                  Activar gratis
                 } @else {
                   <span class="material-icons">lock</span>
                   Pagar \${{ totalAmount() | number:'1.2-2' }} MXN
@@ -464,6 +474,7 @@ export class CheckoutComponent implements OnInit {
   private router = inject(Router);
   private plansService = inject(PlansService);
   private paymentService = inject(PaymentService);
+  private http = inject(HttpClient);
 
   plan = signal<Plan | null>(null);
   quantity = signal<number>(1);
@@ -472,6 +483,10 @@ export class CheckoutComponent implements OnInit {
   creatingSession = signal(false);
   error = signal<string | null>(null);
   paymentStatus = signal<'success' | 'cancelled' | null>(null);
+  isFree = computed(() => {
+    const p = this.plan();
+    return p ? p.price === 0 || p.is_trial : false;
+  });
 
   discountPct = computed(() => {
     const p = this.plan();
@@ -540,6 +555,25 @@ export class CheckoutComponent implements OnInit {
     if (!p) return;
 
     this.creatingSession.set(true);
+
+    // Free plans: activate directly without payment gateway
+    if (this.isFree()) {
+      this.http.post<any>(`${environment.apiUrl}/payments/activate-free`, {
+        plan_id: p.id,
+        quantity: this.quantity()
+      }).subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard/mis-eventos'], { queryParams: { payment: 'success' } });
+        },
+        error: (err) => {
+          this.creatingSession.set(false);
+          this.error.set(err.error?.error || 'Error al activar el plan gratuito.');
+        }
+      });
+      return;
+    }
+
+    // Paid plans: redirect to payment gateway
     this.paymentService.createSession(p.id, this.quantity(), this.selectedGateway()).subscribe({
       next: (response) => {
         window.location.href = response.session_url;

@@ -205,6 +205,69 @@ router.post('/webhook/mercadopago', async (req, res) => {
   }
 });
 
+// =================== POST /api/payments/activate-free ===================
+// Activates a free plan (price = 0) without requiring a payment gateway.
+// Used for Trial plans and any plan with price $0 (testing purposes).
+
+router.post('/activate-free', auth, requireRole('client'), async (req, res) => {
+  try {
+    const { plan_id, quantity } = req.body;
+    const userId = req.user.id;
+
+    if (!plan_id) return res.status(400).json({ error: 'plan_id es requerido' });
+
+    const db = getDB();
+    const qty = parseInt(quantity) || 1;
+
+    // Verify plan exists and is free
+    const [plans] = await db.query('SELECT * FROM plans WHERE id = ? AND status = ?', [plan_id, 'active']);
+    if (plans.length === 0) {
+      return res.status(400).json({ error: 'Plan no encontrado o inactivo' });
+    }
+
+    const plan = plans[0];
+    const price = parseFloat(plan.price);
+
+    if (price > 0) {
+      return res.status(400).json({ error: 'Este plan no es gratuito. Usa el flujo de pago normal.' });
+    }
+
+    // For trial: check if user already used trial
+    if (plan.is_trial) {
+      const [user] = await db.query('SELECT trial_used FROM users WHERE id = ?', [userId]);
+      if (user[0] && user[0].trial_used) {
+        return res.status(400).json({ error: 'Ya utilizaste tu período de prueba.' });
+      }
+    }
+
+    // Create purchase (completed immediately)
+    const [purchaseResult] = await db.query(
+      `INSERT INTO purchases (user_id, plan_id, quantity, unit_price, discount_pct, total_amount, status, events_assigned)
+       VALUES (?, ?, ?, 0.00, 0.00, 0.00, 'completed', ?)`,
+      [userId, plan_id, qty, qty]
+    );
+    const purchaseId = purchaseResult.insertId;
+
+    // Create events
+    const purchase = { id: purchaseId, plan_id: plan_id, quantity: qty };
+    await createEventsForPurchase(purchase, userId);
+
+    // Mark trial as used
+    if (plan.is_trial) {
+      await db.query('UPDATE users SET trial_used = 1 WHERE id = ?', [userId]);
+    }
+
+    res.json({
+      message: `Plan "${plan.name}" activado exitosamente. ${qty} evento(s) disponible(s).`,
+      purchase_id: purchaseId,
+      events_created: qty
+    });
+  } catch (err) {
+    console.error('Activate free plan error:', err);
+    res.status(500).json({ error: 'Error al activar el plan gratuito' });
+  }
+});
+
 // =================== GET /api/payments/status/:transactionId ===================
 // Requires auth (client role)
 
