@@ -143,6 +143,24 @@ import { AdminService, AdminMetrics } from '../../../../core/services/admin.serv
       .plan-row { flex-wrap: wrap; }
       .plan-name { min-width: 100%; }
     }
+
+    /* Light mode support */
+    :host-context(body.light-mode) .section-title { color: #333; }
+    :host-context(body.light-mode) .section-subtitle { color: #666; }
+    :host-context(body.light-mode) .loading-state { color: #666; }
+    :host-context(body.light-mode) .metric-card {
+      background: #ffffff; border-color: #e0e0e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    :host-context(body.light-mode) .metric-card:hover { border-color: rgba(124,92,191,0.3); }
+    :host-context(body.light-mode) .metric-label { color: #666; }
+    :host-context(body.light-mode) .metric-value { color: #333; }
+    :host-context(body.light-mode) .metric-sub { color: #888; }
+    :host-context(body.light-mode) .plan-name { color: #333; }
+    :host-context(body.light-mode) .plan-count { color: #666; }
+    :host-context(body.light-mode) .plan-total { color: #7c5cbf; }
+    :host-context(body.light-mode) .plan-bar-container { background: rgba(124,92,191,0.1); }
+    :host-context(body.light-mode) .text-muted { color: #888; }
   `]
 })
 export class MetricsComponent implements OnInit {
