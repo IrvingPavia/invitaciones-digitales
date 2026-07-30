@@ -11,7 +11,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <div>
+    <div class="home-wrapper">
       <div class="flex-between mb-16">
         <div>
           <h2 class="section-title welcome-title">{{ getGreeting() }}, {{ user?.username }} 👋</h2>
@@ -86,25 +86,31 @@ import { environment } from '../../../../environments/environment';
       @if (selectedEvent()) {
         <div class="mobile-card-actions">
           @if (selectedEvent()!.event_mode === 'open') {
-            <a [routerLink]="['/dashboard/registrations', selectedEvent()!.id]" class="mobile-action" title="Registrados">
+            <a [routerLink]="['/dashboard/registrations', selectedEvent()!.id]" class="mobile-action">
               <span class="material-icons">how_to_reg</span>
+              <span class="mobile-action-label">Registros</span>
             </a>
           } @else {
-            <a [routerLink]="['/dashboard/guests', selectedEvent()!.id]" class="mobile-action" title="Invitados">
+            <a [routerLink]="['/dashboard/guests', selectedEvent()!.id]" class="mobile-action">
               <span class="material-icons">people</span>
+              <span class="mobile-action-label">Invitados</span>
             </a>
           }
-          <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="mobile-action" title="Configurar">
+          <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="mobile-action">
             <span class="material-icons">settings</span>
+            <span class="mobile-action-label">Config</span>
           </a>
-          <a [routerLink]="['/dashboard/builder', selectedEvent()!.id]" class="mobile-action" title="Builder">
+          <a [routerLink]="['/dashboard/builder', selectedEvent()!.id]" class="mobile-action">
             <span class="material-icons">dashboard_customize</span>
+            <span class="mobile-action-label">Builder</span>
           </a>
-          <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="mobile-action" title="Tarjetas">
+          <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="mobile-action">
             <span class="material-icons">style</span>
+            <span class="mobile-action-label">Tarjetas</span>
           </a>
-          <a [href]="environment.baseUrl + '/invitacion/' + selectedEvent()!.slug" target="_blank" class="mobile-action highlight" title="Ver Landing">
+          <a [href]="environment.baseUrl + '/invitacion/' + selectedEvent()!.slug" target="_blank" class="mobile-action highlight">
             <span class="material-icons">open_in_new</span>
+            <span class="mobile-action-label">Landing</span>
           </a>
         </div>
       }
@@ -217,6 +223,9 @@ import { environment } from '../../../../environments/environment';
     </div>
   `,
   styles: [`
+    :host { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+    .home-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
     /* === 3D CAROUSEL === */
     .carousel-3d {
       position: relative;
@@ -224,11 +233,15 @@ import { environment } from '../../../../environments/environment';
       align-items: center;
       justify-content: center;
       padding: 20px 0 40px;
+      flex-shrink: 1;
+      min-height: 200px;
     }
     .carousel-stage {
       position: relative;
       width: 100%;
-      height: 340px;
+      height: 100%;
+      min-height: 220px;
+      max-height: 340px;
       display: flex;
       align-items: flex-start;
       padding-top: 20px;
@@ -262,7 +275,7 @@ import { environment } from '../../../../environments/environment';
       -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 65%, rgba(255,255,255,0.18) 100%);
     }
     .carousel-card {
-      width: 190px; height: 270px;
+      width: clamp(150px, 14vw, 190px); height: clamp(210px, 20vw, 270px);
       border-radius: 20px;
       overflow: hidden;
       border: 2px solid rgba(255,255,255,0.06);
@@ -349,7 +362,7 @@ import { environment } from '../../../../environments/environment';
     .dot:hover:not(.active) { background: rgba(124,92,191,0.6); }
 
     /* === SELECTED PANEL === */
-    .selected-panel { animation: fadeUp 0.3s ease; }
+    .selected-panel { animation: fadeUp 0.3s ease; flex-shrink: 1; min-height: 0; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .actions-bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
     .mb-20 { margin-bottom: 20px; }
@@ -403,6 +416,7 @@ import { environment } from '../../../../environments/environment';
     :host-context(body.light-mode) .mobile-card-actions { background: #ffffff; border-color: rgba(124,92,191,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
     :host-context(body.light-mode) .mobile-action { background: #f8f8fc; border-color: rgba(124,92,191,0.15); color: #555; }
     :host-context(body.light-mode) .mobile-action .material-icons { color: #7c5cbf; }
+    :host-context(body.light-mode) .mobile-action .mobile-action-label { color: #7c5cbf; }
     :host-context(body.light-mode) .mobile-action:active { background: rgba(124,92,191,0.1); border-color: var(--gold); }
     :host-context(body.light-mode) .progress-section { background: #fff; border-color: #e0e0e8; }
     :host-context(body.light-mode) .progress-label { color: #555; }
@@ -414,8 +428,8 @@ import { environment } from '../../../../environments/environment';
     .mobile-card-actions {
       display: none;
       justify-content: center;
-      gap: 8px;
-      padding: 12px 20px;
+      gap: 12px;
+      padding: 14px 16px;
       margin: 0 auto 16px;
       background: rgba(26,26,42,0.85);
       border: 1px solid rgba(124,92,191,0.25);
@@ -425,15 +439,24 @@ import { environment } from '../../../../environments/environment';
       animation: fadeUp 0.3s ease;
     }
     .mobile-action {
-      width: 42px; height: 42px;
+      width: 52px; height: auto;
+      padding: 8px 4px 6px;
       border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(124,92,191,0.2);
       color: rgba(255,255,255,0.8);
       text-decoration: none;
       transition: all 0.2s;
     }
+    .mobile-action-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .mobile-action.highlight .mobile-action-label { color: #fff; }
     .mobile-action:active {
       background: rgba(124,92,191,0.15);
       border-color: var(--gold);
@@ -448,13 +471,12 @@ import { environment } from '../../../../environments/environment';
 
     /* === RESPONSIVE === */
     @media (max-width: 768px) {
-      .carousel-stage { height: 300px; padding-top: 10px; }
-      .carousel-3d { padding: 8px 0 16px; }
+      :host { overflow-y: auto; }
+      .carousel-stage { height: 300px; max-height: 300px; padding-top: 10px; touch-action: pan-y; overscroll-behavior-x: none; }
+      .carousel-3d { padding: 8px 0 16px; min-height: auto; flex-shrink: 0; }
       .carousel-card { width: 155px; height: 225px; border-radius: 16px; }
       .carousel-dots { bottom: 8px; }
-      .nav-arrow { width: 36px; height: 36px; }
-      .nav-left { left: 2px; }
-      .nav-right { right: 2px; }
+      .nav-arrow { display: none; }
       .kpi-grid { grid-template-columns: 1fr 1fr; }
       .actions-bar { display: none !important; }
       .card-title { font-size: 13px; }
@@ -546,16 +568,40 @@ export class HomeComponent implements OnInit {
   }
 
   onSwipeTouchStart(e: TouchEvent) {
-    this.isDragging = true;
-    this.swipeStartX = e.touches[0].clientX;
+    const startX = e.touches[0].clientX;
+    const startY = e.touches[0].clientY;
+    let directionLocked = false;
+    let isHorizontal = false;
+
+    this.swipeStartX = startX;
     this.swipeStartTime = Date.now();
 
     const onMove = (ev: TouchEvent) => {
-      this.dragOffset.set(ev.touches[0].clientX - this.swipeStartX);
+      const dx = ev.touches[0].clientX - startX;
+      const dy = ev.touches[0].clientY - startY;
+
+      if (!directionLocked) {
+        // Wait until we have enough movement to determine direction
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          directionLocked = true;
+          isHorizontal = Math.abs(dx) > Math.abs(dy);
+          if (isHorizontal) {
+            this.isDragging = true;
+          }
+        }
+      }
+
+      if (isHorizontal) {
+        this.dragOffset.set(dx);
+      }
     };
     const onEnd = (ev: TouchEvent) => {
-      if (ev.changedTouches.length) {
+      if (isHorizontal && ev.changedTouches.length) {
         this.finishDrag(ev.changedTouches[0].clientX);
+      } else {
+        // Was vertical scroll or no significant movement — reset
+        this.isDragging = false;
+        this.dragOffset.set(0);
       }
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
