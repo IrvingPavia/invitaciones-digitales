@@ -193,13 +193,13 @@ interface BuilderSection {
       }
 
       <!-- FAB toggle sections panel -->
-      <button class="builder-sections-fab" [class.show-desktop]="!panelVisible()" (click)="panelVisible.set(true); showLeftPanel.set(!showLeftPanel())" title="Secciones">
+      <button class="builder-sections-fab" [class.show-desktop]="!panelVisible()" (click)="openSections()" title="Secciones">
         <span class="material-icons">layers</span>
       </button>
 
       <!-- FAB toggle props (hidden in preview mode) -->
       @if (canvasMode() === 'canvas') {
-      <button class="builder-props-fab" [class.active]="showProps()" (click)="showProps.set(!showProps())" title="Propiedades">
+      <button class="builder-props-fab" [class.active]="showProps()" (click)="toggleProps()" title="Propiedades">
         <span class="material-icons">{{ showProps() ? 'close' : 'tune' }}</span>
       </button>
       }
@@ -210,6 +210,9 @@ interface BuilderSection {
           <div class="builder-panel-header">
             <span class="material-icons">tune</span>
             <span>Propiedades</span>
+            <button class="panel-toggle-btn" (click)="showProps.set(false)" title="Cerrar propiedades">
+              <span class="material-icons">chevron_right</span>
+            </button>
           </div>
           <app-builder-props-panel
             [selectedSection]="currentSection()"
@@ -671,7 +674,40 @@ interface BuilderSection {
       .builder-panel-left.mobile-open { display: block; }
       .builder-sections-fab { display: flex; }
       .builder-save-text { display: none; }
+      .builder-save-btn { min-width: auto !important; padding: 7px 10px !important; }
+      .builder-toolbar-left { flex: 0 0 auto !important; max-width: none; overflow: visible; order: 0; }
+      .builder-event-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+      .builder-toolbar {
+        flex-wrap: wrap !important;
+        padding: 6px 12px !important;
+        gap: 4px 8px !important;
+      }
+      .builder-toolbar-left { flex: 1 0 auto !important; }
+      .builder-toolbar-right { order: 0; margin-left: auto; }
+      .builder-toolbar-center { order: 1; flex: 1 0 100%; justify-content: center; }
       .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
+      .builder-panel-right.panel-visible {
+        position: fixed;
+        top: 48px;
+        bottom: 0;
+        right: 0;
+        left: auto;
+        width: 280px;
+        max-width: 80vw;
+        height: auto;
+        z-index: 150;
+        border-radius: 0;
+        border-left: 1px solid rgba(139,92,246,0.3);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.5);
+        animation: slideInRight 0.25s ease;
+      }
+      .builder-canvas-area { padding: 8px; }
+      .builder-props-fab { top: 8px; right: 8px; z-index: 160; }
+      .builder-props-fab.active { display: none; }
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
     }
   `]
 })
@@ -709,6 +745,24 @@ export class BuilderComponent implements OnInit, OnDestroy {
   activeEl = this.canvasState.activeElement;
 
   hasUnsavedChanges(): boolean { return this.canvasState.isDirty(); }
+
+  /** Open sections panel, close props on mobile */
+  openSections() {
+    this.panelVisible.set(true);
+    this.showLeftPanel.set(!this.showLeftPanel());
+    if (this.showLeftPanel() && window.innerWidth <= 768) {
+      this.showProps.set(false);
+    }
+  }
+
+  /** Toggle props panel, close sections on mobile */
+  toggleProps() {
+    const opening = !this.showProps();
+    this.showProps.set(opening);
+    if (opening && window.innerWidth <= 768) {
+      this.showLeftPanel.set(false);
+    }
+  }
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
@@ -753,6 +807,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.canvasState.selectSection(key);
     this.currentSection.set(key);
     this.showProps.set(true);
+    if (window.innerWidth <= 768) {
+      this.showLeftPanel.set(false);
+    }
     this.scrollToSection(key);
   }
 
@@ -797,6 +854,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.canvasState.selectSection('_theme');
     this.currentSection.set('_theme');
     this.showProps.set(true);
+    if (window.innerWidth <= 768) {
+      this.showLeftPanel.set(false);
+    }
   }
 
   toggleViewMode() {
