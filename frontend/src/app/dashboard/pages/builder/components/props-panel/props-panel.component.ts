@@ -439,8 +439,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Fecha</label><input type="datetime-local" class="pinput" [ngModel]="sec('hero')?.countdownDate" (ngModelChange)="setSec('hero','countdownDate',$event)"></div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo cards</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.countdownShowCardBg" (ngModelChange)="setSec('hero','countdownShowCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.countdownShowCardBg !== false" (ngModelChange)="setSec('hero','countdownShowCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('hero')?.countdownCardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.countdownCardBgOpacity ?? 100" (ngModelChange)="setSec('hero','countdownCardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
             </div>
           }
@@ -485,8 +486,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('invitation')?.showCardBg" (ngModelChange)="setSec('invitation','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('invitation')?.showCardBg !== false" (ngModelChange)="setSec('invitation','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('invitation')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('invitation')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('invitation','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('invitation')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('invitation')?.cardBorderRadius||8" (ngModelChange)="setSec('invitation','cardBorderRadius',+$event)"></div>
             </div>
           }
@@ -539,8 +541,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('details')?.showCardBg" (ngModelChange)="setSec('details','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('details')?.showCardBg !== false" (ngModelChange)="setSec('details','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('details')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('details')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('details','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('details')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('details')?.cardBorderRadius||8" (ngModelChange)="setSec('details','cardBorderRadius',+$event)"></div>
             </div>
           }
@@ -579,8 +582,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('venues')?.showCardBg" (ngModelChange)="setSec('venues','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('venues')?.showCardBg !== false" (ngModelChange)="setSec('venues','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('venues')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('venues')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('venues','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('venues')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('venues')?.cardBorderRadius||8" (ngModelChange)="setSec('venues','cardBorderRadius',+$event)"></div>
             </div>
           }
@@ -677,8 +681,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showCardBg" (ngModelChange)="setSec('itinerary','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showCardBg !== false" (ngModelChange)="setSec('itinerary','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('itinerary')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('itinerary')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('itinerary','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('itinerary')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('itinerary')?.cardBorderRadius||8" (ngModelChange)="setSec('itinerary','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Tamano titulo ({{sec('itinerary')?.titleFontSize||16}}px)</label><input type="range" class="pinput-range" min="12" max="28" [ngModel]="sec('itinerary')?.titleFontSize||16" (ngModelChange)="setSec('itinerary','titleFontSize',+$event)"></div>
               <div class="pf"><label>Tamano descripcion ({{sec('itinerary')?.descFontSize||13}}px)</label><input type="range" class="pinput-range" min="10" max="20" [ngModel]="sec('itinerary')?.descFontSize||13" (ngModelChange)="setSec('itinerary','descFontSize',+$event)"></div>
@@ -774,8 +779,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('dresscode')?.showCardBg" (ngModelChange)="setSec('dresscode','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('dresscode')?.showCardBg !== false" (ngModelChange)="setSec('dresscode','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('dresscode')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('dresscode')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('dresscode','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('dresscode')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('dresscode')?.cardBorderRadius||8" (ngModelChange)="setSec('dresscode','cardBorderRadius',+$event)"></div>
             </div>
           }
@@ -831,8 +837,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('gifts')?.showCardBg" (ngModelChange)="setSec('gifts','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('gifts')?.showCardBg !== false" (ngModelChange)="setSec('gifts','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('gifts')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('gifts')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('gifts','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('gifts')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('gifts')?.cardBorderRadius||8" (ngModelChange)="setSec('gifts','cardBorderRadius',+$event)"></div>
             </div>
           }
@@ -856,8 +863,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('rsvp')?.showCardBg" (ngModelChange)="setSec('rsvp','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('rsvp')?.showCardBg !== false" (ngModelChange)="setSec('rsvp','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('rsvp')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('rsvp')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('rsvp','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('rsvp')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('rsvp')?.cardBorderRadius||8" (ngModelChange)="setSec('rsvp','cardBorderRadius',+$event)"></div>
             </div>
           }

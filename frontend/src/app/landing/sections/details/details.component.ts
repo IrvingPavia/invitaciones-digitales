@@ -37,7 +37,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         }
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
+            <div class="detail-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) + '%'">
               @if (card.iconType !== 'none') {
                 @if (card.iconType === 'emoji' && card.icon) {
                   <div class="detail-icon emoji-icon">
@@ -80,7 +80,8 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .details-grid { display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; }
     .detail-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.45)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      background: color-mix(in srgb, var(--theme-card-bg, rgba(0,0,0,0.45)) var(--card-bg-opacity, 100%), transparent);
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }

@@ -62,7 +62,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         @if (config.cards && config.cards.length > 0) {
           <div class="dresscode-examples">
             @for (card of config.cards; track card.id) {
-              <div class="example-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
+              <div class="example-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
                 @if (card.images && card.images.length > 0) {
                   <div class="example-images" [class.single]="card.images.length === 1">
                     @for (img of card.images; track img) {
