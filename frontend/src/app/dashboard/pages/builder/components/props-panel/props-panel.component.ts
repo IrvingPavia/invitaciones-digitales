@@ -443,6 +443,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('hero')?.countdownCardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.countdownCardBgOpacity ?? 100" (ngModelChange)="setSec('hero','countdownCardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('hero')?.countdownCardBorderStyle || 'none'" (ngModelChange)="setSec('hero','countdownCardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('hero')?.countdownCardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('hero')?.countdownCardBorderWidth ?? 1" (ngModelChange)="setSec('hero','countdownCardBorderWidth',+$event)"></div>
+              @if (sec('hero')?.countdownCardBorderStyle === 'glow' || sec('hero')?.countdownCardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('hero')?.countdownCardGlowColor || '#d4a017'" (valueChange)="setSec('hero','countdownCardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('hero')?.countdownCardShape || 'standard'" (ngModelChange)="setSec('hero','countdownCardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
 
@@ -490,6 +516,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('invitation')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('invitation')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('invitation','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('invitation')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('invitation')?.cardBorderRadius||8" (ngModelChange)="setSec('invitation','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('invitation')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('invitation','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('invitation')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('invitation')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('invitation','cardBorderWidth',+$event)"></div>
+              @if (sec('invitation')?.cardBorderStyle === 'glow' || sec('invitation')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('invitation')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('invitation','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('invitation')?.cardShape || 'standard'" (ngModelChange)="setSec('invitation','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
         }
@@ -545,6 +597,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('details')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('details')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('details','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('details')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('details')?.cardBorderRadius||8" (ngModelChange)="setSec('details','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('details')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('details','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('details')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('details')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('details','cardBorderWidth',+$event)"></div>
+              @if (sec('details')?.cardBorderStyle === 'glow' || sec('details')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('details')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('details','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('details')?.cardShape || 'standard'" (ngModelChange)="setSec('details','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
         }
@@ -586,6 +664,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('venues')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('venues')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('venues','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('venues')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('venues')?.cardBorderRadius||8" (ngModelChange)="setSec('venues','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('venues')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('venues','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('venues')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('venues')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('venues','cardBorderWidth',+$event)"></div>
+              @if (sec('venues')?.cardBorderStyle === 'glow' || sec('venues')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('venues')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('venues','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('venues')?.cardShape || 'standard'" (ngModelChange)="setSec('venues','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
         }
@@ -685,6 +789,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('itinerary')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('itinerary')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('itinerary','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('itinerary')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('itinerary')?.cardBorderRadius||8" (ngModelChange)="setSec('itinerary','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('itinerary')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('itinerary','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('itinerary')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('itinerary')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('itinerary','cardBorderWidth',+$event)"></div>
+              @if (sec('itinerary')?.cardBorderStyle === 'glow' || sec('itinerary')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('itinerary')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('itinerary','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('itinerary')?.cardShape || 'standard'" (ngModelChange)="setSec('itinerary','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
               <div class="pf"><label>Tamano titulo ({{sec('itinerary')?.titleFontSize||16}}px)</label><input type="range" class="pinput-range" min="12" max="28" [ngModel]="sec('itinerary')?.titleFontSize||16" (ngModelChange)="setSec('itinerary','titleFontSize',+$event)"></div>
               <div class="pf"><label>Tamano descripcion ({{sec('itinerary')?.descFontSize||13}}px)</label><input type="range" class="pinput-range" min="10" max="20" [ngModel]="sec('itinerary')?.descFontSize||13" (ngModelChange)="setSec('itinerary','descFontSize',+$event)"></div>
               <div class="pf"><label>Tamano horario ({{sec('itinerary')?.timeFontSize||12}}px)</label><input type="range" class="pinput-range" min="9" max="16" [ngModel]="sec('itinerary')?.timeFontSize||12" (ngModelChange)="setSec('itinerary','timeFontSize',+$event)"></div>
@@ -783,6 +913,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('dresscode')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('dresscode')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('dresscode','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('dresscode')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('dresscode')?.cardBorderRadius||8" (ngModelChange)="setSec('dresscode','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('dresscode')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('dresscode','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('dresscode')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('dresscode')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('dresscode','cardBorderWidth',+$event)"></div>
+              @if (sec('dresscode')?.cardBorderStyle === 'glow' || sec('dresscode')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('dresscode')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('dresscode','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('dresscode')?.cardShape || 'standard'" (ngModelChange)="setSec('dresscode','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
         }
@@ -841,6 +997,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('gifts')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('gifts')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('gifts','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('gifts')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('gifts')?.cardBorderRadius||8" (ngModelChange)="setSec('gifts','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('gifts')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('gifts','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('gifts')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('gifts')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('gifts','cardBorderWidth',+$event)"></div>
+              @if (sec('gifts')?.cardBorderStyle === 'glow' || sec('gifts')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('gifts')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('gifts','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('gifts')?.cardShape || 'standard'" (ngModelChange)="setSec('gifts','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
         }
@@ -867,6 +1049,32 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Opacidad fondo ({{sec('rsvp')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('rsvp')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('rsvp','cardBgOpacity',+$event)"></div>
               <div class="pf"><label>Radio borde ({{sec('rsvp')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('rsvp')?.cardBorderRadius||8" (ngModelChange)="setSec('rsvp','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <select class="pinput" [ngModel]="sec('rsvp')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('rsvp','cardBorderStyle',$event)">
+                  <option value="none">Sin borde</option>
+                  <option value="solid">Solido</option>
+                  <option value="dotted">Punteado</option>
+                  <option value="dashed">Discontinuo</option>
+                  <option value="double">Doble</option>
+                  <option value="glow">Luminoso</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('rsvp')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('rsvp')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('rsvp','cardBorderWidth',+$event)"></div>
+              @if (sec('rsvp')?.cardBorderStyle === 'glow' || sec('rsvp')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('rsvp')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('rsvp','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <select class="pinput" [ngModel]="sec('rsvp')?.cardShape || 'standard'" (ngModelChange)="setSec('rsvp','cardShape',$event)">
+                  <option value="standard">Estandar</option>
+                  <option value="ticket">Ticket</option>
+                  <option value="wave">Ondulado</option>
+                  <option value="hexagon">Hexagonal</option>
+                  <option value="diamond">Diamante</option>
+                  <option value="cloud">Nube</option>
+                  <option value="scroll">Pergamino</option>
+                </select>
+              </div>
             </div>
           }
         }
