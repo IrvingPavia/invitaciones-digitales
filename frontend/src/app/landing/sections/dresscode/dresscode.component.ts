@@ -38,7 +38,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         <!-- Legacy: main dresscode card with icon + description (shown only if no example cards exist) -->
         @if ((!config.cards || config.cards.length === 0) && (config.description || getIcon())) {
-          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
             @if (getIcon(); as icon) {
               @if (icon.type === 'material') {
                 <span class="material-icons dresscode-icon">{{ icon.value }}</span>
@@ -62,7 +62,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         @if (config.cards && config.cards.length > 0) {
           <div class="dresscode-examples">
             @for (card of config.cards; track card.id) {
-              <div class="example-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
+              <div class="example-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
                 @if (card.images && card.images.length > 0) {
                   <div class="example-images" [class.single]="card.images.length === 1">
                     @for (img of card.images; track img) {
@@ -104,9 +104,12 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .dresscode-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } }
     }
     .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
     .dresscode-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
@@ -118,11 +121,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       display: flex; flex-direction: column; gap: 20px; margin-top: 24px;
     }
     .example-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 24px;
       transition: transform 0.3s, box-shadow 0.3s;
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
       &:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(212,160,23,0.1); }
-      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } &:hover { box-shadow: none; } }
     }
     .example-images {
       display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;

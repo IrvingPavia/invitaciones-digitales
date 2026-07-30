@@ -95,12 +95,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       gap: 24px;
     }
     .venue-card {
-      background: color-mix(in srgb, var(--theme-card-bg, rgba(0,0,0,0.45)) var(--card-bg-opacity, 100%), transparent);
+      position: relative; overflow: hidden;
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
-      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } &:hover { box-shadow: none; } }
     }
     .venue-icon {
       width: 72px; height: 72px; border-radius: 50%;
@@ -164,8 +166,8 @@ export class LandingVenuesComponent {
     return false;
   }
 
-  getCardBgOpacity(): string {
-    return ((this.config as any).cardBgOpacity ?? 100) + '%';
+  getCardBgOpacity(): number {
+    return (this.config.cardBgOpacity ?? 100) / 100;
   }
 
   formatTime(time: string): string {

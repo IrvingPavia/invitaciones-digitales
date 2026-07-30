@@ -37,7 +37,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         }
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) + '%'">
+            <div class="detail-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
               @if (card.iconType !== 'none') {
                 @if (card.iconType === 'emoji' && card.icon) {
                   <div class="detail-icon emoji-icon">
@@ -80,12 +80,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .details-grid { display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; }
     .detail-card {
-      background: color-mix(in srgb, var(--theme-card-bg, rgba(0,0,0,0.45)) var(--card-bg-opacity, 100%), transparent);
+      position: relative; overflow: hidden;
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
-      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } &:hover { box-shadow: none; } }
     }
     .detail-icon {
       width: 72px; height: 72px;
