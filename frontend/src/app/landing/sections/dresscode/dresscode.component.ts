@@ -38,7 +38,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         <!-- Legacy: main dresscode card with icon + description (shown only if no example cards exist) -->
         @if ((!config.cards || config.cards.length === 0) && (config.description || getIcon())) {
-          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [class.neon-border]="getIsNeon()">
+          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [style.filter]="getCardFilter()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             @if (getIcon(); as icon) {
               @if (icon.type === 'material') {
                 <span class="material-icons dresscode-icon">{{ icon.value }}</span>
@@ -62,7 +62,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         @if (config.cards && config.cards.length > 0) {
           <div class="dresscode-examples">
             @for (card of config.cards; track card.id) {
-              <div class="example-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [class.neon-border]="getIsNeon()">
+              <div class="example-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [style.filter]="getCardFilter()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
                 @if (card.images && card.images.length > 0) {
                   <div class="example-images" [class.single]="card.images.length === 1">
                     @for (img of card.images; track img) {
@@ -107,7 +107,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       position: relative; overflow: visible;
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px;
-      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
       & > * { position:relative; z-index:1; }
       &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
       &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
@@ -126,7 +126,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 24px;
       transition: transform 0.3s, box-shadow 0.3s;
-      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
       & > * { position:relative; z-index:1; }
       &:hover { transform: translateY(-3px); }
       &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } &:hover { box-shadow: none; } }
@@ -209,8 +209,18 @@ export class LandingDresscodeComponent {
     return { type: 'material', value: 'checkroom' };
   }
 
+  getCardBgColor(): string {
+    return (this.config as any).cardBgColor || '';
+  }
+
+  getCardBorderColor(): string {
+    return (this.config as any).cardBorderColor || '';
+  }
+
   getCardBorderStyle(): string {
     const s = (this.config as any).cardBorderStyle || 'none';
+    const shape = (this.config as any).cardShape || 'standard';
+    if (shape !== 'standard') return 'none';
     if (s === 'glow' || s === 'neon') return 'solid';
     return s;
   }
@@ -220,6 +230,8 @@ export class LandingDresscodeComponent {
   }
 
   getCardBorderWidth(): number {
+    const shape = (this.config as any).cardShape || 'standard';
+    if (shape !== 'standard') return 0;
     if ((this.config as any).cardBorderStyle === 'none') return 0;
     return (this.config as any).cardBorderWidth ?? 1;
   }
@@ -231,6 +243,18 @@ export class LandingDresscodeComponent {
     if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
     if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
     return 'none';
+  }
+
+  getCardFilter(): string {
+    const shape = (this.config as any).cardShape || 'standard';
+    if (shape === 'standard') return 'none';
+    const style = (this.config as any).cardBorderStyle || 'none';
+    if (style === 'none') return 'none';
+    const color = (this.config as any).cardBorderColor || (this.config as any).cardGlowColor || 'rgba(212,160,23,0.5)';
+    const width = (this.config as any).cardBorderWidth ?? 1;
+    if (style === 'neon') return `drop-shadow(0 0 ${width * 3}px ${color}) drop-shadow(0 0 ${width * 6}px ${color})`;
+    if (style === 'glow') return `drop-shadow(0 0 ${width * 2}px ${color}) drop-shadow(0 0 ${width * 4}px ${color})`;
+    return `drop-shadow(0 0 ${width}px ${color})`;
   }
 
   getCardClipPath(): string {

@@ -74,22 +74,22 @@ import { HeroConfig, Event } from '../../../core/models/models';
 
         @if (config.countdownDate) {
           <div class="countdown animate-in" style="animation-delay:0.8s">
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.days }}</span>
               <span class="countdown-label">Días</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.hours }}</span>
               <span class="countdown-label">Horas</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.minutes }}</span>
               <span class="countdown-label">Min</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.seconds }}</span>
               <span class="countdown-label">Seg</span>
             </div>
@@ -184,7 +184,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 12px; padding: 14px 0; flex: 1; min-width: 55px;
       text-align: center; box-sizing: border-box;
-      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
       & > * { position:relative; z-index:1; }
       &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
       &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
@@ -321,6 +321,8 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
 
   getCountdownBorderStyle(): string {
     const s = (this.config as any).countdownCardBorderStyle || 'none';
+    const shape = (this.config as any).countdownCardShape || 'standard';
+    if (shape !== 'standard') return 'none';
     if (s === 'glow' || s === 'neon') return 'solid';
     return s;
   }
@@ -330,6 +332,8 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   }
 
   getCountdownBorderWidth(): number {
+    const shape = (this.config as any).countdownCardShape || 'standard';
+    if (shape !== 'standard') return 0;
     if ((this.config as any).countdownCardBorderStyle === 'none') return 0;
     return (this.config as any).countdownCardBorderWidth ?? 1;
   }
@@ -341,6 +345,26 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
     if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
     return 'none';
+  }
+
+  getCountdownBgColor(): string {
+    return (this.config as any).countdownCardBgColor || '';
+  }
+
+  getCountdownBorderColor(): string {
+    return (this.config as any).countdownCardBorderColor || '';
+  }
+
+  getCountdownFilter(): string {
+    const shape = (this.config as any).countdownCardShape || 'standard';
+    if (shape === 'standard') return 'none';
+    const style = (this.config as any).countdownCardBorderStyle || 'none';
+    if (style === 'none') return 'none';
+    const color = (this.config as any).countdownCardBorderColor || (this.config as any).countdownCardGlowColor || 'rgba(212,160,23,0.5)';
+    const width = (this.config as any).countdownCardBorderWidth ?? 1;
+    if (style === 'neon') return `drop-shadow(0 0 ${width * 3}px ${color}) drop-shadow(0 0 ${width * 6}px ${color})`;
+    if (style === 'glow') return `drop-shadow(0 0 ${width * 2}px ${color}) drop-shadow(0 0 ${width * 4}px ${color})`;
+    return `drop-shadow(0 0 ${width}px ${color})`;
   }
 
   getCountdownClipPath(): string {
