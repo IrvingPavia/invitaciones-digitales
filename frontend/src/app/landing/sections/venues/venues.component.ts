@@ -38,7 +38,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         <div class="venues-grid">
           @for (venue of config.items; track venue.id) {
-            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="getCardBgOpacity()">
+            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="getCardBgOpacity()" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [class.neon-border]="getIsNeon()">
               @if (config.iconStyle !== 'none') {
                 <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
                   @if (venue.iconType === 'emoji' && venue.iconEmoji) {
@@ -95,14 +95,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       gap: 24px;
     }
     .venue-card {
-      position: relative; overflow: hidden;
+      position: relative; overflow: visible;
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
       &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
       & > * { position:relative; z-index:1; }
-      &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
-      &.no-bg { border-color: transparent; &::before { opacity: 0; } &:hover { box-shadow: none; } }
+      &:hover { transform: translateY(-4px); }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } &:hover { box-shadow: none; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
+    }
+    @keyframes neonPulse {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
     }
     .venue-icon {
       width: 72px; height: 72px; border-radius: 50%;
@@ -214,5 +219,42 @@ export class LandingVenuesComponent {
     const c1 = s.color || '#d4a017', c2 = s.color2;
     const angle = s.gradientAngle ?? 135, intensity = s.gradientIntensity ?? 50;
     return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
+  }
+
+  getCardBorderStyle(): string {
+    const s = (this.config as any).cardBorderStyle || 'none';
+    if (s === 'glow' || s === 'neon') return 'solid';
+    return s;
+  }
+
+  getIsNeon(): boolean {
+    return (this.config as any).cardBorderStyle === 'neon';
+  }
+
+  getCardBorderWidth(): number {
+    if ((this.config as any).cardBorderStyle === 'none') return 0;
+    return (this.config as any).cardBorderWidth ?? 1;
+  }
+
+  getCardBoxShadow(): string {
+    const style = (this.config as any).cardBorderStyle;
+    const color = (this.config as any).cardGlowColor || '#d4a017';
+    const width = (this.config as any).cardBorderWidth ?? 1;
+    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+    return 'none';
+  }
+
+  getCardClipPath(): string {
+    const shape = (this.config as any).cardShape || 'standard';
+    switch (shape) {
+      case 'ticket': return 'polygon(0% 10%, 5% 10%, 5% 0%, 95% 0%, 95% 10%, 100% 10%, 100% 90%, 95% 90%, 95% 100%, 5% 100%, 5% 90%, 0% 90%)';
+      case 'wave': return 'polygon(0% 5%, 10% 0%, 20% 5%, 30% 0%, 40% 5%, 50% 0%, 60% 5%, 70% 0%, 80% 5%, 90% 0%, 100% 5%, 100% 95%, 90% 100%, 80% 95%, 70% 100%, 60% 95%, 50% 100%, 40% 95%, 30% 100%, 20% 95%, 10% 100%, 0% 95%)';
+      case 'hexagon': return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+      case 'diamond': return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+      case 'cloud': return 'polygon(10% 20%, 5% 10%, 15% 2%, 25% 0%, 35% 2%, 45% 0%, 55% 2%, 65% 0%, 75% 2%, 85% 0%, 95% 10%, 100% 20%, 100% 80%, 95% 90%, 85% 98%, 75% 100%, 65% 98%, 55% 100%, 45% 98%, 35% 100%, 25% 98%, 15% 100%, 5% 90%, 0% 80%)';
+      case 'scroll': return 'polygon(3% 0%, 97% 0%, 100% 3%, 100% 97%, 97% 100%, 3% 100%, 0% 97%, 0% 3%)';
+      default: return 'none';
+    }
   }
 }
