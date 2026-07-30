@@ -61,7 +61,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         </div>
 
         @if (config.transfer?.enabled) {
-          <div class="transfer-card reveal" [class.no-bg]="config.transfer.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" style="animation-delay:0.2s">
+          <div class="transfer-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" style="animation-delay:0.2s">
             <!-- Animation overlay -->
             @if (config.transfer.animation !== 'none') {
               <div class="transfer-particles">

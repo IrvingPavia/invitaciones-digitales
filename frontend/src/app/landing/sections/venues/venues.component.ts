@@ -38,7 +38,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         <div class="venues-grid">
           @for (venue of config.items; track venue.id) {
-            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+            <div class="venue-card reveal" [class.no-bg]="getItemNoBg(venue)" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="getCardBgOpacity()">
               @if (config.iconStyle !== 'none') {
                 <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
                   @if (venue.iconType === 'emoji' && venue.iconEmoji) {
@@ -95,7 +95,8 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       gap: 24px;
     }
     .venue-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.45)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      background: color-mix(in srgb, var(--theme-card-bg, rgba(0,0,0,0.45)) var(--card-bg-opacity, 100%), transparent);
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
       &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
@@ -158,8 +159,13 @@ export class LandingVenuesComponent {
   getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   getItemNoBg(venue: any): boolean {
-    // Per-item control only
-    return venue.showCardBg === false;
+    // Section-level control
+    if ((this.config as any).showCardBg === false) return true;
+    return false;
+  }
+
+  getCardBgOpacity(): string {
+    return ((this.config as any).cardBgOpacity ?? 100) + '%';
   }
 
   formatTime(time: string): string {

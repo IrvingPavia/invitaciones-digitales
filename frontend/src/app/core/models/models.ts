@@ -259,6 +259,7 @@ export interface DetailsConfig {
   enabled: boolean;
   title: string;
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   cards: DetailCard[];
   sectionStyle?: SectionStyle;
