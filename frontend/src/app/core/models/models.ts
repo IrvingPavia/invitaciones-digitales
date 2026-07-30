@@ -245,12 +245,14 @@ export interface HeroConfig {
   countdownDate: string;
   countdownShowCardBg?: boolean;
   countdownCardBorderRadius?: number;
+  countdownCardBgOpacity?: number;
 }
 
 export interface InvitationConfig {
   title: string;
   subtitle: string;
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   sectionStyle?: SectionStyle;
 }
@@ -291,6 +293,7 @@ export interface VenuesConfig {
   enabled: boolean;
   iconStyle?: 'circle' | 'plain' | 'none';
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   items: VenueItem[];
   sectionStyle?: SectionStyle;
@@ -313,6 +316,7 @@ export interface ItineraryConfig {
   enabled: boolean;
   title: string;
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   showIcons?: boolean;
   titleFontSize?: number;
@@ -366,6 +370,7 @@ export interface DresscodeConfig {
   title: string;
   description?: string;
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   cards?: DresscodeCard[];
@@ -379,6 +384,7 @@ export interface GiftsConfig {
   link: string;
   buttonText: string;
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   transfer: TransferConfig;
@@ -403,6 +409,7 @@ export interface RsvpConfig {
   enabled: boolean;
   title: string;
   showCardBg?: boolean;
+  cardBgOpacity?: number;
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
   registrationFields?: RegistrationFieldConfig[];

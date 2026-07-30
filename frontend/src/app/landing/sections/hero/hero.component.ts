@@ -74,22 +74,22 @@ import { HeroConfig, Event } from '../../../core/models/models';
 
         @if (config.countdownDate) {
           <div class="countdown animate-in" style="animation-delay:0.8s">
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100">
               <span class="countdown-value">{{ countdown.days }}</span>
               <span class="countdown-label">Días</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100">
               <span class="countdown-value">{{ countdown.hours }}</span>
               <span class="countdown-label">Horas</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100">
               <span class="countdown-value">{{ countdown.minutes }}</span>
               <span class="countdown-label">Min</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100">
               <span class="countdown-value">{{ countdown.seconds }}</span>
               <span class="countdown-label">Seg</span>
             </div>
@@ -180,10 +180,13 @@ import { HeroConfig, Event } from '../../../core/models/models';
     }
     .countdown-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 12px; padding: 14px 0; flex: 1; min-width: 55px;
       text-align: center; box-sizing: border-box;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } }
     }
     .countdown-value {
       font-size: clamp(20px, 5vw, 36px); font-weight: 700; color: var(--theme-nav-text, var(--gold));

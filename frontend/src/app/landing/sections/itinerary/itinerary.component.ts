@@ -39,7 +39,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         <div class="timeline" [attr.data-align]="config.timelineAlign || 'center'" [attr.data-line]="config.lineStyle || 'solid'">
           @for (item of items; track item.id; let i = $index) {
             <div class="timeline-item" [class.right]="config.timelineAlign === 'center' && i % 2 !== 0" [style.transition-delay.ms]="i * 100">
-              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 12" [style.text-align]="config.textAlign || 'left'">
+              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 12" [style.text-align]="config.textAlign || 'left'" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
                 <div class="timeline-body">
                   @if (formatTime(item.time)) {
                     <span class="timeline-time" [style.font-size.px]="config.timeFontSize || 12">{{ formatTime(item.time) }}</span>
@@ -137,10 +137,13 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
     .timeline-content {
       display: flex; gap: 12px; align-items: flex-start;
-      background: var(--theme-card-bg, rgba(0,0,0,0.45)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       padding: 14px 16px; border-radius: 12px; width: fit-content; max-width: 100%;
       word-break: break-word;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } }
     }
     .timeline-body { flex: 1; min-width: 0; }
     .timeline-time { font-size: 12px; color: var(--theme-text-primary, var(--gold)); font-weight: 600; letter-spacing: 0.5px; }

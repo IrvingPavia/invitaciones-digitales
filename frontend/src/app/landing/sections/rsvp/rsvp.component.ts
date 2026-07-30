@@ -39,7 +39,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           </div>
         }
 
-        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 20">
+        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 20" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
           @if (confirmed()) {
             <div class="rsvp-success">
               @if (getIcon(); as icon) {
@@ -138,9 +138,12 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .rsvp-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 20px; padding: 40px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } }
     }
     .rsvp-for { font-size: 13px; color: var(--theme-text-secondary, rgba(255,255,255,0.5)); letter-spacing: 1px; margin-bottom: 8px; }
     .rsvp-name { font-family: var(--font-serif); font-size: clamp(22px, 4vw, 30px); color: var(--theme-text-primary, white); margin-bottom: 16px; }

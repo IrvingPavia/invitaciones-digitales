@@ -27,7 +27,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
         }
 
         @if (guest) {
-          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño invitamos a</p>
               <h3 class="invitation-name"
@@ -49,7 +49,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
             </div>
           </div>
         } @else {
-          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño los invitamos a celebrar</p>
               <p style="color:rgba(255,255,255,0.5);font-size:14px;margin-top:8px">Escanea el código QR de tu invitación para ver tu nombre</p>
@@ -81,11 +81,14 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
     }
     .invitation-subtitle { color: rgba(255,255,255,0.7); font-size: 16px; margin-bottom: 40px; }
     .invitation-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 16px; padding: 40px; margin: 32px auto;
       max-width: 500px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.3);
-      &.no-bg { background: transparent; border-color: transparent; box-shadow: none; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; box-shadow: none; &::before { opacity: 0; } }
     }
     .invitation-for { color: var(--theme-text-secondary, rgba(255,255,255,0.8)); font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
     .invitation-name {

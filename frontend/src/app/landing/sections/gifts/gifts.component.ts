@@ -35,7 +35,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
           </div>
         }
-        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100">
           @if (getGiftsIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons gifts-icon">{{ icon.value }}</span>
@@ -61,7 +61,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         </div>
 
         @if (config.transfer?.enabled) {
-          <div class="transfer-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" style="animation-delay:0.2s">
+          <div class="transfer-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" style="animation-delay:0.2s">
             <!-- Animation overlay -->
             @if (config.transfer.animation !== 'none') {
               <div class="transfer-particles">
@@ -131,9 +131,12 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
     .gifts-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: hidden;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px; margin-bottom: 20px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } }
     }
     .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
     .gifts-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
@@ -151,9 +154,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
     .transfer-card {
       position: relative; overflow: hidden;
-      background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 16px; padding: 40px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--theme-card-bg, rgba(0,0,0,0.85)); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; &::before { opacity: 0; } }
     }
     .transfer-particles {
       position: absolute; inset: 0; pointer-events: none; overflow: hidden;
