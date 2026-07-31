@@ -477,7 +477,7 @@ import { environment } from '../../../../environments/environment';
       .carousel-card { width: 155px; height: 225px; border-radius: 16px; }
       .carousel-dots { bottom: 8px; }
       .nav-arrow { display: none; }
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .actions-bar { display: none !important; }
       .card-title { font-size: 13px; }
       .mobile-card-actions { display: flex !important; margin-top: 8px; }
