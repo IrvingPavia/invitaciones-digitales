@@ -249,7 +249,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Frase</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('intro')?.phrase" (ngModelChange)="setSec('intro','phrase',$event)"></textarea></div>
               <div class="pf"><label>Fuente</label>
                 <select class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontFamily||'Great Vibes'" (ngModelChange)="setSecNested('intro','phraseStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
+                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
                 </select>
               </div>
               <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontSize||32" (ngModelChange)="setSecNested('intro','phraseStyle','fontSize',+$event)" min="12" max="80"></div>
@@ -369,11 +369,17 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Nombres</label><input class="pinput" [ngModel]="sec('hero')?.celebrantNames" (ngModelChange)="setSec('hero','celebrantNames',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontFamily||'Great Vibes'" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
+                <select class="pinput" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontFamily||'script'" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontFamily',$event)">
+                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
                 </select>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontSize||48" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontSize',+$event)" min="16" max="120"></div>
+              <div class="pf"><label>Tamano ({{sec('hero')?.celebrantNamesStyle?.fontSize||48}}px)</label>
+                <div class="stepper-row">
+                  <button class="stepper-btn" (click)="adjustHeroFont('celebrantNamesStyle',-2);$event.stopPropagation()">-</button>
+                  <span class="stepper-value">{{sec('hero')?.celebrantNamesStyle?.fontSize||48}}px</span>
+                  <button class="stepper-btn" (click)="adjustHeroFont('celebrantNamesStyle',2);$event.stopPropagation()">+</button>
+                </div>
+              </div>
               <div class="pf-row">
                 <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color1||'#ffffff'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color1',$event)"></app-color-picker></div>
                 <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color2||'#d4a017'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color2',$event)"></app-color-picker></div>
@@ -388,11 +394,17 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="pf"><label>Descripcion del evento</label><input class="pinput" [ngModel]="sec('hero')?.eventDescription" (ngModelChange)="setSec('hero','eventDescription',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontFamily||'Montserrat'" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
+                <select class="pinput" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontFamily||'montserrat'" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)">
+                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
                 </select>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontSize||18" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontSize',+$event)" min="10" max="60"></div>
+              <div class="pf"><label>Tamano ({{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px)</label>
+                <div class="stepper-row">
+                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',-1);$event.stopPropagation()">-</button>
+                  <span class="stepper-value">{{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px</span>
+                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',1);$event.stopPropagation()">+</button>
+                </div>
+              </div>
               <div class="pf-row">
                 <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
                 <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
@@ -407,11 +419,17 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="pf"><label>Frase</label><input class="pinput" [ngModel]="sec('hero')?.heroPhrase" (ngModelChange)="setSec('hero','heroPhrase',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.heroPhraseStyle?.fontFamily||'Raleway'" (ngModelChange)="setSecNested('hero','heroPhraseStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
+                <select class="pinput" [ngModel]="sec('hero')?.heroPhraseStyle?.fontFamily||'raleway'" (ngModelChange)="setSecNested('hero','heroPhraseStyle','fontFamily',$event)">
+                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
                 </select>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('hero')?.heroPhraseStyle?.fontSize||14" (ngModelChange)="setSecNested('hero','heroPhraseStyle','fontSize',+$event)" min="10" max="40"></div>
+              <div class="pf"><label>Tamano ({{sec('hero')?.heroPhraseStyle?.fontSize||14}}px)</label>
+                <div class="stepper-row">
+                  <button class="stepper-btn" (click)="adjustHeroFont('heroPhraseStyle',-1);$event.stopPropagation()">-</button>
+                  <span class="stepper-value">{{sec('hero')?.heroPhraseStyle?.fontSize||14}}px</span>
+                  <button class="stepper-btn" (click)="adjustHeroFont('heroPhraseStyle',1);$event.stopPropagation()">+</button>
+                </div>
+              </div>
               <div class="pf"><label>Color</label><app-color-picker [value]="sec('hero')?.heroPhraseStyle?.color||'rgba(255,255,255,0.7)'" (valueChange)="setSecNested('hero','heroPhraseStyle','color',$event)"></app-color-picker></div>
             </div>
           }
@@ -1523,6 +1541,19 @@ export class BuilderPropsPanelComponent {
     const current = this.sec('intro')?.duration || 5;
     const next = Math.max(0.5, Math.min(30, Math.round((current + delta * 0.5) * 10) / 10));
     this.setSec('intro', 'duration', next);
+  }
+
+  adjustHeroFont(styleProp: string, delta: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const style = (cfg.hero as any)[styleProp] || {};
+    const defaults: Record<string, number> = { celebrantNamesStyle: 48, eventDescriptionStyle: 18, heroPhraseStyle: 14 };
+    const mins: Record<string, number> = { celebrantNamesStyle: 16, eventDescriptionStyle: 10, heroPhraseStyle: 10 };
+    const maxs: Record<string, number> = { celebrantNamesStyle: 120, eventDescriptionStyle: 60, heroPhraseStyle: 40 };
+    const current = style.fontSize || defaults[styleProp] || 16;
+    const next = Math.max(mins[styleProp] || 10, Math.min(maxs[styleProp] || 120, current + delta));
+    style.fontSize = next;
+    (cfg.hero as any)[styleProp] = style;
+    this.canvasState.isDirty.set(true);
   }
 
   uploadIntroMedia() {

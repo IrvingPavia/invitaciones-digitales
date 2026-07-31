@@ -15,6 +15,7 @@ import { LandingEnvelopeComponent } from '../../../landing/sections/envelope/env
 import { LandingIntroComponent } from '../../../landing/sections/intro/intro.component';
 import { LandingHeroComponent } from '../../../landing/sections/hero/hero.component';
 import { LandingInvitationComponent } from '../../../landing/sections/invitation/invitation.component';
+import { LandingRsvpComponent } from '../../../landing/sections/rsvp/rsvp.component';
 import { LandingDetailsComponent } from '../../../landing/sections/details/details.component';
 import { LandingVenuesComponent } from '../../../landing/sections/venues/venues.component';
 import { LandingItineraryComponent } from '../../../landing/sections/itinerary/itinerary.component';
@@ -35,7 +36,7 @@ interface BuilderSection {
   imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, SectionCanvasComponent, BuilderPropsPanelComponent,
     LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
-    LandingDresscodeComponent, LandingGiftsComponent],
+    LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent],
   template: `
     <!-- Toolbar -->
     <div class="builder-toolbar">
@@ -144,7 +145,7 @@ interface BuilderSection {
                 </div>
                 <div class="preview-section-click" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
                   @if (canvasState.config()!.invitation) {
-                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="null" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="previewGuest" [styles]="canvasState.config()?.globalStyles!" />
                   }
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
@@ -175,6 +176,11 @@ interface BuilderSection {
                 @if (canvasState.config()?.gifts?.enabled) {
                   <div class="preview-section-click" data-section="gifts" [class.section-active]="canvasState.selectedSection() === 'gifts'" [attr.style]="getSectionBgStyle('gifts')" (click)="selectSection('gifts'); $event.stopPropagation()">
                     <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()?.globalStyles!" />
+                  </div>
+                }
+                @if (canvasState.config()?.rsvp?.enabled) {
+                  <div class="preview-section-click" data-section="rsvp" [class.section-active]="canvasState.selectedSection() === 'rsvp'" [attr.style]="getSectionBgStyle('rsvp')" (click)="selectSection('rsvp'); $event.stopPropagation()">
+                    <app-landing-rsvp [config]="canvasState.config()!.rsvp" [guest]="previewGuest" slug="preview" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
               </div>
@@ -730,6 +736,12 @@ export class BuilderComponent implements OnInit, OnDestroy {
   showLeftPanel = signal(false);
   panelVisible = signal(true);
   eventData = signal<any>({ name: '', event_date: '', slug: '' });
+  previewGuest: any = {
+    id: 0, event_id: 0, unique_code: 'preview-mock',
+    guest_type: 'family', family_name: 'Familia García',
+    guest_names: 'Carlos García, María López, Sofía García, Diego García',
+    max_companions: 0, confirmed: 0
+  };
   previewKey = signal(0);
   previewUrl = computed<SafeResourceUrl>(() => {
     const slug = this.eventData()?.slug || '';
