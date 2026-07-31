@@ -317,6 +317,7 @@ body.light-mode .builder-upload-ok { color: #10b981 !important; }
 body.light-mode .builder-btn-icon { background: #f0f0f5 !important; color: #999 !important; }
 body.light-mode .builder-btn-icon:hover { background: #e8e8e8 !important; color: #555 !important; }
 body.light-mode .builder-preview { background: #e8e8f0 !important; }
+body.light-mode .builder-preview-area { background: #f0f0f5 !important; }
 body.light-mode .canvas-section-label { background: rgba(124,92,191,0.9) !important; }
 body.light-mode .canvas-empty-section .material-icons { color: rgba(124,92,191,0.25) !important; }
 body.light-mode .canvas-empty-section p { color: #999 !important; }
@@ -374,6 +375,7 @@ body.light-mode .accordion.open .accordion-header { color: #4a2d7a !important; b
 body.light-mode .accordion-body { border-bottom-color: #f0f0f0 !important; }
 body.light-mode .pf label { color: #7c5cbf !important; }
 body.light-mode .pinput { background: #faf8ff !important; border-color: rgba(124,92,191,0.25) !important; color: #333 !important; }
+body.light-mode select.pinput { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c5cbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important; }
 body.light-mode .pinput:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 2px rgba(124,92,191,0.1) !important; }
 body.light-mode .pinput-range { accent-color: var(--gold) !important; }
 body.light-mode .chip { background: #f5f0ff !important; border-color: rgba(124,92,191,0.2) !important; color: #6b4fa0 !important; }
@@ -408,6 +410,22 @@ body.light-mode .x-btn { color: #bbb !important; }
 body.light-mode .x-btn:hover { color: #ef4444 !important; }
 body.light-mode .builder-sections-fab { background: var(--gold) !important; }
 body.light-mode .builder-props-fab { background: var(--gold) !important; }
+
+/* Light mode — New props-panel elements */
+body.light-mode .pf-section-title { color: #7c5cbf !important; border-bottom-color: rgba(124,92,191,0.2) !important; }
+body.light-mode .tpl-hint { color: #666 !important; }
+body.light-mode .tpl-preview-label { color: #555 !important; }
+body.light-mode .tpl-preview-swatch { border-color: rgba(124,92,191,0.2) !important; }
+body.light-mode .tpl-preview-card.active .tpl-preview-swatch { border-color: rgba(124,92,191,0.7) !important; }
+body.light-mode .tpl-preview-card.active .tpl-preview-label { color: #7c5cbf !important; }
+body.light-mode .stepper-row { border-color: rgba(124,92,191,0.25) !important; }
+body.light-mode .stepper-btn { background: rgba(124,92,191,0.08) !important; color: #5a3d8a !important; }
+body.light-mode .stepper-btn:hover { background: rgba(124,92,191,0.15) !important; }
+body.light-mode .stepper-value { color: #333 !important; background: #faf8ff !important; }
+body.light-mode .preview-guest-selector { background: transparent !important; border-color: transparent !important; }
+body.light-mode .preview-guest-label { color: #666 !important; }
+body.light-mode .preview-guest-select { color: #333 !important; }
+body.light-mode .preview-guest-select option { background: #fff; color: #333; }
 
 /* Cards editor panel */
 body.light-mode .panel { color: #333; }
