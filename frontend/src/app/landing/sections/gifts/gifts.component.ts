@@ -35,7 +35,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
           </div>
         }
-        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [style.filter]="getCardFilter()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
           @if (getGiftsIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons gifts-icon">{{ icon.value }}</span>
@@ -61,7 +61,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         </div>
 
         @if (config.transfer?.enabled) {
-          <div class="transfer-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" style="animation-delay:0.2s" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.clip-path]="getCardClipPath()" [style.filter]="getCardFilter()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+          <div class="transfer-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" style="animation-delay:0.2s" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             <!-- Animation overlay -->
             @if (config.transfer.animation !== 'none') {
               <div class="transfer-particles">
@@ -294,8 +294,6 @@ export class LandingGiftsComponent {
 
   getCardBorderStyle(): string {
     const s = (this.config as any).cardBorderStyle || 'none';
-    const shape = (this.config as any).cardShape || 'standard';
-    if (shape !== 'standard') return 'none';
     if (s === 'glow' || s === 'neon') return 'solid';
     return s;
   }
@@ -305,8 +303,6 @@ export class LandingGiftsComponent {
   }
 
   getCardBorderWidth(): number {
-    const shape = (this.config as any).cardShape || 'standard';
-    if (shape !== 'standard') return 0;
     if ((this.config as any).cardBorderStyle === 'none') return 0;
     return (this.config as any).cardBorderWidth ?? 1;
   }
@@ -321,27 +317,21 @@ export class LandingGiftsComponent {
   }
 
   getCardFilter(): string {
-    const shape = (this.config as any).cardShape || 'standard';
-    if (shape === 'standard') return 'none';
-    const style = (this.config as any).cardBorderStyle || 'none';
-    if (style === 'none') return 'none';
-    const color = (this.config as any).cardBorderColor || (this.config as any).cardGlowColor || 'rgba(212,160,23,0.5)';
-    const width = (this.config as any).cardBorderWidth ?? 1;
-    if (style === 'neon') return `drop-shadow(0 0 ${width * 3}px ${color}) drop-shadow(0 0 ${width * 6}px ${color})`;
-    if (style === 'glow') return `drop-shadow(0 0 ${width * 2}px ${color}) drop-shadow(0 0 ${width * 4}px ${color})`;
-    return `drop-shadow(0 0 ${width}px ${color})`;
+    return 'none';
   }
 
   getCardClipPath(): string {
+    return 'none';
+  }
+
+  getCardBorderRadius(): string {
     const shape = (this.config as any).cardShape || 'standard';
+    const base = (this.config as any).cardBorderRadius ?? 16;
     switch (shape) {
-      case 'ticket': return 'polygon(0% 10%, 5% 10%, 5% 0%, 95% 0%, 95% 10%, 100% 10%, 100% 90%, 95% 90%, 95% 100%, 5% 100%, 5% 90%, 0% 90%)';
-      case 'wave': return 'polygon(0% 5%, 10% 0%, 20% 5%, 30% 0%, 40% 5%, 50% 0%, 60% 5%, 70% 0%, 80% 5%, 90% 0%, 100% 5%, 100% 95%, 90% 100%, 80% 95%, 70% 100%, 60% 95%, 50% 100%, 40% 95%, 30% 100%, 20% 95%, 10% 100%, 0% 95%)';
-      case 'hexagon': return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
-      case 'diamond': return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
-      case 'cloud': return 'polygon(10% 20%, 5% 10%, 15% 2%, 25% 0%, 35% 2%, 45% 0%, 55% 2%, 65% 0%, 75% 2%, 85% 0%, 95% 10%, 100% 20%, 100% 80%, 95% 90%, 85% 98%, 75% 100%, 65% 98%, 55% 100%, 45% 98%, 35% 100%, 25% 98%, 15% 100%, 5% 90%, 0% 80%)';
-      case 'scroll': return 'polygon(3% 0%, 97% 0%, 100% 3%, 100% 97%, 97% 100%, 3% 100%, 0% 97%, 0% 3%)';
-      default: return 'none';
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
     }
   }
 }

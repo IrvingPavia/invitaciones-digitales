@@ -74,22 +74,22 @@ import { HeroConfig, Event } from '../../../core/models/models';
 
         @if (config.countdownDate) {
           <div class="countdown animate-in" style="animation-delay:0.8s">
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.days }}</span>
               <span class="countdown-label">Días</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.hours }}</span>
               <span class="countdown-label">Horas</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.minutes }}</span>
               <span class="countdown-label">Min</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.clip-path]="getCountdownClipPath()" [style.filter]="getCountdownFilter()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value">{{ countdown.seconds }}</span>
               <span class="countdown-label">Seg</span>
             </div>
@@ -321,8 +321,6 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
 
   getCountdownBorderStyle(): string {
     const s = (this.config as any).countdownCardBorderStyle || 'none';
-    const shape = (this.config as any).countdownCardShape || 'standard';
-    if (shape !== 'standard') return 'none';
     if (s === 'glow' || s === 'neon') return 'solid';
     return s;
   }
@@ -332,8 +330,6 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   }
 
   getCountdownBorderWidth(): number {
-    const shape = (this.config as any).countdownCardShape || 'standard';
-    if (shape !== 'standard') return 0;
     if ((this.config as any).countdownCardBorderStyle === 'none') return 0;
     return (this.config as any).countdownCardBorderWidth ?? 1;
   }
@@ -355,28 +351,14 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     return (this.config as any).countdownCardBorderColor || '';
   }
 
-  getCountdownFilter(): string {
+  getCountdownBorderRadius(): string {
     const shape = (this.config as any).countdownCardShape || 'standard';
-    if (shape === 'standard') return 'none';
-    const style = (this.config as any).countdownCardBorderStyle || 'none';
-    if (style === 'none') return 'none';
-    const color = (this.config as any).countdownCardBorderColor || (this.config as any).countdownCardGlowColor || 'rgba(212,160,23,0.5)';
-    const width = (this.config as any).countdownCardBorderWidth ?? 1;
-    if (style === 'neon') return `drop-shadow(0 0 ${width * 3}px ${color}) drop-shadow(0 0 ${width * 6}px ${color})`;
-    if (style === 'glow') return `drop-shadow(0 0 ${width * 2}px ${color}) drop-shadow(0 0 ${width * 4}px ${color})`;
-    return `drop-shadow(0 0 ${width}px ${color})`;
-  }
-
-  getCountdownClipPath(): string {
-    const shape = (this.config as any).countdownCardShape || 'standard';
+    const base = (this.config as any).countdownCardBorderRadius ?? 12;
     switch (shape) {
-      case 'ticket': return 'polygon(0% 10%, 5% 10%, 5% 0%, 95% 0%, 95% 10%, 100% 10%, 100% 90%, 95% 90%, 95% 100%, 5% 100%, 5% 90%, 0% 90%)';
-      case 'wave': return 'polygon(0% 5%, 10% 0%, 20% 5%, 30% 0%, 40% 5%, 50% 0%, 60% 5%, 70% 0%, 80% 5%, 90% 0%, 100% 5%, 100% 95%, 90% 100%, 80% 95%, 70% 100%, 60% 95%, 50% 100%, 40% 95%, 30% 100%, 20% 95%, 10% 100%, 0% 95%)';
-      case 'hexagon': return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
-      case 'diamond': return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
-      case 'cloud': return 'polygon(10% 20%, 5% 10%, 15% 2%, 25% 0%, 35% 2%, 45% 0%, 55% 2%, 65% 0%, 75% 2%, 85% 0%, 95% 10%, 100% 20%, 100% 80%, 95% 90%, 85% 98%, 75% 100%, 65% 98%, 55% 100%, 45% 98%, 35% 100%, 25% 98%, 15% 100%, 5% 90%, 0% 80%)';
-      case 'scroll': return 'polygon(3% 0%, 97% 0%, 100% 3%, 100% 97%, 97% 100%, 3% 100%, 0% 97%, 0% 3%)';
-      default: return 'none';
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
     }
   }
 }
