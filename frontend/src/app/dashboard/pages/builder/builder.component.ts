@@ -192,16 +192,27 @@ interface BuilderSection {
       <!-- Preview mode: iframe with real landing -->
       @if (canvasMode() === 'preview') {
       <div class="builder-preview-area">
+        <div class="preview-guest-selector">
+          <span class="material-icons" style="font-size:18px;color:rgba(255,255,255,0.6)">person</span>
+          <select class="preview-guest-select" [ngModel]="previewGuestCode()" (ngModelChange)="selectPreviewGuest($event)">
+            <option value="">Vista genérica</option>
+            @for (g of guests(); track g.id) {
+              <option [value]="g.unique_code">{{ g.family_name || g.guest_names }}</option>
+            }
+          </select>
+        </div>
         <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
           <iframe [src]="previewUrl()" class="preview-iframe" allow="autoplay"></iframe>
         </div>
       </div>
       }
 
-      <!-- FAB toggle sections panel -->
+      <!-- FAB toggle sections panel (hidden in preview mode) -->
+      @if (canvasMode() === 'canvas') {
       <button class="builder-sections-fab" [class.show-desktop]="!panelVisible()" (click)="openSections()" title="Secciones">
         <span class="material-icons">layers</span>
       </button>
+      }
 
       <!-- FAB toggle props (hidden in preview mode) -->
       @if (canvasMode() === 'canvas') {
@@ -311,11 +322,22 @@ interface BuilderSection {
     .builder-layout.props-open { grid-template-columns: 220px 1fr 280px; }
     .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr 280px; }
     .builder-preview-area {
-      display: flex; align-items: flex-start; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       background: #06060e; padding: 16px; overflow: hidden; height: 100%;
     }
+    .preview-guest-selector {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px; padding: 6px 12px;
+      background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 8px;
+    }
+    .preview-guest-select {
+      background: transparent; border: none; color: #fff; font-size: 13px;
+      outline: none; cursor: pointer; min-width: 160px;
+      option { background: #1a1a2e; color: #fff; }
+    }
     .builder-preview-frame {
-      border-radius: 16px; overflow: hidden; height: 100%;
+      border-radius: 16px; overflow: hidden; flex: 1; width: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
       background: #0d1117;
       &.mobile { width: 375px; }
@@ -742,12 +764,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
     guest_names: 'Carlos García, María López, Sofía García, Diego García',
     max_companions: 0, confirmed: 0
   };
+  guests = signal<any[]>([]);
+  previewGuestCode = signal<string>('');
   previewKey = signal(0);
   previewUrl = computed<SafeResourceUrl>(() => {
     const slug = this.eventData()?.slug || '';
     const baseUrl = window.location.origin;
     const key = this.previewKey();
-    return this.sanitizer.bypassSecurityTrustResourceUrl(`${baseUrl}/invitacion/${slug}?preview=1&_=${key}`);
+    const guestCode = this.previewGuestCode();
+    const guestParam = guestCode ? `&t=${guestCode}` : '';
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${baseUrl}/invitacion/${slug}?preview=1${guestParam}&_=${key}`);
   });
   currentSection = signal<string | null>(null);
   currentConfig = signal<any>(null);
@@ -792,6 +818,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     // Load related data
     this.loadItinerary();
     this.loadPhotos();
+    this.loadGuests();
   }
 
   ngOnDestroy() {
@@ -1291,6 +1318,15 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   private loadPhotos() {
     this.api.getPhotos(this.eventId).subscribe(p => this.photos.set(p));
+  }
+
+  private loadGuests() {
+    this.api.getGuests(this.eventId).subscribe(g => this.guests.set(g));
+  }
+
+  selectPreviewGuest(code: string) {
+    this.previewGuestCode.set(code);
+    this.previewKey.update(k => k + 1);
   }
 
   uploadSecProp(sectionKey: string, prop: string, type: 'images' | 'audio' | 'gifs') {
