@@ -375,7 +375,7 @@ export class CanvasStateService {
     return section?.canvas?.elements || null;
   }
 
-  private notifyChange() {
+  notifyChange() {
     const config = this.state().config;
     this.state.update(s => ({ ...s, config: config ? { ...config } : null }));
     this.isDirty.set(true);

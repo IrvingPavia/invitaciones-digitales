@@ -87,6 +87,17 @@ export interface ThemeConfig {
   landingBgTextureOpacity?: number;
   // Scroll animation
   scrollAnimation?: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
+  // Navbar & Menu
+  navBarBg1?: string;
+  navBarBg2?: string;
+  navBarBlur?: number;
+  navBarBorder?: string;
+  navBtnBg?: string;
+  navBtnBorder?: string;
+  navBtnIcon?: string;
+  navMenuBg?: string;
+  navMenuText?: string;
+  navMenuBlur?: number;
 }
 
 export interface SectionStyle {
