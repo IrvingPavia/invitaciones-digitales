@@ -32,12 +32,28 @@ import { ApiService } from '../../../../../core/services/api.service';
         </div>
         @if (expanded['tpl']) {
           <div class="accordion-body">
-            <div class="tpl-grid-2x2">
-              <div class="tpl-card" (click)="applyTemplate('elegante');$event.stopPropagation()"><span>Elegante</span></div>
-              <div class="tpl-card" (click)="applyTemplate('moderno');$event.stopPropagation()"><span>Moderno</span></div>
-              <div class="tpl-card" (click)="applyTemplate('romantico');$event.stopPropagation()"><span>Romantico</span></div>
-              <div class="tpl-card" (click)="applyTemplate('festivo');$event.stopPropagation()"><span>Festivo</span></div>
-              <div class="tpl-card" (click)="applyTemplate('corporativo');$event.stopPropagation()"><span>Corporativo</span></div>
+            <p class="tpl-hint">Selecciona un template para reemplazar todos los colores y fuentes. Los contenidos no se modifican.</p>
+            <div class="tpl-grid-preview">
+              <div class="tpl-preview-card" (click)="applyTemplate('elegante');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #0d1117, #1a1a2e); border-color:rgba(212,160,23,0.3)"><span style="color:#d4a017">Aa</span></div>
+                <span class="tpl-preview-label">Elegante</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('moderno');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #1e1e32, #2d2d44); border-color:rgba(167,139,250,0.3)"><span style="color:#a78bfa">Aa</span></div>
+                <span class="tpl-preview-label">Moderno</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('romantico');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #2d1525, #1a0a14); border-color:rgba(244,167,193,0.3)"><span style="color:#f4a7c1">Aa</span></div>
+                <span class="tpl-preview-label">Romántico</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('festivo');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #1a1a2e, #2d2200); border-color:rgba(251,191,36,0.3)"><span style="color:#fbbf24">Aa</span></div>
+                <span class="tpl-preview-label">Festivo</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('corporativo');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #0f172a, #1e293b); border-color:rgba(96,165,250,0.3)"><span style="color:#60a5fa">Aa</span></div>
+                <span class="tpl-preview-label">Corporativo</span>
+              </div>
             </div>
           </div>
         }
@@ -90,6 +106,28 @@ import { ApiService } from '../../../../../core/services/api.service';
             </div>
           </div>
         }
+
+        <div class="accordion" [class.open]="expanded['nav']" (click)="toggle('nav')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['nav'] ? 'expand_more' : 'chevron_right' }}</span><span>Navbar y Menu</span></div>
+        </div>
+        @if (expanded['nav']) {
+          <div class="accordion-body">
+            <span class="pf-section-title">Barra de Titulo</span>
+            <div class="pf"><label>Fondo color 1</label><app-color-picker [value]="cfg()!.theme.navBarBg1 || 'rgba(13,17,23,0.85)'" (valueChange)="setTheme('navBarBg1', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fondo color 2</label><app-color-picker [value]="cfg()!.theme.navBarBg2 || ''" (valueChange)="setTheme('navBarBg2', $event)"></app-color-picker></div>
+            <div class="pf"><label>Blur ({{cfg()!.theme.navBarBlur ?? 12}}px)</label><input type="range" class="pinput-range" min="0" max="30" [ngModel]="cfg()!.theme.navBarBlur ?? 12" (ngModelChange)="setTheme('navBarBlur', +$event)"></div>
+            <div class="pf"><label>Color texto titulo</label><app-color-picker [value]="cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setTheme('navFooterText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Color linea inferior</label><app-color-picker [value]="cfg()!.theme.navBarBorder || 'rgba(212,160,23,0.2)'" (valueChange)="setTheme('navBarBorder', $event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Menu de Navegacion</span>
+            <div class="pf"><label>Fondo menu</label><app-color-picker [value]="cfg()!.theme.navMenuBg || 'rgba(13,17,23,0.95)'" (valueChange)="setTheme('navMenuBg', $event)"></app-color-picker></div>
+            <div class="pf"><label>Blur menu ({{cfg()!.theme.navMenuBlur ?? 12}}px)</label><input type="range" class="pinput-range" min="0" max="30" [ngModel]="cfg()!.theme.navMenuBlur ?? 12" (ngModelChange)="setTheme('navMenuBlur', +$event)"></div>
+            <div class="pf"><label>Color texto menu</label><app-color-picker [value]="cfg()!.theme.navMenuText || 'rgba(255,255,255,0.8)'" (valueChange)="setTheme('navMenuText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fondo botones</label><app-color-picker [value]="cfg()!.theme.navBtnBg || 'rgba(255,255,255,0.1)'" (valueChange)="setTheme('navBtnBg', $event)"></app-color-picker></div>
+            <div class="pf"><label>Borde botones</label><app-color-picker [value]="cfg()!.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" (valueChange)="setTheme('navBtnBorder', $event)"></app-color-picker></div>
+            <div class="pf"><label>Color icono botones</label><app-color-picker [value]="cfg()!.theme.navBtnIcon || '#ffffff'" (valueChange)="setTheme('navBtnIcon', $event)"></app-color-picker></div>
+          </div>
+        }
       }
 
       <!-- ===== SECTION PROPERTIES ===== -->
@@ -103,14 +141,28 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['env-tpl']) {
             <div class="accordion-body">
               <div class="tpl-grid-2x2">
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='envelope'" (click)="setSec('envelope','template','envelope');$event.stopPropagation()"><span>Sobre</span></div>
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='ticket'" (click)="setSec('envelope','template','ticket');$event.stopPropagation()"><span>Ticket</span></div>
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='minimal-splash'" (click)="setSec('envelope','template','minimal-splash');$event.stopPropagation()"><span>Splash</span></div>
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='plain'" (click)="setSec('envelope','template','plain');$event.stopPropagation()"><span>Plano</span></div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='envelope'" (click)="setSec('envelope','template','envelope');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:24px">💌</span></div>
+                  <span class="tpl-preview-label">✉ Sobre</span>
+                </div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='ticket'" (click)="setSec('envelope','template','ticket');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:24px">🎫</span></div>
+                  <span class="tpl-preview-label">🎟 Ticket</span>
+                </div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='minimal-splash'" (click)="setSec('envelope','template','minimal-splash');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:24px">✨</span></div>
+                  <span class="tpl-preview-label">✨ Splash</span>
+                </div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='plain'" (click)="setSec('envelope','template','plain');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:20px;color:rgba(255,255,255,0.4)">━━</span></div>
+                  <span class="tpl-preview-label">📄 Plano</span>
+                </div>
               </div>
             </div>
           }
 
+          <!-- === ENVELOPE-type only properties === -->
+          @if (sec('envelope')?.template === 'envelope') {
           <div class="accordion" [class.open]="expanded['env-style']" (click)="toggle('env-style')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['env-style'] ? 'expand_more' : 'chevron_right' }}</span><span>Estilo de Sobre</span></div>
           </div>
@@ -137,19 +189,6 @@ import { ApiService } from '../../../../../core/services/api.service';
             </div>
           }
 
-          <div class="accordion" [class.open]="expanded['env-colors']" (click)="toggle('env-colors')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['env-colors'] ? 'expand_more' : 'chevron_right' }}</span><span>Colores</span></div>
-          </div>
-          @if (expanded['env-colors']) {
-            <div class="accordion-body">
-              <div class="pf"><label>Color sobre</label><app-color-picker [value]="sec('envelope')?.envelopeColor||'#1a1a2e'" (valueChange)="setSec('envelope','envelopeColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color sello</label><app-color-picker [value]="sec('envelope')?.sealColor||'#8b0000'" (valueChange)="setSec('envelope','sealColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color fondo</label><app-color-picker [value]="sec('envelope')?.bgColor||'#0d1117'" (valueChange)="setSec('envelope','bgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color fondo 2</label><app-color-picker [value]="sec('envelope')?.bgColor2||'#1a1a2e'" (valueChange)="setSec('envelope','bgColor2',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color texto</label><app-color-picker [value]="sec('envelope')?.textColor||'#ffffff'" (valueChange)="setSec('envelope','textColor',$event)"></app-color-picker></div>
-            </div>
-          }
-
           <div class="accordion" [class.open]="expanded['env-content']" (click)="toggle('env-content')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['env-content'] ? 'expand_more' : 'chevron_right' }}</span><span>Contenido del Sello</span></div>
           </div>
@@ -162,36 +201,77 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="getSealType()==='none'" (click)="setSealType('none');$event.stopPropagation()">Vacio</button>
                 </div>
               </div>
-              <div class="pf"><label>Texto sello</label><input class="pinput" [ngModel]="sec('envelope')?.sealText" (ngModelChange)="setSec('envelope','sealText',$event)"></div>
-              <div class="pf"><label>Imagen del sello</label>
-                <div class="upload-row">
-                  @if(sec('envelope')?.sealImage){<span class="file-name">{{getFileName(sec('envelope')?.sealImage)}}</span><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','sealImage','');$event.stopPropagation()">X</button>}
-                  @else{<button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Subir</button>}
+              @if (getSealType() === 'emoji') {
+                <div class="pf"><label>Emoji / Texto sello</label><input class="pinput" [ngModel]="sec('envelope')?.sealText" (ngModelChange)="setSec('envelope','sealText',$event)" placeholder="💍"></div>
+              }
+              @if (getSealType() === 'icon') {
+                <div class="pf"><label>Imagen del sello</label>
+                  <div class="upload-row">
+                    @if(sec('envelope')?.sealImage){<span class="file-name">{{getFileName(sec('envelope')?.sealImage)}}</span><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','sealImage','');$event.stopPropagation()">X</button>}
+                    @else{<button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Subir</button>}
+                  </div>
                 </div>
-              </div>
+              }
             </div>
           }
+          }
 
+          <!-- === Instruction (all templates) === -->
           <div class="accordion" [class.open]="expanded['env-instr']" (click)="toggle('env-instr')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['env-instr'] ? 'expand_more' : 'chevron_right' }}</span><span>Instruccion</span></div>
           </div>
           @if (expanded['env-instr']) {
             <div class="accordion-body">
-              <div class="pf"><label>Texto de instruccion</label><input class="pinput" [ngModel]="sec('envelope')?.instructionText" (ngModelChange)="setSec('envelope','instructionText',$event)"></div>
+              <div class="pf"><label>Texto</label><input class="pinput" [ngModel]="sec('envelope')?.instructionText||'Toca para abrir'" (ngModelChange)="setSec('envelope','instructionText',$event)"></div>
+              <div class="pf"><label>Animacion</label>
+                <select class="pinput" [ngModel]="sec('envelope')?.instructionAnimation||'pulse'" (ngModelChange)="setSec('envelope','instructionAnimation',$event)">
+                  <option value="pulse">Pulso</option>
+                  <option value="bounce">Rebote</option>
+                  <option value="fade">Aparecer/Desaparecer</option>
+                  <option value="slide-up">Deslizar arriba</option>
+                  <option value="glow">Brillar</option>
+                  <option value="none">Sin animacion</option>
+                </select>
+              </div>
+            </div>
+          }
+
+          <!-- === Common properties for all envelope templates === -->
+          <div class="accordion" [class.open]="expanded['env-colors']" (click)="toggle('env-colors')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['env-colors'] ? 'expand_more' : 'chevron_right' }}</span><span>Colores</span></div>
+          </div>
+          @if (expanded['env-colors']) {
+            <div class="accordion-body">
+              <div class="pf"><label>Color fondo</label><app-color-picker [value]="sec('envelope')?.bgColor||'#0d1117'" (valueChange)="setSec('envelope','bgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color fondo 2</label><app-color-picker [value]="sec('envelope')?.bgColor2||'#1a1a2e'" (valueChange)="setSec('envelope','bgColor2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color texto</label><app-color-picker [value]="sec('envelope')?.textColor||'#ffffff'" (valueChange)="setSec('envelope','textColor',$event)"></app-color-picker></div>
+              @if (sec('envelope')?.template === 'envelope') {
+                <div class="pf"><label>Color sobre</label><app-color-picker [value]="sec('envelope')?.envelopeColor||'#1a1a2e'" (valueChange)="setSec('envelope','envelopeColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color sello</label><app-color-picker [value]="sec('envelope')?.sealColor||'#8b0000'" (valueChange)="setSec('envelope','sealColor',$event)"></app-color-picker></div>
+              }
             </div>
           }
 
           <div class="accordion" [class.open]="expanded['env-bg']" (click)="toggle('env-bg')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['env-bg'] ? 'expand_more' : 'chevron_right' }}</span><span>Fondos</span></div>
+            <div class="accordion-header"><span class="material-icons">{{ expanded['env-bg'] ? 'expand_more' : 'chevron_right' }}</span><span>Fondo</span></div>
           </div>
           @if (expanded['env-bg']) {
             <div class="accordion-body">
-              <div class="pf"><label>Fondo (imagen/gif)</label>
+              <div class="pf"><label>Imagen/GIF de fondo</label>
                 <div class="upload-row">
                   @if(sec('envelope')?.splashImage){<span class="file-name">{{getFileName(sec('envelope')?.splashImage)}}</span><button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','splashImage','');$event.stopPropagation()">X</button>}
                   @else{<button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Subir</button>}
                 </div>
               </div>
+              @if (!sec('envelope')?.splashImage) {
+                <div class="pf"><label>Tipo de fondo</label>
+                  <select class="pinput" [ngModel]="sec('envelope')?.bgType||'linear'" (ngModelChange)="setSec('envelope','bgType',$event)">
+                    <option value="solid">Solido</option>
+                    <option value="linear">Lineal</option>
+                    <option value="radial">Radial</option>
+                  </select>
+                </div>
+              }
             </div>
           }
 
@@ -1201,6 +1281,7 @@ import { ApiService } from '../../../../../core/services/api.service';
     .accordion.open .accordion-header { color:white;background:rgba(139,92,246,0.06); .material-icons{color:var(--gold-light)} }
     .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04); }
     .pf { margin-bottom:10px; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
+    .pf-section-title { display:block;font-size:11px;font-weight:600;color:rgba(139,92,246,0.8);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(139,92,246,0.15); }
     .pf-row { display:flex;gap:8px;margin-bottom:10px; }
     .pf-half { flex:1; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pinput { width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.15);border-radius:6px;padding:7px 10px;color:white;font-size:12px;font-family:var(--font-sans); &:focus{outline:none;border-color:rgba(139,92,246,0.4)} }
@@ -1216,6 +1297,14 @@ import { ApiService } from '../../../../../core/services/api.service';
     .sm-btn { padding:4px 10px;border-radius:5px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.06);color:rgba(255,255,255,0.7);font-size:10px;cursor:pointer;transition:all 0.15s; &:hover{background:rgba(139,92,246,0.12)} &.danger{border-color:rgba(239,68,68,0.2);color:#ef4444} }
     .tpl-grid-2x2 { display:grid;grid-template-columns:1fr 1fr;gap:4px; }
     .tpl-card { padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.7);font-size:11px;cursor:pointer;transition:all 0.15s;text-align:center; &:hover{background:rgba(139,92,246,0.08);border-color:rgba(139,92,246,0.2)} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
+    .tpl-hint { font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;line-height:1.5; }
+    .tpl-grid-preview { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px; }
+    .tpl-preview-card { display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform 0.2s; &:hover{transform:translateY(-2px)} &:active{transform:scale(0.95)} }
+    .tpl-preview-swatch { width:100%;aspect-ratio:3/4;border-radius:10px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;font-family:var(--font-serif);transition:border-color 0.2s,box-shadow 0.2s; &:hover{box-shadow:0 4px 16px rgba(0,0,0,0.3)} }
+    .tpl-preview-label { font-size:10px;color:rgba(255,255,255,0.6); }
+    .tpl-preview-card.active .tpl-preview-swatch { border-color:rgba(139,92,246,0.7);box-shadow:0 0 12px rgba(139,92,246,0.3); }
+    .tpl-preview-card.active .tpl-preview-label { color:#c084fc;font-weight:600; }
+    .env-swatch { background:rgba(20,20,40,0.8) !important; }
     .toggle-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;margin-bottom:8px; }
     .toggle-title { font-size:11px;color:rgba(255,255,255,0.7);font-weight:500; }
     .toggle-switch { position:relative;display:inline-block;width:34px;height:18px;cursor:pointer; input{opacity:0;width:0;height:0} .slider{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.15);border-radius:9px;transition:0.2s} .slider::before{content:'';position:absolute;height:14px;width:14px;left:2px;bottom:2px;background:white;border-radius:50%;transition:0.2s} input:checked+.slider{background:#8b5cf6} input:checked+.slider::before{transform:translateX(16px)} }
@@ -1361,8 +1450,8 @@ export class BuilderPropsPanelComponent {
 
   upload(secKey: string, prop: string, type: 'images'|'audio'|'gifs') {
     const input = document.createElement('input'); input.type='file';
-    input.accept = type==='audio'?'audio/*':'image/*,video/*';
-    input.onchange = () => { const f=input.files?.[0]; if(!f)return; this.api.uploadFile(type,f).subscribe({next:r=>this.setSec(secKey,prop,r.url)}); };
+    input.accept = type==='audio'?'audio/*':type==='gifs'?'image/*,video/*,.gif,.mp4,.webm':'image/*';
+    input.onchange = () => { const f=input.files?.[0]; if(!f)return; this.api.uploadFile(type,f).subscribe({next:r=>{this.setSec(secKey,prop,r.url);this.canvasState.notifyChange();}}); };
     input.click();
   }
 
