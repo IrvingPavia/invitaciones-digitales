@@ -17,6 +17,11 @@ import { EnvelopeConfig } from '../../../core/models/models';
          [attr.data-style]="config.style"
          [attr.data-template]="getTemplate()">
 
+      <!-- Background image layer -->
+      @if (config.splashImage) {
+        <div class="envelope-bg-image" [style.background-image]="'url(' + config.splashImage + ')'"></div>
+      }
+
       <!-- ============ TEMPLATE: ENVELOPE (classic) ============ -->
       @if (getTemplate() === 'envelope') {
         @if (config.style === 'classic' || config.style === 'elegant' || config.style === 'wax') {
@@ -118,13 +123,13 @@ import { EnvelopeConfig } from '../../../core/models/models';
 
       <!-- Instruction (all templates) -->
       @if (!opened && getTemplate() === 'envelope') {
-        <p class="instruction">{{ config.instructionText || 'Toca para abrir' }}</p>
+        <p class="instruction" [attr.data-anim]="config.instructionAnimation || 'pulse'">{{ config.instructionText || 'Toca para abrir' }}</p>
       }
       @if (!opened && getTemplate() === 'ticket') {
-        <p class="instruction">{{ config.instructionText || 'Toca el boleto para entrar' }}</p>
+        <p class="instruction" [attr.data-anim]="config.instructionAnimation || 'pulse'">{{ config.instructionText || 'Toca el boleto para entrar' }}</p>
       }
       @if (!opened && getTemplate() === 'plain') {
-        <p class="instruction">{{ config.instructionText || 'Toca para continuar' }}</p>
+        <p class="instruction" [attr.data-anim]="config.instructionAnimation || 'pulse'">{{ config.instructionText || 'Toca para continuar' }}</p>
       }
     </div>
   `,
@@ -136,11 +141,15 @@ import { EnvelopeConfig } from '../../../core/models/models';
       transition: opacity 0.6s ease;
       transition-delay: 0.8s;
     }
+    .envelope-bg-image {
+      position: absolute; inset: 0; z-index: 0;
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+    }
     .envelope-overlay.opened { opacity: 0; pointer-events: none; }
 
     /* === ENVELOPE TEMPLATE — Classic/Elegant/Wax === */
     .env-top, .env-bottom, .env-flap-top, .env-flap-bottom {
-      position: absolute; left: 0; right: 0;
+      position: absolute; left: 0; right: 0; z-index: 1;
       background: var(--env-color, #1a1a2e);
       transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -166,7 +175,7 @@ import { EnvelopeConfig } from '../../../core/models/models';
 
     /* Vertical doors */
     .env-door-left, .env-door-right {
-      position: absolute; top: 0; bottom: 0; width: 50%;
+      position: absolute; top: 0; bottom: 0; width: 50%; z-index: 1;
       background: var(--env-color, #1a1a2e);
       transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -305,9 +314,18 @@ import { EnvelopeConfig } from '../../../core/models/models';
       text-align: center; z-index: 20;
       color: var(--text-color, rgba(255,255,255,0.5));
       font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
-      animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    .instruction[data-anim="pulse"] { animation: instrPulse 2s ease-in-out infinite; }
+    .instruction[data-anim="bounce"] { animation: instrBounce 1.5s ease infinite; }
+    .instruction[data-anim="fade"] { animation: instrFade 2.5s ease-in-out infinite; }
+    .instruction[data-anim="slide-up"] { animation: instrSlideUp 2s ease-in-out infinite; }
+    .instruction[data-anim="glow"] { animation: instrGlow 2s ease-in-out infinite; }
+    .instruction[data-anim="none"] { opacity: 0.7; }
+    @keyframes instrPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    @keyframes instrBounce { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
+    @keyframes instrFade { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    @keyframes instrSlideUp { 0%, 100% { transform: translateY(6px); opacity: 0.4; } 50% { transform: translateY(0); opacity: 1; } }
+    @keyframes instrGlow { 0%, 100% { text-shadow: 0 0 4px currentColor; opacity: 0.5; } 50% { text-shadow: 0 0 16px currentColor, 0 0 30px currentColor; opacity: 1; } }
 
     /* === PLAIN TEMPLATE === */
     .plain-container {

@@ -113,9 +113,10 @@ import { ApiService } from '../../../../../core/services/api.service';
         @if (expanded['nav']) {
           <div class="accordion-body">
             <span class="pf-section-title">Barra de Titulo</span>
-            <div class="pf"><label>Fondo color 1</label><app-color-picker [value]="cfg()!.theme.navBarBg1 || 'rgba(13,17,23,0.85)'" (valueChange)="setTheme('navBarBg1', $event)"></app-color-picker></div>
-            <div class="pf"><label>Fondo color 2</label><app-color-picker [value]="cfg()!.theme.navBarBg2 || ''" (valueChange)="setTheme('navBarBg2', $event)"></app-color-picker></div>
-            <div class="pf"><label>Blur ({{cfg()!.theme.navBarBlur ?? 12}}px)</label><input type="range" class="pinput-range" min="0" max="30" [ngModel]="cfg()!.theme.navBarBlur ?? 12" (ngModelChange)="setTheme('navBarBlur', +$event)"></div>
+            <div class="pf"><label>Color fondo 1</label><app-color-picker [value]="cfg()!.theme.navBarBg1 || '#0d1117'" (valueChange)="setTheme('navBarBg1', $event)"></app-color-picker></div>
+            <div class="pf"><label>Color fondo 2 (degradado)</label><app-color-picker [value]="cfg()!.theme.navBarBg2 || ''" (valueChange)="setTheme('navBarBg2', $event)"></app-color-picker></div>
+            <div class="pf"><label>Opacidad fondo ({{cfg()!.theme.navBarOpacity ?? 85}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="cfg()!.theme.navBarOpacity ?? 85" (ngModelChange)="setTheme('navBarOpacity', +$event)"></div>
+            <div class="pf"><label>Desenfoque de fondo ({{cfg()!.theme.navBarBlur ?? 12}}px)</label><input type="range" class="pinput-range" min="0" max="30" [ngModel]="cfg()!.theme.navBarBlur ?? 12" (ngModelChange)="setTheme('navBarBlur', +$event)"></div>
             <div class="pf"><label>Color texto titulo</label><app-color-picker [value]="cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setTheme('navFooterText', $event)"></app-color-picker></div>
             <div class="pf"><label>Color linea inferior</label><app-color-picker [value]="cfg()!.theme.navBarBorder || 'rgba(212,160,23,0.2)'" (valueChange)="setTheme('navBarBorder', $event)"></app-color-picker></div>
 
@@ -1288,7 +1289,8 @@ import { ApiService } from '../../../../../core/services/api.service';
     .pinput-range { width:100%;accent-color:#8b5cf6;cursor:pointer; }
     textarea.pinput { resize:vertical; }
     textarea.pinput.sm { min-height:40px; }
-    select.pinput { cursor:pointer; }
+    select.pinput { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b5cf6' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
+    select.pinput option { background:#1a1a2e; color:#fff; padding:8px; }
     .btn-row { display:flex;flex-wrap:wrap;gap:4px; }
     .chip { padding:5px 9px;border-radius:5px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.6);font-size:10px;cursor:pointer;transition:all 0.15s;white-space:nowrap; &:hover{background:rgba(139,92,246,0.08);color:white} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
     .upload-row { display:flex;align-items:center;gap:6px;flex-wrap:wrap; }

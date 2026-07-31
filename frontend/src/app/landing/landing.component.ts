@@ -137,7 +137,7 @@ import { SectionStyle } from '../core/models/models';
       }
 
       @if (!showIntro() && !showEnvelope()) {
-        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)" [style.--theme-nav-btn-bg]="data()!.config.theme.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="data()!.config.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="data()!.config.theme.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="data()!.config.theme.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="data()!.config.theme.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(data()!.config.theme.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="data()!.config.theme.navBarBg1 || 'rgba(13,17,23,0.85)'" [style.--theme-nav-bar-blur]="(data()!.config.theme.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="data()!.config.theme.navBarBorder || 'rgba(212,160,23,0.2)'">
+        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)" [style.--theme-nav-btn-bg]="data()!.config.theme.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="data()!.config.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="data()!.config.theme.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="data()!.config.theme.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="data()!.config.theme.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(data()!.config.theme.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(data()!.config.theme.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="data()!.config.theme.navBarBorder || 'rgba(212,160,23,0.2)'">
         <!-- Sticky nav -->
         <app-landing-hero id="section-hero" [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
@@ -423,9 +423,10 @@ import { SectionStyle } from '../core/models/models';
     .footer-sub { color: var(--theme-nav-text, rgba(255,255,255,0.3)); opacity: 0.6; font-family: var(--theme-nav-font, inherit); }
     .back-to-top {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-      background: var(--theme-card-bg, rgba(13,17,23,0.85));
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
+      background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85));
+      backdrop-filter: blur(var(--theme-nav-bar-blur, 12px));
+      -webkit-backdrop-filter: blur(var(--theme-nav-bar-blur, 12px));
+      border-top: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2));
       display: flex; align-items: center; justify-content: center;
       gap: 4px; height: 48px; cursor: pointer;
       transform: translateY(100%);
@@ -435,7 +436,7 @@ import { SectionStyle } from '../core/models/models';
       transform: translateY(0);
       box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
     }
-    .back-to-top:hover { background: var(--theme-card-bg, rgba(13,17,23,0.95)); }
+    .back-to-top:hover { opacity: 0.95; }
     .back-to-top:hover .back-arrow { opacity: 1; }
     .back-to-top:hover .back-text { opacity: 1; }
     .back-arrow {
@@ -852,6 +853,26 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   private applyTitle(eventName: string) {
     document.title = eventName || 'Invitación';
+  }
+
+  getNavBarBg(): string {
+    const theme = this.data()?.config?.theme;
+    if (!theme) return 'rgba(13,17,23,0.85)';
+    const c1 = theme.navBarBg1 || '#0d1117';
+    const c2 = theme.navBarBg2 || '';
+    const opacity = (theme.navBarOpacity ?? 85) / 100;
+    // Convert hex to rgba with opacity
+    const toRgba = (hex: string, a: number): string => {
+      if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
+      const r = parseInt(hex.slice(1, 3), 16) || 0;
+      const g = parseInt(hex.slice(3, 5), 16) || 0;
+      const b = parseInt(hex.slice(5, 7), 16) || 0;
+      return `rgba(${r},${g},${b},${a})`;
+    };
+    if (c2) {
+      return `linear-gradient(135deg, ${toRgba(c1, opacity)}, ${toRgba(c2, opacity)})`;
+    }
+    return toRgba(c1, opacity);
   }
 
   getThemeFont(key?: string): string {

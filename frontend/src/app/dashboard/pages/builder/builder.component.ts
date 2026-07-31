@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../../core/services/api.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
+import { CustomSelectComponent, SelectOption } from '../../../core/components/custom-select.component';
 import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS } from '../../../core/models/models';
 import { CanvasStateService } from './services/canvas-state.service';
 import { MigrationService } from './services/migration.service';
@@ -33,7 +34,7 @@ interface BuilderSection {
 @Component({
   selector: 'app-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, SectionCanvasComponent, BuilderPropsPanelComponent,
+  imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, CustomSelectComponent, SectionCanvasComponent, BuilderPropsPanelComponent,
     LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
     LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent],
@@ -119,7 +120,7 @@ interface BuilderSection {
       @if (canvasMode() === 'canvas') {
       <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
         <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'">          @if (canvasState.config()) {
-              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.--theme-nav-btn-bg]="canvasState.config()?.theme?.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="canvasState.config()?.theme?.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="canvasState.config()?.theme?.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="canvasState.config()?.theme?.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="canvasState.config()?.theme?.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(canvasState.config()?.theme?.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="canvasState.config()?.theme?.navBarBg1 || 'rgba(13,17,23,0.85)'" [style.--theme-nav-bar-blur]="(canvasState.config()?.theme?.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="canvasState.config()?.theme?.navBarBorder || 'rgba(212,160,23,0.2)'" [style.background]="getCanvasLandingBg()">
+              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.--theme-nav-btn-bg]="canvasState.config()?.theme?.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="canvasState.config()?.theme?.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="canvasState.config()?.theme?.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="canvasState.config()?.theme?.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="canvasState.config()?.theme?.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(canvasState.config()?.theme?.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(canvasState.config()?.theme?.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="canvasState.config()?.theme?.navBarBorder || 'rgba(212,160,23,0.2)'" [style.background]="getCanvasLandingBg()">
                 @if (canvasState.config()?.hero?.backgroundGif) {
                   @if (isCanvasBgVideo()) {
                     <video class="canvas-bg-media" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
@@ -193,13 +194,8 @@ interface BuilderSection {
       @if (canvasMode() === 'preview') {
       <div class="builder-preview-area">
         <div class="preview-guest-selector">
-          <span class="material-icons" style="font-size:18px;color:rgba(255,255,255,0.6)">person</span>
-          <select class="preview-guest-select" [ngModel]="previewGuestCode()" (ngModelChange)="selectPreviewGuest($event)">
-            <option value="">Vista genérica</option>
-            @for (g of guests(); track g.id) {
-              <option [value]="g.unique_code">{{ g.family_name || g.guest_names }}</option>
-            }
-          </select>
+          <span class="preview-guest-label">Previsualizar invitación:</span>
+          <app-custom-select [options]="getPreviewGuestOptions()" [value]="previewGuestCode()" [compact]="true" placeholder="Selecciona una invitación" (valueChange)="selectPreviewGuest($event)"></app-custom-select>
         </div>
         <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
           <iframe [src]="previewUrl()" class="preview-iframe" allow="autoplay"></iframe>
@@ -326,16 +322,11 @@ interface BuilderSection {
       background: #06060e; padding: 16px; overflow: hidden; height: 100%;
     }
     .preview-guest-selector {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 12px; padding: 6px 12px;
-      background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2);
-      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-bottom: 12px; width: 100%; max-width: 400px; align-self: center;
     }
-    .preview-guest-select {
-      background: transparent; border: none; color: #fff; font-size: 13px;
-      outline: none; cursor: pointer; min-width: 160px;
-      option { background: #1a1a2e; color: #fff; }
-    }
+    .preview-guest-label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+    .preview-guest-selector app-custom-select { flex: 1; }
     .builder-preview-frame {
       border-radius: 16px; overflow: hidden; flex: 1; width: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
@@ -902,6 +893,23 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.viewMode.set(this.viewMode() === 'edit' ? 'preview' : 'edit');
   }
 
+  getNavBarBg(): string {
+    const theme = this.canvasState.config()?.theme;
+    if (!theme) return 'rgba(13,17,23,0.85)';
+    const c1 = theme.navBarBg1 || '#0d1117';
+    const c2 = theme.navBarBg2 || '';
+    const opacity = (theme.navBarOpacity ?? 85) / 100;
+    const toRgba = (hex: string, a: number): string => {
+      if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
+      const r = parseInt(hex.slice(1, 3), 16) || 0;
+      const g = parseInt(hex.slice(3, 5), 16) || 0;
+      const b = parseInt(hex.slice(5, 7), 16) || 0;
+      return `rgba(${r},${g},${b},${a})`;
+    };
+    if (c2) return `linear-gradient(135deg, ${toRgba(c1, opacity)}, ${toRgba(c2, opacity)})`;
+    return toRgba(c1, opacity);
+  }
+
   getCanvasLandingBg(): string {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return '#0d1117';
@@ -1327,6 +1335,14 @@ export class BuilderComponent implements OnInit, OnDestroy {
   selectPreviewGuest(code: string) {
     this.previewGuestCode.set(code);
     this.previewKey.update(k => k + 1);
+  }
+
+  getPreviewGuestOptions(): SelectOption[] {
+    const opts: SelectOption[] = [{ value: '', label: 'Vista genérica', icon: '👁' }];
+    for (const g of this.guests()) {
+      opts.push({ value: g.unique_code, label: g.family_name || g.guest_names, icon: '👤' });
+    }
+    return opts;
   }
 
   uploadSecProp(sectionKey: string, prop: string, type: 'images' | 'audio' | 'gifs') {

@@ -91,6 +91,7 @@ export interface ThemeConfig {
   navBarBg1?: string;
   navBarBg2?: string;
   navBarBlur?: number;
+  navBarOpacity?: number;
   navBarBorder?: string;
   navBtnBg?: string;
   navBtnBorder?: string;
@@ -172,6 +173,7 @@ export interface EnvelopeConfig {
   sealText: string;
   sealImage: string;
   instructionText: string;
+  instructionAnimation?: 'pulse' | 'bounce' | 'fade' | 'slide-up' | 'glow' | 'none';
   bgColor: string;
   bgColor2: string;
   textColor: string;
