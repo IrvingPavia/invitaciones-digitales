@@ -62,12 +62,13 @@ export interface SelectOption {
     @keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .select-option {
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px; border-radius: 5px;
-      font-size: 12px; color: rgba(255,255,255,0.8);
-      cursor: pointer; transition: background 0.15s;
+      padding: 8px 10px; border-radius: 6px;
+      font-size: 12px; color: rgba(255,255,255,0.7);
+      cursor: pointer; transition: all 0.15s;
+      border: 1px solid transparent; margin: 2px 0;
     }
-    .select-option:hover { background: rgba(139,92,246,0.12); color: #fff; }
-    .select-option.selected { background: rgba(139,92,246,0.15); color: #c084fc; font-weight: 500; }
+    .select-option:hover { background: rgba(124,92,191,0.1); border-color: rgba(124,92,191,0.4); color: #fff; }
+    .select-option.selected { background: rgba(124,92,191,0.12); border-color: rgba(124,92,191,0.5); color: #c084fc; font-weight: 500; }
     .opt-icon { font-size: 14px; flex-shrink: 0; }
     .opt-check { font-size: 14px; color: #8b5cf6; margin-left: auto; }
     .select-dropdown::-webkit-scrollbar { width: 4px; }
@@ -85,9 +86,9 @@ export interface SelectOption {
     :host-context(body.light-mode) .select-value { color: #5a3d8a; }
     :host-context(body.light-mode) .select-arrow { color: #7c5cbf; }
     :host-context(body.light-mode) .select-dropdown { background: #fff; border-color: rgba(124,92,191,0.2); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-    :host-context(body.light-mode) .select-option { color: #555; }
-    :host-context(body.light-mode) .select-option:hover { background: rgba(124,92,191,0.06); color: #5a3d8a; }
-    :host-context(body.light-mode) .select-option.selected { background: rgba(124,92,191,0.1); color: #7c5cbf; }
+    :host-context(body.light-mode) .select-option { color: #5a3d8a; border-color: transparent; }
+    :host-context(body.light-mode) .select-option:hover { background: rgba(124,92,191,0.08); border-color: rgba(124,92,191,0.3); color: #4a2d7a; }
+    :host-context(body.light-mode) .select-option.selected { background: rgba(124,92,191,0.1); border-color: rgba(124,92,191,0.4); color: #7c5cbf; }
     :host-context(body.light-mode) .opt-check { color: #7c5cbf; }
     :host-context(body.light-mode) .compact .select-trigger { background: #fff; border-color: rgba(124,92,191,0.3); }
   `]

@@ -150,6 +150,7 @@ body.light-mode input[type="password"], body.light-mode input[type="email"],
 body.light-mode input[type="date"], body.light-mode input[type="datetime-local"] {
   background: #f8f8fc !important; border-color: #ddd !important; color: #333 !important;
 }
+body.light-mode select { color: #5a3d8a !important; }
 body.light-mode .form-control:focus, body.light-mode select:focus, body.light-mode input:focus {
   background: #fff !important; border-color: var(--gold) !important;
 }
@@ -375,7 +376,10 @@ body.light-mode .accordion.open .accordion-header { color: #4a2d7a !important; b
 body.light-mode .accordion-body { border-bottom-color: #f0f0f0 !important; }
 body.light-mode .pf label { color: #7c5cbf !important; }
 body.light-mode .pinput { background: #faf8ff !important; border-color: rgba(124,92,191,0.25) !important; color: #333 !important; }
-body.light-mode select.pinput { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c5cbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important; }
+body.light-mode select.pinput { background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c5cbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 10px center !important; color: #5a3d8a !important; }
+body.light-mode select.pinput option { background: #ffffff; color: #5a3d8a; }
+body.light-mode select.pinput option:checked { background: #7c5cbf; color: #fff; }
+body.light-mode select.pinput option:hover { background: #7c5cbf; color: #fff; }
 body.light-mode .pinput:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 2px rgba(124,92,191,0.1) !important; }
 body.light-mode .pinput-range { accent-color: var(--gold) !important; }
 body.light-mode .chip { background: #f5f0ff !important; border-color: rgba(124,92,191,0.2) !important; color: #6b4fa0 !important; }
@@ -441,7 +445,8 @@ body.light-mode .add-el-btn { background: #f0f0f5 !important; border-color: #ddd
 body.light-mode .add-el-btn:hover { background: #e8e8f0 !important; border-color: var(--gold) !important; color: var(--gold) !important; }
 body.light-mode .card-preview-area { background: rgba(0,0,0,0.05) !important; }
 body.light-mode .card-preview-area p { color: #888 !important; }
-body.light-mode select option { background: #ffffff; color: #333; }
+body.light-mode select option { background: #ffffff; color: #5a3d8a; }
+body.light-mode select option:checked { background: #7c5cbf; color: #fff; }
 
 /* Time picker */
 body.light-mode .time-inputs { color: #333; }
@@ -822,7 +827,7 @@ body {
 
   textarea { resize: vertical; min-height: 80px; }
 
-  select option { background: #1a1a2a; }
+  select option { background: #0a0a18; color: #c084fc; }
 }
 
 .toggle-switch {
@@ -1135,12 +1140,17 @@ body.light-mode .dropdown-divider { background: #e8e8e8; }
 }
 
 select.form-control option, select option {
-  background: var(--dark, #1a1a2a);
-  color: var(--white, #ffffff);
+  background: #0a0a18;
+  color: #c084fc;
   padding: 8px 12px;
 }
 select {
   cursor: pointer;
+  color: #c084fc;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b5cf6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 28px;
 }
 textarea.form-control { resize: vertical; min-height: 80px; }
 
@@ -1164,7 +1174,7 @@ input[type="text"]:not(.picker-input) {
   }
 }
 
-select option { background: #1a1a2a; color: var(--white); }
+select option { background: #0a0a18; color: #c084fc; }
 
 input[type="color"] {
   width: 48px; height: 38px;
