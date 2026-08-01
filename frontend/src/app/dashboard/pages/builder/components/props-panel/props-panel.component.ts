@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ColorPickerComponent } from '../../../../../core/components/color-picker.component';
+import { CustomSelectComponent, SelectOption } from '../../../../../core/components/custom-select.component';
 import { CanvasStateService } from '../../services/canvas-state.service';
 import { ApiService } from '../../../../../core/services/api.service';
 
 @Component({
   selector: 'app-builder-props-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent],
   template: `
     <div class="props-panel-content">
       <!-- Section badge -->
@@ -81,14 +82,10 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="pf"><label>Color 1</label><app-color-picker [value]="cfg()!.theme.landingBgColor1 || '#0d1117'" (valueChange)="setTheme('landingBgColor1', $event)"></app-color-picker></div>
             <div class="pf"><label>Color 2</label><app-color-picker [value]="cfg()!.theme.landingBgColor2 || '#1a1a2e'" (valueChange)="setTheme('landingBgColor2', $event)"></app-color-picker></div>
             <div class="pf"><label>Tipo</label>
-              <select class="pinput" [ngModel]="cfg()!.theme.landingBgType || 'solid'" (ngModelChange)="setTheme('landingBgType', $event)">
-                <option value="solid">Solido</option><option value="linear">Lineal</option><option value="radial">Radial</option><option value="mesh">Difuminado</option>
-              </select>
+              <app-custom-select [options]="landingBgTypeOptions" [value]="cfg()!.theme.landingBgType || 'solid'" (valueChange)="setTheme('landingBgType', $event)"></app-custom-select>
             </div>
             <div class="pf"><label>Textura</label>
-              <select class="pinput" [ngModel]="cfg()!.theme.landingBgTexture || 'none'" (ngModelChange)="setTheme('landingBgTexture', $event)">
-                <option value="none">Ninguna</option><option value="noise">Noise</option><option value="grain">Grain</option><option value="dots">Dots</option><option value="lines">Lines</option><option value="cross">Cross</option><option value="paper">Paper</option><option value="linen">Linen</option><option value="stars">Stars</option>
-              </select>
+              <app-custom-select [options]="landingBgTextureOptions" [value]="cfg()!.theme.landingBgTexture || 'none'" (valueChange)="setTheme('landingBgTexture', $event)"></app-custom-select>
             </div>
           </div>
         }
@@ -170,9 +167,7 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['env-style']) {
             <div class="accordion-body">
               <div class="pf"><label>Estilo</label>
-                <select class="pinput" [ngModel]="sec('envelope')?.style||'classic'" (ngModelChange)="setSec('envelope','style',$event)">
-                  <option value="classic">Clasico</option><option value="elegant">Elegante</option><option value="vertical">Vertical</option><option value="minimal">Minimal</option><option value="wax">Lacre</option>
-                </select>
+                <app-custom-select [options]="envelopeStyleOptions" [value]="sec('envelope')?.style||'classic'" (valueChange)="setSec('envelope','style',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -183,9 +178,7 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['env-seal']) {
             <div class="accordion-body">
               <div class="pf"><label>Forma</label>
-                <select class="pinput" [ngModel]="sec('envelope')?.sealStyle||'wax-circle'" (ngModelChange)="setSec('envelope','sealStyle',$event)">
-                  <option value="wax-circle">Circulo Lacre</option><option value="wax-heart">Corazon Lacre</option><option value="ribbon">Cinta</option><option value="stamp">Estampa</option><option value="monogram">Monograma</option>
-                </select>
+                <app-custom-select [options]="sealStyleOptions" [value]="sec('envelope')?.sealStyle||'wax-circle'" (valueChange)="setSec('envelope','sealStyle',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -225,14 +218,7 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="pf"><label>Texto</label><input class="pinput" [ngModel]="sec('envelope')?.instructionText||'Toca para abrir'" (ngModelChange)="setSec('envelope','instructionText',$event)"></div>
               <div class="pf"><label>Animacion</label>
-                <select class="pinput" [ngModel]="sec('envelope')?.instructionAnimation||'pulse'" (ngModelChange)="setSec('envelope','instructionAnimation',$event)">
-                  <option value="pulse">Pulso</option>
-                  <option value="bounce">Rebote</option>
-                  <option value="fade">Aparecer/Desaparecer</option>
-                  <option value="slide-up">Deslizar arriba</option>
-                  <option value="glow">Brillar</option>
-                  <option value="none">Sin animacion</option>
-                </select>
+                <app-custom-select [options]="instructionAnimOptions" [value]="sec('envelope')?.instructionAnimation||'pulse'" (valueChange)="setSec('envelope','instructionAnimation',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -266,11 +252,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               @if (!sec('envelope')?.splashImage) {
                 <div class="pf"><label>Tipo de fondo</label>
-                  <select class="pinput" [ngModel]="sec('envelope')?.bgType||'linear'" (ngModelChange)="setSec('envelope','bgType',$event)">
-                    <option value="solid">Solido</option>
-                    <option value="linear">Lineal</option>
-                    <option value="radial">Radial</option>
-                  </select>
+                  <app-custom-select [options]="envBgTypeOptions" [value]="sec('envelope')?.bgType||'linear'" (valueChange)="setSec('envelope','bgType',$event)"></app-custom-select>
                 </div>
               }
             </div>
@@ -329,9 +311,7 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="pf"><label>Frase</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('intro')?.phrase" (ngModelChange)="setSec('intro','phrase',$event)"></textarea></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontFamily||'Great Vibes'" (ngModelChange)="setSecNested('intro','phraseStyle','fontFamily',$event)">
-                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
-                </select>
+                <app-custom-select [options]="fontOptions" [value]="sec('intro')?.phraseStyle?.fontFamily||'Great Vibes'" (valueChange)="setSecNested('intro','phraseStyle','fontFamily',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontSize||32" (ngModelChange)="setSecNested('intro','phraseStyle','fontSize',+$event)" min="12" max="80"></div>
               <div class="pf"><label>Color</label><app-color-picker [value]="sec('intro')?.phraseStyle?.color||'#ffffff'" (valueChange)="setSecNested('intro','phraseStyle','color',$event)"></app-color-picker></div>
@@ -387,15 +367,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 </div>
               }
               <div class="pf"><label>Transicion de salida</label>
-                <select class="pinput" [ngModel]="sec('intro')?.transition||'fade'" (ngModelChange)="setSec('intro','transition',$event)">
-                  <option value="fade">Desvanecer</option>
-                  <option value="slide-up">Deslizar arriba</option>
-                  <option value="slide-down">Deslizar abajo</option>
-                  <option value="zoom-in">Zoom acercar</option>
-                  <option value="zoom-out">Zoom alejar</option>
-                  <option value="blur">Desenfoque</option>
-                  <option value="none">Sin transicion</option>
-                </select>
+                <app-custom-select [options]="introTransitionOptions" [value]="sec('intro')?.transition||'fade'" (valueChange)="setSec('intro','transition',$event)"></app-custom-select>
               </div>
               <div class="pf">
                 <div class="toggle-row">
@@ -417,14 +389,10 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               @if (getParticlesProp('enabled')) {
                 <div class="pf"><label>Tipo</label>
-                  <select class="pinput" [ngModel]="getParticlesProp('type')||'sparkles'" (ngModelChange)="setSecNested('intro','particles','type',$event)">
-                    <option value="sparkles">Destellos</option><option value="snow">Nieve</option><option value="fireflies">Luciernagas</option><option value="bubbles">Burbujas</option><option value="stars">Estrellas</option><option value="confetti">Confeti</option>
-                  </select>
+                  <app-custom-select [options]="introParticleTypeOptions" [value]="getParticlesProp('type')||'sparkles'" (valueChange)="setSecNested('intro','particles','type',$event)"></app-custom-select>
                 </div>
                 <div class="pf"><label>Direccion</label>
-                  <select class="pinput" [ngModel]="getParticlesProp('direction')||'up'" (ngModelChange)="setSecNested('intro','particles','direction',$event)">
-                    <option value="up">Arriba</option><option value="down">Abajo</option><option value="left">Izquierda</option><option value="right">Derecha</option>
-                  </select>
+                  <app-custom-select [options]="introParticleDirectionOptions" [value]="getParticlesProp('direction')||'up'" (valueChange)="setSecNested('intro','particles','direction',$event)"></app-custom-select>
                 </div>
                 <div class="pf"><label>Color 1</label><app-color-picker [value]="getParticlesProp('color1')||'#ffffff'" (valueChange)="setSecNested('intro','particles','color1',$event)"></app-color-picker></div>
                 <div class="pf"><label>Color 2</label><app-color-picker [value]="getParticlesProp('color2')||'#d4a017'" (valueChange)="setSecNested('intro','particles','color2',$event)"></app-color-picker></div>
@@ -450,9 +418,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Nombres</label><input class="pinput" [ngModel]="sec('hero')?.celebrantNames" (ngModelChange)="setSec('hero','celebrantNames',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontFamily||'script'" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontFamily',$event)">
-                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
-                </select>
+                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.celebrantNamesStyle?.fontFamily||'script'" (valueChange)="setSecNested('hero','celebrantNamesStyle','fontFamily',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Tamano ({{sec('hero')?.celebrantNamesStyle?.fontSize||48}}px)</label>
                 <div class="stepper-row">
@@ -475,9 +441,7 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="pf"><label>Descripcion del evento</label><input class="pinput" [ngModel]="sec('hero')?.eventDescription" (ngModelChange)="setSec('hero','eventDescription',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontFamily||'montserrat'" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)">
-                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
-                </select>
+                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.eventDescriptionStyle?.fontFamily||'montserrat'" (valueChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Tamano ({{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px)</label>
                 <div class="stepper-row">
@@ -500,9 +464,7 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="pf"><label>Frase</label><input class="pinput" [ngModel]="sec('hero')?.heroPhrase" (ngModelChange)="setSec('hero','heroPhrase',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.heroPhraseStyle?.fontFamily||'raleway'" (ngModelChange)="setSecNested('hero','heroPhraseStyle','fontFamily',$event)">
-                  <option value="sans">Lato (Sans)</option><option value="montserrat">Montserrat</option><option value="raleway">Raleway</option><option value="josefin">Josefin Sans</option><option value="serif">Playfair Display</option><option value="cormorant">Cormorant Garamond</option><option value="cinzel">Cinzel</option><option value="baskerville">Libre Baskerville</option><option value="script">Great Vibes</option><option value="spumoni">Spumoni</option><option value="dancing">Dancing Script</option><option value="sacramento">Sacramento</option><option value="tangerine">Tangerine</option><option value="alexbrush">Alex Brush</option><option value="pinyon">Pinyon Script</option>
-                </select>
+                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.heroPhraseStyle?.fontFamily||'raleway'" (valueChange)="setSecNested('hero','heroPhraseStyle','fontFamily',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Tamano ({{sec('hero')?.heroPhraseStyle?.fontSize||14}}px)</label>
                 <div class="stepper-row">
@@ -544,15 +506,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('hero')?.countdownCardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('hero','countdownCardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('hero')?.countdownCardBorderStyle || 'none'" (ngModelChange)="setSec('hero','countdownCardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('hero')?.countdownCardBorderStyle || 'none'" (valueChange)="setSec('hero','countdownCardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('hero')?.countdownCardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('hero')?.countdownCardBorderWidth ?? 1" (ngModelChange)="setSec('hero','countdownCardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('hero')?.countdownCardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('hero','countdownCardBorderColor',$event)"></app-color-picker></div>
@@ -560,15 +514,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('hero')?.countdownCardGlowColor || '#d4a017'" (valueChange)="setSec('hero','countdownCardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('hero')?.countdownCardShape || 'standard'" (ngModelChange)="setSec('hero','countdownCardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('hero')?.countdownCardShape || 'standard'" (valueChange)="setSec('hero','countdownCardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -619,15 +565,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('invitation')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('invitation','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('invitation')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('invitation')?.cardBorderRadius||8" (ngModelChange)="setSec('invitation','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('invitation')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('invitation','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('invitation')?.cardBorderStyle || 'none'" (valueChange)="setSec('invitation','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('invitation')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('invitation')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('invitation','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('invitation')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('invitation','cardBorderColor',$event)"></app-color-picker></div>
@@ -635,15 +573,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('invitation')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('invitation','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('invitation')?.cardShape || 'standard'" (ngModelChange)="setSec('invitation','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('invitation')?.cardShape || 'standard'" (valueChange)="setSec('invitation','cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -672,17 +602,13 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <input class="pinput" [ngModel]="card.title" (ngModelChange)="updateCard('details',i,'title',$event)" placeholder="Titulo">
                   <textarea class="pinput sm" [ngModel]="card.content" (ngModelChange)="updateCard('details',i,'content',$event)" placeholder="Contenido"></textarea>
                   <div class="pf"><label>Tipo icono</label>
-                    <select class="pinput" [ngModel]="card.iconType||'none'" (ngModelChange)="updateCard('details',i,'iconType',$event)">
-                      <option value="emoji">Emoji</option><option value="image">Imagen</option><option value="none">Ninguno</option>
-                    </select>
+                    <app-custom-select [options]="iconTypeOptions" [value]="card.iconType||'none'" (valueChange)="updateCard('details',i,'iconType',$event)"></app-custom-select>
                   </div>
                   @if (card.iconType === 'emoji') {
                     <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="card.icon" (ngModelChange)="updateCard('details',i,'icon',$event)" placeholder="Emoji"></div>
                   }
                   <div class="pf"><label>Alineacion</label>
-                    <select class="pinput" [ngModel]="card.textAlign||'center'" (ngModelChange)="updateCard('details',i,'textAlign',$event)">
-                      <option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option>
-                    </select>
+                    <app-custom-select [options]="textAlignOptions" [value]="card.textAlign||'center'" (valueChange)="updateCard('details',i,'textAlign',$event)"></app-custom-select>
                   </div>
                 </div>
               }
@@ -702,15 +628,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('details')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('details','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('details')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('details')?.cardBorderRadius||8" (ngModelChange)="setSec('details','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('details')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('details','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('details')?.cardBorderStyle || 'none'" (valueChange)="setSec('details','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('details')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('details')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('details','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('details')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('details','cardBorderColor',$event)"></app-color-picker></div>
@@ -718,15 +636,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('details')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('details','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('details')?.cardShape || 'standard'" (ngModelChange)="setSec('details','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('details')?.cardShape || 'standard'" (valueChange)="setSec('details','cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -759,9 +669,7 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['ven-appear']) {
             <div class="accordion-body">
               <div class="pf"><label>Estilo de icono</label>
-                <select class="pinput" [ngModel]="sec('venues')?.iconStyle||'circle'" (ngModelChange)="setSec('venues','iconStyle',$event)">
-                  <option value="circle">Circulo</option><option value="plain">Plano</option><option value="none">Sin icono</option>
-                </select>
+                <app-custom-select [options]="iconStyleOptions" [value]="sec('venues')?.iconStyle||'circle'" (valueChange)="setSec('venues','iconStyle',$event)"></app-custom-select>
               </div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
@@ -771,15 +679,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('venues')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('venues','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('venues')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('venues')?.cardBorderRadius||8" (ngModelChange)="setSec('venues','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('venues')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('venues','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('venues')?.cardBorderStyle || 'none'" (valueChange)="setSec('venues','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('venues')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('venues')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('venues','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('venues')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('venues','cardBorderColor',$event)"></app-color-picker></div>
@@ -787,15 +687,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('venues')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('venues','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('venues')?.cardShape || 'standard'" (ngModelChange)="setSec('venues','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('venues')?.cardShape || 'standard'" (valueChange)="setSec('venues','cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -898,15 +790,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('itinerary')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('itinerary','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('itinerary')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('itinerary')?.cardBorderRadius||8" (ngModelChange)="setSec('itinerary','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('itinerary')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('itinerary','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('itinerary')?.cardBorderStyle || 'none'" (valueChange)="setSec('itinerary','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('itinerary')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('itinerary')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('itinerary','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('itinerary')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('itinerary','cardBorderColor',$event)"></app-color-picker></div>
@@ -914,15 +798,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('itinerary')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('itinerary','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('itinerary')?.cardShape || 'standard'" (ngModelChange)="setSec('itinerary','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('itinerary')?.cardShape || 'standard'" (valueChange)="setSec('itinerary','cardShape',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Tamano titulo ({{sec('itinerary')?.titleFontSize||16}}px)</label><input type="range" class="pinput-range" min="12" max="28" [ngModel]="sec('itinerary')?.titleFontSize||16" (ngModelChange)="setSec('itinerary','titleFontSize',+$event)"></div>
               <div class="pf"><label>Tamano descripcion ({{sec('itinerary')?.descFontSize||13}}px)</label><input type="range" class="pinput-range" min="10" max="20" [ngModel]="sec('itinerary')?.descFontSize||13" (ngModelChange)="setSec('itinerary','descFontSize',+$event)"></div>
@@ -1024,15 +900,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('dresscode')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('dresscode','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('dresscode')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('dresscode')?.cardBorderRadius||8" (ngModelChange)="setSec('dresscode','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('dresscode')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('dresscode','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('dresscode')?.cardBorderStyle || 'none'" (valueChange)="setSec('dresscode','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('dresscode')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('dresscode')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('dresscode','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('dresscode')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('dresscode','cardBorderColor',$event)"></app-color-picker></div>
@@ -1040,15 +908,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('dresscode')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('dresscode','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('dresscode')?.cardShape || 'standard'" (ngModelChange)="setSec('dresscode','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('dresscode')?.cardShape || 'standard'" (valueChange)="setSec('dresscode','cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -1083,15 +943,11 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Titular</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountName" (ngModelChange)="setSecNested('gifts','transfer','accountName',$event)"></div>
                 <div class="pf"><label>Banco</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.bank" (ngModelChange)="setSecNested('gifts','transfer','bank',$event)"></div>
                 <div class="pf"><label>Tipo de cuenta</label>
-                  <select class="pinput" [ngModel]="sec('gifts')?.transfer?.accountType||'cuenta'" (ngModelChange)="setSecNested('gifts','transfer','accountType',$event)">
-                    <option value="tarjeta">Tarjeta</option><option value="cuenta">Cuenta</option><option value="clabe">CLABE</option>
-                  </select>
+                  <app-custom-select [options]="accountTypeOptions" [value]="sec('gifts')?.transfer?.accountType||'cuenta'" (valueChange)="setSecNested('gifts','transfer','accountType',$event)"></app-custom-select>
                 </div>
                 <div class="pf"><label>Numero</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountNumber" (ngModelChange)="setSecNested('gifts','transfer','accountNumber',$event)"></div>
                 <div class="pf"><label>Animacion</label>
-                  <select class="pinput" [ngModel]="sec('gifts')?.transfer?.animation||'none'" (ngModelChange)="setSecNested('gifts','transfer','animation',$event)">
-                    <option value="coins">Monedas</option><option value="bills">Billetes</option><option value="none">Ninguna</option>
-                  </select>
+                  <app-custom-select [options]="transferAnimOptions" [value]="sec('gifts')?.transfer?.animation||'none'" (valueChange)="setSecNested('gifts','transfer','animation',$event)"></app-custom-select>
                 </div>
               }
             </div>
@@ -1110,15 +966,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('gifts')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('gifts','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('gifts')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('gifts')?.cardBorderRadius||8" (ngModelChange)="setSec('gifts','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('gifts')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('gifts','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('gifts')?.cardBorderStyle || 'none'" (valueChange)="setSec('gifts','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('gifts')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('gifts')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('gifts','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('gifts')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('gifts','cardBorderColor',$event)"></app-color-picker></div>
@@ -1126,15 +974,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('gifts')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('gifts','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('gifts')?.cardShape || 'standard'" (ngModelChange)="setSec('gifts','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('gifts')?.cardShape || 'standard'" (valueChange)="setSec('gifts','cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -1164,15 +1004,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('rsvp')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('rsvp','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('rsvp')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('rsvp')?.cardBorderRadius||8" (ngModelChange)="setSec('rsvp','cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <select class="pinput" [ngModel]="sec('rsvp')?.cardBorderStyle || 'none'" (ngModelChange)="setSec('rsvp','cardBorderStyle',$event)">
-                  <option value="none">Sin borde</option>
-                  <option value="solid">Solido</option>
-                  <option value="dotted">Punteado</option>
-                  <option value="dashed">Discontinuo</option>
-                  <option value="double">Doble</option>
-                  <option value="glow">Luminoso</option>
-                  <option value="neon">Neon</option>
-                </select>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('rsvp')?.cardBorderStyle || 'none'" (valueChange)="setSec('rsvp','cardBorderStyle',$event)"></app-custom-select>
               </div>
               <div class="pf"><label>Grosor borde ({{sec('rsvp')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('rsvp')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('rsvp','cardBorderWidth',+$event)"></div>
               <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('rsvp')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('rsvp','cardBorderColor',$event)"></app-color-picker></div>
@@ -1180,15 +1012,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('rsvp')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('rsvp','cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <select class="pinput" [ngModel]="sec('rsvp')?.cardShape || 'standard'" (ngModelChange)="setSec('rsvp','cardShape',$event)">
-                  <option value="standard">Estandar</option>
-                  <option value="ticket">Ticket</option>
-                  <option value="wave">Ondulado</option>
-                  <option value="hexagon">Hexagonal</option>
-                  <option value="diamond">Diamante</option>
-                  <option value="cloud">Nube</option>
-                  <option value="scroll">Pergamino</option>
-                </select>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('rsvp')?.cardShape || 'standard'" (valueChange)="setSec('rsvp','cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -1289,8 +1113,13 @@ import { ApiService } from '../../../../../core/services/api.service';
     .pinput-range { width:100%;accent-color:#8b5cf6;cursor:pointer; }
     textarea.pinput { resize:vertical; }
     textarea.pinput.sm { min-height:40px; }
-    select.pinput { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b5cf6' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
-    select.pinput option { background:#1a1a2e; color:#fff; padding:8px; }
+    select.pinput { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b5cf6' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; color:#c084fc; }
+    select.pinput option { background:#0a0a18; color:#c084fc; padding:8px; }
+    select.pinput option:checked { background:rgba(139,92,246,0.25); color:#fff; }
+    select.pinput option:hover { background:rgba(139,92,246,0.2); color:#fff; }
+    :host-context(body.light-mode) select.pinput { color:#5a3d8a; background-color:#fff; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c5cbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); }
+    :host-context(body.light-mode) select.pinput option { background:#fff; color:#5a3d8a; }
+    :host-context(body.light-mode) select.pinput option:checked { background:#7c5cbf; color:#fff; }
     .btn-row { display:flex;flex-wrap:wrap;gap:4px; }
     .chip { padding:5px 9px;border-radius:5px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.6);font-size:10px;cursor:pointer;transition:all 0.15s;white-space:nowrap; &:hover{background:rgba(139,92,246,0.08);color:white} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
     .upload-row { display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
@@ -1323,9 +1152,9 @@ import { ApiService } from '../../../../../core/services/api.service';
     .stepper-btn { width:36px;height:34px;border:none;background:rgba(139,92,246,0.1);color:white;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.25)} &:active{background:rgba(139,92,246,0.35)} }
     .stepper-value { flex:1;text-align:center;font-size:13px;font-weight:600;color:white;padding:6px 8px;background:rgba(255,255,255,0.03); }
     .time-picker-row { display:flex;align-items:center;gap:4px; }
-    .time-select { width:auto !important;flex:1;padding:6px 4px !important;text-align:center;font-size:13px; }
+    .time-select { width:auto !important;flex:1;padding:6px 24px 6px 4px !important;text-align:center;font-size:13px; }
     .time-sep { color:rgba(255,255,255,0.5);font-weight:700;font-size:14px; }
-    .ampm { flex:0 0 50px !important; }
+    .ampm { flex:0 0 56px !important; }
     .emoji-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(32px,1fr));gap:3px;max-height:120px;overflow-y:auto;padding:4px;background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.15);border-radius:6px; }
     .emoji-btn { width:32px;height:32px;border:none;background:transparent;border-radius:4px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.15)} &.active{background:rgba(139,92,246,0.25);outline:1px solid rgba(139,92,246,0.5)} }
     .media-info { display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;background:rgba(139,92,246,0.06);border-radius:5px;border:1px solid rgba(139,92,246,0.1); }
@@ -1344,12 +1173,6 @@ export class BuilderPropsPanelComponent {
 
   expanded: Record<string, boolean> = {};
   cfg = this.canvasState.config;
-
-  readonly fontOptions = [
-    'Lato','Montserrat','Raleway','Josefin Sans','Playfair Display',
-    'Cormorant Garamond','Cinzel','Libre Baskerville','Great Vibes',
-    'Spumoni','Dancing Script','Sacramento','Tangerine','Alex Brush','Pinyon Script'
-  ];
 
   get sectionIcon(): string {
     const icons: Record<string,string> = { hero:'image',invitation:'card_giftcard',details:'info',venues:'place',itinerary:'schedule',gallery:'photo_library',dresscode:'checkroom',gifts:'redeem',rsvp:'how_to_reg',envelope:'mail',intro:'auto_awesome' };
@@ -1557,6 +1380,85 @@ export class BuilderPropsPanelComponent {
     '⛪','🏛️','👰','✝️','🤝','⏰','🎥','🍰','🎬','🍸','🍾','🎵','🍷','🍺','🖼️','🎶','🎸','💃',
     '🏇','🎠','🌟','🌙','🚌','🍽️','🚕','🏃','✈️','🌹','🌸','🌿',
     '🎁','👑','🏆','❤️','💕','🎲','🎨','🧩','🏃','🕯️','🌅','🌄'
+  ];
+
+  // Custom select option arrays
+  fontOptions: SelectOption[] = [
+    {value:'sans',label:'Lato (Sans)'},{value:'montserrat',label:'Montserrat'},{value:'raleway',label:'Raleway'},
+    {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
+    {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
+    {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
+    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'}
+  ];
+
+  borderStyleOptions: SelectOption[] = [
+    {value:'none',label:'Sin borde'},{value:'solid',label:'Solido'},{value:'dotted',label:'Punteado'},
+    {value:'dashed',label:'Discontinuo'},{value:'double',label:'Doble'},{value:'glow',label:'Luminoso'},{value:'neon',label:'Neon'}
+  ];
+
+  cardShapeOptions: SelectOption[] = [
+    {value:'standard',label:'Estandar'},{value:'ticket',label:'Ticket'},{value:'wave',label:'Ondulado'},
+    {value:'hexagon',label:'Hexagonal'},{value:'diamond',label:'Diamante'},{value:'cloud',label:'Nube'},{value:'scroll',label:'Pergamino'}
+  ];
+
+  envelopeStyleOptions: SelectOption[] = [
+    {value:'classic',label:'Clasico'},{value:'elegant',label:'Elegante'},{value:'vertical',label:'Vertical'},{value:'minimal',label:'Minimal'},{value:'wax',label:'Lacre'}
+  ];
+
+  sealStyleOptions: SelectOption[] = [
+    {value:'wax-circle',label:'Circulo Lacre'},{value:'wax-heart',label:'Corazon Lacre'},{value:'ribbon',label:'Cinta'},{value:'stamp',label:'Estampa'},{value:'monogram',label:'Monograma'}
+  ];
+
+  landingBgTypeOptions: SelectOption[] = [
+    {value:'solid',label:'Solido'},{value:'linear',label:'Lineal'},{value:'radial',label:'Radial'},{value:'mesh',label:'Difuminado'}
+  ];
+
+  landingBgTextureOptions: SelectOption[] = [
+    {value:'none',label:'Ninguna'},{value:'noise',label:'Noise'},{value:'grain',label:'Grain'},{value:'dots',label:'Dots'},
+    {value:'lines',label:'Lines'},{value:'cross',label:'Cross'},{value:'paper',label:'Paper'},{value:'linen',label:'Linen'},{value:'stars',label:'Stars'}
+  ];
+
+  introTransitionOptions: SelectOption[] = [
+    {value:'fade',label:'Desvanecer'},{value:'slide-up',label:'Deslizar arriba'},{value:'slide-down',label:'Deslizar abajo'},
+    {value:'zoom-in',label:'Zoom acercar'},{value:'zoom-out',label:'Zoom alejar'},{value:'blur',label:'Desenfoque'},{value:'none',label:'Sin transicion'}
+  ];
+
+  introParticleTypeOptions: SelectOption[] = [
+    {value:'sparkles',label:'Destellos'},{value:'snow',label:'Nieve'},{value:'fireflies',label:'Luciernagas'},
+    {value:'bubbles',label:'Burbujas'},{value:'stars',label:'Estrellas'},{value:'confetti',label:'Confeti'}
+  ];
+
+  introParticleDirectionOptions: SelectOption[] = [
+    {value:'up',label:'Arriba'},{value:'down',label:'Abajo'},{value:'left',label:'Izquierda'},{value:'right',label:'Derecha'}
+  ];
+
+  iconStyleOptions: SelectOption[] = [
+    {value:'circle',label:'Circulo'},{value:'plain',label:'Plano'},{value:'none',label:'Sin icono'}
+  ];
+
+  textAlignOptions: SelectOption[] = [
+    {value:'left',label:'Izquierda'},{value:'center',label:'Centro'},{value:'right',label:'Derecha'}
+  ];
+
+  instructionAnimOptions: SelectOption[] = [
+    {value:'pulse',label:'Pulso'},{value:'bounce',label:'Rebote'},{value:'fade',label:'Aparecer/Desaparecer'},
+    {value:'slide-up',label:'Deslizar arriba'},{value:'glow',label:'Brillar'},{value:'none',label:'Sin animacion'}
+  ];
+
+  envBgTypeOptions: SelectOption[] = [
+    {value:'solid',label:'Solido'},{value:'linear',label:'Lineal'},{value:'radial',label:'Radial'}
+  ];
+
+  iconTypeOptions: SelectOption[] = [
+    {value:'emoji',label:'Emoji'},{value:'image',label:'Imagen'},{value:'none',label:'Ninguno'}
+  ];
+
+  accountTypeOptions: SelectOption[] = [
+    {value:'tarjeta',label:'Tarjeta'},{value:'cuenta',label:'Cuenta'},{value:'clabe',label:'CLABE'}
+  ];
+
+  transferAnimOptions: SelectOption[] = [
+    {value:'coins',label:'Monedas'},{value:'bills',label:'Billetes'},{value:'none',label:'Ninguna'}
   ];
 
   getHour(time: string): string {
