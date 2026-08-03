@@ -366,6 +366,93 @@ En pantallas pequeñas (<900px):
 
 **Recomendación**: Usa el Builder para edición rápida de textos y colores. Usa el Configurador para personalización profunda (partículas, dividers, estilos per sección, itinerario avanzado).
 
+### 5.11 Apariencia de Cards
+
+Cada sección con cards (Invitación, Detalles, Lugares, Itinerario, Vestimenta, Regalos, RSVP, Countdown) tiene controles de apariencia en el panel de propiedades:
+
+| Control | Descripción |
+|---------|-------------|
+| Fondo de card (toggle) | Mostrar/ocultar el fondo de las cards |
+| Opacidad fondo | 0-100% transparencia del fondo |
+| Color de fondo | Color personalizado (hereda del tema si no se configura) |
+| Radio borde | 0-24px redondeo de esquinas |
+| Estilo borde | Sin borde, Sólido, Punteado, Discontinuo, Doble, Luminoso, Neón |
+| Grosor borde | 1-5px |
+| Color de borde | Color personalizado (hereda del tema si no se configura) |
+| Color sombra | Solo para Luminoso/Neón — color del resplandor |
+| Forma de card | Estándar, Redondeado (pill), Ticket, Cortado (chamfer) |
+
+> Las configuraciones de cards se aplican en tiempo real en el canvas, en el preview del builder, y en la landing real.
+
+### 5.12 Configuración del Navbar y Menú
+
+En Tema Global → "Navbar y Menu" puedes personalizar:
+
+**Barra de Título (navbar superior):**
+- Color fondo 1 y 2 (degradado)
+- Opacidad del fondo (0-100%)
+- Desenfoque de fondo (0-30px) — efecto glassmorphism
+- Color del texto título
+- Color de la línea inferior
+
+**Menú de Navegación (desplegable):**
+- Fondo del menú
+- Blur del menú (0-30px)
+- Color del texto
+- Fondo de botones (play/menú)
+- Borde de botones
+- Color de ícono de botones
+
+> El botón "Volver" al final de la landing respeta la misma configuración que la barra de título.
+
+### 5.13 Fondo de la Landing
+
+En Tema Global → "Fondo de la Landing":
+- **Color 1 y 2**: Los colores base del fondo
+- **Tipo**: Sólido (un color), Lineal (degradado diagonal), Radial (degradado centrado), Difuminado (mesh)
+- **Textura**: Noise, Grain, Dots, Lines, Cross, Paper, Linen, Stars
+- **Intensidad textura**: Slider 1-30% para controlar qué tan visible es la textura
+
+> El fondo es la capa más baja — solo se ve donde no hay imagen de hero/intro encima.
+
+### 5.14 Video Trimmer (Intro)
+
+Cuando subes un video a la sección Intro:
+1. En "Duración y Transición", desactiva "Usar duración del video"
+2. Aparece el **trimmer visual**:
+   - Barra horizontal representando la duración total del video
+   - Dos handles arrastrables (inicio y fin del segmento)
+   - Límite máximo de 5 segundos seleccionables
+   - Botón "Previsualizar" para reproducir solo el segmento
+3. La duración se calcula automáticamente basada en la selección
+
+### 5.15 Pantalla de Inicio (Envelope)
+
+Las propiedades se muestran condicionalmente según el tipo seleccionado:
+
+| Template | Propiedades disponibles |
+|----------|------------------------|
+| **Sobre** | Estilo de sobre, Estilo de sello, Contenido del sello, Instrucción, Colores, Fondo |
+| **Ticket** | Opciones de Ticket (título, fecha, colores), Instrucción, Colores, Fondo |
+| **Splash** | Opciones de Splash (título, subtítulo, botón), Instrucción, Colores, Fondo |
+| **Plano** | Opciones de Plano (título, subtítulo, contenido), Instrucción, Colores, Fondo |
+
+**Instrucción (todos los templates):**
+- Texto personalizable (ej: "Toca para abrir")
+- Animación: Pulso, Rebote, Aparecer/Desaparecer, Deslizar arriba, Brillar, Sin animación
+
+**Fondo:**
+- Upload de imagen/GIF de fondo
+- Si no hay imagen: selector de tipo de gradiente (Sólido, Lineal, Radial)
+
+### 5.16 Preview con Selector de Invitados
+
+Al cambiar a modo Preview en el builder:
+- Aparece un selector dropdown "Previsualizar invitación:"
+- Opciones: "Vista genérica" (sin invitado) o cualquier invitado registrado
+- Al seleccionar uno, el preview muestra la invitación personalizada con su nombre
+- Útil para verificar cómo se ve la sección de Invitación y RSVP con datos reales
+
 ---
 
 ## 6. Gestión de Invitados
