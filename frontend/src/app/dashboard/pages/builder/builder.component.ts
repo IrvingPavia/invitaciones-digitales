@@ -129,6 +129,9 @@ interface BuilderSection {
                   }
                   <div class="canvas-bg-overlay"></div>
                 }
+                @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
+                  <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                }
                 @if (canvasState.config()?.envelope?.enabled) {
                   <div class="preview-section-click" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
                     <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" />
@@ -136,7 +139,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.intro?.enabled) {
                   <div class="preview-section-click" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
-                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.cardBg || ''" [themeBorder]="canvasState.config()?.theme?.cardBorder || ''" [previewLoop]="true" />
+                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [previewLoop]="true" />
                   </div>
                 }
                 <div class="preview-section-click" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
@@ -440,7 +443,16 @@ interface BuilderSection {
     }
     .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
     .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; background-attachment: fixed; z-index: 0; }
-    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 0; background: rgba(0,0,0,0.2); pointer-events: none; }
+    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .canvas-bg-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .canvas-bg-texture[data-texture="noise"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .canvas-bg-texture[data-texture="grain"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); }
+    .canvas-bg-texture[data-texture="dots"] { background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 8px 8px; }
+    .canvas-bg-texture[data-texture="lines"] { background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 5px); }
+    .canvas-bg-texture[data-texture="cross"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px), repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px); }
+    .canvas-bg-texture[data-texture="paper"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"); }
+    .canvas-bg-texture[data-texture="linen"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px), repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px); }
+    .canvas-bg-texture[data-texture="stars"] { background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 24px 24px; }
     .preview-mode-canvas > .preview-section-click { position: relative; z-index: 1; }
     .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(var(--theme-nav-bar-blur, 12px)) !important; border-bottom: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2)) !important; }
     .preview-mode-canvas ::ng-deep .hero-section { min-height: 500px !important; padding-top: 60px !important; }
@@ -469,8 +481,7 @@ interface BuilderSection {
     @keyframes builderZoomIn { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.4); } }
     @keyframes builderZoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.3); } }
     @keyframes builderBlur { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(15px); } }
-    .preview-mode-canvas ::ng-deep .intro-bg-overlay { opacity: 0.4 !important; }
-    .preview-mode-canvas ::ng-deep .intro-bg-overlay { opacity: 0.4 !important; }
+    .preview-mode-canvas ::ng-deep .intro-bg-overlay { /* preserve landing overlay for GIF quality */ }
     .preview-mode-canvas ::ng-deep .intro-bg-video,
     .preview-mode-canvas ::ng-deep .intro-bg { animation: none !important; }
     .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
@@ -806,6 +817,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
       this.currentConfig.set(v2);
       this.buildSections(v2);
     });
+    // Register auto-save so props-panel changes trigger save
+    this.canvasState.registerAutoSave(() => this.scheduleAutoSave());
     // Load related data
     this.loadItinerary();
     this.loadPhotos();

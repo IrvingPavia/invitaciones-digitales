@@ -1,4 +1,4 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, inject, Input, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -87,6 +87,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="pf"><label>Textura</label>
               <app-custom-select [options]="landingBgTextureOptions" [value]="cfg()!.theme.landingBgTexture || 'none'" (valueChange)="setTheme('landingBgTexture', $event)"></app-custom-select>
             </div>
+            @if (cfg()!.theme.landingBgTexture && cfg()!.theme.landingBgTexture !== 'none') {
+              <div class="pf"><label>Intensidad textura ({{cfg()!.theme.landingBgTextureOpacity || 5}}%)</label><input type="range" class="pinput-range" min="1" max="30" [ngModel]="cfg()!.theme.landingBgTextureOpacity || 5" (ngModelChange)="setTheme('landingBgTextureOpacity', +$event)"></div>
+            }
           </div>
         }
 
@@ -356,8 +359,30 @@ import { ApiService } from '../../../../../core/services/api.service';
                     <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('intro')?.useVideoDuration" (ngModelChange)="setSec('intro','useVideoDuration',$event)"><span class="slider"></span></label>
                   </div>
                 </div>
+                @if (!sec('intro')?.useVideoDuration) {
+                  <!-- Video Trimmer -->
+                  <div class="video-trimmer">
+                    <label class="trim-label">Recortar video (max {{maxIntroDuration}}s)</label>
+                    <div class="trimmer-container">
+                      <div class="trimmer-track" #trimmerTrack (click)="onTrimTrackClick($event)" (touchstart)="onTrimTrackTouch($event)">
+                        <div class="trimmer-selected" [style.left.%]="getTrimLeft()" [style.width.%]="getTrimWidth()"></div>
+                        <div class="trimmer-handle handle-start" [style.left.%]="getTrimLeft()" (mousedown)="startTrimDrag('start',$event)" (touchstart)="startTrimDrag('start',$event)"></div>
+                        <div class="trimmer-handle handle-end" [style.left.%]="getTrimRight()" (mousedown)="startTrimDrag('end',$event)" (touchstart)="startTrimDrag('end',$event)"></div>
+                      </div>
+                      <div class="trimmer-labels">
+                        <span>{{formatTrimTime(sec('intro')?.videoStart || 0)}}</span>
+                        <span class="trim-duration">{{getSelectedDuration()}}s</span>
+                        <span>{{formatTrimTime(sec('intro')?.videoEnd || sec('intro')?.videoDuration || 5)}}</span>
+                      </div>
+                    </div>
+                    <button class="trim-preview-btn" (click)="previewTrim();$event.stopPropagation()">
+                      <span class="material-icons">play_arrow</span> Previsualizar
+                    </button>
+                    <video #introTrimVideo [src]="sec('intro')?.background" style="display:none" preload="metadata"></video>
+                  </div>
+                }
               }
-              @if (!sec('intro')?.useVideoDuration || !isVideoFile(sec('intro')?.background)) {
+              @if (sec('intro')?.useVideoDuration || !isVideoFile(sec('intro')?.background)) {
                 <div class="pf"><label>Duracion</label>
                   <div class="stepper-row">
                     <button class="stepper-btn" (click)="adjustDuration(-1);$event.stopPropagation()">-</button>
@@ -1155,6 +1180,29 @@ import { ApiService } from '../../../../../core/services/api.service';
     .time-select { width:auto !important;flex:1;padding:6px 24px 6px 4px !important;text-align:center;font-size:13px; }
     .time-sep { color:rgba(255,255,255,0.5);font-weight:700;font-size:14px; }
     .ampm { flex:0 0 56px !important; }
+
+    /* Video Trimmer */
+    .video-trimmer { padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;margin-bottom:10px; }
+    .trim-label { display:block;font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px; }
+    .trimmer-container { position:relative; }
+    .trimmer-track { position:relative;height:28px;background:rgba(255,255,255,0.08);border-radius:4px;cursor:pointer;overflow:visible; }
+    .trimmer-selected { position:absolute;top:0;bottom:0;background:rgba(139,92,246,0.3);border:1px solid rgba(139,92,246,0.6);border-radius:4px;pointer-events:none; }
+    .trimmer-handle { position:absolute;top:-3px;bottom:-3px;width:12px;background:var(--gold-light,#a78bfa);border-radius:3px;cursor:ew-resize;z-index:2;transform:translateX(-50%);transition:background 0.15s; }
+    .trimmer-handle:hover { background:#c084fc; }
+    .trimmer-handle::after { content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:12px;background:rgba(0,0,0,0.4);border-radius:1px; }
+    .trimmer-labels { display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:10px;color:rgba(255,255,255,0.5); }
+    .trim-duration { color:#c084fc;font-weight:600;font-size:11px; }
+    .trim-preview-btn { display:flex;align-items:center;gap:4px;margin-top:8px;padding:6px 12px;border-radius:6px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.08);color:#c084fc;font-size:11px;cursor:pointer;transition:all 0.15s; }
+    .trim-preview-btn:hover { background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.5); }
+    .trim-preview-btn .material-icons { font-size:16px; }
+    :host-context(body.light-mode) .video-trimmer { background:rgba(124,92,191,0.04); }
+    :host-context(body.light-mode) .trimmer-track { background:rgba(124,92,191,0.1); }
+    :host-context(body.light-mode) .trimmer-selected { background:rgba(124,92,191,0.15);border-color:rgba(124,92,191,0.4); }
+    :host-context(body.light-mode) .trimmer-handle { background:#7c5cbf; }
+    :host-context(body.light-mode) .trimmer-labels { color:#666; }
+    :host-context(body.light-mode) .trim-duration { color:#7c5cbf; }
+    :host-context(body.light-mode) .trim-label { color:#7c5cbf; }
+    :host-context(body.light-mode) .trim-preview-btn { background:rgba(124,92,191,0.06);border-color:rgba(124,92,191,0.25);color:#7c5cbf; }
     .emoji-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(32px,1fr));gap:3px;max-height:120px;overflow-y:auto;padding:4px;background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.15);border-radius:6px; }
     .emoji-btn { width:32px;height:32px;border:none;background:transparent;border-radius:4px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.15)} &.active{background:rgba(139,92,246,0.25);outline:1px solid rgba(139,92,246,0.5)} }
     .media-info { display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;background:rgba(139,92,246,0.06);border-radius:5px;border:1px solid rgba(139,92,246,0.1); }
@@ -1209,7 +1257,8 @@ export class BuilderPropsPanelComponent {
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
     if (!(cfg as any)[secKey]) (cfg as any)[secKey] = {};
     (cfg as any)[secKey][prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   setSecNested(secKey: string, nestedKey: string, prop: string, value: any) {
@@ -1217,7 +1266,8 @@ export class BuilderPropsPanelComponent {
     if (!(cfg as any)[secKey]) (cfg as any)[secKey] = {};
     if (!(cfg as any)[secKey][nestedKey]) (cfg as any)[secKey][nestedKey] = {};
     (cfg as any)[secKey][nestedKey][prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   ss(prop: string): any {
@@ -1231,7 +1281,8 @@ export class BuilderPropsPanelComponent {
     const s = (cfg as any)[key];
     if (!s.sectionStyle) s.sectionStyle = { bgType:'inherit', dividerType:'none' };
     s.sectionStyle[prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   clearColors() { this.setSS('headingColor',''); this.setSS('contentColor',''); }
@@ -1256,7 +1307,8 @@ export class BuilderPropsPanelComponent {
   setTheme(prop: string, value: any) {
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
     (cfg.theme as any)[prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   applyTemplate(key: string) {
@@ -1534,6 +1586,137 @@ export class BuilderPropsPanelComponent {
     const current = this.sec('intro')?.duration || 5;
     const next = Math.max(0.5, Math.min(30, Math.round((current + delta * 0.5) * 10) / 10));
     this.setSec('intro', 'duration', next);
+  }
+
+  // === Video Trimmer ===
+  maxIntroDuration = 5;
+  private trimDragging: 'start' | 'end' | null = null;
+  @ViewChild('trimmerTrack') trimmerTrack?: ElementRef<HTMLElement>;
+  @ViewChild('introTrimVideo') introTrimVideo?: ElementRef<HTMLVideoElement>;
+
+  getTrimLeft(): number {
+    const dur = this.sec('intro')?.videoDuration || 5;
+    return ((this.sec('intro')?.videoStart || 0) / dur) * 100;
+  }
+
+  getTrimRight(): number {
+    const dur = this.sec('intro')?.videoDuration || 5;
+    return ((this.sec('intro')?.videoEnd || dur) / dur) * 100;
+  }
+
+  getTrimWidth(): number {
+    return this.getTrimRight() - this.getTrimLeft();
+  }
+
+  getSelectedDuration(): number {
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || (this.sec('intro')?.videoDuration || 5);
+    return Math.round((end - start) * 10) / 10;
+  }
+
+  formatTrimTime(seconds: number): string {
+    const s = Math.round(seconds * 10) / 10;
+    return s.toFixed(1) + 's';
+  }
+
+  startTrimDrag(handle: 'start' | 'end', e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.trimDragging = handle;
+    const onMove = (ev: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in ev ? ev.touches[0].clientX : ev.clientX;
+      this.onTrimMove(clientX);
+    };
+    const onEnd = () => {
+      this.trimDragging = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      this.updateIntroDurationFromTrim();
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onEnd);
+  }
+
+  onTrimTrackClick(event: MouseEvent) {
+    if (!this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    const dur = this.sec('intro')?.videoDuration || 5;
+    const time = percent * dur;
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || dur;
+    if (Math.abs(time - start) < Math.abs(time - end)) {
+      this.setSec('intro', 'videoStart', Math.round(time * 10) / 10);
+    } else {
+      this.setSec('intro', 'videoEnd', Math.round(time * 10) / 10);
+    }
+    this.updateIntroDurationFromTrim();
+  }
+
+  onTrimTrackTouch(event: TouchEvent) {
+    const touch = event.touches[0];
+    if (!this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = (touch.clientX - rect.left) / rect.width;
+    const dur = this.sec('intro')?.videoDuration || 5;
+    const time = percent * dur;
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || dur;
+    if (Math.abs(time - start) < Math.abs(time - end)) {
+      this.setSec('intro', 'videoStart', Math.round(time * 10) / 10);
+    } else {
+      this.setSec('intro', 'videoEnd', Math.round(time * 10) / 10);
+    }
+    this.startTrimDrag(Math.abs(time - start) < Math.abs(time - end) ? 'start' : 'end', event);
+  }
+
+  private onTrimMove(clientX: number) {
+    if (!this.trimDragging || !this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const dur = this.sec('intro')?.videoDuration || 5;
+    const time = Math.round(percent * dur * 10) / 10;
+    if (this.trimDragging === 'start') {
+      const end = this.sec('intro')?.videoEnd || dur;
+      this.setSec('intro', 'videoStart', Math.min(time, end - 0.5));
+    } else {
+      const start = this.sec('intro')?.videoStart || 0;
+      this.setSec('intro', 'videoEnd', Math.max(time, start + 0.5));
+    }
+    // Enforce max duration
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || dur;
+    if (end - start > this.maxIntroDuration) {
+      if (this.trimDragging === 'start') {
+        this.setSec('intro', 'videoStart', end - this.maxIntroDuration);
+      } else {
+        this.setSec('intro', 'videoEnd', start + this.maxIntroDuration);
+      }
+    }
+  }
+
+  private updateIntroDurationFromTrim() {
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || 5;
+    this.setSec('intro', 'duration', Math.min(Math.round((end - start) * 10) / 10, this.maxIntroDuration));
+  }
+
+  previewTrim() {
+    if (!this.introTrimVideo?.nativeElement) return;
+    const video = this.introTrimVideo.nativeElement;
+    video.currentTime = this.sec('intro')?.videoStart || 0;
+    video.play();
+    const checkEnd = () => {
+      if (video.currentTime >= (this.sec('intro')?.videoEnd || video.duration)) {
+        video.pause();
+        video.removeEventListener('timeupdate', checkEnd);
+      }
+    };
+    video.addEventListener('timeupdate', checkEnd);
   }
 
   adjustHeroFont(styleProp: string, delta: number) {

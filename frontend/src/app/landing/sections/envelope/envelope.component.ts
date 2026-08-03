@@ -140,6 +140,8 @@ import { EnvelopeConfig } from '../../../core/models/models';
       overflow: hidden;
       transition: opacity 0.6s ease;
       transition-delay: 0.8s;
+      -webkit-transform: translateZ(0); transform: translateZ(0);
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
     }
     .envelope-bg-image {
       position: absolute; inset: 0; z-index: 0;

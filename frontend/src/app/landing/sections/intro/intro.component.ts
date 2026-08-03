@@ -53,6 +53,8 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       display: flex; align-items: flex-end; justify-content: center;
       padding-bottom: 80px;
       animation: introFadeIn 0.8s ease both;
+      -webkit-transform: translateZ(0); transform: translateZ(0);
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
     }
     .intro-overlay.fade-out { pointer-events: none; transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease; }
     /* Transition variants - only apply on fade-out */
@@ -217,6 +219,7 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   @Input() themeColor: string = '#d4a017';
   @Input() themeBg: string = '';
   @Input() themeBorder: string = '';
+  @Input() themeBgType: string = 'radial';
   @Input() previewLoop = false;
   @Output() done = new EventEmitter<void>();
   @ViewChild('introVideo') introVideo?: ElementRef<HTMLVideoElement>;
@@ -331,10 +334,16 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   }
 
   get defaultBg(): string {
-    const c1 = this.themeBg || 'rgba(13,17,23,1)';
-    const c2 = this.themeBorder || 'rgba(212,160,23,0.3)';
-    const c3 = this.themeColor || '#d4a017';
-    return `radial-gradient(ellipse at center, color-mix(in srgb, ${c3} 8%, #0d1117) 0%, #0d1117 70%)`;
+    const c1 = this.themeBg || '#0d1117';
+    const c2 = this.themeBorder || '#1a1a2e';
+    const type = this.themeBgType || 'radial';
+    switch (type) {
+      case 'solid': return c1;
+      case 'linear': return `linear-gradient(135deg, ${c1}, ${c2})`;
+      case 'radial': return `radial-gradient(ellipse at center, ${c2} 0%, ${c1} 70%)`;
+      case 'mesh': return `radial-gradient(ellipse at 30% 30%, ${c2} 0%, transparent 50%), radial-gradient(ellipse at 70% 70%, ${c1} 0%, transparent 50%), ${c1}`;
+      default: return `radial-gradient(ellipse at center, ${c2} 0%, ${c1} 70%)`;
+    }
   }
 
   get particlesConfig(): IntroParticlesConfig {
@@ -404,9 +413,11 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
     const dir = pc.direction || 'up';
     const baseSize = pc.size || 4;
     const baseOpacity = pc.opacity ?? 0.8;
+    const c1 = pc.color1 || '#d4a017';
+    const c2 = pc.color2 || '#ffffff';
 
     return Array.from({ length: count }, () => {
-      const color = Math.random() > 0.5 ? pc.color1 : pc.color2;
+      const color = Math.random() > 0.5 ? c1 : c2;
       const delay = Math.random() * 1.5;
       const dur = (4 - baseSpeed * 0.3) + Math.random() * 2;
       const sizeVariation = baseSize * (0.6 + Math.random() * 0.8);

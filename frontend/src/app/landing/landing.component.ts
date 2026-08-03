@@ -133,7 +133,7 @@ import { SectionStyle } from '../core/models/models';
 
       <!-- Intro -->
       @if (showIntro() && !showEnvelope() && data()!.config.intro.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.cardBg || ''" [themeBorder]="data()!.config.theme.cardBorder || ''" (done)="showIntro.set(false)" />
+        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" (done)="showIntro.set(false)" />
       }
 
       @if (!showIntro() && !showEnvelope()) {
