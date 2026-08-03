@@ -106,11 +106,8 @@
 - [x] **Guard de cambios sin guardar**: Protegido con `unsavedChangesGuard`
 
 **Pendiente:**
-- [ ] Verificar reflejo en tiempo real de cambios en propiedades → canvas
-- [ ] Light mode del builder
-- [ ] Video trimmer simplificado para intro
 - [ ] Gestión de imágenes en cards de vestimenta
-- [ ] Verificar mobile (FAB secciones + props)
+- [ ] Verificar landing real en dispositivo móvil: Validar que clip-path de transiciones funciona en iOS Safari y Android Chrome
 
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.
