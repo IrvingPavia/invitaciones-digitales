@@ -379,5 +379,17 @@ export class CanvasStateService {
     const config = this.state().config;
     this.state.update(s => ({ ...s, config: config ? { ...config } : null }));
     this.isDirty.set(true);
+    this.triggerAutoSave();
+  }
+
+  // Auto-save callback — registered by builder component
+  private autoSaveCallback: (() => void) | null = null;
+
+  registerAutoSave(fn: () => void) {
+    this.autoSaveCallback = fn;
+  }
+
+  triggerAutoSave() {
+    if (this.autoSaveCallback) this.autoSaveCallback();
   }
 }

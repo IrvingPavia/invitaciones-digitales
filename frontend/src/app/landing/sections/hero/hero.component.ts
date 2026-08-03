@@ -108,6 +108,8 @@ import { HeroConfig, Event } from '../../../core/models/models';
       position: fixed; top: 0; left: 0; right: 0; z-index: 500;
       transition: all 0.3s ease;
       padding: 0 20px;
+      -webkit-transform: translateZ(0); transform: translateZ(0);
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
     }
     .landing-nav.scrolled {
       background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85));
