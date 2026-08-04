@@ -139,7 +139,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
       &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
     }
-    .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); margin-bottom: 16px; display: block; }
     .gifts-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
     .gifts-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .gifts-desc { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.7; margin-bottom: 24px; }
@@ -184,7 +184,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
 
     .transfer-content { position: relative; z-index: 1; }
-    .transfer-icon { font-size: 48px; color: var(--theme-text-primary, var(--gold)); opacity: 0.8; margin-bottom: 12px; display: block; }
+    .transfer-icon { font-size: 48px; color: var(--theme-text-primary, var(--gold)); margin-bottom: 12px; display: block; }
     .transfer-icon.emoji { font-size: 48px; opacity: 1; font-style: normal; }
     .transfer-icon-img { width: 60px; height: 60px; object-fit: contain; margin: 0 auto 12px; display: block; }
     .transfer-title { font-family: var(--font-serif); font-size: 22px; color: var(--theme-nav-text, var(--gold)); margin-bottom: 8px; }

@@ -22,6 +22,9 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       } @else {
         <div class="intro-bg" [style.background]="defaultBg"></div>
       }
+      @if (themeTexture && themeTexture !== 'none') {
+        <div class="intro-texture" [attr.data-texture]="themeTexture" [style.opacity]="(themeTextureOpacity || 5) / 100"></div>
+      }
       @if (particlesConfig.enabled) {
         <div class="intro-particles" [attr.data-type]="particlesConfig.type" [attr.data-dir]="particlesConfig.direction">
           @for (p of particles; track $index) {
@@ -88,6 +91,17 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%);
     }
+    .intro-texture {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    }
+    .intro-texture[data-texture="noise"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .intro-texture[data-texture="grain"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); }
+    .intro-texture[data-texture="dots"] { background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 8px 8px; }
+    .intro-texture[data-texture="lines"] { background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 5px); }
+    .intro-texture[data-texture="cross"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px), repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px); }
+    .intro-texture[data-texture="paper"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"); }
+    .intro-texture[data-texture="linen"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px), repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px); }
+    .intro-texture[data-texture="stars"] { background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 24px 24px; }
     .intro-content { position: relative; z-index: 2; text-align: center; width: 100%; padding: 0 20px; }
     .intro-phrase {
       font-family: var(--font-script);
@@ -220,6 +234,8 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   @Input() themeBg: string = '';
   @Input() themeBorder: string = '';
   @Input() themeBgType: string = 'radial';
+  @Input() themeTexture: string = 'none';
+  @Input() themeTextureOpacity: number = 5;
   @Input() previewLoop = false;
   @Output() done = new EventEmitter<void>();
   @ViewChild('introVideo') introVideo?: ElementRef<HTMLVideoElement>;

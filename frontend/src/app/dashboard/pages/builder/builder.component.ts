@@ -139,7 +139,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.intro?.enabled) {
                   <div class="preview-section-click" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
-                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [previewLoop]="true" />
+                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [themeTexture]="canvasState.config()?.theme?.landingBgTexture || 'none'" [themeTextureOpacity]="canvasState.config()?.theme?.landingBgTextureOpacity || 5" [previewLoop]="true" />
                   </div>
                 }
                 <div class="preview-section-click" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
@@ -937,6 +937,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
       case 'solid': colorBg = c1; break;
       case 'linear': colorBg = `linear-gradient(${angle}deg, ${c1}, ${c2})`; break;
       case 'radial': colorBg = `radial-gradient(ellipse at center, ${c2}, ${c1})`; break;
+      case 'mesh': colorBg = `radial-gradient(ellipse at 25% 25%, ${c2} 0%, transparent 50%), radial-gradient(ellipse at 75% 75%, ${c2} 0%, transparent 50%), ${c1}`; break;
       default: colorBg = c1;
     }
 

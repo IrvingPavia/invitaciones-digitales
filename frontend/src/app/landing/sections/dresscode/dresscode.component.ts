@@ -112,7 +112,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
       &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
     }
-    .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); margin-bottom: 16px; display: block; }
     .dresscode-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
     .dresscode-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .dresscode-desc { color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.8; white-space: pre-line; }

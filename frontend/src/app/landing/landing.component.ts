@@ -112,12 +112,13 @@ import { SectionStyle } from '../core/models/models';
     }
 
     @if (data() && !loading()) {
-      <!-- Fixed background: solid color always, media fades in after intro AND after preload -->
+      <!-- Fixed background: solid color always -->
+      <div class="landing-bg-solid" [style.background]="getLandingBg()"></div>
+      @if (data()!.config.theme.landingBgTexture && data()!.config.theme.landingBgTexture !== 'none') {
+        <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme.landingBgTexture" [style.opacity]="(data()!.config.theme.landingBgTextureOpacity || 5) / 100"></div>
+      }
+      <!-- Hero background media (fades in after intro) -->
       @if (data()!.config.hero.backgroundGif) {
-        <div class="landing-bg-solid" [style.background]="getLandingBg()"></div>
-        @if (data()!.config.theme.landingBgTexture && data()!.config.theme.landingBgTexture !== 'none') {
-          <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme.landingBgTexture" [style.opacity]="(data()!.config.theme.landingBgTextureOpacity || 5) / 100"></div>
-        }
         @if (isVideoBackground()) {
           <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
         } @else {
@@ -133,7 +134,7 @@ import { SectionStyle } from '../core/models/models';
 
       <!-- Intro -->
       @if (showIntro() && !showEnvelope() && data()!.config.intro.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" (done)="showIntro.set(false)" />
+        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" [themeTexture]="data()!.config.theme.landingBgTexture || 'none'" [themeTextureOpacity]="data()!.config.theme.landingBgTextureOpacity || 5" (done)="showIntro.set(false)" />
       }
 
       @if (!showIntro() && !showEnvelope()) {
@@ -274,13 +275,13 @@ import { SectionStyle } from '../core/models/models';
     }
   `,
   styles: [`
-    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; }
+    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; position: relative; }
     .landing-bg-solid {
-      position: fixed; inset: -10vh -5vw; z-index: -3;
+      position: fixed; inset: -10vh -5vw; z-index: 0;
       background: var(--landing-bg, #0d1117);
     }
     .landing-bg-texture {
-      position: fixed; inset: -10vh -5vw; z-index: -3;
+      position: fixed; inset: -10vh -5vw; z-index: 1;
       pointer-events: none;
     }
     .landing-bg-texture[data-texture="noise"] {
@@ -313,7 +314,7 @@ import { SectionStyle } from '../core/models/models';
       background-position: 0 0, 10px 10px;
     }
     .landing-bg {
-      position: fixed; z-index: -2;
+      position: fixed; z-index: 2;
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
@@ -331,7 +332,7 @@ import { SectionStyle } from '../core/models/models';
     }
     .landing-bg.visible { opacity: 1; }
     .landing-bg-video {
-      position: fixed; z-index: -2;
+      position: fixed; z-index: 2;
       top: -15vh; left: -5vw; right: -5vw; bottom: -15vh;
       width: 110vw; height: 130vh; height: 130dvh;
       object-fit: cover;
@@ -340,7 +341,7 @@ import { SectionStyle } from '../core/models/models';
     }
     .landing-bg-video.visible { opacity: 1; }
     .landing-bg-overlay {
-      position: fixed; z-index: -1;
+      position: fixed; z-index: 3;
       background: rgba(0,0,0,0.55);
       /* Match bg extension */
       top: -15vh;
@@ -359,6 +360,7 @@ import { SectionStyle } from '../core/models/models';
       max-width: clamp(520px, 50vw, 680px);
       margin: 0 auto;
       position: relative;
+      z-index: 4;
     }
     .section-block {
       position: relative;
