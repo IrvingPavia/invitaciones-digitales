@@ -186,6 +186,7 @@ interface BuilderSection {
               </div>
           }
         </div>
+        <!-- No external glow indicators needed -->
       </div>
       }
 
@@ -399,11 +400,7 @@ interface BuilderSection {
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
       background: #0d1117;
       &.mobile { width: 375px; }
-      &.desktop { width: 100%; max-width: calc(100% - 28px); }
-    }
-      background: #0d1117;
-      &.mobile { width: 375px; }
-      &.desktop { width: 100%; max-width: 680px; }
+      &.desktop { width: 100%; max-width: 900px; }
     }
     .canvas-section-wrapper {
       position: relative; cursor: default;
@@ -492,9 +489,10 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
-      cursor: pointer; position: relative; transition: box-shadow 0.3s;
-      &:hover { box-shadow: -8px 0 16px rgba(139,92,246,0.3), 8px 0 16px rgba(139,92,246,0.3); }
-      &.section-active { box-shadow: -12px 0 24px rgba(139,92,246,0.5), 12px 0 24px rgba(139,92,246,0.5); }
+      cursor: pointer; position: relative; transition: border-color 0.2s, box-shadow 0.2s;
+      border-left: 3px solid transparent; border-right: 3px solid transparent;
+      &:hover { border-left-color: rgba(139,92,246,0.4); border-right-color: rgba(139,92,246,0.4); box-shadow: inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
+      &.section-active { border-left-color: rgba(139,92,246,0.7); border-right-color: rgba(139,92,246,0.7); box-shadow: inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper */
@@ -863,6 +861,35 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.panelVisible.set(false);
     this.showLeftPanel.set(false);
     this.scrollToSection(key);
+    this.updateSectionGlow(key);
+  }
+
+  // Section glow indicators
+  sectionGlowTopValue = signal(0);
+  sectionGlowHeightValue = signal(0);
+  sectionGlowLeftValue = signal(0);
+  sectionGlowRightValue = signal(0);
+  sectionGlowTop(): number { return this.sectionGlowTopValue(); }
+  sectionGlowHeight(): number { return this.sectionGlowHeightValue(); }
+  sectionGlowLeftPos(): number { return this.sectionGlowLeftValue(); }
+  sectionGlowRightPos(): number { return this.sectionGlowRightValue(); }
+
+  private updateSectionGlow(key: string) {
+    setTimeout(() => {
+      const section = document.querySelector(`.preview-section-click[data-section="${key}"]`) as HTMLElement;
+      const area = document.querySelector('.builder-canvas-area') as HTMLElement;
+      const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement;
+      if (section && area && viewport) {
+        const areaRect = area.getBoundingClientRect();
+        const secRect = section.getBoundingClientRect();
+        const vpRect = viewport.getBoundingClientRect();
+        this.sectionGlowTopValue.set(secRect.top - areaRect.top + area.scrollTop);
+        this.sectionGlowHeightValue.set(secRect.height);
+        // Position glows at the edges of the viewport
+        this.sectionGlowLeftValue.set(vpRect.left - areaRect.left - 16);
+        this.sectionGlowRightValue.set(vpRect.right - areaRect.left);
+      }
+    }, 100);
   }
 
   private scrollToSection(key: string) {
