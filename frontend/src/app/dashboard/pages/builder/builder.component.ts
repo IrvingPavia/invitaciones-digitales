@@ -85,11 +85,7 @@ interface BuilderSection {
       @if (canvasMode() === 'canvas' && panelVisible()) {
       <aside class="builder-panel builder-panel-left" [class.mobile-open]="showLeftPanel()">
         <div class="builder-panel-header">
-          <span class="material-icons">layers</span>
           <span>Secciones</span>
-          <button class="panel-toggle-btn" (click)="panelVisible.set(false)" title="Ocultar secciones">
-            <span class="material-icons">chevron_left</span>
-          </button>
         </div>
         <!-- Theme Global button -->
         <div class="builder-theme-btn" [class.active]="canvasState.selectedSection() === '_theme'" (click)="selectTheme()">
@@ -208,15 +204,15 @@ interface BuilderSection {
 
       <!-- FAB toggle sections panel (hidden in preview mode) -->
       @if (canvasMode() === 'canvas') {
-      <button class="builder-sections-fab" [class.show-desktop]="!panelVisible()" (click)="openSections()" title="Secciones">
+      <button class="builder-sections-fab" [class.active]="isSectionsPanelOpen()" (click)="toggleSectionsPanel()" title="Secciones">
         <span class="material-icons">layers</span>
       </button>
       }
 
       <!-- FAB toggle props (hidden in preview mode) -->
       @if (canvasMode() === 'canvas') {
-      <button class="builder-props-fab" [class.active]="showProps()" (click)="toggleProps()" title="Propiedades">
-        <span class="material-icons">{{ showProps() ? 'close' : 'tune' }}</span>
+      <button class="builder-props-fab" [class.active]="showProps()" (click)="showProps() ? showProps.set(false) : toggleProps()" title="Propiedades">
+        <span class="material-icons">tune</span>
       </button>
       }
 
@@ -224,11 +220,7 @@ interface BuilderSection {
       @if (showProps() && canvasMode() === 'canvas') {
         <aside class="builder-panel builder-panel-right panel-visible">
           <div class="builder-panel-header">
-            <span class="material-icons">tune</span>
             <span>Propiedades</span>
-            <button class="panel-toggle-btn" (click)="showProps.set(false)" title="Cerrar propiedades">
-              <span class="material-icons">chevron_right</span>
-            </button>
           </div>
           <app-builder-props-panel
             [selectedSection]="currentSection()"
@@ -351,10 +343,10 @@ interface BuilderSection {
     .builder-panel-right.panel-visible { display: flex; }
     .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; }
     .builder-panel-header {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; justify-content: center;
       padding: 12px 14px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7);
       border-bottom: 1px solid rgba(139,92,246,0.08);
-      .material-icons { font-size: 16px; color: var(--gold-light); }
+      text-transform: uppercase; letter-spacing: 1px;
     }
     .builder-sections-list { padding: 6px; }
     .builder-section-item {
@@ -405,6 +397,10 @@ interface BuilderSection {
     .builder-canvas-viewport {
       border-radius: 16px; overflow: hidden;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
+      background: #0d1117;
+      &.mobile { width: 375px; }
+      &.desktop { width: 100%; max-width: calc(100% - 28px); }
+    }
       background: #0d1117;
       &.mobile { width: 375px; }
       &.desktop { width: 100%; max-width: 680px; }
@@ -496,9 +492,9 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
-      cursor: pointer; transition: outline 0.2s; position: relative; overflow: hidden;
-      &:hover { outline: 2px dashed rgba(139,92,246,0.3); outline-offset: -2px; }
-      &.section-active { outline: 2px solid rgba(139,92,246,0.6); outline-offset: -2px; }
+      cursor: pointer; position: relative; transition: box-shadow 0.3s;
+      &:hover { box-shadow: -8px 0 16px rgba(139,92,246,0.3), 8px 0 16px rgba(139,92,246,0.3); }
+      &.section-active { box-shadow: -12px 0 24px rgba(139,92,246,0.5), 12px 0 24px rgba(139,92,246,0.5); }
     }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper */
@@ -563,16 +559,14 @@ interface BuilderSection {
       position: absolute; top: 8px; left: 8px; z-index: 25;
       width: 36px; height: 36px; border-radius: 50%; border: none;
       background: rgba(139,92,246,0.9); color: white;
-      cursor: pointer; display: none; align-items: center; justify-content: center;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 12px rgba(139,92,246,0.4);
-      transition: transform 0.3s, background 0.2s;
-      .material-icons { font-size: 18px; }
+      transition: transform 0.3s, background 0.3s;
+      .material-icons { font-size: 18px; transition: transform 0.3s; }
       &:hover { transform: scale(1.1); }
-      &.show-desktop { display: flex; }
+      &.active { background: rgba(239,68,68,0.85); box-shadow: 0 4px 12px rgba(239,68,68,0.4); }
+      &.active .material-icons { transform: rotate(90deg); }
     }
-    .panel-toggle-btn { margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; padding: 2px; border-radius: 4px; transition: all 0.2s; .material-icons { font-size: 18px; } }
-    .panel-toggle-btn:hover { color: white; background: rgba(139,92,246,0.15); }
-
     .builder-props { padding: 14px; }
     .builder-section-badge {
       display: flex; align-items: center; gap: 8px;
@@ -698,11 +692,11 @@ interface BuilderSection {
       .builder-layout, .builder-layout.props-open, .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr; }
       .builder-panel-left {
         display: none;
-        position: fixed; top: 48px; bottom: 0; left: 0; z-index: 100;
+        position: fixed; top: 90px; bottom: 0; left: 0; z-index: 100;
         width: 260px; box-shadow: 4px 0 24px rgba(0,0,0,0.5);
       }
       .builder-panel-left.mobile-open { display: block; }
-      .builder-sections-fab { display: flex; }
+      .builder-sections-fab { display: flex; z-index: 150; top: 92px; left: 8px; position: fixed; }
       .builder-save-text { display: none; }
       .builder-save-btn { min-width: auto !important; padding: 7px 10px !important; }
       .builder-toolbar-left { flex: 0 0 auto !important; max-width: none; overflow: visible; order: 0; }
@@ -718,7 +712,7 @@ interface BuilderSection {
       .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
       .builder-panel-right.panel-visible {
         position: fixed;
-        top: 48px;
+        top: 90px;
         bottom: 0;
         right: 0;
         left: auto;
@@ -732,8 +726,7 @@ interface BuilderSection {
         animation: slideInRight 0.25s ease;
       }
       .builder-canvas-area { padding: 8px; }
-      .builder-props-fab { top: 8px; right: 8px; z-index: 160; }
-      .builder-props-fab.active { display: none; }
+      .builder-props-fab { top: 92px; right: 8px; z-index: 160; position: fixed; }
     }
     @keyframes slideInRight {
       from { transform: translateX(100%); }
@@ -758,7 +751,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   saveStatus = signal<'idle' | 'saved'>('idle');
   showProps = signal(false);
   showLeftPanel = signal(false);
-  panelVisible = signal(true);
+  panelVisible = signal(false);
   eventData = signal<any>({ name: '', event_date: '', slug: '' });
   previewGuest: any = {
     id: 0, event_id: 0, unique_code: 'preview-mock',
@@ -786,20 +779,36 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   hasUnsavedChanges(): boolean { return this.canvasState.isDirty(); }
 
-  /** Open sections panel, close props on mobile */
+  /** Open sections panel, close props */
   openSections() {
     this.panelVisible.set(true);
-    this.showLeftPanel.set(!this.showLeftPanel());
-    if (this.showLeftPanel() && window.innerWidth <= 768) {
-      this.showProps.set(false);
+    this.showLeftPanel.set(true);
+    this.showProps.set(false);
+  }
+
+  isSectionsPanelOpen(): boolean {
+    if (window.innerWidth <= 768) {
+      return this.showLeftPanel();
+    }
+    return this.panelVisible();
+  }
+
+  toggleSectionsPanel() {
+    if (this.isSectionsPanelOpen()) {
+      this.panelVisible.set(false);
+      this.showLeftPanel.set(false);
+    } else {
+      this.openSections();
     }
   }
 
-  /** Toggle props panel, close sections on mobile */
+  /** Toggle props panel, close sections */
   toggleProps() {
     const opening = !this.showProps();
     this.showProps.set(opening);
-    if (opening && window.innerWidth <= 768) {
+    // Mutual exclusion: close sections when opening props
+    if (opening) {
+      this.panelVisible.set(false);
       this.showLeftPanel.set(false);
     }
   }
@@ -846,13 +855,13 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   selectSection(key: string) {
-    if (this.canvasMode() === 'preview') return; // In preview mode, don't select
+    if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(key);
     this.currentSection.set(key);
     this.showProps.set(true);
-    if (window.innerWidth <= 768) {
-      this.showLeftPanel.set(false);
-    }
+    // Close sections panel to give canvas space
+    this.panelVisible.set(false);
+    this.showLeftPanel.set(false);
     this.scrollToSection(key);
   }
 
@@ -897,9 +906,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.canvasState.selectSection('_theme');
     this.currentSection.set('_theme');
     this.showProps.set(true);
-    if (window.innerWidth <= 768) {
-      this.showLeftPanel.set(false);
-    }
+    this.panelVisible.set(false);
+    this.showLeftPanel.set(false);
   }
 
   toggleViewMode() {
@@ -957,11 +965,65 @@ export class BuilderComponent implements OnInit, OnDestroy {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return '';
     const ss = (cfg as any)[sectionKey]?.sectionStyle;
-    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return '';
-    switch (ss.bgType) {
-      case 'solid': return `background: ${ss.bgColor1 || '#1a1a2e'}`;
-      case 'linear': return `background: linear-gradient(${ss.bgAngle || 180}deg, ${ss.bgColor1 || '#1a1a2e'}, ${ss.bgColor2 || '#0d1117'})`;
-      case 'image': return ss.bgImage ? `background: url(${ss.bgImage}) center/cover` : '';
+    if (!ss) return '';
+    let css = '';
+    if (ss.bgType && ss.bgType !== 'inherit') {
+      switch (ss.bgType) {
+        case 'solid': css = `background: ${ss.bgColor1 || '#1a1a2e'}`; break;
+        case 'linear': css = `background: linear-gradient(${ss.bgAngle || 180}deg, ${ss.bgColor1 || '#1a1a2e'}, ${ss.bgColor2 || '#0d1117'})`; break;
+        case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor2 || '#0d1117'}, ${ss.bgColor1 || '#1a1a2e'})`; break;
+        case 'image': css = ss.bgImage ? `background: url(${ss.bgImage}) center/cover` : ''; break;
+      }
+    }
+    // Apply clip-path for section transitions — keep outline visible by using overflow visible
+    if (ss.dividerType && ss.dividerType !== 'none') {
+      const h = ss.dividerHeight || 50;
+      const flip = ss.dividerFlip || false;
+      const clipValue = this.getBuilderClipPath(ss.dividerType, h, flip);
+      if (clipValue) {
+        css += `; margin-top: -${h}px; clip-path: ${clipValue}; padding-top: ${h + 20}px`;
+      }
+    }
+    return css;
+  }
+
+  private getBuilderClipPath(type: string, h: number, flip: boolean): string {
+    switch (type) {
+      case 'slant':
+        return flip ? `polygon(0% 0px, 100% ${h}px, 100% 100%, 0% 100%)` : `polygon(0% ${h}px, 100% 0px, 100% 100%, 0% 100%)`;
+      case 'arrow':
+        return flip ? `polygon(0% 0px, 50% ${h}px, 100% 0px, 100% 100%, 0% 100%)` : `polygon(0% ${h}px, 50% 0px, 100% ${h}px, 100% 100%, 0% 100%)`;
+      case 'zigzag': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 12; i++) {
+          const x = (i / 12) * 100;
+          const y = i % 2 === 0 ? (flip ? 0 : h) : (flip ? h : 0);
+          pts.push(`${x.toFixed(1)}% ${y}px`);
+        }
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'mountains': {
+        const mPts = [[0,1],[12.5,0.3],[25,0.7],[42,0],[58,0.6],[75,0.2],[87.5,0.5],[100,0.15]];
+        const pts = mPts.map(([x, ratio]) => `${x}% ${(flip ? h*(1-ratio) : h*ratio).toFixed(1)}px`);
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'wave': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 40; i++) { const x = (i/40)*100; let y = (Math.sin((i/40)*Math.PI*2)+1)/2*h; if(flip) y=h-y; pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`); }
+        return `polygon(${pts.join(', ')}, 100% 100%, 0% 100%)`;
+      }
+      case 'curve': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 30; i++) { const x = (i/30)*100; let y = (Math.cos((i/30)*Math.PI)*0.5+0.5)*h; if(flip) y=h-y; pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`); }
+        return `polygon(${pts.join(', ')}, 100% 100%, 0% 100%)`;
+      }
+      case 'drops': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 60; i++) { const x = (i/60)*100; let y = (Math.cos((i/60)*6*Math.PI*2)+1)/2*h; if(flip) y=h-y; pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`); }
+        return `polygon(${pts.join(', ')}, 100% 100%, 0% 100%)`;
+      }
       default: return '';
     }
   }

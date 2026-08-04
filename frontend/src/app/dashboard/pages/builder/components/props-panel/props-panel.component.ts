@@ -897,16 +897,33 @@ import { ApiService } from '../../../../../core/services/api.service';
           }
 
           <div class="accordion" [class.open]="expanded['dress-cards']" (click)="toggle('dress-cards')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['dress-cards'] ? 'expand_more' : 'chevron_right' }}</span><span>Ejemplos</span></div>
+            <div class="accordion-header"><span class="material-icons">{{ expanded['dress-cards'] ? 'expand_more' : 'chevron_right' }}</span><span>Ejemplos de vestimenta</span></div>
           </div>
           @if (expanded['dress-cards']) {
             <div class="accordion-body">
-              <div class="items-header"><span>Cards ({{sec('dresscode')?.cards?.length||0}})</span><button class="sm-btn" (click)="addDresscode();$event.stopPropagation()">+ Agregar</button></div>
+              <div class="items-header"><span>{{sec('dresscode')?.cards?.length||0}} ejemplo{{(sec('dresscode')?.cards?.length||0) !== 1 ? 's' : ''}}</span><button class="sm-btn" (click)="addDresscode();$event.stopPropagation()">+ Agregar</button></div>
               @for (card of sec('dresscode')?.cards||[]; track card.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>{{i+1}}</span><button class="x-btn" (click)="removeDresscode(i);$event.stopPropagation()">X</button></div>
-                  <input class="pinput" [ngModel]="card.title" (ngModelChange)="updateDresscode(i,'title',$event)" placeholder="Titulo">
-                  <textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea>
+                  <div class="item-head">
+                    <span class="item-title">{{ card.title || 'Sin titulo' }}</span>
+                    <button class="delete-btn" (click)="removeDresscode(i);$event.stopPropagation()" title="Eliminar"><span class="material-icons">close</span></button>
+                  </div>
+                  <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="card.title" (ngModelChange)="updateDresscode(i,'title',$event)" placeholder="Titulo del ejemplo"></div>
+                  <div class="pf"><label>Descripcion</label><textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea></div>
+                  <div class="pf" style="margin-top:6px">
+                    <label>Imagenes de ejemplo ({{card.images?.length || 0}}/4)</label>
+                    <div class="dress-images-grid">
+                      @for (img of card.images || []; track img; let j=$index) {
+                        <div class="dress-img-thumb">
+                          <img [src]="img" alt="">
+                          <button class="dress-img-remove" (click)="removeDresscodeImage(i,j);$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      }
+                      @if ((card.images?.length || 0) < 4) {
+                        <button class="dress-img-add" (click)="uploadDresscodeImage(i);$event.stopPropagation()"><span class="material-icons">add_photo_alternate</span></button>
+                      }
+                    </div>
+                  </div>
                 </div>
               }
             </div>
@@ -1169,6 +1186,13 @@ import { ApiService } from '../../../../../core/services/api.service';
     .item-card { padding:8px;margin-bottom:6px;border-radius:5px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px; }
     .item-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:2px; span{font-size:9px;color:rgba(255,255,255,0.3)} }
     .x-btn { background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:12px;padding:2px; &:hover{color:#ef4444} &.mini{position:absolute;top:2px;right:2px;font-size:10px;background:rgba(0,0,0,0.6);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center} }
+    .item-title { font-size:12px;color:rgba(255,255,255,0.8);font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .delete-btn { width:28px;height:28px;border-radius:8px;border:none;background:#e84057;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;box-shadow:0 2px 6px rgba(232,64,87,0.3); .material-icons{font-size:16px;font-weight:700} &:hover{background:#d63350;transform:scale(1.08);box-shadow:0 3px 10px rgba(232,64,87,0.4)} }
+    .dress-images-grid { display:flex;gap:6px;margin-top:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch; &::-webkit-scrollbar{display:none} }
+    .dress-img-thumb { position:relative;width:56px;height:68px;border-radius:8px;overflow:hidden;border:1px solid rgba(139,92,246,0.2);flex-shrink:0; img{width:100%;height:100%;object-fit:cover} }
+    .dress-img-remove { position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,64,87,0.9);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s; .material-icons{font-size:11px} }
+    .dress-img-thumb:hover .dress-img-remove { opacity:1; }
+    .dress-img-add { width:56px;height:68px;border-radius:8px;border:2px dashed rgba(139,92,246,0.3);background:none;color:rgba(139,92,246,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0; .material-icons{font-size:22px} &:hover{border-color:rgba(139,92,246,0.6);color:rgba(139,92,246,0.8);background:rgba(139,92,246,0.05)} }
     .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px; }
     .photo-thumb { position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden; img{width:100%;height:100%;object-fit:cover} }
     .hint { font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px; }
@@ -1381,13 +1405,39 @@ export class BuilderPropsPanelComponent {
   removeDresscode(i: number) {
     const cfg=this.canvasState.getConfig();if(!cfg||!cfg.dresscode.cards)return;
     cfg.dresscode.cards.splice(i,1);
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   updateDresscode(i: number, prop: string, val: any) {
     const cfg=this.canvasState.getConfig();if(!cfg||!cfg.dresscode.cards?.[i])return;
     (cfg.dresscode.cards[i] as any)[prop]=val;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  uploadDresscodeImage(cardIndex: number) {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
+        if (!cfg.dresscode.cards[cardIndex].images) cfg.dresscode.cards[cardIndex].images = [];
+        if (cfg.dresscode.cards[cardIndex].images.length < 4) {
+          cfg.dresscode.cards[cardIndex].images.push(r.url);
+          this.canvasState.notifyChange();
+          this.canvasState.triggerAutoSave();
+        }
+      }});
+    };
+    input.click();
+  }
+
+  removeDresscodeImage(cardIndex: number, imgIndex: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
+    cfg.dresscode.cards[cardIndex].images?.splice(imgIndex, 1);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   uploadPhotos() {
