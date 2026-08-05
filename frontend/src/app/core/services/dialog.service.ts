@@ -25,11 +25,11 @@ export class DialogService {
   }
 
   /** Three-way dialog: Save / Discard / Cancel */
-  unsavedChanges(title: string, message: string): Promise<ThreeWayResult> {
+  unsavedChanges(title: string, message: string, thirdText = 'Descartar'): Promise<ThreeWayResult> {
     this.config.set({
       type: 'three-way', title, message,
       confirmText: 'Guardar',
-      thirdText: 'Descartar',
+      thirdText,
       cancelText: 'Cancelar'
     });
     this.visible.set(true);

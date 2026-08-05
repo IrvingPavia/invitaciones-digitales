@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../../core/services/api.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../core/components/custom-select.component';
 import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS } from '../../../core/models/models';
@@ -736,6 +737,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   private sanitizer = inject(DomSanitizer);
+  private dialog = inject(DialogService);
   canvasState = inject(CanvasStateService);
   private migration = inject(MigrationService);
 
@@ -905,11 +907,42 @@ export class BuilderComponent implements OnInit, OnDestroy {
     }, 50);
   }
 
-  toggleCanvasMode() {
+  async toggleCanvasMode() {
     if (this.canvasMode() === 'canvas') {
-      // Switching to preview: save first so iframe shows latest
+      // Switching to preview
       if (this.canvasState.isDirty()) {
-        this.save();
+        const result = await this.dialog.unsavedChanges(
+          'Cambios sin guardar',
+          'Tienes cambios pendientes. ¿Deseas guardar antes de previsualizar?',
+          'Continuar'
+        );
+        if (result === 'cancel') return;
+        if (result === 'save') {
+          this.saving.set(true);
+          const cfg = this.canvasState.getConfig();
+          if (!cfg) { this.saving.set(false); return; }
+          const s = this.sections();
+          for (const sec of s) {
+            if ((cfg as any)[sec.key] && typeof (cfg as any)[sec.key] === 'object') {
+              (cfg as any)[sec.key].enabled = sec.enabled;
+            }
+          }
+          this.api.saveConfig(this.eventId, cfg).subscribe({
+            next: () => {
+              this.saving.set(false);
+              this.saveStatus.set('saved');
+              this.canvasState.isDirty.set(false);
+              setTimeout(() => this.saveStatus.set('idle'), 2500);
+              this.canvasMode.set('preview');
+              this.reloadPreview();
+              this.canvasState.selectSection(null);
+              this.currentSection.set(null);
+            },
+            error: () => { this.saving.set(false); }
+          });
+          return;
+        }
+        // result === 'discard' — show preview with BD data, keep canvas changes in memory
       }
       this.canvasMode.set('preview');
       this.reloadPreview();
@@ -917,7 +950,6 @@ export class BuilderComponent implements OnInit, OnDestroy {
       this.currentSection.set(null);
     } else {
       this.canvasMode.set('canvas');
-      // Reset envelope overlay when back to canvas
       const envelopeEl = document.querySelector('.preview-mode-canvas .envelope-overlay');
       if (envelopeEl) {
         envelopeEl.classList.remove('opened');
@@ -1544,12 +1576,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   private scheduleAutoSave() {
-    if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
-    this.autoSaveTimer = setTimeout(() => {
-      if (this.canvasState.isDirty() && !this.saving()) {
-        this.save();
-      }
-    }, 4000);
+    // Auto-save disabled — save is manual only (button or before preview)
   }
 }
 
