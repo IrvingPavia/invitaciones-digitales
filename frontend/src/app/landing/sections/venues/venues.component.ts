@@ -177,7 +177,11 @@ export class LandingVenuesComponent {
 
   formatTime(time: string): string {
     if (!time) return '';
+    // If already has AM/PM, return as-is
+    if (/AM|PM/i.test(time)) return time;
+    // Parse 24h format
     const [h, m] = time.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return time;
     const ampm = h >= 12 ? 'PM' : 'AM';
     const hour = h % 12 || 12;
     return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;

@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ColorPickerComponent } from '../../../../../core/components/color-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../../../core/components/custom-select.component';
+import { WheelTimePickerComponent } from '../../../../../core/components/wheel-time-picker.component';
 import { CanvasStateService } from '../../services/canvas-state.service';
 import { ApiService } from '../../../../../core/services/api.service';
 
 @Component({
   selector: 'app-builder-props-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent],
   template: `
     <div class="props-panel-content">
       <!-- Section badge -->
@@ -684,7 +685,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="item.title" (ngModelChange)="updateVenue(i,'title',$event)" placeholder="Ej: Ceremonia"></div>
                   <div class="pf"><label>Nombre del lugar</label><input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre del recinto"></div>
                   <div class="pf"><label>Direccion</label><input class="pinput" [ngModel]="item.address" (ngModelChange)="updateVenue(i,'address',$event)" placeholder="Calle, numero, colonia"></div>
-                  <div class="pf"><label>Hora</label><input class="pinput" [ngModel]="item.time" (ngModelChange)="updateVenue(i,'time',$event)" placeholder="Ej: 5:00 PM"></div>
+                  <div class="pf"><label>Hora</label>
+                    <app-wheel-time-picker [value]="item.time" (valueChange)="updateVenue(i,'time',$event)"></app-wheel-time-picker>
+                  </div>
                   <div class="pf"><label>URL Google Maps</label><input class="pinput" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenue(i,'mapsUrl',$event)" placeholder="https://maps.google.com/..."></div>
                   <div class="pf"><label>Tipo de icono</label>
                     <div class="btn-row">
@@ -694,7 +697,13 @@ import { ApiService } from '../../../../../core/services/api.service';
                     </div>
                   </div>
                   @if (item.iconType === 'emoji') {
-                    <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="item.iconEmoji" (ngModelChange)="updateVenue(i,'iconEmoji',$event)" placeholder="📍"></div>
+                    <div class="pf"><label>Emoji</label>
+                      <div class="emoji-grid">
+                        @for (e of venueEmojis; track e) {
+                          <button class="emoji-btn" [class.active]="item.iconEmoji === e" (click)="updateVenue(i,'iconEmoji',e);$event.stopPropagation()">{{e}}</button>
+                        }
+                      </div>
+                    </div>
                   }
                   @if (item.iconType === 'image') {
                     <div class="pf"><label>Imagen de icono</label>
@@ -1205,7 +1214,7 @@ import { ApiService } from '../../../../../core/services/api.service';
     .section-style-toggle { padding:12px 14px;border-top:1px solid rgba(139,92,246,0.1);margin-top:8px; }
     .items-header { display:flex;justify-content:space-between;align-items:center;margin:8px 0 6px; span{font-size:10px;color:rgba(139,92,246,0.7);text-transform:uppercase;font-weight:700} }
     .item-card { padding:8px;margin-bottom:6px;border-radius:5px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px; }
-    .item-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:2px; span{font-size:9px;color:rgba(255,255,255,0.3)} }
+    .item-head { display:flex;justify-content:flex-end;align-items:center;margin-bottom:2px; span{font-size:9px;color:rgba(255,255,255,0.3)} }
     .x-btn { background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:12px;padding:2px; &:hover{color:#ef4444} &.mini{position:absolute;top:2px;right:2px;font-size:10px;background:rgba(0,0,0,0.6);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center} }
     .item-title { font-size:13px;color:white;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
     .delete-btn { width:24px;height:24px;border-radius:6px;border:none;background:rgba(239,68,68,0.85);color:#ffffff !important;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s;flex-shrink:0; .material-icons{font-size:14px;color:#ffffff !important;opacity:1 !important} &:hover{opacity:0.75} }
@@ -1516,6 +1525,12 @@ export class BuilderPropsPanelComponent {
     '⛪','🏛️','👰','✝️','🤝','⏰','🎥','🍰','🎬','🍸','🍾','🎵','🍷','🍺','🖼️','🎶','🎸','💃',
     '🏇','🎠','🌟','🌙','🚌','🍽️','🚕','🏃','✈️','🌹','🌸','🌿',
     '🎁','👑','🏆','❤️','💕','🎲','🎨','🧩','🏃','🕯️','🌅','🌄'
+  ];
+
+  venueEmojis = [
+    '📍','⛪','💒','🏛️','🏰','🎪','🏖️','🏞️',
+    '🍽️','🥂','🎉','🎊','🎶','💃','🕺','🌟',
+    '🏨','🏡','🌳','🌊','⛰️','🌅','🎭','🎬'
   ];
 
   // Custom select option arrays
