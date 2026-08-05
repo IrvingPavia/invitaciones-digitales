@@ -674,15 +674,36 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['ven-list']) {
             <div class="accordion-body">
-              <div class="items-header"><span>Lugares ({{sec('venues')?.items?.length||0}})</span><button class="sm-btn" (click)="addVenue();$event.stopPropagation()">+ Agregar</button></div>
+              <div class="items-header"><span>{{sec('venues')?.items?.length||0}} lugar{{(sec('venues')?.items?.length||0) !== 1 ? 'es' : ''}}</span><button class="sm-btn" (click)="addVenue();$event.stopPropagation()">+ Agregar</button></div>
               @for (item of sec('venues')?.items||[]; track item.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>Lugar {{i+1}}</span><button class="x-btn" (click)="removeVenue(i);$event.stopPropagation()">X</button></div>
-                  <input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre">
-                  <input class="pinput" [ngModel]="item.address" (ngModelChange)="updateVenue(i,'address',$event)" placeholder="Direccion">
-                  <input class="pinput" [ngModel]="item.time" (ngModelChange)="updateVenue(i,'time',$event)" placeholder="Hora">
-                  <input class="pinput" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenue(i,'mapsUrl',$event)" placeholder="Link Google Maps">
-                  <div class="pf"><label>Icono (emoji)</label><input class="pinput" [ngModel]="item.icon" (ngModelChange)="updateVenue(i,'icon',$event)" placeholder="Icono"></div>
+                  <div class="item-head">
+                    <span class="item-title">{{ item.title || item.name || 'Sin nombre' }}</span>
+                    <button class="delete-btn" (click)="removeVenue(i);$event.stopPropagation()" title="Eliminar"><span class="material-icons">close</span></button>
+                  </div>
+                  <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="item.title" (ngModelChange)="updateVenue(i,'title',$event)" placeholder="Ej: Ceremonia"></div>
+                  <div class="pf"><label>Nombre del lugar</label><input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre del recinto"></div>
+                  <div class="pf"><label>Direccion</label><input class="pinput" [ngModel]="item.address" (ngModelChange)="updateVenue(i,'address',$event)" placeholder="Calle, numero, colonia"></div>
+                  <div class="pf"><label>Hora</label><input class="pinput" [ngModel]="item.time" (ngModelChange)="updateVenue(i,'time',$event)" placeholder="Ej: 5:00 PM"></div>
+                  <div class="pf"><label>URL Google Maps</label><input class="pinput" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenue(i,'mapsUrl',$event)" placeholder="https://maps.google.com/..."></div>
+                  <div class="pf"><label>Tipo de icono</label>
+                    <div class="btn-row">
+                      <button class="chip" [class.active]="item.iconType === 'none' || !item.iconType" (click)="updateVenue(i,'iconType','none');$event.stopPropagation()">Sin icono</button>
+                      <button class="chip" [class.active]="item.iconType === 'emoji'" (click)="updateVenue(i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
+                      <button class="chip" [class.active]="item.iconType === 'image'" (click)="updateVenue(i,'iconType','image');$event.stopPropagation()">Imagen</button>
+                    </div>
+                  </div>
+                  @if (item.iconType === 'emoji') {
+                    <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="item.iconEmoji" (ngModelChange)="updateVenue(i,'iconEmoji',$event)" placeholder="📍"></div>
+                  }
+                  @if (item.iconType === 'image') {
+                    <div class="pf"><label>Imagen de icono</label>
+                      <div class="upload-row">
+                        @if (item.icon) {<span class="file-name">{{getFileName(item.icon)}}</span><button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="updateVenue(i,'icon','');$event.stopPropagation()">X</button>}
+                        @else {<button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Subir</button>}
+                      </div>
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -1392,7 +1413,20 @@ export class BuilderPropsPanelComponent {
   updateVenue(i: number, prop: string, val: any) {
     const cfg=this.canvasState.getConfig();if(!cfg)return;
     (cfg.venues.items[i] as any)[prop]=val;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  uploadVenueIcon(i: number) {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg) return;
+        (cfg.venues.items[i] as any).icon = r.url;
+        this.canvasState.notifyChange();
+      }});
+    };
+    input.click();
   }
 
   addDresscode() {
