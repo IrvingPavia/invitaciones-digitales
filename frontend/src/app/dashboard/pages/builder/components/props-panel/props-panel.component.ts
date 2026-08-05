@@ -678,8 +678,8 @@ import { ApiService } from '../../../../../core/services/api.service';
               @for (item of sec('venues')?.items||[]; track item.id; let i=$index) {
                 <div class="item-card">
                   <div class="item-head">
-                    <span class="item-title">{{ item.title || item.name || 'Sin nombre' }}</span>
-                    <button class="delete-btn" (click)="removeVenue(i);$event.stopPropagation()" title="Eliminar"><span class="material-icons">close</span></button>
+                    
+                    <button class="delete-btn" (click)="removeVenue(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
                   </div>
                   <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="item.title" (ngModelChange)="updateVenue(i,'title',$event)" placeholder="Ej: Ceremonia"></div>
                   <div class="pf"><label>Nombre del lugar</label><input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre del recinto"></div>
@@ -926,8 +926,8 @@ import { ApiService } from '../../../../../core/services/api.service';
               @for (card of sec('dresscode')?.cards||[]; track card.id; let i=$index) {
                 <div class="item-card">
                   <div class="item-head">
-                    <span class="item-title">{{ card.title || 'Sin titulo' }}</span>
-                    <button class="delete-btn" (click)="removeDresscode(i);$event.stopPropagation()" title="Eliminar"><span class="material-icons">close</span></button>
+                    
+                    <button class="delete-btn" (click)="removeDresscode(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
                   </div>
                   <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="card.title" (ngModelChange)="updateDresscode(i,'title',$event)" placeholder="Titulo del ejemplo"></div>
                   <div class="pf"><label>Descripcion</label><textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea></div>
@@ -1207,8 +1207,8 @@ import { ApiService } from '../../../../../core/services/api.service';
     .item-card { padding:8px;margin-bottom:6px;border-radius:5px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px; }
     .item-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:2px; span{font-size:9px;color:rgba(255,255,255,0.3)} }
     .x-btn { background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:12px;padding:2px; &:hover{color:#ef4444} &.mini{position:absolute;top:2px;right:2px;font-size:10px;background:rgba(0,0,0,0.6);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center} }
-    .item-title { font-size:12px;color:rgba(255,255,255,0.8);font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-    .delete-btn { width:28px;height:28px;border-radius:8px;border:none;background:#e84057;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;box-shadow:0 2px 6px rgba(232,64,87,0.3); .material-icons{font-size:16px;font-weight:700} &:hover{background:#d63350;transform:scale(1.08);box-shadow:0 3px 10px rgba(232,64,87,0.4)} }
+    .item-title { font-size:13px;color:white;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .delete-btn { width:24px;height:24px;border-radius:6px;border:none;background:rgba(239,68,68,0.85);color:#ffffff !important;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s;flex-shrink:0; .material-icons{font-size:14px;color:#ffffff !important;opacity:1 !important} &:hover{opacity:0.75} }
     .dress-images-grid { display:flex;gap:6px;margin-top:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch; &::-webkit-scrollbar{display:none} }
     .dress-img-thumb { position:relative;width:56px;height:68px;border-radius:8px;overflow:hidden;border:1px solid rgba(139,92,246,0.2);flex-shrink:0; img{width:100%;height:100%;object-fit:cover} }
     .dress-img-remove { position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,64,87,0.9);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s; .material-icons{font-size:11px} }
