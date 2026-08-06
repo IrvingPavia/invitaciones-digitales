@@ -151,6 +151,51 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
         }
 
+        <div class="accordion" [class.open]="expanded['global-styles']" (click)="toggle('global-styles')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['global-styles'] ? 'expand_more' : 'chevron_right' }}</span><span>Estilos Globales</span></div>
+        </div>
+        @if (expanded['global-styles']) {
+          <div class="accordion-body">
+            <span class="pf-section-title">Encabezados de Seccion</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.sectionHeadingStyle.fontFamily||'script'" (valueChange)="setGlobalStyle('sectionHeadingStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.sectionHeadingStyle.fontSize||36}}px)</label><input type="range" class="pinput-range" min="12" max="72" [ngModel]="cfg()!.globalStyles.sectionHeadingStyle.fontSize||36" (ngModelChange)="setGlobalStyle('sectionHeadingStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.sectionHeadingStyle.color||'#d4a017'" (valueChange)="setGlobalStyle('sectionHeadingStyle','color',$event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Titulos (Degradado)</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.titleStyle.fontFamily||'script'" (valueChange)="setGlobalStyle('titleStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.titleStyle.fontSize||42}}px)</label><input type="range" class="pinput-range" min="12" max="96" [ngModel]="cfg()!.globalStyles.titleStyle.fontSize||42" (ngModelChange)="setGlobalStyle('titleStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color 1</label><app-color-picker [value]="cfg()!.globalStyles.titleStyle.color||'#d4a017'" (valueChange)="setGlobalStyle('titleStyle','color',$event)"></app-color-picker></div>
+            <div class="pf"><label>Color 2</label><app-color-picker [value]="cfg()!.globalStyles.titleStyle.color2||'#f0c040'" (valueChange)="setGlobalStyle('titleStyle','color2',$event)"></app-color-picker></div>
+            <div class="pf"><label>Angulo ({{cfg()!.globalStyles.titleStyle.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="cfg()!.globalStyles.titleStyle.gradientAngle ?? 135" (ngModelChange)="setGlobalStyle('titleStyle','gradientAngle',+$event)"></div>
+            <div class="pf"><label>Intensidad ({{cfg()!.globalStyles.titleStyle.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="cfg()!.globalStyles.titleStyle.gradientIntensity ?? 50" (ngModelChange)="setGlobalStyle('titleStyle','gradientIntensity',+$event)"></div>
+            <div class="pf"><label>Grosor ({{cfg()!.globalStyles.titleStyle.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="cfg()!.globalStyles.titleStyle.fontWeight ?? 400" (ngModelChange)="setGlobalStyle('titleStyle','fontWeight',+$event)"></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Subtitulos</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.subtitleStyle.fontFamily||'sans'" (valueChange)="setGlobalStyle('subtitleStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.subtitleStyle.fontSize||16}}px)</label><input type="range" class="pinput-range" min="10" max="48" [ngModel]="cfg()!.globalStyles.subtitleStyle.fontSize||16" (ngModelChange)="setGlobalStyle('subtitleStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.subtitleStyle.color||'#ffffffb3'" (valueChange)="setGlobalStyle('subtitleStyle','color',$event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Contenido</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.contentStyle.fontFamily||'sans'" (valueChange)="setGlobalStyle('contentStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.contentStyle.fontSize||14}}px)</label><input type="range" class="pinput-range" min="10" max="36" [ngModel]="cfg()!.globalStyles.contentStyle.fontSize||14" (ngModelChange)="setGlobalStyle('contentStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.contentStyle.color||'#ffffffb3'" (valueChange)="setGlobalStyle('contentStyle','color',$event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Separadores</span>
+            <div class="pf"><label>Estilo</label>
+              <app-custom-select [options]="separatorStyleOptions" [value]="cfg()!.globalStyles.separatorStyle.type||'elegant'" (valueChange)="setGlobalSeparator('type',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.separatorStyle.color||'#d4a017'" (valueChange)="setGlobalSeparator('color',$event)"></app-color-picker></div>
+          </div>
+        }
+
         <div class="accordion" [class.open]="expanded['favicon']" (click)="toggle('favicon')">
           <div class="accordion-header"><span class="material-icons">{{ expanded['favicon'] ? 'expand_more' : 'chevron_right' }}</span><span>Favicon de la Landing</span></div>
         </div>
@@ -1173,7 +1218,17 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="ss('dividerType')==='curve'" (click)="setSS('dividerType','curve');$event.stopPropagation()">Curva</button>
                   <button class="chip" [class.active]="ss('dividerType')==='slant'" (click)="setSS('dividerType','slant');$event.stopPropagation()">Diagonal</button>
                   <button class="chip" [class.active]="ss('dividerType')==='zigzag'" (click)="setSS('dividerType','zigzag');$event.stopPropagation()">Zigzag</button>
+                  <button class="chip" [class.active]="ss('dividerType')==='mountains'" (click)="setSS('dividerType','mountains');$event.stopPropagation()">Montañas</button>
+                  <button class="chip" [class.active]="ss('dividerType')==='drops'" (click)="setSS('dividerType','drops');$event.stopPropagation()">Gotas</button>
+                  <button class="chip" [class.active]="ss('dividerType')==='arrow'" (click)="setSS('dividerType','arrow');$event.stopPropagation()">Flecha</button>
                 </div>
+                @if (ss('dividerType') && ss('dividerType') !== 'none') {
+                  <div class="toggle-row" style="margin-top:8px">
+                    <span class="toggle-title">Invertir</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="ss('dividerFlip')" (ngModelChange)="setSS('dividerFlip',$event)"><span class="slider"></span></label>
+                  </div>
+                  <div class="pf"><label>Alto ({{ss('dividerHeight') || 50}}px)</label><input type="range" class="pinput-range" min="20" max="100" [ngModel]="ss('dividerHeight') || 50" (ngModelChange)="setSS('dividerHeight',+$event)"></div>
+                }
               </div>
             }
 
@@ -1196,6 +1251,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="btn-row">
                   <button class="chip" [class.active]="!ss('animation')||ss('animation')==='inherit'" (click)="setSS('animation','inherit');$event.stopPropagation()">Hereda</button>
                   <button class="chip" [class.active]="ss('animation')==='fade-up'" (click)="setSS('animation','fade-up');$event.stopPropagation()">Fade Up</button>
+                  <button class="chip" [class.active]="ss('animation')==='fade-in'" (click)="setSS('animation','fade-in');$event.stopPropagation()">Fade In</button>
+                  <button class="chip" [class.active]="ss('animation')==='slide-left'" (click)="setSS('animation','slide-left');$event.stopPropagation()">Slide Left</button>
+                  <button class="chip" [class.active]="ss('animation')==='slide-right'" (click)="setSS('animation','slide-right');$event.stopPropagation()">Slide Right</button>
                   <button class="chip" [class.active]="ss('animation')==='scale'" (click)="setSS('animation','scale');$event.stopPropagation()">Scale</button>
                   <button class="chip" [class.active]="ss('animation')==='none'" (click)="setSS('animation','none');$event.stopPropagation()">Ninguna</button>
                 </div>
@@ -1411,6 +1469,20 @@ export class BuilderPropsPanelComponent {
     this.canvasState.triggerAutoSave();
   }
 
+  setGlobalStyle(styleKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    (cfg.globalStyles as any)[styleKey][prop] = value;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  setGlobalSeparator(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    (cfg.globalStyles.separatorStyle as any)[prop] = value;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
   applyTemplate(key: string) {
     const tpls: Record<string,any> = {
       elegante:{landingBgColor1:'#0d1117',landingBgColor2:'#1a1a2e',landingBgType:'linear',textPrimary:'#ffffff',textSecondary:'rgba(255,255,255,0.7)',navFooterText:'#d4a017',buttonBg:'#d4a017',buttonText:'#1a1a2e',cardBg:'rgba(255,255,255,0.05)',cardBorder:'rgba(212,160,23,0.3)'},
@@ -1613,6 +1685,12 @@ export class BuilderPropsPanelComponent {
     {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
     {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
     {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'}
+  ];
+
+  separatorStyleOptions: SelectOption[] = [
+    {value:'elegant',label:'Elegante'},{value:'formal',label:'Formal'},{value:'executive',label:'Ejecutivo'},
+    {value:'festive',label:'Festivo'},{value:'animated',label:'Animado'},{value:'minimal',label:'Minimal'},
+    {value:'ornamental',label:'Ornamental'}
   ];
 
   borderStyleOptions: SelectOption[] = [

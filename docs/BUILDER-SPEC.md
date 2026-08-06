@@ -12,7 +12,7 @@
 |------|:---:|:---:|--------|
 | Tema Global (colores) | ✅ | ✅ | Completo + mejoras |
 | Tema Global (fuentes por color) | ✅ | ❌ | FALTA |
-| Estilos Globales (headings/titles/content) | ✅ | ❌ | FALTA |
+| Estilos Globales (headings/titles/content) | ✅ | ✅ | Completo |
 | Fondo Landing | ✅ | ⚠️ | Parcial (falta angle/intensity) |
 | Navbar & Menu | ❌ | ✅ | Solo en Builder |
 | Animación Scroll | ✅ | ✅ | Completo |
@@ -413,9 +413,9 @@ El Configurador tiene un panel completo de SectionStyle en cada sección (inv, d
 
 | Propiedad | Configurador | Builder | Notas |
 |-----------|:---:|:---:|-------|
-| `dividerType` (8 tipos) | ✅ | ✅ (5 tipos: none/wave/curve/slant/zigzag) | Builder omite mountains/drops/arrow |
-| `dividerFlip` | ✅ | ❌ | **FALTA** en Builder |
-| `dividerHeight` (range 20-100) | ✅ | ❌ | **FALTA** en Builder |
+| `dividerType` (8 tipos) | ✅ | ✅ (8 tipos) | Completo |
+| `dividerFlip` | ✅ | ✅ | — |
+| `dividerHeight` (range 20-100) | ✅ | ✅ | — |
 | `dividerStrokeColor` | ✅ | ❌ | **FALTA** en Builder |
 | `dividerStrokeWidth` (range 0-5) | ✅ | ❌ | **FALTA** en Builder |
 | `dividerStrokeOpacity` (range 0-1) | ✅ | ❌ | **FALTA** en Builder |
@@ -442,7 +442,7 @@ El Configurador tiene un panel completo de SectionStyle en cada sección (inv, d
 
 | Propiedad | Configurador | Builder | Notas |
 |-----------|:---:|:---:|-------|
-| `animation` (inherit/fade-up/fade-in/slide-left/slide-right/scale/none) | ✅ (7 opciones) | ✅ (4: inherit/fade-up/scale/none) | Builder omite fade-in, slide-left, slide-right |
+| `animation` (inherit/fade-up/fade-in/slide-left/slide-right/scale/none) | ✅ (7 opciones) | ✅ (7 opciones) | Completo |
 
 ### 13.5 Adornos de Título
 
