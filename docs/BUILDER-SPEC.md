@@ -416,26 +416,26 @@ El Configurador tiene un panel completo de SectionStyle en cada sección (inv, d
 | `dividerType` (8 tipos) | ✅ | ✅ (8 tipos) | Completo |
 | `dividerFlip` | ✅ | ✅ | — |
 | `dividerHeight` (range 20-100) | ✅ | ✅ | — |
-| `dividerStrokeColor` | ✅ | ❌ | **FALTA** en Builder |
-| `dividerStrokeWidth` (range 0-5) | ✅ | ❌ | **FALTA** en Builder |
-| `dividerStrokeOpacity` (range 0-1) | ✅ | ❌ | **FALTA** en Builder |
+| `dividerStrokeColor` | ✅ | ✅ | — |
+| `dividerStrokeWidth` (range 0-5) | ✅ | ✅ | — |
+| `dividerStrokeOpacity` (range 0-1) | ✅ | ✅ | — |
 
 ### 13.3 Override de Texto
 
 | Propiedad | Configurador | Builder | Notas |
 |-----------|:---:|:---:|-------|
-| `sectionHeadingFont` | ✅ | ❌ | **FALTA** |
-| `sectionHeadingSize` | ✅ | ❌ | **FALTA** |
-| `sectionHeadingColor` | ✅ | ✅ (como "Titulos") | — |
-| `headingFont` | ✅ | ❌ | **FALTA** |
-| `headingFontSize` | ✅ | ❌ | **FALTA** |
+| `sectionHeadingFont` | ✅ | ✅ | — |
+| `sectionHeadingSize` | ✅ | ❌ | Pendiente (solo font/color implementados) |
+| `sectionHeadingColor` | ✅ | ✅ | — |
+| `headingFont` | ✅ | ✅ | — |
+| `headingFontSize` | ✅ | ❌ | Pendiente |
 | `headingColor` (Color 1) | ✅ | ✅ | — |
-| `headingColor2` (Color 2) | ✅ | ❌ | **FALTA** |
-| `headingGradientAngle` | ✅ | ❌ | **FALTA** |
-| `headingGradientIntensity` | ✅ | ❌ | **FALTA** |
-| `headingFontWeight` | ✅ | ❌ | **FALTA** |
-| `contentFont` | ✅ | ❌ | **FALTA** |
-| `contentFontSize` | ✅ | ❌ | **FALTA** |
+| `headingColor2` (Color 2) | ✅ | ✅ | — |
+| `headingGradientAngle` | ✅ | ❌ | Pendiente |
+| `headingGradientIntensity` | ✅ | ❌ | Pendiente |
+| `headingFontWeight` | ✅ | ❌ | Pendiente |
+| `contentFont` | ✅ | ✅ | — |
+| `contentFontSize` | ✅ | ❌ | Pendiente |
 | `contentColor` | ✅ | ✅ | — |
 
 ### 13.4 Animación por Sección
