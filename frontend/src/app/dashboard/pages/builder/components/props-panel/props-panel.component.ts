@@ -66,10 +66,22 @@ import { ApiService } from '../../../../../core/services/api.service';
         @if (expanded['colors']) {
           <div class="accordion-body">
             <div class="pf"><label>Texto primario</label><app-color-picker [value]="cfg()!.theme.textPrimary || '#fff'" (valueChange)="setTheme('textPrimary', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente primaria</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.textPrimaryFont || ''" (valueChange)="setTheme('textPrimaryFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Texto secundario</label><app-color-picker [value]="cfg()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" (valueChange)="setTheme('textSecondary', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente secundaria</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.textSecondaryFont || ''" (valueChange)="setTheme('textSecondaryFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Acento (nav/footer)</label><app-color-picker [value]="cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setTheme('navFooterText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente nav/footer</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.navFooterFont || ''" (valueChange)="setTheme('navFooterFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Botones fondo</label><app-color-picker [value]="cfg()!.theme.buttonBg || '#d4a017'" (valueChange)="setTheme('buttonBg', $event)"></app-color-picker></div>
             <div class="pf"><label>Botones texto</label><app-color-picker [value]="cfg()!.theme.buttonText || '#1a1a2e'" (valueChange)="setTheme('buttonText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente botones</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.buttonFont || ''" (valueChange)="setTheme('buttonFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Fondo cards</label><app-color-picker [value]="cfg()!.theme.cardBg || 'rgba(255,255,255,0.05)'" (valueChange)="setTheme('cardBg', $event)"></app-color-picker></div>
             <div class="pf"><label>Borde cards</label><app-color-picker [value]="cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setTheme('cardBorder', $event)"></app-color-picker></div>
           </div>
@@ -102,6 +114,8 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="btn-row">
               <button class="chip" [class.active]="!cfg()!.theme.scrollAnimation || cfg()!.theme.scrollAnimation === 'fade-up'" (click)="setTheme('scrollAnimation','fade-up');$event.stopPropagation()">Fade Up</button>
               <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'fade-in'" (click)="setTheme('scrollAnimation','fade-in');$event.stopPropagation()">Fade In</button>
+              <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'slide-left'" (click)="setTheme('scrollAnimation','slide-left');$event.stopPropagation()">Slide Left</button>
+              <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'slide-right'" (click)="setTheme('scrollAnimation','slide-right');$event.stopPropagation()">Slide Right</button>
               <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'scale'" (click)="setTheme('scrollAnimation','scale');$event.stopPropagation()">Scale</button>
               <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'none'" (click)="setTheme('scrollAnimation','none');$event.stopPropagation()">Ninguna</button>
             </div>
@@ -319,6 +333,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontSize||32" (ngModelChange)="setSecNested('intro','phraseStyle','fontSize',+$event)" min="12" max="80"></div>
               <div class="pf"><label>Color</label><app-color-picker [value]="sec('intro')?.phraseStyle?.color||'#ffffff'" (valueChange)="setSecNested('intro','phraseStyle','color',$event)"></app-color-picker></div>
+              <div class="pf"><label>Grosor ({{sec('intro')?.phraseStyle?.fontWeight||400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('intro')?.phraseStyle?.fontWeight||400" (ngModelChange)="setSecNested('intro','phraseStyle','fontWeight',+$event)"></div>
             </div>
           }
 
@@ -1535,6 +1550,15 @@ export class BuilderPropsPanelComponent {
 
   // Custom select option arrays
   fontOptions: SelectOption[] = [
+    {value:'sans',label:'Lato (Sans)'},{value:'montserrat',label:'Montserrat'},{value:'raleway',label:'Raleway'},
+    {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
+    {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
+    {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
+    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'}
+  ];
+
+  themeFontOptions: SelectOption[] = [
+    {value:'',label:'Hereda (default)'},
     {value:'sans',label:'Lato (Sans)'},{value:'montserrat',label:'Montserrat'},{value:'raleway',label:'Raleway'},
     {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
     {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},

@@ -44,14 +44,14 @@
 | `cardBg` | ✅ | ✅ | — |
 | `cardBorder` | ✅ | ✅ | — |
 | `textPrimary` | ✅ | ✅ | — |
-| `textPrimaryFont` | ✅ (select) | ❌ | **FALTA** en Builder |
+| `textPrimaryFont` | ✅ (select) | ✅ | — |
 | `textSecondary` | ✅ | ✅ | — |
-| `textSecondaryFont` | ✅ (select) | ❌ | **FALTA** en Builder |
+| `textSecondaryFont` | ✅ (select) | ✅ | — |
 | `navFooterText` | ✅ | ✅ | — |
-| `navFooterFont` | ✅ (select) | ❌ | **FALTA** en Builder |
+| `navFooterFont` | ✅ (select) | ✅ | — |
 | `buttonBg` | ✅ | ✅ | — |
 | `buttonText` | ✅ | ✅ | — |
-| `buttonFont` | ✅ (select) | ❌ | **FALTA** en Builder |
+| `buttonFont` | ✅ (select) | ✅ | — |
 
 ### 1.2 Fondo de la Landing (`theme.landingBg*`)
 
@@ -109,7 +109,7 @@
 
 | Propiedad | Configurador | Builder | Notas |
 |-----------|:---:|:---:|-------|
-| `theme.scrollAnimation` | ✅ (6 opciones) | ✅ (4 opciones) | Builder omite slide-left, slide-right |
+| `theme.scrollAnimation` | ✅ (6 opciones) | ✅ (6 opciones) | Completo |
 
 ### 1.6 Favicon
 
@@ -155,7 +155,7 @@
 | `phraseStyle.fontFamily` | ✅ | ✅ | — |
 | `phraseStyle.fontSize` | ✅ | ✅ | — |
 | `phraseStyle.color` | ✅ | ✅ | — |
-| `phraseStyle.fontWeight` | ✅ (range) | ❌ | **FALTA** en Builder |
+| `phraseStyle.fontWeight` | ✅ (range) | ✅ | — |
 | `background` (upload) | ✅ | ✅ | — |
 | `duration` | ✅ | ✅ (stepper) | — |
 | `videoStart/videoEnd` (trimmer) | ✅ | ✅ | — |
