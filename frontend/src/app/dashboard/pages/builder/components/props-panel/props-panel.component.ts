@@ -1228,18 +1228,39 @@ import { ApiService } from '../../../../../core/services/api.service';
                     <label class="toggle-switch"><input type="checkbox" [ngModel]="ss('dividerFlip')" (ngModelChange)="setSS('dividerFlip',$event)"><span class="slider"></span></label>
                   </div>
                   <div class="pf"><label>Alto ({{ss('dividerHeight') || 50}}px)</label><input type="range" class="pinput-range" min="20" max="100" [ngModel]="ss('dividerHeight') || 50" (ngModelChange)="setSS('dividerHeight',+$event)"></div>
+                  <div class="pf"><label>Borde grosor ({{ss('dividerStrokeWidth') || 0}}px)</label><input type="range" class="pinput-range" min="0" max="5" step="0.5" [ngModel]="ss('dividerStrokeWidth') || 0" (ngModelChange)="setSS('dividerStrokeWidth',+$event)"></div>
+                  @if (ss('dividerStrokeWidth') > 0) {
+                    <div class="pf"><label>Color borde</label><app-color-picker [value]="ss('dividerStrokeColor')||'#ffffff'" (valueChange)="setSS('dividerStrokeColor',$event)"></app-color-picker></div>
+                    <div class="pf"><label>Opacidad borde ({{(ss('dividerStrokeOpacity') ?? 1) * 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="(ss('dividerStrokeOpacity') ?? 1) * 100" (ngModelChange)="setSS('dividerStrokeOpacity',$event / 100)"></div>
+                  }
                 }
               </div>
             }
 
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
-              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Colores de Texto</span></div>
+              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>
             @if (expanded['sec-txt']) {
               <div class="accordion-body">
-                <div class="pf"><label>Titulos</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
-                <div class="pf"><label>Contenido</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
-                <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar</button>
+                <span class="pf-section-title">Encabezado</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+
+                <span class="pf-section-title" style="margin-top:8px">Titulos</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color 2</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+
+                <span class="pf-section-title" style="margin-top:8px">Contenido</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('contentFont')||''" (valueChange)="setSS('contentFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
+                <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar todo</button>
               </div>
             }
 
@@ -1443,7 +1464,7 @@ export class BuilderPropsPanelComponent {
     this.canvasState.triggerAutoSave();
   }
 
-  clearColors() { this.setSS('headingColor',''); this.setSS('contentColor',''); }
+  clearColors() { this.setSS('headingColor',''); this.setSS('headingColor2',''); this.setSS('contentColor',''); this.setSS('sectionHeadingColor',''); this.setSS('sectionHeadingFont',''); this.setSS('headingFont',''); this.setSS('contentFont',''); }
 
   hasSectionStyle(): boolean {
     const key = this.canvasState.selectedSection(); if (!key) return false;
