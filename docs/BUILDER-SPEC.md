@@ -544,4 +544,111 @@ Animación del texto de instrucción (pulse, bounce, fade, slide-up, glow, none)
 
 ---
 
+## 17. REDISEÑO DEL COLOR PICKER
+
+El componente `ColorPickerComponent` actual debe rediseñarse para tener un estilo profesional tipo app de diseño. El nuevo diseño aplica a TODOS los color pickers del Builder y del Configurador, incluyendo dispositivos móviles.
+
+### Diseño objetivo
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│   ┌─────────────────────────────┐   │
+│   │                             │   │
+│   │    Área de saturación /     │   │
+│   │    luminosidad (2D)         │   │
+│   │         ○ (selector)        │   │
+│   │                             │   │
+│   │                             │   │
+│   └─────────────────────────────┘   │
+│                                     │
+│                            100      │  ← Opacidad (%)
+│   ┌═══════════════════════════○─┐   │  ← Slider de opacidad
+│   └─────────────────────────────┘   │     (gradiente del color → transparente)
+│                                     │
+│   ◉◉  FFFFFF              ⊕        │  ← Paleta presets | Hex input | Agregar
+│   ◉◉                               │
+│                                     │
+│   ┌─────────────────────────────┐   │
+│   │ | █████████████████████████ │   │  ← Slider de Hue (arcoíris horizontal)
+│   └─────────────────────────────┘   │
+└─────────────────────────────────────┘
+```
+
+### Componentes del picker
+
+1. **Área 2D (saturación + luminosidad)**: Cuadrado/rectángulo grande con gradiente. Eje X = saturación (izq gris → der puro). Eje Y = luminosidad (arriba claro → abajo oscuro). Selector circular blanco con borde.
+
+2. **Slider de opacidad**: Barra horizontal con gradiente del color seleccionado hacia transparente (cuadrícula de fondo). Thumb circular blanco. Valor numérico (0-100) a la derecha.
+
+3. **Barra inferior**:
+   - Izquierda: Botón de paleta de presets (4 círculos pequeños que muestran colores guardados)
+   - Centro: Input hexadecimal editable (sin #, 6 caracteres)
+   - Derecha: Botón "+" para guardar color a presets
+
+4. **Slider de Hue**: Barra arcoíris horizontal (rojo→amarillo→verde→cian→azul→magenta→rojo). Indicador vertical tipo línea o thumb delgado.
+
+### Requisitos funcionales
+
+- El picker se abre al hacer click en el swatch de color (comportamiento actual)
+- **Aplicación en tiempo real**: El color se aplica/renderiza en vivo conforme el usuario mueve el selector en el área 2D, el slider de hue o el de opacidad. No hay botón de confirmar.
+- **Cerrar**: Click fuera del picker (click outside dismiss). No se necesita botón de aceptar.
+- El botón "+" guarda el color actual en la paleta de presets/favoritos, NO es para confirmar.
+- Soporte touch completo: arrastrar en área 2D, sliders, todo funcional en mobile
+- El área 2D debe ser suficientemente grande para precisión en mobile (mínimo 200px de alto)
+- Border-radius en esquinas del contenedor del picker
+- Fondo oscuro/negro (#000 o near-black) para el área de controles
+- Los sliders deben tener thumb circular con borde blanco
+- El input hex debe ser editable directamente (teclado)
+- Paleta de presets: máximo 8 colores guardados, persisten por sesión
+- El picker debe posicionarse correctamente (no cortarse por overflow del panel)
+- En mobile: el picker podría abrirse como modal/overlay centrado en pantalla
+
+### Diferencias con el picker actual
+
+| Aspecto | Actual | Nuevo |
+|---------|--------|-------|
+| Layout | Vertical compacto | Profesional con área 2D grande |
+| Área de color | Strip vertical pequeño | Cuadrado 2D (sat × lum) |
+| Hue | Integrado en el área | Slider horizontal separado abajo |
+| Opacidad | Toggle opcional | Siempre visible como slider |
+| Presets | No tiene | 8 colores guardables |
+| Hex input | Existe | Centrado, más prominente |
+| Mobile | Se corta a veces | Modal centrado, touch-friendly |
+
+---
+
+## 18. AJUSTES Y BUGS PENDIENTES (Checklist)
+
+Sección para ir registrando detalles visuales, bugs y ajustes menores que se detectan durante el uso del Builder.
+
+### Canvas (Desktop)
+
+- [x] **Excedente de BG en laterales del canvas**: Después de agregar los bordes laterales para marcar la sección activa, se nota un excedente del fondo (background) que se desborda por los costados izquierdo y derecho. Afecta a:
+  - Pantalla de Inicio (envelope)
+  - Intro
+  - Navbar del menú
+  - Botón "Volver" (al hacer scroll hacia abajo)
+  
+  El fondo de esas secciones se extiende más allá del ancho del canvas, dejando una franja visible entre el borde del contenido y el borde lateral de selección. Hay que asegurar que los componentes full-width respeten el ancho del canvas sin overflow lateral.
+  > **Fix**: Se reemplazó `border-left/right: 3px solid` por `box-shadow: inset 3px 0 0` — el indicador ya no ocupa espacio real en el layout.
+
+- [ ] **Textos del Hero se muestran como bloques de color sin texto**: Al cambiar entre eventos (navegando de un evento a otro y entrando al Builder), los textos con gradiente del Hero (nombres de celebrantes, descripción del evento) se renderizan como rectángulos sólidos de color sin el texto visible. El gradiente `-webkit-background-clip: text` no se aplica correctamente.
+  - Ocurre intermitentemente al cambiar entre eventos
+  - Posible causa: el componente Hero se reutiliza sin re-renderizar los estilos del gradiente, o las CSS custom properties quedan en estado inconsistente durante la transición
+  - Posible fix: forzar re-render del hero al cambiar de evento (destruir/recrear con `*ngIf` o invalidar los estilos)
+
+### Mobile (dispositivo físico)
+
+- [ ] **Parpadeo del canvas y panel de propiedades en Galería**: En dispositivo móvil físico (Android Chrome), al estar en la sección Galería con fotos cargadas, el canvas y el panel de propiedades parpadean de forma intermitente y repetitiva. El parpadeo ocurre:
+  - Al cargar/subir imágenes nuevas
+  - Al hacer scroll por el canvas cuando la galería tiene fotos
+  - Es un parpadeo rápido que alterna entre el estado normal (canvas + panel visibles) y un estado donde el panel de propiedades colapsa y el canvas se redimensiona momentáneamente
+  
+  **Observaciones**: El bug no se reproduce al grabar la pantalla del dispositivo. Solo se percibe visualmente en uso directo. En la segunda captura se aprecia que el acordeón "Fotos" desaparece momentáneamente y el canvas ocupa más espacio, como si el panel se ocultara y volviera a aparecer.
+  
+  **Posible causa**: Podría ser un re-render excesivo provocado por el `lazy loading` de las imágenes de la galería que dispara eventos de resize/layout shift al cargar cada imagen, causando que Angular recalcule el layout del flex container (canvas + panel). Otra posibilidad: las señales (signals) del `photos()` se actualizan repetidamente provocando change detection cycles que redibujan el panel.
+
+---
+
 *Última actualización: Agosto 2026*

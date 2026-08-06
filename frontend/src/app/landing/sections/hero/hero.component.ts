@@ -43,7 +43,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
            [style.font-family]="getFontFamily(config.eventDescriptionStyle?.fontFamily)"
            [style.font-size.px]="config.eventDescriptionStyle?.fontSize || 22"
            [style.font-weight]="config.eventDescriptionStyle?.fontWeight || 400"
-           [style.background]="getEventDescGradient()"
+           [style.background-image]="getEventDescGradient()"
            [style.-webkit-background-clip]="'text'"
            [style.background-clip]="'text'"
            [style.-webkit-text-fill-color]="'transparent'"
@@ -53,7 +53,7 @@ import { HeroConfig, Event } from '../../../core/models/models';
             [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
             [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
             [style.font-weight]="config.celebrantNamesStyle?.fontWeight || 400"
-            [style.background]="getGradient()"
+            [style.background-image]="getGradient()"
             [style.-webkit-background-clip]="'text'"
             [style.background-clip]="'text'"
             [style.-webkit-text-fill-color]="'transparent'"
@@ -313,18 +313,24 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     const s = this.config.eventDescriptionStyle;
     const c1 = s?.color1 || '#ffffff';
     const c2 = s?.color2 || '';
-    if (!c2) return `linear-gradient(0deg, ${c1}, ${c1})`;
+    const validHex = /^#[0-9a-fA-F]{3,8}$/;
+    const safe1 = validHex.test(c1) ? c1 : '#ffffff';
+    if (!c2 || !validHex.test(c2)) return `linear-gradient(0deg, ${safe1}, ${safe1})`;
     const angle = s?.gradientAngle ?? 135;
     const intensity = s?.gradientIntensity ?? 50;
-    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
+    return `linear-gradient(${angle}deg, ${safe1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
   }
 
   getGradient(): string {
     const s = this.config.celebrantNamesStyle;
     const c1 = s?.color1 || '#d4a017';
-    const c2 = s?.color2 || '#b8860b';
+    const c2 = s?.color2 || c1;
     const angle = s?.gradientAngle ?? 135;
-    return `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+    // Validate colors are proper hex
+    const validHex = /^#[0-9a-fA-F]{6}$/;
+    const safe1 = validHex.test(c1) ? c1 : '#d4a017';
+    const safe2 = validHex.test(c2) ? c2 : safe1;
+    return `linear-gradient(${angle}deg, ${safe1}, ${safe2})`;
   }
 
   getCountdownBorderStyle(): string {

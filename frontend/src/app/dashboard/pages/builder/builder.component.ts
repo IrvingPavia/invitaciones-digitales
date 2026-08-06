@@ -333,7 +333,7 @@ interface BuilderSection {
     }
     .preview-iframe { width: 100%; height: 100%; border: none; }
     .builder-panel {
-      background: rgba(10,10,20,0.9); backdrop-filter: blur(12px);
+      background: rgba(10,10,20,0.98);
       border-right: 1px solid rgba(139,92,246,0.1);
       overflow-y: auto;
     }
@@ -341,9 +341,10 @@ interface BuilderSection {
       border-right: none; border-left: 1px solid rgba(139,92,246,0.1);
       width: 280px; z-index: 20;
       display: none; flex-direction: column; overflow: hidden;
+      min-height: 0; height: 100%;
     }
     .builder-panel-right.panel-visible { display: flex; }
-    .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; }
+    .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; min-height: 0; }
     .builder-panel-header {
       display: flex; align-items: center; justify-content: center;
       padding: 12px 14px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7);
@@ -490,10 +491,9 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
-      cursor: pointer; position: relative; transition: border-color 0.2s, box-shadow 0.2s;
-      border-left: 3px solid transparent; border-right: 3px solid transparent;
-      &:hover { border-left-color: rgba(139,92,246,0.4); border-right-color: rgba(139,92,246,0.4); box-shadow: inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
-      &.section-active { border-left-color: rgba(139,92,246,0.7); border-right-color: rgba(139,92,246,0.7); box-shadow: inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
+      cursor: pointer; position: relative; transition: box-shadow 0.2s;
+      &:hover { box-shadow: inset 3px 0 0 rgba(139,92,246,0.4), inset -3px 0 0 rgba(139,92,246,0.4), inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
+      &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper */
