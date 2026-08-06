@@ -637,6 +637,7 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
   - Ocurre intermitentemente al cambiar entre eventos
   - Posible causa: el componente Hero se reutiliza sin re-renderizar los estilos del gradiente, o las CSS custom properties quedan en estado inconsistente durante la transición
   - Posible fix: forzar re-render del hero al cambiar de evento (destruir/recrear con `*ngIf` o invalidar los estilos)
+  > **Fix parcial**: Se cambió `[style.background]` por `[style.background-image]` en hero.component.ts — el shorthand `background` reseteaba `background-clip` al reasignarse. Con `background-image` el clip se preserva. Ahora al cambiar colores en el builder el texto siempre muestra el gradiente correctamente. El bug intermitente al cambiar de evento podría persistir (race condition de navegación).
 
 ### Mobile (dispositivo físico)
 
