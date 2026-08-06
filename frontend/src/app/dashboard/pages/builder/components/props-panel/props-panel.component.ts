@@ -1188,6 +1188,25 @@ import { ApiService } from '../../../../../core/services/api.service';
             </div>
           }
 
+          <div class="accordion" [class.open]="expanded['rsvp-fields']" (click)="toggle('rsvp-fields')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['rsvp-fields'] ? 'expand_more' : 'chevron_right' }}</span><span>Campos de Registro</span></div>
+          </div>
+          @if (expanded['rsvp-fields']) {
+            <div class="accordion-body">
+              <p class="hint">Configura los campos del formulario. Nombre siempre es obligatorio.</p>
+              @for (field of getRegFields(); track field.key; let i=$index) {
+                <div class="item-card" style="flex-direction:row;align-items:center;gap:6px;">
+                  <span style="font-size:10px;color:rgba(255,255,255,0.5);min-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{field.label}}</span>
+                  <button class="chip" [class.active]="field.required" (click)="toggleRegFieldRequired(i);$event.stopPropagation()" style="font-size:9px;padding:3px 6px">{{field.required ? 'Oblig.' : 'Opc.'}}</button>
+                  @if (field.key !== 'name') {
+                    <button class="x-btn" (click)="removeRegField(i);$event.stopPropagation()">X</button>
+                  }
+                </div>
+              }
+              <button class="sm-btn" style="margin-top:6px;" (click)="addRegField();$event.stopPropagation()">+ Agregar campo</button>
+            </div>
+          }
+
           <div class="accordion" [class.open]="expanded['rsvp-appear']" (click)="toggle('rsvp-appear')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['rsvp-appear'] ? 'expand_more' : 'chevron_right' }}</span><span>Apariencia de Cards</span></div>
           </div>
@@ -1640,6 +1659,39 @@ export class BuilderPropsPanelComponent {
     if (!section.sectionStyle) section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
     if (!section.sectionStyle.headingOrnament) section.sectionStyle.headingOrnament = { type: 'none', position: 'below', color: '#d4a017', size: 1 };
     (section.sectionStyle.headingOrnament as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  // Registration fields helpers
+  getRegFields(): any[] {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return [];
+    return cfg.rsvp?.registrationFields || [{ key: 'name', label: 'Nombre', type: 'text', enabled: true, required: true }];
+  }
+
+  toggleRegFieldRequired(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!cfg.rsvp.registrationFields) cfg.rsvp.registrationFields = [{ key: 'name', label: 'Nombre', type: 'text', enabled: true, required: true }];
+    const field = cfg.rsvp.registrationFields[index];
+    if (field && field.key !== 'name') { field.required = !field.required; }
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  removeRegField(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!cfg.rsvp.registrationFields) return;
+    if (cfg.rsvp.registrationFields[index]?.key === 'name') return;
+    cfg.rsvp.registrationFields.splice(index, 1);
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  addRegField() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!cfg.rsvp.registrationFields) cfg.rsvp.registrationFields = [{ key: 'name', label: 'Nombre', type: 'text', enabled: true, required: true }];
+    const key = 'field_' + Date.now();
+    cfg.rsvp.registrationFields.push({ key, label: 'Nuevo campo', type: 'text', enabled: true, required: false });
     this.canvasState.isDirty.set(true);
     this.canvasState.notifyChange();
   }
