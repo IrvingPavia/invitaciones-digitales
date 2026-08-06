@@ -1266,19 +1266,25 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Fuente</label>
                   <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
                 </div>
+                <div class="pf"><label>Tamano ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
                 <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
 
                 <span class="pf-section-title" style="margin-top:8px">Titulos</span>
                 <div class="pf"><label>Fuente</label>
                   <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
                 </div>
+                <div class="pf"><label>Tamano ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
                 <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
                 <div class="pf"><label>Color 2</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+                <div class="pf"><label>Angulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+                <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
 
                 <span class="pf-section-title" style="margin-top:8px">Contenido</span>
                 <div class="pf"><label>Fuente</label>
                   <app-custom-select [options]="themeFontOptions" [value]="ss('contentFont')||''" (valueChange)="setSS('contentFont',$event)"></app-custom-select>
                 </div>
+                <div class="pf"><label>Tamano ({{ss('contentFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('contentFontSize')||''" (ngModelChange)="setSS('contentFontSize',$event ? +$event : '')" min="10" max="36" placeholder="Hereda"></div>
                 <div class="pf"><label>Color</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
                 <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar todo</button>
               </div>
@@ -1297,6 +1303,20 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="ss('animation')==='slide-right'" (click)="setSS('animation','slide-right');$event.stopPropagation()">Slide Right</button>
                   <button class="chip" [class.active]="ss('animation')==='scale'" (click)="setSS('animation','scale');$event.stopPropagation()">Scale</button>
                   <button class="chip" [class.active]="ss('animation')==='none'" (click)="setSS('animation','none');$event.stopPropagation()">Ninguna</button>
+                </div>
+              </div>
+            }
+
+            <div class="accordion" [class.open]="expanded['sec-presets']" (click)="toggle('sec-presets')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-presets'] ? 'expand_more' : 'chevron_right' }}</span><span>Presets Rapidos</span></div>
+            </div>
+            @if (expanded['sec-presets']) {
+              <div class="accordion-body">
+                <div class="btn-row">
+                  <button class="chip" (click)="applySectionPreset('light');$event.stopPropagation()">☀ Claro</button>
+                  <button class="chip" (click)="applySectionPreset('dark');$event.stopPropagation()">🌙 Oscuro</button>
+                  <button class="chip" (click)="applySectionPreset('wine');$event.stopPropagation()">🍷 Vino</button>
+                  <button class="chip" (click)="applySectionPreset('transparent');$event.stopPropagation()">◻ Transparente</button>
                 </div>
               </div>
             }
@@ -1541,6 +1561,17 @@ export class BuilderPropsPanelComponent {
     (sec.sectionIcon as any)[prop] = value;
     this.canvasState.isDirty.set(true);
     this.canvasState.notifyChange();
+  }
+
+  applySectionPreset(preset: string) {
+    const presets: Record<string, any> = {
+      light: { bgType: 'solid', bgColor1: '#ffffff', headingColor: '#1a1a2e', contentColor: '#333333', dividerType: 'wave' },
+      dark: { bgType: 'solid', bgColor1: '#0d1117', headingColor: '#ffffff', contentColor: 'rgba(255,255,255,0.8)', dividerType: 'curve' },
+      wine: { bgType: 'linear', bgColor1: '#2d1525', bgColor2: '#1a0a14', headingColor: '#f4a7c1', contentColor: 'rgba(255,255,255,0.7)', dividerType: 'slant' },
+      transparent: { bgType: 'inherit', headingColor: '', contentColor: '', dividerType: 'none' }
+    };
+    const p = presets[preset]; if (!p) return;
+    Object.keys(p).forEach(k => this.setSS(k, p[k]));
   }
 
   applyTemplate(key: string) {
