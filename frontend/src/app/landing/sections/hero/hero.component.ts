@@ -313,9 +313,9 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     const s = this.config.eventDescriptionStyle;
     const c1 = s?.color1 || '#ffffff';
     const c2 = s?.color2 || '';
-    const validHex = /^#[0-9a-fA-F]{3,8}$/;
-    const safe1 = validHex.test(c1) ? c1 : '#ffffff';
-    if (!c2 || !validHex.test(c2)) return `linear-gradient(0deg, ${safe1}, ${safe1})`;
+    const validColor = /^(#[0-9a-fA-F]{3,8}|rgba?\(.+\))$/;
+    const safe1 = validColor.test(c1) ? c1 : '#ffffff';
+    if (!c2 || !validColor.test(c2)) return `linear-gradient(0deg, ${safe1}, ${safe1})`;
     const angle = s?.gradientAngle ?? 135;
     const intensity = s?.gradientIntensity ?? 50;
     return `linear-gradient(${angle}deg, ${safe1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
@@ -326,10 +326,10 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     const c1 = s?.color1 || '#d4a017';
     const c2 = s?.color2 || c1;
     const angle = s?.gradientAngle ?? 135;
-    // Validate colors are proper hex
-    const validHex = /^#[0-9a-fA-F]{6}$/;
-    const safe1 = validHex.test(c1) ? c1 : '#d4a017';
-    const safe2 = validHex.test(c2) ? c2 : safe1;
+    // Validate colors (hex or rgba)
+    const validColor = /^(#[0-9a-fA-F]{6}|rgba?\(.+\))$/;
+    const safe1 = validColor.test(c1) ? c1 : '#d4a017';
+    const safe2 = validColor.test(c2) ? c2 : safe1;
     return `linear-gradient(${angle}deg, ${safe1}, ${safe2})`;
   }
 

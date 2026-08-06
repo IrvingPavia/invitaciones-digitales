@@ -476,7 +476,7 @@ export class ColorPickerComponent implements OnInit, OnChanges {
   private emit() {
     // Validate hex is proper format before emitting
     if (!/^#[0-9a-fA-F]{6}$/.test(this.hexColor)) return;
-    if (!this.showOpacity || this.opacityPercent === 100) {
+    if (this.opacityPercent >= 100) {
       this.valueChange.emit(this.hexColor);
     } else {
       const r = parseInt(this.hexColor.slice(1, 3), 16);

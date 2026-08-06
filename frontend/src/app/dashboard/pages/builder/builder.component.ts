@@ -488,6 +488,12 @@ interface BuilderSection {
     .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: 500px; cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
+    .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: layout style; }
+    .preview-mode-canvas ::ng-deep .gallery-3d,
+    .preview-mode-canvas ::ng-deep .gallery-stack,
+    .preview-mode-canvas ::ng-deep .gallery-flip,
+    .preview-mode-canvas ::ng-deep .gallery-slideshow,
+    .preview-mode-canvas ::ng-deep .gallery-grid { min-height: 250px; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
