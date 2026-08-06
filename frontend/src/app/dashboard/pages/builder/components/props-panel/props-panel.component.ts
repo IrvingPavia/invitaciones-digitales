@@ -727,6 +727,11 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Alineacion</label>
                     <app-custom-select [options]="textAlignOptions" [value]="card.textAlign||'center'" (valueChange)="updateCard('details',i,'textAlign',$event)"></app-custom-select>
                   </div>
+                  <div class="toggle-row">
+                    <span class="toggle-title">Fondo</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="card.showCardBg !== false" (ngModelChange)="updateCard('details',i,'showCardBg',$event)"><span class="slider"></span></label>
+                  </div>
+                  <div class="pf"><label>Esquinas ({{card.cardBorderRadius ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="card.cardBorderRadius ?? 16" (ngModelChange)="updateCard('details',i,'cardBorderRadius',+$event)"></div>
                 </div>
               }
             </div>
@@ -804,6 +809,10 @@ import { ApiService } from '../../../../../core/services/api.service';
                       </div>
                     </div>
                   }
+                  <div class="toggle-row" style="margin-top:6px">
+                    <span class="toggle-title">Fondo</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="item.showCardBg !== false" (ngModelChange)="updateVenue(i,'showCardBg',$event)"><span class="slider"></span></label>
+                  </div>
                 </div>
               }
             </div>
@@ -1045,6 +1054,11 @@ import { ApiService } from '../../../../../core/services/api.service';
                       }
                     </div>
                   </div>
+                  <div class="toggle-row" style="margin-top:6px">
+                    <span class="toggle-title">Fondo</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="card.showCardBg !== false" (ngModelChange)="updateDresscode(i,'showCardBg',$event)"><span class="slider"></span></label>
+                  </div>
+                  <div class="pf"><label>Esquinas ({{card.cardBorderRadius ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="card.cardBorderRadius ?? 16" (ngModelChange)="updateDresscode(i,'cardBorderRadius',+$event)"></div>
                 </div>
               }
             </div>
@@ -1320,6 +1334,33 @@ import { ApiService } from '../../../../../core/services/api.service';
                 </div>
               </div>
             }
+
+            <div class="accordion" [class.open]="expanded['sec-ornament']" (click)="toggle('sec-ornament')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-ornament'] ? 'expand_more' : 'chevron_right' }}</span><span>Adorno de Titulo</span></div>
+            </div>
+            @if (expanded['sec-ornament']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Tipo</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="getOrnamentType()==='none'" (click)="setOrnament('type','none');$event.stopPropagation()">Ninguno</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='line'" (click)="setOrnament('type','line');$event.stopPropagation()">Linea</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='dots'" (click)="setOrnament('type','dots');$event.stopPropagation()">Puntos</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='sparkles'" (click)="setOrnament('type','sparkles');$event.stopPropagation()">Destellos</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='flourish'" (click)="setOrnament('type','flourish');$event.stopPropagation()">Floritura</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='dash'" (click)="setOrnament('type','dash');$event.stopPropagation()">Guion</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='arrows'" (click)="setOrnament('type','arrows');$event.stopPropagation()">Flechas</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='wave'" (click)="setOrnament('type','wave');$event.stopPropagation()">Onda</button>
+                  </div>
+                </div>
+                @if (getOrnamentType() !== 'none') {
+                  <div class="pf"><label>Posicion</label>
+                    <app-custom-select [options]="ornamentPositionOptions" [value]="getOrnamentProp('position')||'below'" (valueChange)="setOrnament('position',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="getOrnamentProp('color')||'#d4a017'" (valueChange)="setOrnament('color',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Tamano ({{getOrnamentProp('size') || 1}}x)</label><input type="range" class="pinput-range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp('size') || 1" (ngModelChange)="setOrnament('size',+$event)"></div>
+                }
+              </div>
+            }
           }
         }
       }
@@ -1574,6 +1615,35 @@ export class BuilderPropsPanelComponent {
     Object.keys(p).forEach(k => this.setSS(k, p[k]));
   }
 
+  // Ornament helpers
+  getOrnamentType(): string {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return 'none';
+    const sec = this.canvasState.selectedSection();
+    if (!sec) return 'none';
+    const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
+    return s?.type || 'none';
+  }
+
+  getOrnamentProp(prop: string): any {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return null;
+    const sec = this.canvasState.selectedSection();
+    if (!sec) return null;
+    const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
+    return s ? (s as any)[prop] : null;
+  }
+
+  setOrnament(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const sec = this.canvasState.selectedSection();
+    if (!sec) return;
+    const section = (cfg as any)[sec];
+    if (!section.sectionStyle) section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
+    if (!section.sectionStyle.headingOrnament) section.sectionStyle.headingOrnament = { type: 'none', position: 'below', color: '#d4a017', size: 1 };
+    (section.sectionStyle.headingOrnament as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
   applyTemplate(key: string) {
     const tpls: Record<string,any> = {
       elegante:{landingBgColor1:'#0d1117',landingBgColor2:'#1a1a2e',landingBgType:'linear',textPrimary:'#ffffff',textSecondary:'rgba(255,255,255,0.7)',navFooterText:'#d4a017',buttonBg:'#d4a017',buttonText:'#1a1a2e',cardBg:'rgba(255,255,255,0.05)',cardBorder:'rgba(212,160,23,0.3)'},
@@ -1782,6 +1852,10 @@ export class BuilderPropsPanelComponent {
     {value:'elegant',label:'Elegante'},{value:'formal',label:'Formal'},{value:'executive',label:'Ejecutivo'},
     {value:'festive',label:'Festivo'},{value:'animated',label:'Animado'},{value:'minimal',label:'Minimal'},
     {value:'ornamental',label:'Ornamental'}
+  ];
+
+  ornamentPositionOptions: SelectOption[] = [
+    {value:'above',label:'Arriba'},{value:'below',label:'Abajo'},{value:'both',label:'Ambos'},{value:'sides',label:'A los lados'}
   ];
 
   borderStyleOptions: SelectOption[] = [
