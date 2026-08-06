@@ -60,8 +60,8 @@
 | `landingBgType` | ✅ (solid/linear/radial/mesh) | ✅ (via select) | Builder usa CustomSelect |
 | `landingBgColor1` | ✅ | ✅ | — |
 | `landingBgColor2` | ✅ (condicional) | ✅ | — |
-| `landingBgAngle` | ✅ (range 1-360) | ❌ | **FALTA** en Builder |
-| `landingBgIntensity` | ✅ (range 10-100 para radial/mesh) | ❌ | **FALTA** en Builder |
+| `landingBgAngle` | ✅ (range 1-360) | ✅ | Condicional (linear/mesh) |
+| `landingBgIntensity` | ✅ (range 10-100 para radial/mesh) | ✅ | Condicional (radial/mesh) |
 | `landingBgTexture` | ✅ (8 opciones) | ✅ | — |
 | `landingBgTextureOpacity` | ✅ (range 1-20) | ✅ (range 1-30) | Builder tiene rango mayor |
 
@@ -184,17 +184,17 @@
 | `eventDescriptionStyle.fontFamily` | ✅ | ✅ | — |
 | `eventDescriptionStyle.fontSize` | ✅ | ✅ (stepper) | — |
 | `eventDescriptionStyle.color1/color2` | ✅ | ✅ | — |
-| `eventDescriptionStyle.gradientAngle` | ✅ (range) | ❌ | **FALTA** en Builder |
-| `eventDescriptionStyle.gradientIntensity` | ✅ (range) | ❌ | **FALTA** en Builder |
-| `eventDescriptionStyle.fontWeight` | ✅ (range) | ❌ | **FALTA** en Builder |
+| `eventDescriptionStyle.gradientAngle` | ✅ (range) | ✅ | — |
+| `eventDescriptionStyle.gradientIntensity` | ✅ (range) | ✅ | — |
+| `eventDescriptionStyle.fontWeight` | ✅ (range) | ✅ | — |
 | `showCelebrantNames` toggle | ✅ | ✅ | — |
 | `celebrantNames` | ✅ | ✅ | — |
 | `celebrantNamesStyle.fontFamily` | ✅ | ✅ | — |
 | `celebrantNamesStyle.fontSize` | ✅ | ✅ (stepper) | — |
 | `celebrantNamesStyle.color1/color2` | ✅ | ✅ | — |
-| `celebrantNamesStyle.gradientAngle` | ✅ (range) | ❌ | **FALTA** en Builder |
-| `celebrantNamesStyle.gradientIntensity` | ✅ (range) | ❌ | **FALTA** en Builder |
-| `celebrantNamesStyle.fontWeight` | ✅ (range) | ❌ | **FALTA** en Builder |
+| `celebrantNamesStyle.gradientAngle` | ✅ (range) | ✅ | — |
+| `celebrantNamesStyle.gradientIntensity` | ✅ (range) | ✅ | — |
+| `celebrantNamesStyle.fontWeight` | ✅ (range) | ✅ | — |
 | `showDescription` toggle | ✅ | ✅ | — |
 | `description` | ✅ | ✅ | — |
 | `heroPhrase` | ✅ | ✅ | — |

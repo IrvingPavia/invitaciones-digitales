@@ -97,6 +97,12 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="pf"><label>Tipo</label>
               <app-custom-select [options]="landingBgTypeOptions" [value]="cfg()!.theme.landingBgType || 'solid'" (valueChange)="setTheme('landingBgType', $event)"></app-custom-select>
             </div>
+            @if (cfg()!.theme.landingBgType === 'linear' || cfg()!.theme.landingBgType === 'mesh') {
+              <div class="pf"><label>Angulo ({{cfg()!.theme.landingBgAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="cfg()!.theme.landingBgAngle ?? 135" (ngModelChange)="setTheme('landingBgAngle', +$event)"></div>
+            }
+            @if (cfg()!.theme.landingBgType === 'radial' || cfg()!.theme.landingBgType === 'mesh') {
+              <div class="pf"><label>Intensidad ({{cfg()!.theme.landingBgIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="10" max="100" [ngModel]="cfg()!.theme.landingBgIntensity ?? 50" (ngModelChange)="setTheme('landingBgIntensity', +$event)"></div>
+            }
             <div class="pf"><label>Textura</label>
               <app-custom-select [options]="landingBgTextureOptions" [value]="cfg()!.theme.landingBgTexture || 'none'" (valueChange)="setTheme('landingBgTexture', $event)"></app-custom-select>
             </div>
@@ -472,6 +478,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color1||'#ffffff'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color1',$event)"></app-color-picker></div>
                 <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color2||'#d4a017'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color2',$event)"></app-color-picker></div>
               </div>
+              <div class="pf"><label>Angulo degradado ({{sec('hero')?.celebrantNamesStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.celebrantNamesStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','gradientAngle',+$event)"></div>
+              <div class="pf"><label>Intensidad ({{sec('hero')?.celebrantNamesStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.celebrantNamesStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','gradientIntensity',+$event)"></div>
+              <div class="pf"><label>Grosor ({{sec('hero')?.celebrantNamesStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontWeight',+$event)"></div>
             </div>
           }
 
@@ -495,6 +504,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
                 <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
               </div>
+              <div class="pf"><label>Angulo degradado ({{sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientAngle',+$event)"></div>
+              <div class="pf"><label>Intensidad ({{sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientIntensity',+$event)"></div>
+              <div class="pf"><label>Grosor ({{sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontWeight',+$event)"></div>
             </div>
           }
 
