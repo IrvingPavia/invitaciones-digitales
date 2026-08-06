@@ -869,18 +869,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="item-card">
                   <div class="item-head"><span>{{i+1}}</span><button class="x-btn" (click)="removeItineraryItem(i);$event.stopPropagation()">X</button></div>
                   <div class="pf"><label>Hora</label>
-                    <div class="time-picker-row">
-                      <select class="pinput time-select" [ngModel]="getHour(item.time)" (ngModelChange)="setTime(i, $event, getMinute(item.time), getAmPm(item.time))">
-                        @for (h of hours; track h) { <option [value]="h">{{h}}</option> }
-                      </select>
-                      <span class="time-sep">:</span>
-                      <select class="pinput time-select" [ngModel]="getMinute(item.time)" (ngModelChange)="setTime(i, getHour(item.time), $event, getAmPm(item.time))">
-                        @for (m of minutes; track m) { <option [value]="m">{{m}}</option> }
-                      </select>
-                      <select class="pinput time-select ampm" [ngModel]="getAmPm(item.time)" (ngModelChange)="setTime(i, getHour(item.time), getMinute(item.time), $event)">
-                        <option value="AM">AM</option><option value="PM">PM</option>
-                      </select>
-                    </div>
+                    <app-wheel-time-picker [value]="item.time" (valueChange)="updateItineraryItem(i,'time',$event)"></app-wheel-time-picker>
                   </div>
                   <input class="pinput" [ngModel]="item.title" (ngModelChange)="updateItineraryItem(i,'title',$event)" placeholder="Titulo de actividad">
                   <textarea class="pinput sm" [ngModel]="item.description" (ngModelChange)="updateItineraryItem(i,'description',$event)" placeholder="Descripcion"></textarea>

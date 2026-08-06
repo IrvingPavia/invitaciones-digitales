@@ -8,11 +8,12 @@ import { ApiService } from '../../../core/services/api.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { Event } from '../../../core/models/models';
 import { environment } from '../../../../environments/environment';
+import { WheelTimePickerComponent } from '../../../core/components/wheel-time-picker.component';
 
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AgGridAngular],
+  imports: [CommonModule, FormsModule, RouterLink, AgGridAngular, WheelTimePickerComponent],
   styles: [`
     :host { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .event-cards { display: none; }
@@ -329,25 +330,7 @@ import { environment } from '../../../../environments/environment';
           </div>
           <div class="form-group">
             <label>Hora del Evento</label>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="time-picker-field">
-                <button type="button" (click)="adjustEventTime('h',1)"><span class="material-icons">expand_less</span></button>
-                <span class="time-picker-val">{{ formHour % 12 || 12 }}</span>
-                <button type="button" (click)="adjustEventTime('h',-1)"><span class="material-icons">expand_more</span></button>
-                <small>HR</small>
-              </div>
-              <span style="font-size:20px;font-weight:700;color:var(--gold);">:</span>
-              <div class="time-picker-field">
-                <button type="button" (click)="adjustEventTime('m',1)"><span class="material-icons">expand_less</span></button>
-                <span class="time-picker-val">{{ formMin | number:'2.0-0' }}</span>
-                <button type="button" (click)="adjustEventTime('m',-1)"><span class="material-icons">expand_more</span></button>
-                <small>MIN</small>
-              </div>
-              <div class="time-picker-ampm">
-                <button type="button" [class.active]="formHour < 12" (click)="setEventAmPm('AM')">AM</button>
-                <button type="button" [class.active]="formHour >= 12" (click)="setEventAmPm('PM')">PM</button>
-              </div>
-            </div>
+            <app-wheel-time-picker [value]="getEventTimeStr()" (valueChange)="onEventTimeChange($event)"></app-wheel-time-picker>
           </div>
           <div class="form-group">
             <label>Slug (URL única) *</label>
@@ -634,6 +617,26 @@ export class EventsComponent implements OnInit, OnDestroy {
   setEventAmPm(ampm: string) {
     if (ampm === 'AM' && this.formHour >= 12) this.formHour -= 12;
     if (ampm === 'PM' && this.formHour < 12) this.formHour += 12;
+    this.updateEventDate();
+  }
+
+  getEventTimeStr(): string {
+    const h12 = this.formHour % 12 || 12;
+    const m = this.formMin.toString().padStart(2, '0');
+    const ampm = this.formHour >= 12 ? 'PM' : 'AM';
+    return `${h12}:${m} ${ampm}`;
+  }
+
+  onEventTimeChange(timeStr: string) {
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return;
+    let h = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    const ap = match[3].toUpperCase();
+    if (ap === 'PM' && h < 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    this.formHour = h;
+    this.formMin = m;
     this.updateEventDate();
   }
 
