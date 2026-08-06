@@ -115,7 +115,7 @@
 
 | Propiedad | Configurador | Builder | Notas |
 |-----------|:---:|:---:|-------|
-| `favicon` (upload) | ✅ | ❌ | **FALTA** en Builder |
+| `favicon` (upload) | ✅ | ✅ | — |
 
 
 ---

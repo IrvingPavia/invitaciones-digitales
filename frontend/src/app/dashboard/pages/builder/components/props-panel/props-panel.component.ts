@@ -150,6 +150,25 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="pf"><label>Color icono botones</label><app-color-picker [value]="cfg()!.theme.navBtnIcon || '#ffffff'" (valueChange)="setTheme('navBtnIcon', $event)"></app-color-picker></div>
           </div>
         }
+
+        <div class="accordion" [class.open]="expanded['favicon']" (click)="toggle('favicon')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['favicon'] ? 'expand_more' : 'chevron_right' }}</span><span>Favicon de la Landing</span></div>
+        </div>
+        @if (expanded['favicon']) {
+          <div class="accordion-body">
+            <p class="hint">Icono que aparece en la pestaña del navegador cuando el invitado abre la landing. Si no se configura, se usa el icono de Vitely.</p>
+            <div class="upload-row" style="margin-top:8px;">
+              @if (cfg()!.favicon) {
+                <img [src]="cfg()!.favicon" style="width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid rgba(139,92,246,0.3);">
+                <span class="file-name">{{ getFileName(cfg()!.favicon || '') }}</span>
+                <button class="sm-btn" (click)="upload('_favicon','favicon','images');$event.stopPropagation()">Cambiar</button>
+                <button class="sm-btn danger" (click)="setFavicon('');$event.stopPropagation()">X</button>
+              } @else {
+                <button class="sm-btn" (click)="upload('_favicon','favicon','images');$event.stopPropagation()">Subir icono</button>
+              }
+            </div>
+          </div>
+        }
       }
 
       <!-- ===== SECTION PROPERTIES ===== -->
@@ -1408,9 +1427,27 @@ export class BuilderPropsPanelComponent {
 
   upload(secKey: string, prop: string, type: 'images'|'audio'|'gifs') {
     const input = document.createElement('input'); input.type='file';
-    input.accept = type==='audio'?'audio/*':type==='gifs'?'image/*,video/*,.gif,.mp4,.webm':'image/*';
-    input.onchange = () => { const f=input.files?.[0]; if(!f)return; this.api.uploadFile(type,f).subscribe({next:r=>{this.setSec(secKey,prop,r.url);this.canvasState.notifyChange();}}); };
+    input.accept = type==='audio'?'audio/*':type==='gifs'?'image/*,video/*,.gif,.mp4,.webm':'image/*,image/x-icon,image/svg+xml';
+    input.onchange = () => { const f=input.files?.[0]; if(!f)return;
+      this.api.uploadFile(type,f).subscribe({next:r=>{
+        if(secKey === '_favicon') {
+          const cfg = this.canvasState.getConfig(); if(!cfg)return;
+          (cfg as any).favicon = r.url;
+          this.canvasState.isDirty.set(true);
+        } else {
+          this.setSec(secKey,prop,r.url);
+        }
+        this.canvasState.notifyChange();
+      }});
+    };
     input.click();
+  }
+
+  setFavicon(url: string) {
+    const cfg = this.canvasState.getConfig(); if(!cfg)return;
+    (cfg as any).favicon = url;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
   }
 
   addCard(secKey: string) {
