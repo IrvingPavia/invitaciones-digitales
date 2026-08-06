@@ -1088,6 +1088,16 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Descripcion</label><textarea class="pinput" style="min-height:40px" [ngModel]="sec('gifts')?.description" (ngModelChange)="setSec('gifts','description',$event)"></textarea></div>
               <div class="pf"><label>Link</label><input class="pinput" [ngModel]="sec('gifts')?.link" (ngModelChange)="setSec('gifts','link',$event)" placeholder="https://..."></div>
               <div class="pf"><label>Texto del boton</label><input class="pinput" [ngModel]="sec('gifts')?.buttonText" (ngModelChange)="setSec('gifts','buttonText',$event)"></div>
+              <div class="pf"><label>Icono de seccion</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="!sec('gifts')?.sectionIcon?.iconType || sec('gifts')?.sectionIcon?.iconType==='material'" (click)="setSectionIcon('gifts','material');$event.stopPropagation()">Default</button>
+                  <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='emoji'" (click)="setSectionIcon('gifts','emoji');$event.stopPropagation()">Emoji</button>
+                  <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='none'" (click)="setSectionIcon('gifts','none');$event.stopPropagation()">Sin icono</button>
+                </div>
+              </div>
+              @if (sec('gifts')?.sectionIcon?.iconType === 'emoji') {
+                <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="sec('gifts')?.sectionIcon?.icon||'🎁'" (ngModelChange)="setSectionIconProp('gifts','icon',$event)" placeholder="🎁" style="max-width:60px"></div>
+              }
             </div>
           }
 
@@ -1151,6 +1161,16 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['rsvp-content']) {
             <div class="accordion-body">
               <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('rsvp')?.title" (ngModelChange)="setSec('rsvp','title',$event)"></div>
+              <div class="pf"><label>Icono de seccion</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="!sec('rsvp')?.sectionIcon?.iconType || sec('rsvp')?.sectionIcon?.iconType==='material'" (click)="setSectionIcon('rsvp','material');$event.stopPropagation()">Default</button>
+                  <button class="chip" [class.active]="sec('rsvp')?.sectionIcon?.iconType==='emoji'" (click)="setSectionIcon('rsvp','emoji');$event.stopPropagation()">Emoji</button>
+                  <button class="chip" [class.active]="sec('rsvp')?.sectionIcon?.iconType==='none'" (click)="setSectionIcon('rsvp','none');$event.stopPropagation()">Sin icono</button>
+                </div>
+              </div>
+              @if (sec('rsvp')?.sectionIcon?.iconType === 'emoji') {
+                <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="sec('rsvp')?.sectionIcon?.icon||'✅'" (ngModelChange)="setSectionIconProp('rsvp','icon',$event)" placeholder="✅" style="max-width:60px"></div>
+              }
             </div>
           }
 
@@ -1502,6 +1522,25 @@ export class BuilderPropsPanelComponent {
     (cfg.globalStyles.separatorStyle as any)[prop] = value;
     this.canvasState.notifyChange();
     this.canvasState.triggerAutoSave();
+  }
+
+  setSectionIcon(secKey: string, iconType: string) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const sec = (cfg as any)[secKey];
+    if (!sec.sectionIcon) sec.sectionIcon = { iconType: 'material', icon: '', iconUrl: '' };
+    sec.sectionIcon.iconType = iconType;
+    if (iconType === 'none') { sec.sectionIcon.icon = ''; sec.sectionIcon.iconUrl = ''; }
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  setSectionIconProp(secKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const sec = (cfg as any)[secKey];
+    if (!sec.sectionIcon) sec.sectionIcon = { iconType: 'emoji', icon: '', iconUrl: '' };
+    (sec.sectionIcon as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
   }
 
   applyTemplate(key: string) {
