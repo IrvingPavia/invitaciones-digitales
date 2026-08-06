@@ -425,17 +425,17 @@ El Configurador tiene un panel completo de SectionStyle en cada sección (inv, d
 | Propiedad | Configurador | Builder | Notas |
 |-----------|:---:|:---:|-------|
 | `sectionHeadingFont` | ✅ | ✅ | — |
-| `sectionHeadingSize` | ✅ | ❌ | Pendiente (solo font/color implementados) |
+| `sectionHeadingSize` | ✅ | ✅ | — |
 | `sectionHeadingColor` | ✅ | ✅ | — |
 | `headingFont` | ✅ | ✅ | — |
-| `headingFontSize` | ✅ | ❌ | Pendiente |
+| `headingFontSize` | ✅ | ✅ | — |
 | `headingColor` (Color 1) | ✅ | ✅ | — |
 | `headingColor2` (Color 2) | ✅ | ✅ | — |
-| `headingGradientAngle` | ✅ | ❌ | Pendiente |
-| `headingGradientIntensity` | ✅ | ❌ | Pendiente |
-| `headingFontWeight` | ✅ | ❌ | Pendiente |
+| `headingGradientAngle` | ✅ | ✅ | — |
+| `headingGradientIntensity` | ✅ | ✅ | — |
+| `headingFontWeight` | ✅ | ✅ | — |
 | `contentFont` | ✅ | ✅ | — |
-| `contentFontSize` | ✅ | ❌ | Pendiente |
+| `contentFontSize` | ✅ | ✅ | — |
 | `contentColor` | ✅ | ✅ | — |
 
 ### 13.4 Animación por Sección
