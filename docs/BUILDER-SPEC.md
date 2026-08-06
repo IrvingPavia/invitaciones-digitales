@@ -11,12 +11,12 @@
 | Área | Configurador | Builder | Estado |
 |------|:---:|:---:|--------|
 | Tema Global (colores) | ✅ | ✅ | Completo + mejoras |
-| Tema Global (fuentes por color) | ✅ | ❌ | FALTA |
+| Tema Global (fuentes por color) | ✅ | ✅ | Completo |
 | Estilos Globales (headings/titles/content) | ✅ | ✅ | Completo |
-| Fondo Landing | ✅ | ⚠️ | Parcial (falta angle/intensity) |
+| Fondo Landing | ✅ | ✅ | Completo |
 | Navbar & Menu | ❌ | ✅ | Solo en Builder |
 | Animación Scroll | ✅ | ✅ | Completo |
-| Favicon | ✅ | ❌ | FALTA |
+| Favicon | ✅ | ✅ | — |
 | Pantalla Inicio (Envelope) | ✅ | ✅ | Completo |
 | Intro | ✅ | ✅ | Completo + mejoras |
 | Hero (Carátula) | ✅ | ✅ | Completo + mejoras |
@@ -27,10 +27,10 @@
 | Galería | ✅ | ✅ | Completo |
 | Vestimenta (Dresscode) | ✅ | ✅ | Completo + mejoras |
 | Regalos (Gifts) | ✅ | ✅ | Parcial (falta sectionIcon) |
-| RSVP/Confirmación | ✅ | ⚠️ | Parcial (falta sectionIcon, regFields) |
-| Estilo por Sección (SectionStyle) | ✅ | ⚠️ | Simplificado en Builder |
-| Adornos de Título (HeadingOrnament) | ✅ | ❌ | FALTA en Builder |
-| Presets de Sección | ✅ | ❌ | FALTA en Builder |
+| RSVP/Confirmación | ✅ | ✅ | Completo |
+| Estilo por Sección (SectionStyle) | ✅ | ✅ | Completo |
+| Adornos de Título (HeadingOrnament) | ✅ | ✅ | Completo |
+| Presets de Sección | ✅ | ✅ | Completo |
 
 
 ---
