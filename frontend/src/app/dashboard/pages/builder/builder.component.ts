@@ -721,19 +721,21 @@ interface BuilderSection {
       .builder-toolbar-center { order: 1; flex: 1 0 100%; justify-content: center; }
       .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
       .builder-panel-right.panel-visible {
-        position: fixed;
-        top: 90px;
+        position: absolute;
+        top: 0;
         bottom: 0;
         right: 0;
         left: auto;
         width: 280px;
         max-width: 80vw;
-        height: auto;
+        height: 100%;
         z-index: 150;
         border-radius: 0;
         border-left: 1px solid rgba(139,92,246,0.3);
         box-shadow: -4px 0 24px rgba(0,0,0,0.5);
         animation: slideInRight 0.25s ease forwards;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
       .builder-canvas-area { padding: 8px; }
       .builder-props-fab { top: 92px; right: 8px; z-index: 160; position: fixed; }
