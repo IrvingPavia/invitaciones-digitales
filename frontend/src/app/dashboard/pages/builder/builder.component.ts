@@ -494,6 +494,11 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .gallery-flip,
     .preview-mode-canvas ::ng-deep .gallery-slideshow,
     .preview-mode-canvas ::ng-deep .gallery-grid { min-height: 250px; }
+    .preview-mode-canvas ::ng-deep .gallery-3d-card,
+    .preview-mode-canvas ::ng-deep .stack-card,
+    .preview-mode-canvas ::ng-deep .flip-card { transition: none !important; animation: none !important; will-change: auto !important; }
+    .preview-mode-canvas ::ng-deep .gallery-3d { perspective: none !important; }
+    .preview-mode-canvas ::ng-deep .gallery-section img { content-visibility: auto; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
@@ -728,7 +733,8 @@ interface BuilderSection {
         border-radius: 0;
         border-left: 1px solid rgba(139,92,246,0.3);
         box-shadow: -4px 0 24px rgba(0,0,0,0.5);
-        animation: slideInRight 0.25s ease;
+        animation: slideInRight 0.25s ease forwards;
+        contain: layout style paint;
       }
       .builder-canvas-area { padding: 8px; }
       .builder-props-fab { top: 92px; right: 8px; z-index: 160; position: fixed; }
