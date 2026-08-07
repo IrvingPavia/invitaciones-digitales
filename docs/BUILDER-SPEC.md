@@ -641,14 +641,33 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 
 ### Mobile (dispositivo físico)
 
-- [ ] **Parpadeo del canvas y panel de propiedades en Galería**: En dispositivo móvil físico (Android Chrome), al estar en la sección Galería con fotos cargadas, el canvas y el panel de propiedades parpadean de forma intermitente y repetitiva. El parpadeo ocurre:
-  - Al cargar/subir imágenes nuevas
-  - Al hacer scroll por el canvas cuando la galería tiene fotos
-  - Es un parpadeo rápido que alterna entre el estado normal (canvas + panel visibles) y un estado donde el panel de propiedades colapsa y el canvas se redimensiona momentáneamente
+- [ ] **Parpadeo del canvas y panel de propiedades en Galería**: En dispositivo móvil físico (Samsung Galaxy S24 Ultra, Android Chrome y Samsung Browser), al estar en la sección Galería con fotos cargadas, el canvas y el panel de propiedades parpadean con cuadros negros de forma intermitente y repetitiva. El parpadeo ocurre:
+  - Al expandir el acordeón "Fotos" en el panel de propiedades
+  - Una vez que las fotos terminan de cargar en los thumbnails
+  - Al colapsar y re-expandir el acordeón
+  - NO ocurre en modo "Escritorio" del navegador mobile, solo en modo mobile real
+  - NO se reproduce al grabar la pantalla del dispositivo
   
-  **Observaciones**: El bug no se reproduce al grabar la pantalla del dispositivo. Solo se percibe visualmente en uso directo. En la segunda captura se aprecia que el acordeón "Fotos" desaparece momentáneamente y el canvas ocupa más espacio, como si el panel se ocultara y volviera a aparecer.
+  **Diagnóstico avanzado (intentos realizados sin éxito completo)**:
+  - CSS `contain: content/layout/strict` en acordeones, panel, photo-grid ❌
+  - `will-change: transform`, `backface-visibility: hidden`, `transform: translateZ(0)` en panel ❌
+  - `decoding="async"`, `loading="lazy"`, dimensiones fijas en thumbnails — redujo pero no eliminó ❌
+  - Gallery en modo estático (`staticMode=true`, sin autoTimer) ❌
+  - Fotos cacheadas (no usar signal directo) ❌
+  - Reemplazar `position: fixed` por `position: absolute` en panel mobile ❌
+  - Eliminar animación `slideInRight` (transform) ❌
+  - `overscroll-behavior: contain` en panel ❌
+  - `height: 100dvh` en host ❌
+  - `max-height: 200px; overflow-y: auto` en photo-grid — redujo frecuencia ⚠️
+  - Placeholder estático en vez de galería real — no resolvió (el problema es el panel, no el canvas) ⚠️
   
-  **Posible causa**: Podría ser un re-render excesivo provocado por el `lazy loading` de las imágenes de la galería que dispara eventos de resize/layout shift al cargar cada imagen, causando que Angular recalcule el layout del flex container (canvas + panel). Otra posibilidad: las señales (signals) del `photos()` se actualizan repetidamente provocando change detection cycles que redibujan el panel.
+  **Causa raíz probable**: La barra de dirección del navegador mobile se auto-oculta/muestra al detectar cambios de contenido en un panel con scroll. Cuando el acordeón expande y el panel crece, el browser lo interpreta como actividad de scroll → oculta la barra → cambia viewport height → recalcula layout → muestra la barra → loop de repaint. Solo ocurre en viewport mobile real, no en "modo escritorio" del mismo dispositivo.
+  
+  **Estado**: Parcialmente mitigado (menos frecuente) pero no eliminado. Posibles siguientes pasos:
+  - Investigar si un `<meta name="viewport" content="interactive-widget=resizes-content">` o `interactive-widget=overlays-content` resuelve
+  - Probar con `env(safe-area-inset-*)` y viewport-fit=cover
+  - Considerar no mostrar thumbnails en mobile y usar solo lista de nombres de archivo
+  - Investigar si es un bug específico del WebView/Chromium de Samsung
 
 ---
 
