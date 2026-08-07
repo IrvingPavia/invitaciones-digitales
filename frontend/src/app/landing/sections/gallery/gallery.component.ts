@@ -276,6 +276,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   @Input() photos: Photo[] = [];
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+  @Input() staticMode = false;
 
   hasOrnament(): boolean {
     return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
@@ -298,7 +299,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   get displayStyle(): string { return this.config.displayStyle || 'carousel-3d'; }
 
   ngOnInit() {
-    if (this.displayStyle === 'slideshow') this.startAuto();
+    if (this.displayStyle === 'slideshow' && !this.staticMode) this.startAuto();
     this.polaroidRotations = this.photos.map(() => (Math.random() - 0.5) * 12);
   }
   ngOnDestroy() { clearInterval(this.autoTimer); }

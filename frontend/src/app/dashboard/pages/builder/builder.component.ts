@@ -166,7 +166,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
@@ -488,12 +488,12 @@ interface BuilderSection {
     .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: 500px; cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
-    .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: layout style; }
+    .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; }
     .preview-mode-canvas ::ng-deep .gallery-3d,
     .preview-mode-canvas ::ng-deep .gallery-stack,
     .preview-mode-canvas ::ng-deep .gallery-flip,
     .preview-mode-canvas ::ng-deep .gallery-slideshow,
-    .preview-mode-canvas ::ng-deep .gallery-grid { min-height: 250px; }
+    .preview-mode-canvas ::ng-deep .gallery-grid { min-height: 250px; contain: content; }
     .preview-mode-canvas ::ng-deep .gallery-3d-card,
     .preview-mode-canvas ::ng-deep .stack-card,
     .preview-mode-canvas ::ng-deep .flip-card { transition: none !important; animation: none !important; will-change: auto !important; }
@@ -734,7 +734,6 @@ interface BuilderSection {
         border-left: 1px solid rgba(139,92,246,0.3);
         box-shadow: -4px 0 24px rgba(0,0,0,0.5);
         animation: slideInRight 0.25s ease forwards;
-        contain: layout style paint;
       }
       .builder-canvas-area { padding: 8px; }
       .builder-props-fab { top: 92px; right: 8px; z-index: 160; position: fixed; }
@@ -1456,6 +1455,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   // ===== Photos =====
 
   photos = signal<any[]>([]);
+  cachedPhotos: any[] = [];
 
   uploadPhotos() {
     const input = document.createElement('input');
@@ -1472,7 +1472,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   private loadPhotos() {
-    this.api.getPhotos(this.eventId).subscribe(p => this.photos.set(p));
+    this.api.getPhotos(this.eventId).subscribe(p => { this.photos.set(p); this.cachedPhotos = p; });
   }
 
   private loadGuests() {
