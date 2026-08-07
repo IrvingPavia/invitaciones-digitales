@@ -1388,15 +1388,15 @@ import { ApiService } from '../../../../../core/services/api.service';
     </div>
   `,
   styles: [`
-    :host { display: block; height: 100%; overflow-y: auto; }
-    .props-panel-content { padding: 0; padding-bottom: 60px; }
+    :host { display: block; height: 100%; overflow-y: auto; will-change: transform; transform: translate3d(0,0,0); }
+    .props-panel-content { padding: 0; padding-bottom: 60px; contain: layout style; }
     .props-badge { display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(139,92,246,0.06);border-bottom:1px solid rgba(139,92,246,0.1); .material-icons{font-size:16px;color:var(--gold-light)} span:last-child{font-size:13px;font-weight:600;color:white} }
     .section-desc { font-size:11px;color:rgba(255,255,255,0.4);padding:4px 14px 8px;margin:0;border-bottom:1px solid rgba(255,255,255,0.04); }
-    .accordion { cursor:pointer; }
+    .accordion { cursor:pointer; contain: content; }
     .accordion-header { display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s; .material-icons{font-size:16px;color:rgba(255,255,255,0.35)} }
     .accordion-header:hover { background:rgba(139,92,246,0.04); }
     .accordion.open .accordion-header { color:white;background:rgba(139,92,246,0.06); .material-icons{color:var(--gold-light)} }
-    .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04); }
+    .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);contain:layout; }
     .pf { margin-bottom:10px; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pf-section-title { display:block;font-size:11px;font-weight:600;color:rgba(139,92,246,0.8);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(139,92,246,0.15); }
     .pf-row { display:flex;gap:8px;margin-bottom:10px; }
@@ -1443,8 +1443,8 @@ import { ApiService } from '../../../../../core/services/api.service';
     .dress-img-remove { position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,64,87,0.9);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s; .material-icons{font-size:11px} }
     .dress-img-thumb:hover .dress-img-remove { opacity:1; }
     .dress-img-add { width:56px;height:68px;border-radius:8px;border:2px dashed rgba(139,92,246,0.3);background:none;color:rgba(139,92,246,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0; .material-icons{font-size:22px} &:hover{border-color:rgba(139,92,246,0.6);color:rgba(139,92,246,0.8);background:rgba(139,92,246,0.05)} }
-    .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px;contain:layout; }
-    .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1); img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.2s} img.loaded{opacity:1} }
+    .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px;contain:layout;max-height:200px;overflow-y:auto;overflow-x:hidden; }
+    .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1);contain:strict; img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.2s} img.loaded{opacity:1} }
     .hint { font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px; }
     .empty-state { padding:40px 14px;text-align:center; .material-icons{font-size:32px;color:rgba(255,255,255,0.15)} p{font-size:12px;color:rgba(255,255,255,0.3);margin-top:8px} }
     .stepper-row { display:flex;align-items:center;gap:0;border:1px solid rgba(139,92,246,0.2);border-radius:6px;overflow:hidden; }
