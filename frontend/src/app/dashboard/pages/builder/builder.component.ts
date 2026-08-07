@@ -244,6 +244,8 @@ interface BuilderSection {
       z-index: 200;
       overflow: hidden;
       background: #0a0a14;
+      height: 100dvh;
+      height: 100vh;
     }
     .builder-toolbar {
       display: flex; align-items: center;
@@ -741,8 +743,15 @@ interface BuilderSection {
         border-radius: 0;
         border-left: 1px solid rgba(139,92,246,0.3);
         box-shadow: -4px 0 24px rgba(0,0,0,0.5);
-        animation: slideInRight 0.25s ease forwards;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .builder-panel-right.panel-visible app-builder-props-panel {
+        flex: 1;
         overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
       }
       .builder-canvas-area { padding: 8px; }
