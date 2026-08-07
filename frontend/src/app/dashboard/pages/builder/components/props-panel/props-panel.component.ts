@@ -5,13 +5,14 @@ import { RouterLink } from '@angular/router';
 import { ColorPickerComponent } from '../../../../../core/components/color-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../../../core/components/custom-select.component';
 import { WheelTimePickerComponent } from '../../../../../core/components/wheel-time-picker.component';
+import { WheelDatePickerComponent } from '../../../../../core/components/wheel-date-picker.component';
 import { CanvasStateService } from '../../services/canvas-state.service';
 import { ApiService } from '../../../../../core/services/api.service';
 
 @Component({
   selector: 'app-builder-props-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent, WheelDatePickerComponent],
   template: `
     <div class="props-panel-content">
       <!-- Section badge -->
@@ -614,7 +615,12 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['hero-countdown']) {
             <div class="accordion-body">
-              <div class="pf"><label>Fecha</label><input type="datetime-local" class="pinput" [ngModel]="sec('hero')?.countdownDate" (ngModelChange)="setSec('hero','countdownDate',$event)"></div>
+              <div class="pf"><label>Fecha del countdown</label>
+                <app-wheel-date-picker [value]="getCountdownDate()" (valueChange)="setCountdownDate($event)"></app-wheel-date-picker>
+              </div>
+              <div class="pf"><label>Hora del countdown</label>
+                <app-wheel-time-picker [value]="getCountdownTime()" (valueChange)="setCountdownTime($event)"></app-wheel-time-picker>
+              </div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo cards</span>
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.countdownShowCardBg !== false" (ngModelChange)="setSec('hero','countdownShowCardBg',$event)"><span class="slider"></span></label>
@@ -1683,6 +1689,40 @@ export class BuilderPropsPanelComponent {
     cfg.rsvp.registrationFields.push({ key, label: 'Nuevo campo', type: 'text', enabled: true, required: false });
     this.canvasState.isDirty.set(true);
     this.canvasState.notifyChange();
+  }
+
+  // Countdown date/time helpers
+  getCountdownDate(): string {
+    const dt = this.sec('hero')?.countdownDate;
+    if (!dt) return '';
+    return dt.slice(0, 10); // YYYY-MM-DD
+  }
+
+  getCountdownTime(): string {
+    const dt = this.sec('hero')?.countdownDate;
+    if (!dt || dt.length < 16) return '7:00 PM';
+    const h = parseInt(dt.slice(11, 13)) || 0;
+    const m = parseInt(dt.slice(14, 16)) || 0;
+    const h12 = h % 12 || 12;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+  }
+
+  setCountdownDate(dateStr: string) {
+    const time = this.sec('hero')?.countdownDate?.slice(11) || '19:00:00';
+    this.setSec('hero', 'countdownDate', `${dateStr}T${time}`);
+  }
+
+  setCountdownTime(timeStr: string) {
+    const date = this.getCountdownDate() || new Date().toISOString().slice(0, 10);
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return;
+    let h = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    const ap = match[3].toUpperCase();
+    if (ap === 'PM' && h < 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    this.setSec('hero', 'countdownDate', `${date}T${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`);
   }
 
   applyTemplate(key: string) {

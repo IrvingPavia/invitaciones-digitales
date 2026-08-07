@@ -9,11 +9,12 @@ import { DialogService } from '../../../core/services/dialog.service';
 import { Event } from '../../../core/models/models';
 import { environment } from '../../../../environments/environment';
 import { WheelTimePickerComponent } from '../../../core/components/wheel-time-picker.component';
+import { WheelDatePickerComponent } from '../../../core/components/wheel-date-picker.component';
 
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AgGridAngular, WheelTimePickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AgGridAngular, WheelTimePickerComponent, WheelDatePickerComponent],
   styles: [`
     :host { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .event-cards { display: none; }
@@ -325,7 +326,7 @@ import { WheelTimePickerComponent } from '../../../core/components/wheel-time-pi
             </div>
             <div class="form-group">
               <label>Fecha del Evento *</label>
-              <input type="date" [(ngModel)]="formDate" (ngModelChange)="updateEventDate()">
+              <app-wheel-date-picker [value]="formDate" (valueChange)="formDate = $event; updateEventDate()"></app-wheel-date-picker>
             </div>
           </div>
           <div class="form-group">
