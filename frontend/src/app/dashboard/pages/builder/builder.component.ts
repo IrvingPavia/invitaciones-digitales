@@ -166,15 +166,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    @if (isMobileView()) {
-                      <div class="gallery-placeholder">
-                        <span class="material-icons">photo_library</span>
-                        <span>Galería ({{cachedPhotos.length}} fotos)</span>
-                        <small>{{canvasState.config()!.gallery.displayStyle || 'carousel-3d'}}</small>
-                      </div>
-                    } @else {
-                      <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
-                    }
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
