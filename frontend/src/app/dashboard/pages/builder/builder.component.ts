@@ -166,7 +166,15 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
+                    @if (isMobileView()) {
+                      <div class="gallery-placeholder">
+                        <span class="material-icons">photo_library</span>
+                        <span>Galería ({{cachedPhotos.length}} fotos)</span>
+                        <small>{{canvasState.config()!.gallery.displayStyle || 'carousel-3d'}}</small>
+                      </div>
+                    } @else {
+                      <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
+                    }
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
@@ -499,6 +507,14 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .flip-card { transition: none !important; animation: none !important; will-change: auto !important; }
     .preview-mode-canvas ::ng-deep .gallery-3d { perspective: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section img { content-visibility: auto; }
+    .gallery-placeholder {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 40px 20px; background: rgba(139,92,246,0.04);
+      border: 1px dashed rgba(139,92,246,0.2); border-radius: 8px; margin: 12px;
+      .material-icons { font-size: 36px; color: rgba(139,92,246,0.4); }
+      span { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 600; }
+      small { font-size: 11px; color: rgba(255,255,255,0.3); }
+    }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
@@ -758,6 +774,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
   eventName = signal('');
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
+
+  isMobileView(): boolean {
+    return window.innerWidth <= 768;
+  }
   canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
   saving = signal(false);
