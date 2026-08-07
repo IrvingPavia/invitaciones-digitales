@@ -1002,7 +1002,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="items-header"><span>Fotos ({{photos().length}})</span><button class="sm-btn" (click)="uploadPhotos();$event.stopPropagation()">+ Subir</button></div>
               <div class="photo-grid">
                 @for(p of photos();track p.id){
-                  <div class="photo-thumb"><img [src]="p.url" loading="lazy" decoding="async" width="44" height="44"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
+                  <div class="photo-thumb"><img [src]="p.url" loading="lazy" decoding="async" width="44" height="44" class="photo-img" (load)="onPhotoLoad($event)"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
                 }
               </div>
             </div>
@@ -1444,7 +1444,7 @@ import { ApiService } from '../../../../../core/services/api.service';
     .dress-img-thumb:hover .dress-img-remove { opacity:1; }
     .dress-img-add { width:56px;height:68px;border-radius:8px;border:2px dashed rgba(139,92,246,0.3);background:none;color:rgba(139,92,246,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0; .material-icons{font-size:22px} &:hover{border-color:rgba(139,92,246,0.6);color:rgba(139,92,246,0.8);background:rgba(139,92,246,0.05)} }
     .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px;contain:layout; }
-    .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden; img{width:100%;height:100%;object-fit:cover;display:block} }
+    .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1); img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.2s} img.loaded{opacity:1} }
     .hint { font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px; }
     .empty-state { padding:40px 14px;text-align:center; .material-icons{font-size:32px;color:rgba(255,255,255,0.15)} p{font-size:12px;color:rgba(255,255,255,0.3);margin-top:8px} }
     .stepper-row { display:flex;align-items:center;gap:0;border:1px solid rgba(139,92,246,0.2);border-radius:6px;overflow:hidden; }
@@ -1869,6 +1869,10 @@ export class BuilderPropsPanelComponent {
 
   deletePhoto(id: number) {
     this.api.deletePhoto(this.eventId,id).subscribe(()=>{this.api.getPhotos(this.eventId).subscribe(p=>this.photos.set(p))});
+  }
+
+  onPhotoLoad(e: Event) {
+    (e.target as HTMLElement)?.classList.add('loaded');
   }
 
   addItineraryItem() {
