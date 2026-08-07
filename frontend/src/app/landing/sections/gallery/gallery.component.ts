@@ -1,4 +1,4 @@
-import { Component, Input, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
+﻿import { Component, Input, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GalleryConfig, Photo, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
@@ -19,7 +19,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                 [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
                 [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
                 [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'Galería' }}</h2>
+            >{{ config.title || 'GalerÃ­a' }}</h2>
             @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
               <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
             }
@@ -31,7 +31,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                 [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
                 [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
                 [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'Galería' }}</h2>
+            >{{ config.title || 'GalerÃ­a' }}</h2>
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
           </div>
         }
@@ -55,7 +55,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="getCardZIndex(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -71,7 +71,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="photos.length - getStackDistance(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -82,10 +82,10 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-flip" (click)="next()">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
-              <div class="flip-hint">Toca para pasar →</div>
+              <div class="flip-hint">Toca para pasar â†’</div>
             </div>
           }
 
@@ -94,7 +94,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-polaroid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -105,7 +105,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-grid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="gallery-grid-item" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -134,7 +134,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <p class="carousel-counter">{{ current() + 1 }} / {{ photos.length }}</p>
           }
         } @else {
-          <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Próximamente...</p>
+          <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">PrÃ³ximamente...</p>
         }
       </div>
     </section>
@@ -150,7 +150,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
   `,
   styles: [`
-    .gallery-section { padding: 80px 20px; }
+    .gallery-section { padding: 80px 20px; contain: content; }
     .section-container { max-width: 600px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; }
@@ -163,6 +163,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       position: relative; height: 340px; width: 100%;
       display: flex; align-items: center; justify-content: center;
       perspective: 1000px; user-select: none; cursor: grab;
+      contain: layout style;
     }
     .gallery-3d:active { cursor: grabbing; }
     .gallery-3d-card {
@@ -170,10 +171,12 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border-radius: 14px; overflow: hidden;
       box-shadow: 0 8px 30px rgba(0,0,0,0.4);
       transition: transform 0.4s ease, opacity 0.4s ease;
-      will-change: transform;
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
       -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 70%, rgba(255,255,255,0.12) 100%);
     }
-    .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
     .gallery-3d.vertical { height: 360px; }
     .gallery-3d.vertical .gallery-3d-card { width: 260px; height: 200px; -webkit-box-reflect: none; }
     .gallery-3d.coverflow .gallery-3d-card { width: 220px; height: 280px; }
@@ -183,6 +186,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       position: relative; height: 360px; width: 100%;
       display: flex; align-items: center; justify-content: center;
       user-select: none; cursor: grab;
+      contain: layout style;
     }
     .gallery-stack:active { cursor: grabbing; }
     .stack-card {
@@ -190,23 +194,27 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border-radius: 16px; overflow: hidden;
       box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
-    .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
 
     /* === FLIP === */
     .gallery-flip {
       position: relative; width: 100%; aspect-ratio: 3/4;
       border-radius: 16px; overflow: hidden; cursor: pointer;
-      perspective: 1200px;
+      perspective: 1200px; contain: layout style;
     }
     .flip-card {
       position: absolute; inset: 0; backface-visibility: hidden;
       transition: transform 0.6s ease, opacity 0.4s ease;
       transform: rotateY(90deg); opacity: 0;
+      will-change: transform, opacity;
     }
     .flip-card.active { transform: rotateY(0deg); opacity: 1; }
     .flip-card.prev { transform: rotateY(-90deg); opacity: 0; }
-    .flip-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
+    .flip-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; backface-visibility: hidden; }
     .flip-hint {
       position: absolute; bottom: 16px; right: 16px;
       background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.7);
@@ -217,19 +225,21 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     /* === POLAROID === */
     .gallery-polaroid {
       display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
-      padding: 20px;
+      padding: 20px; contain: layout;
     }
     .polaroid-card {
       width: 140px; padding: 8px 8px 32px; background: white;
       border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
+      will-change: transform;
+      backface-visibility: hidden;
     }
     .polaroid-card:hover { transform: scale(1.05) rotate(0deg) !important; box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 10; }
     .polaroid-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 2px; }
 
     /* === GRID === */
-    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; contain: layout; }
+    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; backface-visibility: hidden; transform: translateZ(0); }
     .gallery-grid-item:hover { transform: scale(1.03); }
     .gallery-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -237,8 +247,9 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .gallery-slideshow {
       position: relative; width: 100%; aspect-ratio: 3/4;
       border-radius: 16px; overflow: hidden; cursor: pointer;
+      contain: layout style;
     }
-    .slideshow-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; }
+    .slideshow-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; backface-visibility: hidden; transform: translateZ(0); }
     .slideshow-img.active { opacity: 1; }
     .slideshow-arrow {
       position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
@@ -262,6 +273,13 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; touch-action: pinch-zoom; }
     .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
 
+    @media (max-width: 768px) {
+      .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
+        will-change: auto;
+      }
+      .gallery-3d { perspective: none; }
+      .gallery-3d-card { -webkit-box-reflect: none; }
+    }
     @media (max-width: 520px) {
       .gallery-3d-card { width: 200px; height: 260px; }
       .gallery-3d { height: 300px; }
