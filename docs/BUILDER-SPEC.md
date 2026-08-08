@@ -663,11 +663,18 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
   
   **Causa raíz probable**: La barra de dirección del navegador mobile se auto-oculta/muestra al detectar cambios de contenido en un panel con scroll. Cuando el acordeón expande y el panel crece, el browser lo interpreta como actividad de scroll → oculta la barra → cambia viewport height → recalcula layout → muestra la barra → loop de repaint. Solo ocurre en viewport mobile real, no en "modo escritorio" del mismo dispositivo.
   
-  **Estado**: Parcialmente mitigado (menos frecuente) pero no eliminado. Posibles siguientes pasos:
+  **Estado**: Parcialmente mitigado (menos frecuente) pero no eliminado. Bug específico de Android/Chromium — NO ocurre en iOS Safari. Posibles siguientes pasos:
   - Investigar si un `<meta name="viewport" content="interactive-widget=resizes-content">` o `interactive-widget=overlays-content` resuelve
   - Probar con `env(safe-area-inset-*)` y viewport-fit=cover
   - Considerar no mostrar thumbnails en mobile y usar solo lista de nombres de archivo
   - Investigar si es un bug específico del WebView/Chromium de Samsung
+  - Aceptar como limitación de Android Chromium y documentar para el usuario
+
+- [ ] **iOS: Dimensiones incorrectas del Builder**: En iOS Safari, el builder no se adapta correctamente al viewport del dispositivo. Requiere hacer zoom out manual para ver el sitio completo. El contenido se renderiza más grande que la pantalla.
+
+- [ ] **Toolbar Canvas/Preview oculto en mobile**: El segundo toolbar (con los botones Mobile/Desktop y Canvas/Preview) queda debajo del toolbar principal (Volver + Título + Guardar). No se puede acceder al botón de Preview en dispositivos móviles.
+
+- [ ] **Background animado "brinca" al scrollear en mobile**: En el canvas y preview, la imagen de fondo (GIF/video) se mueve con el scroll y luego regresa a su posición, causando un efecto de "brinco" continuo. Ocurre porque `background-attachment: fixed` no funciona correctamente en mobile browsers. Solo afecta canvas y preview, no la landing real.
 
 ---
 

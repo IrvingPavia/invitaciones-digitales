@@ -246,6 +246,7 @@ interface BuilderSection {
       background: #0a0a14;
       height: 100dvh;
       height: 100vh;
+      overscroll-behavior: none;
     }
     .builder-toolbar {
       display: flex; align-items: center;
@@ -439,7 +440,7 @@ interface BuilderSection {
       --gold: #d4a017; --gold-light: #e6c655;
     }
     .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
-    .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; background-attachment: fixed; z-index: 0; }
+    .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; }
     .canvas-bg-overlay { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
     .canvas-bg-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
     .canvas-bg-texture[data-texture="noise"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
@@ -720,15 +721,18 @@ interface BuilderSection {
       .builder-save-text { display: none; }
       .builder-save-btn { min-width: auto !important; padding: 7px 10px !important; }
       .builder-toolbar-left { flex: 0 0 auto !important; max-width: none; overflow: visible; order: 0; }
-      .builder-event-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+      .builder-event-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
       .builder-toolbar {
-        flex-wrap: wrap !important;
-        padding: 6px 12px !important;
-        gap: 4px 8px !important;
+        flex-wrap: nowrap !important;
+        padding: 6px 8px !important;
+        gap: 4px !important;
+        min-height: auto !important;
       }
-      .builder-toolbar-left { flex: 1 0 auto !important; }
+      .builder-toolbar-left { flex: 0 0 auto !important; }
       .builder-toolbar-right { order: 0; margin-left: auto; }
-      .builder-toolbar-center { order: 1; flex: 1 0 100%; justify-content: center; }
+      .builder-toolbar-center { order: 0; flex: 1; justify-content: center; gap: 2px !important; }
+      .builder-toolbar-center .builder-tb-sep { display: none; }
+      .builder-toolbar-center .builder-device-btn { display: none; }
       .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
       .builder-panel-right.panel-visible {
         position: absolute;
