@@ -19,7 +19,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                 [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
                 [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
                 [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'GalerÃ­a' }}</h2>
+            >{{ config.title || 'Galería' }}</h2>
             @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
               <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
             }
@@ -31,7 +31,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                 [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
                 [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
                 [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'GalerÃ­a' }}</h2>
+            >{{ config.title || 'Galería' }}</h2>
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
           </div>
         }
@@ -134,7 +134,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <p class="carousel-counter">{{ current() + 1 }} / {{ photos.length }}</p>
           }
         } @else {
-          <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">PrÃ³ximamente...</p>
+          <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Sin fotos</p>
         }
       </div>
     </section>

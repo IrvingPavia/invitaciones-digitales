@@ -999,7 +999,7 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['gal-photos']) {
             <div class="accordion-body">
-              <div class="items-header"><span>Fotos ({{photos().length}})</span><button class="sm-btn" (click)="uploadPhotos();$event.stopPropagation()">+ Subir</button></div>
+              <div class="items-header"><span>Fotos ({{photos().length}})</span><button class="sm-btn" [disabled]="uploadingPhotos" (click)="uploadPhotos();$event.stopPropagation()">{{ uploadingPhotos ? 'Subiendo...' : '+ Subir' }}</button></div>
               <div class="photo-grid">
                 @for(p of photos();track p.id){
                   <div class="photo-thumb"><img [src]="p.thumb_url || p.url" loading="lazy" decoding="async" width="44" height="44" class="photo-img" (load)="onPhotoLoad($event)"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
@@ -1863,9 +1863,18 @@ export class BuilderPropsPanelComponent {
     this.canvasState.triggerAutoSave();
   }
 
+  uploadingPhotos = false;
+
   uploadPhotos() {
     const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;
-    input.onchange=()=>{if(!input.files?.length)return;this.api.uploadPhotos(this.eventId,input.files).subscribe(()=>{this.api.getPhotos(this.eventId).subscribe(p=>this.photos.set(p))})};
+    input.onchange=()=>{
+      if(!input.files?.length)return;
+      this.uploadingPhotos = true;
+      this.api.uploadPhotos(this.eventId,input.files).subscribe({
+        next: ()=>{this.api.getPhotos(this.eventId).subscribe(p=>{this.photos.set(p);this.uploadingPhotos=false;})},
+        error: ()=>{this.uploadingPhotos=false;}
+      });
+    };
     input.click();
   }
 

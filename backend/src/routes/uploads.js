@@ -63,11 +63,12 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
 
-      // Generate thumbnail (100x100, JPEG 60%)
+      // Generate thumbnail (100x100, JPEG 60%, auto-rotate EXIF)
       const thumbFilename = 'thumb_' + file.filename.replace(path.extname(file.filename), '.jpg');
       const thumbPath = path.join(file.destination, thumbFilename);
       try {
         await sharp(file.path)
+          .rotate()
           .resize(100, 100, { fit: 'cover' })
           .jpeg({ quality: 60 })
           .toFile(thumbPath);
