@@ -166,7 +166,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
@@ -497,10 +497,6 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .gallery-flip,
     .preview-mode-canvas ::ng-deep .gallery-slideshow,
     .preview-mode-canvas ::ng-deep .gallery-grid { min-height: 250px; contain: content; }
-    .preview-mode-canvas ::ng-deep .gallery-3d-card,
-    .preview-mode-canvas ::ng-deep .stack-card,
-    .preview-mode-canvas ::ng-deep .flip-card { transition: none !important; animation: none !important; will-change: auto !important; }
-    .preview-mode-canvas ::ng-deep .gallery-3d { perspective: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section img { content-visibility: auto; }
     .gallery-placeholder {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
