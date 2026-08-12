@@ -895,7 +895,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(key);
     this.currentSection.set(key);
-    this.showProps.set(true);
+    // On mobile, don't auto-open props panel (user can tap FAB to open it)
+    if (!this.isMobileView()) {
+      this.showProps.set(true);
+    }
     // Close sections panel to give canvas space
     this.panelVisible.set(false);
     this.showLeftPanel.set(false);

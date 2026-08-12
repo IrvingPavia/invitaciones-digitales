@@ -85,7 +85,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                   <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
-              <div class="flip-hint">Toca para pasar â†’</div>
+              <div class="flip-hint">Toca para pasar ></div>
             </div>
           }
 
