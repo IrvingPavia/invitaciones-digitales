@@ -63,15 +63,23 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
 
-      // Gallery photos: NO compression (preserve original quality for professional photos)
-      // Only general uploads (/uploads/:type) get compressed
+      // Generate thumbnail (100x100, JPEG 60%)
+      const thumbFilename = 'thumb_' + file.filename.replace(path.extname(file.filename), '.jpg');
+      const thumbPath = path.join(file.destination, thumbFilename);
+      try {
+        await sharp(file.path)
+          .resize(100, 100, { fit: 'cover' })
+          .jpeg({ quality: 60 })
+          .toFile(thumbPath);
+      } catch (e) { /* If thumb generation fails, continue without it */ }
 
       const url = `/uploads/images/${file.filename}`;
+      const thumbUrl = `/uploads/images/${thumbFilename}`;
       const [r] = await conn.query(
-        'INSERT INTO photos (event_id, filename, url, sort_order) VALUES (?, ?, ?, ?)',
-        [req.params.eventId, `images/${file.filename}`, url, i]
+        'INSERT INTO photos (event_id, filename, url, thumb_url, sort_order) VALUES (?, ?, ?, ?, ?)',
+        [req.params.eventId, `images/${file.filename}`, url, thumbUrl, i]
       );
-      photos.push({ id: r.insertId, url });
+      photos.push({ id: r.insertId, url, thumb_url: thumbUrl });
     }
     await conn.commit();
     res.json({ uploaded: photos.length, photos });

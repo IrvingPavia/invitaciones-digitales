@@ -1010,7 +1010,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               } @else {
                 <div class="photo-grid">
                   @for(p of photos();track p.id){
-                    <div class="photo-thumb"><img [src]="p.url" loading="lazy" decoding="async" width="44" height="44" class="photo-img" (load)="onPhotoLoad($event)"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
+                    <div class="photo-thumb"><img [src]="p.thumb_url || p.url" loading="lazy" decoding="async" width="44" height="44" class="photo-img" (load)="onPhotoLoad($event)"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
                   }
                 </div>
               }

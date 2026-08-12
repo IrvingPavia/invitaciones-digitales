@@ -457,6 +457,7 @@ export interface Photo {
   event_id: number;
   filename: string;
   url: string;
+  thumb_url?: string;
   sort_order: number;
 }
 

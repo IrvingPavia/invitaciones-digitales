@@ -114,8 +114,14 @@ router.delete('/:eventId/photos/:id', auth, requireActiveEvent, async (req, res)
     const [rows] = await getDB().query('SELECT * FROM photos WHERE id=? AND event_id=?', [req.params.id, req.params.eventId]);
     if (rows[0]) {
       const fs = require('fs');
-      const filePath = require('path').join(__dirname, '../../uploads', rows[0].filename);
+      const pathMod = require('path');
+      const filePath = pathMod.join(__dirname, '../../uploads', rows[0].filename);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      // Delete thumbnail if exists
+      if (rows[0].thumb_url) {
+        const thumbPath = pathMod.join(__dirname, '../../uploads', rows[0].thumb_url.replace('/uploads/', ''));
+        if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+      }
       await getDB().query('DELETE FROM photos WHERE id=?', [req.params.id]);
     }
     res.json({ message: 'Foto eliminada' });
