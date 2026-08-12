@@ -133,8 +133,17 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     <!-- Lightbox -->
     @if (lightboxIndex() !== null) {
       <div class="lightbox" (click)="closeLightbox()">
+        <div class="lightbox-bg" [style.background-image]="'url(' + photos[lightboxIndex()!].url + ')'"></div>
         <div class="lightbox-content" (click)="$event.stopPropagation()">
-          <img [src]="photos[lightboxIndex()!].url" class="lightbox-img">
+          <div class="lightbox-img-container"
+               (touchstart)="onLightboxTouchStart($event)"
+               (touchmove)="onLightboxTouchMove($event)"
+               (touchend)="onLightboxTouchEnd()"
+               (dblclick)="toggleLightboxZoom()">
+            <img [src]="photos[lightboxIndex()!].url" class="lightbox-img"
+                 [style.transform]="'scale(' + lightboxZoom() + ') translate(' + lightboxPanX() + 'px, ' + lightboxPanY() + 'px)'"
+                 [class.zoomed]="lightboxZoom() > 1">
+          </div>
           <button class="lightbox-close" (click)="closeLightbox()"><span class="material-icons">close</span> Cerrar</button>
         </div>
       </div>
@@ -263,10 +272,13 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
     .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
 
-    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); padding: 16px; }
-    .lightbox-content { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-height: 100%; justify-content: center; }
-    .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; touch-action: pinch-zoom; }
-    .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
+    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+    .lightbox-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.3); transform: scale(1.2); z-index: 0; }
+    .lightbox-content { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-height: 100%; justify-content: center; position: relative; z-index: 1; }
+    .lightbox-img-container { display: flex; align-items: center; justify-content: center; max-width: 95vw; max-height: 75vh; overflow: hidden; border-radius: 8px; touch-action: none; user-select: none; -webkit-user-select: none; }
+    .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; transition: transform 0.2s ease; transform-origin: center center; will-change: transform; }
+    .lightbox-img.zoomed { transition: none; cursor: grab; }
+    .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; backdrop-filter: blur(8px); .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
 
     @media (max-width: 768px) {
       .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
@@ -301,6 +313,13 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
 
   current = signal(0);
   lightboxIndex = signal<number | null>(null);
+  lightboxZoom = signal(1);
+  lightboxPanX = signal(0);
+  lightboxPanY = signal(0);
+  private lightboxLastDist = 0;
+  private lightboxLastX = 0;
+  private lightboxLastY = 0;
+  private lightboxTouches = 0;
   isDragging = false;
   private dragOffset = 0;
   private dragStartPos = 0;
@@ -311,9 +330,8 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
 
   get displayStyle(): string { return this.config.displayStyle || 'carousel-3d'; }
 
-  /** In static mode (builder canvas), use thumb_url for faster rendering */
+  /** In canvas (staticMode), use full URL with eager loading for instant display */
   getPhotoSrc(photo: Photo): string {
-    if (this.staticMode && photo.thumb_url) return photo.thumb_url;
     return photo.url;
   }
 
@@ -414,9 +432,75 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
 
   onPhotoClick(i: number) { if (!this.isDragging && Math.abs(this.dragOffset) < 5) { if (i === this.current()) this.openLightbox(i); else this.goTo(i); } }
-  openLightbox(i: number) { this.lightboxIndex.set(i); }
-  closeLightbox() { this.lightboxIndex.set(null); }
+  openLightbox(i: number) {
+    this.lightboxIndex.set(i);
+    this.lightboxZoom.set(1);
+    this.lightboxPanX.set(0);
+    this.lightboxPanY.set(0);
+  }
+  closeLightbox() {
+    this.lightboxIndex.set(null);
+    this.lightboxZoom.set(1);
+    this.lightboxPanX.set(0);
+    this.lightboxPanY.set(0);
+  }
   @HostListener('window:scroll') onScroll() { if (this.lightboxIndex() !== null) this.closeLightbox(); }
+
+  /** Lightbox zoom: double-tap to toggle */
+  toggleLightboxZoom() {
+    if (this.lightboxZoom() > 1) {
+      this.lightboxZoom.set(1);
+      this.lightboxPanX.set(0);
+      this.lightboxPanY.set(0);
+    } else {
+      this.lightboxZoom.set(2.5);
+    }
+  }
+
+  /** Lightbox pinch-to-zoom + pan */
+  onLightboxTouchStart(e: TouchEvent) {
+    this.lightboxTouches = e.touches.length;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      this.lightboxLastDist = this.getTouchDist(e);
+    } else if (e.touches.length === 1 && this.lightboxZoom() > 1) {
+      this.lightboxLastX = e.touches[0].clientX;
+      this.lightboxLastY = e.touches[0].clientY;
+    }
+  }
+
+  onLightboxTouchMove(e: TouchEvent) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = this.getTouchDist(e);
+      const scale = dist / this.lightboxLastDist;
+      const newZoom = Math.max(1, Math.min(5, this.lightboxZoom() * scale));
+      this.lightboxZoom.set(newZoom);
+      this.lightboxLastDist = dist;
+      if (newZoom <= 1) { this.lightboxPanX.set(0); this.lightboxPanY.set(0); }
+    } else if (e.touches.length === 1 && this.lightboxZoom() > 1) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - this.lightboxLastX;
+      const dy = e.touches[0].clientY - this.lightboxLastY;
+      this.lightboxPanX.update(v => v + dx / this.lightboxZoom());
+      this.lightboxPanY.update(v => v + dy / this.lightboxZoom());
+      this.lightboxLastX = e.touches[0].clientX;
+      this.lightboxLastY = e.touches[0].clientY;
+    }
+  }
+
+  onLightboxTouchEnd() {
+    if (this.lightboxZoom() <= 1) {
+      this.lightboxPanX.set(0);
+      this.lightboxPanY.set(0);
+    }
+  }
+
+  private getTouchDist(e: TouchEvent): number {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
   getFontFamily(key?: string): string {
     const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
