@@ -166,24 +166,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    @if (isMobileView()) {
-                      <div class="gallery-canvas-preview">
-                        <h2 class="gallery-canvas-title" [style.font-family]="'var(--font-script)'" [style.color]="canvasState.config()?.globalStyles?.sectionHeadingStyle?.color || '#d4a017'">{{ canvasState.config()!.gallery.title || 'Galeria' }}</h2>
-                        <div class="gallery-canvas-carousel">
-                          @for (p of photos().slice(0, 5); track p.id; let i = $index) {
-                            <div class="gallery-canvas-card" [class.active]="i === galleryPreviewIndex()">
-                              <span>Foto {{i + 1}}</span>
-                            </div>
-                          }
-                          @if (photos().length === 0) {
-                            <div class="gallery-canvas-card active"><span>Sin fotos</span></div>
-                          }
-                        </div>
-                        <p class="gallery-canvas-style">{{ canvasState.config()!.gallery.displayStyle || 'carousel-3d' }} · {{photos().length}} fotos</p>
-                      </div>
-                    } @else {
-                      <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
-                    }
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
