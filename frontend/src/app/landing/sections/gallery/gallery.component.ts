@@ -85,7 +85,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                   <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
-              <div class="flip-hint">Toca para pasar ></div>
+              <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
             </div>
           }
 

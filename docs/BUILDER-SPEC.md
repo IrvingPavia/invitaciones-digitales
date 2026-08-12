@@ -677,6 +677,11 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - [ ] **Background animado "brinca" al scrollear en mobile**: En el canvas y preview, la imagen de fondo (GIF/video) se mueve con el scroll y luego regresa a su posición, causando un efecto de "brinco" continuo. Ocurre porque `background-attachment: fixed` no funciona correctamente en mobile browsers. Solo afecta canvas y preview, no la landing real.
   > **Fix**: Se eliminó `background-attachment: fixed` del canvas.
 
+- [ ] **Canvas: delay en carga de imagenes de galeria** — las fotos cargan lento de forma progresiva. Solucion ideal: precargar todas las fotos al entrar al builder (no lazy) o usar thumbnails en el canvas tambien.
+- [ ] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — al switchear el estilo, el componente se destruye y recrea. Solucion: precargar todos los estilos y switchear con display:none/block.
+- [ ] **Canvas mobile: panel se abre automatico al tocar seccion** — molesto al scrollear. Considerar que en mobile el panel solo se abra con el FAB button, no al tocar la seccion.
+- [ ] **Canvas: no se puede interactuar con el carrusel** — pointer-events:none bloquea gestos. Esto es por diseño (click selecciona seccion), interaccion real solo en Preview.
+
 ---
 
 ## 19. Rediseño de Upload de Fotos (Galería + Vestimenta)
