@@ -675,6 +675,50 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - [ ] **Toolbar Canvas/Preview oculto en mobile**: El segundo toolbar (con los botones Mobile/Desktop y Canvas/Preview) queda debajo del toolbar principal (Volver + Título + Guardar). No se puede acceder al botón de Preview en dispositivos móviles.
 
 - [ ] **Background animado "brinca" al scrollear en mobile**: En el canvas y preview, la imagen de fondo (GIF/video) se mueve con el scroll y luego regresa a su posición, causando un efecto de "brinco" continuo. Ocurre porque `background-attachment: fixed` no funciona correctamente en mobile browsers. Solo afecta canvas y preview, no la landing real.
+  > **Fix**: Se eliminó `background-attachment: fixed` del canvas.
+
+---
+
+## 19. Rediseño de Upload de Fotos (Galería + Vestimenta)
+
+### Galería (máx. 20 fotos)
+
+**Instrucciones visibles:**
+- "Máx. 20 fotos, 10MB c/u"
+- "Resolución recomendada: 1080×1350px (vertical) o 1920×1080px (horizontal)"
+- "Formatos: JPG, PNG, WebP. Las fotos se suben en calidad original."
+
+**Grid fijo de 20 slots:**
+- Mostrar siempre 20 cuadros en un grid (ej: 4 columnas × 5 filas, o auto-fill)
+- Cuadros con foto → thumbnail con borde sólido
+- Cuadros vacíos → borde dashed + ícono de imagen + botón "+"
+- Click en cuadro vacío → abre selector de archivos
+
+**Selección para eliminar (mobile-friendly):**
+- Tap/click en un thumbnail → lo selecciona (borde de color, checkmark overlay)
+- Puede seleccionar múltiples fotos
+- Cuando hay fotos seleccionadas: el botón "Subir" cambia a "Eliminar (N)"
+- Cuando no hay selección: el botón vuelve a "Subir"
+- En desktop: también funciona con hover + checkbox overlay
+
+### Vestimenta (máx. 4 fotos por ejemplo)
+
+**Grid fijo de 4 slots por cada card de ejemplo:**
+- Mostrar siempre 4 cuadros horizontales por card
+- Cuadros con imagen → thumbnail
+- Cuadros vacíos → borde dashed + ícono "+"
+- Misma lógica de selección para eliminar
+
+**Instrucciones:**
+- "Máx. 4 imágenes por ejemplo"
+- "Formatos: JPG, PNG, WebP"
+
+### Implementación
+
+- El grid de slots se renderiza completo desde el inicio (20 o 4 según la sección)
+- No hay layout shift al cargar fotos porque los slots ya existen
+- El botón "+" de cada slot vacío dispara el upload
+- Las fotos ocupan los primeros N slots, el resto queda como placeholder
 
 ---
 
