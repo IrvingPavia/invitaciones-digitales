@@ -170,19 +170,19 @@ interface BuilderSection {
                       <div class="gallery-canvas-preview">
                         <h2 class="gallery-canvas-title" [style.font-family]="'var(--font-script)'" [style.color]="canvasState.config()?.globalStyles?.sectionHeadingStyle?.color || '#d4a017'">{{ canvasState.config()!.gallery.title || 'Galeria' }}</h2>
                         <div class="gallery-canvas-carousel">
-                          @for (p of cachedPhotos.slice(0, 5); track p.id; let i = $index) {
+                          @for (p of photos().slice(0, 5); track p.id; let i = $index) {
                             <div class="gallery-canvas-card" [class.active]="i === galleryPreviewIndex()">
                               <span>Foto {{i + 1}}</span>
                             </div>
                           }
-                          @if (cachedPhotos.length === 0) {
+                          @if (photos().length === 0) {
                             <div class="gallery-canvas-card active"><span>Sin fotos</span></div>
                           }
                         </div>
-                        <p class="gallery-canvas-style">{{ canvasState.config()!.gallery.displayStyle || 'carousel-3d' }} · {{cachedPhotos.length}} fotos</p>
+                        <p class="gallery-canvas-style">{{ canvasState.config()!.gallery.displayStyle || 'carousel-3d' }} · {{photos().length}} fotos</p>
                       </div>
                     } @else {
-                      <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
+                      <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
                     }
                   </div>
                 }
