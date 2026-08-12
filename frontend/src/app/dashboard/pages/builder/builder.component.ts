@@ -166,7 +166,20 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="cachedPhotos" [styles]="canvasState.config()?.globalStyles!" />
+                    <div class="gallery-canvas-preview">
+                      <h2 class="gallery-canvas-title" [style.font-family]="'var(--font-script)'" [style.color]="canvasState.config()?.globalStyles?.sectionHeadingStyle?.color || '#d4a017'">{{ canvasState.config()!.gallery.title || 'Galeria' }}</h2>
+                      <div class="gallery-canvas-carousel">
+                        @for (p of cachedPhotos.slice(0, 5); track p.id; let i = $index) {
+                          <div class="gallery-canvas-card" [class.active]="i === galleryPreviewIndex()">
+                            <span>Foto {{i + 1}}</span>
+                          </div>
+                        }
+                        @if (cachedPhotos.length === 0) {
+                          <div class="gallery-canvas-card active"><span>Sin fotos</span></div>
+                        }
+                      </div>
+                      <p class="gallery-canvas-style">{{ canvasState.config()!.gallery.displayStyle || 'carousel-3d' }} · {{cachedPhotos.length}} fotos</p>
+                    </div>
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
@@ -492,20 +505,23 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; }
-    .preview-mode-canvas ::ng-deep .gallery-3d,
-    .preview-mode-canvas ::ng-deep .gallery-stack,
-    .preview-mode-canvas ::ng-deep .gallery-flip,
-    .preview-mode-canvas ::ng-deep .gallery-slideshow,
-    .preview-mode-canvas ::ng-deep .gallery-grid { min-height: 250px; contain: content; }
-    .preview-mode-canvas ::ng-deep .gallery-section img { content-visibility: auto; }
-    .gallery-placeholder {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 8px; padding: 40px 20px; background: rgba(139,92,246,0.04);
-      border: 1px dashed rgba(139,92,246,0.2); border-radius: 8px; margin: 12px;
-      .material-icons { font-size: 36px; color: rgba(139,92,246,0.4); }
-      span { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 600; }
-      small { font-size: 11px; color: rgba(255,255,255,0.3); }
+    .gallery-canvas-preview { padding: 30px 16px; text-align: center; }
+    .gallery-canvas-title { font-size: 28px; margin-bottom: 20px; }
+    .gallery-canvas-carousel { display: flex; align-items: center; justify-content: center; gap: 8px; height: 180px; overflow: hidden; }
+    .gallery-canvas-card {
+      width: 120px; height: 160px; border-radius: 12px;
+      border: 1px dashed rgba(139,92,246,0.3); background: rgba(139,92,246,0.04);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500;
+      transition: transform 0.5s ease, opacity 0.5s ease, border-color 0.3s;
+      transform: scale(0.85); opacity: 0.5;
     }
+    .gallery-canvas-card.active {
+      transform: scale(1); opacity: 1;
+      border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.08);
+      box-shadow: 0 4px 20px rgba(139,92,246,0.15);
+    }
+    .gallery-canvas-style { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 12px; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
@@ -1479,6 +1495,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   photos = signal<any[]>([]);
   cachedPhotos: any[] = [];
+  galleryPreviewIndex = signal(0);
+  private galleryPreviewTimer: any;
 
   uploadPhotos() {
     const input = document.createElement('input');
@@ -1495,7 +1513,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   private loadPhotos() {
-    this.api.getPhotos(this.eventId).subscribe(p => { this.photos.set(p); this.cachedPhotos = p; });
+    this.api.getPhotos(this.eventId).subscribe(p => { this.photos.set(p); this.cachedPhotos = p; this.startGalleryPreview(); });
+  }
+
+  private startGalleryPreview() {
+    clearInterval(this.galleryPreviewTimer);
+    if (this.cachedPhotos.length > 1) {
+      this.galleryPreviewTimer = setInterval(() => {
+        this.galleryPreviewIndex.set((this.galleryPreviewIndex() + 1) % Math.min(this.cachedPhotos.length, 5));
+      }, 2500);
+    }
   }
 
   private loadGuests() {
