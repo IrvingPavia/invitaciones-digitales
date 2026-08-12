@@ -1000,20 +1000,11 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['gal-photos']) {
             <div class="accordion-body">
               <div class="items-header"><span>Fotos ({{photos().length}})</span><button class="sm-btn" (click)="uploadPhotos();$event.stopPropagation()">+ Subir</button></div>
-              @if (isMobile()) {
+              <div class="photo-grid">
                 @for(p of photos();track p.id){
-                  <div class="photo-list-item">
-                    <span class="photo-list-name">{{getFileName(p.url)}}</span>
-                    <button class="x-btn" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button>
-                  </div>
+                  <div class="photo-thumb"><img [src]="p.thumb_url || p.url" loading="lazy" decoding="async" width="44" height="44" class="photo-img" (load)="onPhotoLoad($event)"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
                 }
-              } @else {
-                <div class="photo-grid">
-                  @for(p of photos();track p.id){
-                    <div class="photo-thumb"><img [src]="p.thumb_url || p.url" loading="lazy" decoding="async" width="44" height="44" class="photo-img" (load)="onPhotoLoad($event)"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
-                  }
-                </div>
-              }
+              </div>
             </div>
           }
         }
