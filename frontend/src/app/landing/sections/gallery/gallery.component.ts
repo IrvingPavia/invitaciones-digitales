@@ -45,84 +45,74 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         @if (photos.length > 0) {
           <!-- CAROUSEL 3D / VERTICAL / COVERFLOW -->
-          @if (displayStyle === 'carousel-3d' || displayStyle === 'carousel-vertical' || displayStyle === 'coverflow') {
-            <div class="gallery-3d" [class.vertical]="displayStyle === 'carousel-vertical'" [class.coverflow]="displayStyle === 'coverflow'"
-                 (mousedown)="onDragStart($event)" (touchstart)="onTouchDragStart($event)">
-              @for (photo of photos; track photo.id; let i = $index) {
-                <div class="gallery-3d-card"
-                     [style.transform]="getCardTransform(i)"
-                     [style.opacity]="getCardOpacity(i)"
-                     [style.z-index]="getCardZIndex(i)"
-                     [style.transition]="isDragging ? 'none' : ''"
-                     (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
-                </div>
-              }
-            </div>
-          }
+          <div class="gallery-3d" [class.vertical]="displayStyle === 'carousel-vertical'" [class.coverflow]="displayStyle === 'coverflow'"
+               [style.display]="(displayStyle === 'carousel-3d' || displayStyle === 'carousel-vertical' || displayStyle === 'coverflow') ? '' : 'none'"
+               (mousedown)="onDragStart($event)" (touchstart)="onTouchDragStart($event)">
+            @for (photo of photos; track photo.id; let i = $index) {
+              <div class="gallery-3d-card"
+                   [style.transform]="getCardTransform(i)"
+                   [style.opacity]="getCardOpacity(i)"
+                   [style.z-index]="getCardZIndex(i)"
+                   [style.transition]="isDragging ? 'none' : ''"
+                   (click)="onPhotoClick(i)">
+                <img [src]="getPhotoSrc(photo)" [alt]="'Foto ' + (i+1)" [loading]="staticMode ? 'eager' : 'lazy'" decoding="async">
+              </div>
+            }
+          </div>
 
           <!-- STACK -->
-          @if (displayStyle === 'stack') {
-            <div class="gallery-stack" (mousedown)="onDragStart($event)" (touchstart)="onTouchDragStart($event)">
-              @for (photo of photos; track photo.id; let i = $index) {
-                <div class="stack-card"
-                     [style.transform]="getStackTransform(i)"
-                     [style.opacity]="getStackOpacity(i)"
-                     [style.z-index]="photos.length - getStackDistance(i)"
-                     [style.transition]="isDragging ? 'none' : ''"
-                     (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
-                </div>
-              }
-            </div>
-          }
+          <div class="gallery-stack" [style.display]="displayStyle === 'stack' ? '' : 'none'"
+               (mousedown)="onDragStart($event)" (touchstart)="onTouchDragStart($event)">
+            @for (photo of photos; track photo.id; let i = $index) {
+              <div class="stack-card"
+                   [style.transform]="getStackTransform(i)"
+                   [style.opacity]="getStackOpacity(i)"
+                   [style.z-index]="photos.length - getStackDistance(i)"
+                   [style.transition]="isDragging ? 'none' : ''"
+                   (click)="onPhotoClick(i)">
+                <img [src]="getPhotoSrc(photo)" [alt]="'Foto ' + (i+1)" [loading]="staticMode ? 'eager' : 'lazy'" decoding="async">
+              </div>
+            }
+          </div>
 
           <!-- FLIP -->
-          @if (displayStyle === 'flip') {
-            <div class="gallery-flip" (click)="next()">
-              @for (photo of photos; track photo.id; let i = $index) {
-                <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
-                </div>
-              }
-              <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
-            </div>
-          }
+          <div class="gallery-flip" [style.display]="displayStyle === 'flip' ? '' : 'none'" (click)="next()">
+            @for (photo of photos; track photo.id; let i = $index) {
+              <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
+                <img [src]="getPhotoSrc(photo)" [alt]="'Foto ' + (i+1)" [loading]="staticMode ? 'eager' : 'lazy'" decoding="async">
+              </div>
+            }
+            <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
+          </div>
 
           <!-- POLAROID -->
-          @if (displayStyle === 'polaroid') {
-            <div class="gallery-polaroid">
-              @for (photo of photos; track photo.id; let i = $index) {
-                <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
-                </div>
-              }
-            </div>
-          }
+          <div class="gallery-polaroid" [style.display]="displayStyle === 'polaroid' ? '' : 'none'">
+            @for (photo of photos; track photo.id; let i = $index) {
+              <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
+                <img [src]="getPhotoSrc(photo)" [alt]="'Foto ' + (i+1)" [loading]="staticMode ? 'eager' : 'lazy'" decoding="async">
+              </div>
+            }
+          </div>
 
           <!-- GRID -->
-          @if (displayStyle === 'grid') {
-            <div class="gallery-grid">
-              @for (photo of photos; track photo.id; let i = $index) {
-                <div class="gallery-grid-item" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
-                </div>
-              }
-            </div>
-          }
+          <div class="gallery-grid" [style.display]="displayStyle === 'grid' ? '' : 'none'">
+            @for (photo of photos; track photo.id; let i = $index) {
+              <div class="gallery-grid-item" (click)="openLightbox(i)">
+                <img [src]="getPhotoSrc(photo)" [alt]="'Foto ' + (i+1)" [loading]="staticMode ? 'eager' : 'lazy'" decoding="async">
+              </div>
+            }
+          </div>
 
           <!-- SLIDESHOW -->
-          @if (displayStyle === 'slideshow') {
-            <div class="gallery-slideshow">
-              @for (photo of photos; track photo.id; let i = $index) {
-                <img class="slideshow-img" [class.active]="i === current()" [src]="photo.url" loading="lazy" (click)="openLightbox(current())">
-              }
-              @if (photos.length > 1) {
-                <button class="slideshow-arrow arrow-left" (click)="prev(); $event.stopPropagation()"><span class="material-icons">chevron_left</span></button>
-                <button class="slideshow-arrow arrow-right" (click)="next(); $event.stopPropagation()"><span class="material-icons">chevron_right</span></button>
-              }
-            </div>
-          }
+          <div class="gallery-slideshow" [style.display]="displayStyle === 'slideshow' ? '' : 'none'">
+            @for (photo of photos; track photo.id; let i = $index) {
+              <img class="slideshow-img" [class.active]="i === current()" [src]="getPhotoSrc(photo)" [loading]="staticMode ? 'eager' : 'lazy'" (click)="openLightbox(current())">
+            }
+            @if (photos.length > 1) {
+              <button class="slideshow-arrow arrow-left" (click)="prev(); $event.stopPropagation()"><span class="material-icons">chevron_left</span></button>
+              <button class="slideshow-arrow arrow-right" (click)="next(); $event.stopPropagation()"><span class="material-icons">chevron_right</span></button>
+            }
+          </div>
 
           <!-- Dots (for carousel/stack/flip/slideshow) -->
           @if (displayStyle !== 'grid' && displayStyle !== 'polaroid') {
@@ -133,6 +123,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             </div>
             <p class="carousel-counter">{{ current() + 1 }} / {{ photos.length }}</p>
           }
+        
         } @else {
           <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Sin fotos</p>
         }
@@ -157,6 +148,10 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-line { flex: 1; height: 1px; }
     .section-heading { text-align: center; }
     .gallery-desc { text-align: center; margin-bottom: 32px; }
+    /* Hidden gallery styles still reserve no space */
+    .gallery-3d[style*="display: none"], .gallery-stack[style*="display: none"],
+    .gallery-flip[style*="display: none"], .gallery-polaroid[style*="display: none"],
+    .gallery-grid[style*="display: none"], .gallery-slideshow[style*="display: none"] { height: 0; overflow: hidden; }
 
     /* === 3D CAROUSEL === */
     .gallery-3d {
@@ -315,6 +310,12 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   private polaroidRotations: number[] = [];
 
   get displayStyle(): string { return this.config.displayStyle || 'carousel-3d'; }
+
+  /** In static mode (builder canvas), use thumb_url for faster rendering */
+  getPhotoSrc(photo: Photo): string {
+    if (this.staticMode && photo.thumb_url) return photo.thumb_url;
+    return photo.url;
+  }
 
   ngOnInit() {
     if (this.displayStyle === 'slideshow' && !this.staticMode) this.startAuto();

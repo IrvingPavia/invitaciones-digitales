@@ -1053,17 +1053,22 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Descripcion</label><textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea></div>
                   <div class="pf" style="margin-top:6px">
                     <label>Imagenes de ejemplo ({{card.images?.length || 0}}/4)</label>
-                    <div class="dress-images-grid">
+                    <div class="dress-slots-grid">
                       @for (img of card.images || []; track img; let j=$index) {
-                        <div class="dress-img-thumb">
+                        <div class="dress-slot filled" [class.selected]="isDressImageSelected(i, j)" (click)="toggleDressImageSelect(i, j);$event.stopPropagation()">
                           <img [src]="img" alt="">
-                          <button class="dress-img-remove" (click)="removeDresscodeImage(i,j);$event.stopPropagation()"><span class="material-icons">close</span></button>
+                          @if (isDressImageSelected(i, j)) { <span class="slot-check"><span class="material-icons">check</span></span> }
                         </div>
                       }
-                      @if ((card.images?.length || 0) < 4) {
-                        <button class="dress-img-add" (click)="uploadDresscodeImage(i);$event.stopPropagation()"><span class="material-icons">add_photo_alternate</span></button>
+                      @for (slot of getDressEmptySlots(i); track $index) {
+                        <div class="dress-slot empty" (click)="uploadDresscodeImage(i);$event.stopPropagation()">
+                          <span class="material-icons">add_photo_alternate</span>
+                        </div>
                       }
                     </div>
+                    @if (getSelectedDressImages(i).length > 0) {
+                      <button class="photo-upload-btn delete" style="margin-top:6px;width:100%" (click)="deleteSelectedDressImages(i);$event.stopPropagation()">Eliminar ({{getSelectedDressImages(i).length}})</button>
+                    }
                   </div>
                   <div class="toggle-row" style="margin-top:6px">
                     <span class="toggle-title">Fondo</span>
@@ -1459,6 +1464,13 @@ import { ApiService } from '../../../../../core/services/api.service';
     .dress-img-remove { position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,64,87,0.9);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s; .material-icons{font-size:11px} }
     .dress-img-thumb:hover .dress-img-remove { opacity:1; }
     .dress-img-add { width:56px;height:68px;border-radius:8px;border:2px dashed rgba(139,92,246,0.3);background:none;color:rgba(139,92,246,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0; .material-icons{font-size:22px} &:hover{border-color:rgba(139,92,246,0.6);color:rgba(139,92,246,0.8);background:rgba(139,92,246,0.05)} }
+    .dress-slots-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px; }
+    .dress-slot { width:100%;aspect-ratio:3/4;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden; }
+    .dress-slot.filled { border:2px solid transparent;transition:border-color 0.15s; img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px} }
+    .dress-slot.filled:hover { border-color:rgba(139,92,246,0.5); }
+    .dress-slot.filled.selected { border-color:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6; }
+    .dress-slot.empty { border:2px dashed rgba(139,92,246,0.4);background:rgba(139,92,246,0.08);border-radius:8px; .material-icons{font-size:20px;color:white;opacity:0.7} }
+    .dress-slot.empty:hover { border-color:rgba(139,92,246,0.7);background:rgba(139,92,246,0.12); }
     .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px;contain:layout;max-height:200px;overflow-y:auto;overflow-x:hidden; }
     .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1);contain:strict; img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.2s} img.loaded{opacity:1} }
     .photo-list-item { display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04); }
@@ -1889,6 +1901,45 @@ export class BuilderPropsPanelComponent {
   removeDresscodeImage(cardIndex: number, imgIndex: number) {
     const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
     cfg.dresscode.cards[cardIndex].images?.splice(imgIndex, 1);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  /** Dress code 4-slot grid: selection state */
+  selectedDressImages = new Map<number, Set<number>>();
+
+  getDressEmptySlots(cardIndex: number): number[] {
+    const cfg = this.canvasState.getConfig();
+    const count = Math.max(0, 4 - (cfg?.dresscode?.cards?.[cardIndex]?.images?.length || 0));
+    return new Array(count);
+  }
+
+  isDressImageSelected(cardIndex: number, imgIndex: number): boolean {
+    return this.selectedDressImages.get(cardIndex)?.has(imgIndex) || false;
+  }
+
+  toggleDressImageSelect(cardIndex: number, imgIndex: number) {
+    if (!this.selectedDressImages.has(cardIndex)) {
+      this.selectedDressImages.set(cardIndex, new Set());
+    }
+    const set = this.selectedDressImages.get(cardIndex)!;
+    if (set.has(imgIndex)) set.delete(imgIndex);
+    else set.add(imgIndex);
+  }
+
+  getSelectedDressImages(cardIndex: number): number[] {
+    const set = this.selectedDressImages.get(cardIndex);
+    return set ? Array.from(set) : [];
+  }
+
+  deleteSelectedDressImages(cardIndex: number) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg || !cfg.dresscode.cards?.[cardIndex]?.images) return;
+    const indices = this.getSelectedDressImages(cardIndex).sort((a, b) => b - a);
+    for (const idx of indices) {
+      cfg.dresscode.cards[cardIndex].images.splice(idx, 1);
+    }
+    this.selectedDressImages.delete(cardIndex);
     this.canvasState.notifyChange();
     this.canvasState.triggerAutoSave();
   }

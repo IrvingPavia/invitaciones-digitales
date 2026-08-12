@@ -677,10 +677,10 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - [ ] **Background animado "brinca" al scrollear en mobile**: En el canvas y preview, la imagen de fondo (GIF/video) se mueve con el scroll y luego regresa a su posición, causando un efecto de "brinco" continuo. Ocurre porque `background-attachment: fixed` no funciona correctamente en mobile browsers. Solo afecta canvas y preview, no la landing real.
   > **Fix**: Se eliminó `background-attachment: fixed` del canvas.
 
-- [ ] **Canvas: delay en carga de imagenes de galeria** — las fotos cargan lento de forma progresiva. Solucion ideal: precargar todas las fotos al entrar al builder (no lazy) o usar thumbnails en el canvas tambien.
-- [ ] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — al switchear el estilo, el componente se destruye y recrea. Solucion: precargar todos los estilos y switchear con display:none/block.
-- [ ] **Canvas mobile: panel se abre automatico al tocar seccion** — molesto al scrollear. Considerar que en mobile el panel solo se abra con el FAB button, no al tocar la seccion.
-- [ ] **Canvas: no se puede interactuar con el carrusel** — pointer-events:none bloquea gestos. Esto es por diseño (click selecciona seccion), interaccion real solo en Preview.
+- [x] **Canvas: delay en carga de imagenes de galeria** — las fotos cargan lento de forma progresiva. Se resolvió usando `loading="eager"` + `thumb_url` en modo `staticMode` (canvas del builder). Las imágenes se cargan inmediatamente con thumbnails ligeros en el canvas.
+- [x] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — al switchear el estilo, el componente se destruía y recreaba. Se resolvió pre-renderizando todos los estilos con `[style.display]="..."` en vez de `@if`, solo se alterna visibilidad.
+- [x] **Canvas mobile: panel se abre automatico al tocar seccion** — ya estaba implementado el guard `isMobileView()` en `selectSection()` que previene auto-apertura del panel en mobile. Solo se abre con el FAB button.
+- [x] **Canvas: no se puede interactuar con el carrusel** — pointer-events:none bloquea gestos. Esto es por diseño (click selecciona seccion), interaccion real solo en Preview.
 
 ---
 
@@ -724,6 +724,8 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - No hay layout shift al cargar fotos porque los slots ya existen
 - El botón "+" de cada slot vacío dispara el upload
 - Las fotos ocupan los primeros N slots, el resto queda como placeholder
+
+**Estado: ✅ Implementado** — Galería usa `photo-slots-grid` con 20 slots fijos y selección múltiple. Vestimenta usa `dress-slots-grid` con 4 slots fijos por card, misma UX de selección tap-to-select + botón "Eliminar (N)".
 
 ---
 
