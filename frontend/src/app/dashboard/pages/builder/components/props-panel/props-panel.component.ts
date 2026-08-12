@@ -1003,16 +1003,16 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="items-header">
                 <span>Fotos ({{photos().length}}/20)</span>
                 @if (selectedPhotos.size > 0) {
-                  <button class="sm-btn danger" (click)="deleteSelectedPhotos();$event.stopPropagation()">Eliminar ({{selectedPhotos.size}})</button>
+                  <button class="photo-upload-btn delete" (click)="deleteSelectedPhotos();$event.stopPropagation()">Eliminar ({{selectedPhotos.size}})</button>
                 } @else {
-                  <button class="sm-btn" [disabled]="uploadingPhotos || photos().length >= 20" (click)="uploadPhotos();$event.stopPropagation()">{{ uploadingPhotos ? 'Subiendo...' : '+ Subir' }}</button>
+                  <button class="photo-upload-btn upload" [disabled]="uploadingPhotos || photos().length >= 20" (click)="uploadPhotos();$event.stopPropagation()">{{ uploadingPhotos ? 'Subiendo...' : '+ Subir' }}</button>
                 }
               </div>
               <div class="photo-slots-grid">
                 @for(p of photos();track p.id; let i = $index){
                   <div class="photo-slot filled" [class.selected]="selectedPhotos.has(p.id)" (click)="togglePhotoSelect(p.id);$event.stopPropagation()">
                     <img [src]="p.thumb_url || p.url" loading="lazy" decoding="async" width="52" height="52" (load)="onPhotoLoad($event)">
-                    @if (selectedPhotos.has(p.id)) { <span class="slot-check material-icons">check_circle</span> }
+                    @if (selectedPhotos.has(p.id)) { <span class="slot-check"><span class="material-icons">check</span></span> }
                   </div>
                 }
                 @for(slot of getEmptySlots(); track $index) {
@@ -1463,14 +1463,20 @@ import { ApiService } from '../../../../../core/services/api.service';
     .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1);contain:strict; img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.2s} img.loaded{opacity:1} }
     .photo-list-item { display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04); }
     .photo-list-name { flex:1;font-size:10px;color:rgba(255,255,255,0.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-    .photo-slots-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;max-height:240px;overflow-y:auto; }
-    .photo-slot { width:100%;aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden; }
-    .photo-slot.filled { border:2px solid transparent;transition:border-color 0.15s; img{width:100%;height:100%;object-fit:cover;display:block;border-radius:4px} }
+    .photo-slots-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;max-height:280px;overflow-y:auto; }
+    .photo-slot { width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden; }
+    .photo-slot.filled { border:2px solid transparent;transition:border-color 0.15s; img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px} }
     .photo-slot.filled:hover { border-color:rgba(139,92,246,0.5); }
-    .photo-slot.filled.selected { border-color:#8b5cf6;box-shadow:0 0 0 1px #8b5cf6; }
-    .slot-check { position:absolute;top:2px;right:2px;font-size:16px;color:#8b5cf6;background:white;border-radius:50;line-height:1; }
-    .photo-slot.empty { border:2px dashed rgba(139,92,246,0.25);background:rgba(139,92,246,0.03); .material-icons{font-size:18px;color:rgba(139,92,246,0.4)} }
-    .photo-slot.empty:hover { border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.06); }
+    .photo-slot.filled.selected { border-color:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6; }
+    .slot-check { position:absolute;top:4px;right:4px;font-size:18px;color:white;background:#8b5cf6;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.4); }
+    .slot-check .material-icons { font-size:14px; }
+    .photo-slot.empty { border:2px dashed rgba(139,92,246,0.4);background:rgba(139,92,246,0.08);border-radius:8px; .material-icons{font-size:20px;color:white;opacity:0.7} }
+    .photo-slot.empty:hover { border-color:rgba(139,92,246,0.7);background:rgba(139,92,246,0.12); }
+    :host-context(body.light-mode) .photo-slot.empty { border-color:rgba(124,92,191,0.3);background:rgba(124,92,191,0.06); .material-icons{color:#7c5cbf} }
+    .photo-upload-btn { padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s; }
+    .photo-upload-btn.upload { background:#8b5cf6;color:white; &:hover{background:#7c3aed} &:disabled{opacity:0.5;cursor:not-allowed} }
+    .photo-upload-btn.delete { background:#ef4444;color:white; &:hover{background:#dc2626} }
+    :host-context(body.light-mode) .photo-upload-btn.upload { background:rgba(124,92,191,0.15);color:#7c5cbf;border:1px solid rgba(124,92,191,0.3); }
     .hint { font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px; }
     .empty-state { padding:40px 14px;text-align:center; .material-icons{font-size:32px;color:rgba(255,255,255,0.15)} p{font-size:12px;color:rgba(255,255,255,0.3);margin-top:8px} }
     .stepper-row { display:flex;align-items:center;gap:0;border:1px solid rgba(139,92,246,0.2);border-radius:6px;overflow:hidden; }
@@ -1892,7 +1898,7 @@ export class BuilderPropsPanelComponent {
 
   getEmptySlots(): number[] {
     const count = Math.max(0, 20 - this.photos().length);
-    return new Array(Math.min(count, 4)); // Show max 4 empty slots
+    return new Array(count);
   }
 
   togglePhotoSelect(id: number) {
