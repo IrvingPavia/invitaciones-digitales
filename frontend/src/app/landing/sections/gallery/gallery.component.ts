@@ -53,6 +53,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.transform]="getCardTransform(i)"
                      [style.opacity]="getCardOpacity(i)"
                      [style.z-index]="getCardZIndex(i)"
+                     [style.visibility]="isCardVisible(i) ? 'visible' : 'hidden'"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
                   <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
@@ -70,6 +71,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.transform]="getStackTransform(i)"
                      [style.opacity]="getStackOpacity(i)"
                      [style.z-index]="photos.length - getStackDistance(i)"
+                     [style.visibility]="getStackDistance(i) <= 3 ? 'visible' : 'hidden'"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
                   <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
@@ -174,22 +176,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       position: relative; height: 340px; width: 100%;
       display: flex; align-items: center; justify-content: center;
       perspective: 1000px; user-select: none; cursor: grab;
-      contain: layout style;
     }
     .gallery-3d:active { cursor: grabbing; }
     .gallery-3d-card {
       position: absolute; width: 240px; height: 300px;
       border-radius: 14px; overflow: hidden;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       transition: transform 0.4s ease, opacity 0.4s ease;
-      will-change: transform, opacity;
       transform: translateZ(0);
       backface-visibility: hidden;
-      -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 70%, rgba(255,255,255,0.12) 100%);
     }
-    .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
+    .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
     .gallery-3d.vertical { height: 360px; }
-    .gallery-3d.vertical .gallery-3d-card { width: 260px; height: 200px; -webkit-box-reflect: none; }
+    .gallery-3d.vertical .gallery-3d-card { width: 260px; height: 200px; }
     .gallery-3d.coverflow .gallery-3d-card { width: 220px; height: 280px; }
 
     /* === STACK === */
@@ -197,35 +196,32 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       position: relative; height: 360px; width: 100%;
       display: flex; align-items: center; justify-content: center;
       user-select: none; cursor: grab;
-      contain: layout style;
     }
     .gallery-stack:active { cursor: grabbing; }
     .stack-card {
       position: absolute; width: 260px; height: 320px;
       border-radius: 16px; overflow: hidden;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
-      will-change: transform, opacity;
       transform: translateZ(0);
       backface-visibility: hidden;
     }
-    .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
+    .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 
     /* === FLIP === */
     .gallery-flip {
       position: relative; width: 100%; aspect-ratio: 3/4;
       border-radius: 16px; overflow: hidden; cursor: pointer;
-      perspective: 1200px; contain: layout style;
+      perspective: 1200px;
     }
     .flip-card {
       position: absolute; inset: 0; backface-visibility: hidden;
       transition: transform 0.6s ease, opacity 0.4s ease;
       transform: rotateY(90deg); opacity: 0;
-      will-change: transform, opacity;
     }
     .flip-card.active { transform: rotateY(0deg); opacity: 1; }
     .flip-card.prev { transform: rotateY(-90deg); opacity: 0; }
-    .flip-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; backface-visibility: hidden; }
+    .flip-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
     .flip-hint {
       position: absolute; bottom: 16px; right: 16px;
       background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.7);
@@ -236,21 +232,20 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     /* === POLAROID === */
     .gallery-polaroid {
       display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
-      padding: 20px; contain: layout;
+      padding: 20px;
     }
     .polaroid-card {
       width: 140px; padding: 8px 8px 32px; background: white;
       border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
-      will-change: transform;
       backface-visibility: hidden;
     }
     .polaroid-card:hover { transform: scale(1.05) rotate(0deg) !important; box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 10; }
     .polaroid-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 2px; }
 
     /* === GRID === */
-    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; contain: layout; }
-    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; backface-visibility: hidden; transform: translateZ(0); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; }
     .gallery-grid-item:hover { transform: scale(1.03); }
     .gallery-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -258,9 +253,8 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .gallery-slideshow {
       position: relative; width: 100%; aspect-ratio: 3/4;
       border-radius: 16px; overflow: hidden; cursor: pointer;
-      contain: layout style;
     }
-    .slideshow-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; backface-visibility: hidden; transform: translateZ(0); }
+    .slideshow-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; }
     .slideshow-img.active { opacity: 1; }
     .slideshow-arrow {
       position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
@@ -288,10 +282,6 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; backdrop-filter: blur(8px); .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
 
     @media (max-width: 768px) {
-      .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
-        will-change: auto;
-      }
-      .gallery-3d { perspective: none; }
       .gallery-3d-card { -webkit-box-reflect: none; }
     }
     @media (max-width: 520px) {
@@ -378,9 +368,13 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
   getCardOpacity(i: number): number {
     const norm = Math.abs(this.getOffset(i)) / this.CARD_SPACING;
-    return norm > 2.5 ? 0 : Math.max(0, 1 - norm * 0.3);
+    return norm > 2 ? 0 : Math.max(0, 1 - norm * 0.3);
   }
   getCardZIndex(i: number): number { return 100 - Math.round(Math.abs(this.getOffset(i)) / 10); }
+  /** Only render cards within 2 positions of current — rest are hidden to avoid GPU overload */
+  isCardVisible(i: number): boolean {
+    return Math.abs(this.getOffset(i)) / this.CARD_SPACING <= 2.5;
+  }
 
   // === Stack positioning ===
   getStackDistance(i: number): number { return Math.abs(i - this.current()); }
