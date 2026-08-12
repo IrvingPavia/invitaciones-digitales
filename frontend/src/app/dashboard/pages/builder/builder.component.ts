@@ -508,8 +508,8 @@ interface BuilderSection {
     .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: 500px; cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
-    .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; }
-    .gallery-canvas-preview { padding: 30px 16px; text-align: center; }
+    .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
+    .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }
     .gallery-canvas-title { font-size: 28px; margin-bottom: 20px; }
     .gallery-canvas-carousel { display: flex; align-items: center; justify-content: center; gap: 8px; height: 180px; overflow: hidden; }
     .gallery-canvas-card {
@@ -797,7 +797,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
 
   isMobileView(): boolean {
-    return window.innerWidth <= 768;
+    return 'ontouchstart' in window && window.innerWidth <= 1024;
   }
   canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
