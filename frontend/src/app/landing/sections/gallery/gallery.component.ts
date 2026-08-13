@@ -56,7 +56,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.visibility]="isCardVisible(i) ? 'visible' : 'hidden'"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager">
                 </div>
               }
             </div>
@@ -74,7 +74,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.visibility]="getStackDistance(i) <= 3 ? 'visible' : 'hidden'"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager">
                 </div>
               }
             </div>
@@ -85,7 +85,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-flip" (click)="next()">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager">
                 </div>
               }
               <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
@@ -97,7 +97,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-polaroid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager">
                 </div>
               }
             </div>
@@ -108,7 +108,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-grid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="gallery-grid-item" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager" decoding="async">
+                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="eager">
                 </div>
               }
             </div>
@@ -146,7 +146,6 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     <!-- Lightbox -->
     @if (lightboxIndex() !== null) {
       <div class="lightbox" (click)="closeLightbox()">
-        <div class="lightbox-bg" [style.background-image]="'url(' + photos[lightboxIndex()!].url + ')'"></div>
         <div class="lightbox-content" (click)="$event.stopPropagation()">
           <div class="lightbox-img-container"
                (touchstart)="onLightboxTouchStart($event)"
@@ -163,7 +162,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
   `,
   styles: [`
-    .gallery-section { padding: 80px 20px; contain: content; }
+    .gallery-section { padding: 80px 20px; }
     .section-container { max-width: 600px; margin: 0 auto; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; }
@@ -183,8 +182,6 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border-radius: 14px; overflow: hidden;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       transition: transform 0.4s ease, opacity 0.4s ease;
-      transform: translateZ(0);
-      backface-visibility: hidden;
     }
     .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
     .gallery-3d.vertical { height: 360px; }
@@ -203,8 +200,6 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border-radius: 16px; overflow: hidden;
       box-shadow: 0 6px 24px rgba(0,0,0,0.4);
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
-      transform: translateZ(0);
-      backface-visibility: hidden;
     }
     .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 
@@ -215,7 +210,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       perspective: 1200px;
     }
     .flip-card {
-      position: absolute; inset: 0; backface-visibility: hidden;
+      position: absolute; inset: 0;
       transition: transform 0.6s ease, opacity 0.4s ease;
       transform: rotateY(90deg); opacity: 0;
     }
@@ -236,17 +231,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
     .polaroid-card {
       width: 140px; padding: 8px 8px 32px; background: white;
-      border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-      cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
-      backface-visibility: hidden;
+      border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      cursor: pointer;
     }
-    .polaroid-card:hover { transform: scale(1.05) rotate(0deg) !important; box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 10; }
     .polaroid-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 2px; }
 
     /* === GRID === */
     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; }
-    .gallery-grid-item:hover { transform: scale(1.03); }
+    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; }
     .gallery-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     /* === SLIDESHOW === */
@@ -273,13 +265,12 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
     .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
 
-    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
-    .lightbox-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(30px) brightness(0.3); transform: scale(1.2); z-index: 0; }
+    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
     .lightbox-content { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-height: 100%; justify-content: center; position: relative; z-index: 1; }
     .lightbox-img-container { display: flex; align-items: center; justify-content: center; max-width: 95vw; max-height: 75vh; overflow: hidden; border-radius: 8px; touch-action: none; user-select: none; -webkit-user-select: none; }
-    .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; transition: transform 0.2s ease; transform-origin: center center; will-change: transform; }
+    .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; transition: transform 0.2s ease; transform-origin: center center; }
     .lightbox-img.zoomed { transition: none; cursor: grab; }
-    .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; backdrop-filter: blur(8px); .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
+    .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.2); } }
 
     @media (max-width: 768px) {
       .gallery-3d-card { -webkit-box-reflect: none; }
