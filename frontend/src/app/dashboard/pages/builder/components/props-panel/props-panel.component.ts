@@ -1015,8 +1015,13 @@ import { ApiService } from '../../../../../core/services/api.service';
                     @if (selectedPhotos.has(p.id)) { <span class="slot-check"><span class="material-icons">check</span></span> }
                   </div>
                 }
-                @for(slot of getEmptySlots(); track $index) {
-                  <div class="photo-slot empty" (click)="uploadPhotos();$event.stopPropagation()">
+                @for(slot of getLoadingSlots(); track $index) {
+                  <div class="photo-slot loading">
+                    <div class="slot-spinner"></div>
+                  </div>
+                }
+                @for(slot of getRemainingEmptySlots(); track $index) {
+                  <div class="photo-slot empty" [class.disabled]="uploadingPhotos" (click)="!uploadingPhotos && uploadPhotos();$event.stopPropagation()">
                     <span class="material-icons">add_photo_alternate</span>
                   </div>
                 }
@@ -1484,6 +1489,10 @@ import { ApiService } from '../../../../../core/services/api.service';
     .slot-check .material-icons { font-size:14px; }
     .photo-slot.empty { border:2px dashed rgba(139,92,246,0.4);background:rgba(139,92,246,0.08);border-radius:8px; .material-icons{font-size:20px;color:white;opacity:0.7} }
     .photo-slot.empty:hover { border-color:rgba(139,92,246,0.7);background:rgba(139,92,246,0.12); }
+    .photo-slot.empty.disabled { opacity:0.3;pointer-events:none;cursor:not-allowed; }
+    .photo-slot.loading { border:2px solid rgba(139,92,246,0.5);background:rgba(139,92,246,0.12);border-radius:8px; }
+    .slot-spinner { width:20px;height:20px;border:2px solid rgba(139,92,246,0.3);border-top-color:#8b5cf6;border-radius:50%;animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
     :host-context(body.light-mode) .photo-slot.empty { border-color:rgba(124,92,191,0.3);background:rgba(124,92,191,0.06); .material-icons{color:#7c5cbf} }
     .photo-upload-btn { padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s; }
     .photo-upload-btn.upload { background:#8b5cf6;color:white; &:hover{background:#7c3aed} &:disabled{opacity:0.5;cursor:not-allowed} }
@@ -1945,11 +1954,26 @@ export class BuilderPropsPanelComponent {
   }
 
   uploadingPhotos = false;
+  uploadingCount = 0;
   selectedPhotos = new Set<number>();
 
   getEmptySlots(): number[] {
     const count = Math.max(0, 20 - this.photos().length);
     return new Array(count);
+  }
+
+  /** Returns how many empty slots should show as "loading" */
+  getLoadingSlots(): number[] {
+    if (!this.uploadingPhotos) return [];
+    return new Array(this.uploadingCount);
+  }
+
+  /** Returns remaining empty slots (not loading) */
+  getRemainingEmptySlots(): number[] {
+    const total = Math.max(0, 20 - this.photos().length);
+    const loading = this.uploadingPhotos ? this.uploadingCount : 0;
+    const remaining = Math.max(0, total - loading);
+    return new Array(remaining);
   }
 
   togglePhotoSelect(id: number) {
@@ -1968,10 +1992,12 @@ export class BuilderPropsPanelComponent {
     const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;
     input.onchange=()=>{
       if(!input.files?.length)return;
+      const fileCount = Math.min(input.files.length, 20 - this.photos().length);
       this.uploadingPhotos = true;
+      this.uploadingCount = fileCount;
       this.api.uploadPhotos(this.eventId,input.files).subscribe({
-        next: ()=>{this.api.getPhotos(this.eventId).subscribe(p=>{this.photos.set(p);this.uploadingPhotos=false;})},
-        error: ()=>{this.uploadingPhotos=false;}
+        next: ()=>{this.api.getPhotos(this.eventId).subscribe(p=>{this.photos.set(p);this.uploadingPhotos=false;this.uploadingCount=0;})},
+        error: ()=>{this.uploadingPhotos=false;this.uploadingCount=0;}
       });
     };
     input.click();
