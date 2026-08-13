@@ -319,18 +319,18 @@ interface BuilderSection {
     .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr 280px; }
     .builder-preview-area {
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      background: #06060e; padding: 16px; overflow: hidden; height: 100%;
+      background: #06060e; padding: 8px; overflow: hidden; flex: 1; min-height: 0;
     }
     .preview-guest-selector {
       display: flex; align-items: center; justify-content: center; gap: 10px;
-      margin-bottom: 12px; width: 100%; max-width: 400px; align-self: center;
+      margin-bottom: 8px; width: 100%; max-width: 400px; align-self: center;
     }
     .preview-guest-label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
     .preview-guest-selector app-custom-select { flex: 1; }
     .builder-preview-frame {
-      border-radius: 12px; overflow: hidden; flex: 1; width: 100%;
+      border-radius: 12px; overflow: hidden; flex: 1; width: 100%; min-height: 0;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      &.mobile { width: 375px; }
+      &.mobile { width: 375px; max-width: 100%; }
       &.desktop { width: 100%; max-width: 900px; }
     }
     .preview-iframe { width: 100%; height: 100%; border: none; }
