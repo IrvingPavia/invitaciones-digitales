@@ -139,13 +139,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       </div>
     </section>
 
-    <!-- Lightbox -->
+    <!-- Lightbox fullscreen with blur background + pinch zoom -->
     @if (lightboxIndex() !== null) {
       <div class="lightbox" (click)="closeLightbox()">
-        <div class="lightbox-content" (click)="$event.stopPropagation()">
-          <img [src]="photos[lightboxIndex()!].url" class="lightbox-img">
-          <button class="lightbox-close" (click)="closeLightbox()"><span class="material-icons">close</span> Cerrar</button>
+        <div class="lightbox-blur-bg" [style.background-image]="'url(' + photos[lightboxIndex()!].url + ')'"></div>
+        <div class="lightbox-content" (click)="$event.stopPropagation()"
+             (touchstart)="onLbTouchStart($event)"
+             (touchmove)="onLbTouchMove($event)"
+             (touchend)="onLbTouchEnd()"
+             (dblclick)="onLbDoubleTap()">
+          <img [src]="photos[lightboxIndex()!].url" class="lightbox-img"
+               [style.transform]="getLbTransform()">
         </div>
+        <button class="lightbox-close" (click)="closeLightbox();$event.stopPropagation()"><span class="material-icons">close</span> Cerrar</button>
       </div>
     }
   `,
@@ -268,10 +274,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
     .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
 
-    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); padding: 16px; }
-    .lightbox-content { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-height: 100%; justify-content: center; }
-    .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; touch-action: pinch-zoom; }
-    .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
+    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+    .lightbox-blur-bg { position: absolute; inset: -20px; background-size: cover; background-position: center; filter: blur(25px) brightness(0.4) saturate(1.2); transform: scale(1.1); z-index: 0; pointer-events: none; }
+    .lightbox-content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+    .lightbox-img { max-width: 92vw; max-height: 85vh; object-fit: contain; border-radius: 4px; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; }
+    .lightbox-close { position: fixed; bottom: max(24px, env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); .material-icons { font-size: 18px; } &:hover { background: rgba(0,0,0,0.8); } }
 
     @media (max-width: 768px) {
       .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
@@ -324,7 +331,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
    *  - lightbox: uses photo.url directly (1920px, only 1 image at a time)
    */
   getDisplayUrl(photo: Photo): string {
-    if (this.staticMode) return photo.thumb_url || photo.gallery_url || photo.url;
+    if (this.staticMode) return photo.gallery_url || photo.thumb_url || photo.url;
     return photo.gallery_url || photo.url;
   }
 
@@ -425,9 +432,76 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
 
   onPhotoClick(i: number) { if (!this.isDragging && Math.abs(this.dragOffset) < 5) { if (i === this.current()) this.openLightbox(i); else this.goTo(i); } }
-  openLightbox(i: number) { this.lightboxIndex.set(i); }
-  closeLightbox() { this.lightboxIndex.set(null); }
+  openLightbox(i: number) {
+    this.lightboxIndex.set(i);
+    this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
+  }
+  closeLightbox() {
+    this.lightboxIndex.set(null);
+    this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
+  }
   @HostListener('window:scroll') onScroll() { if (this.lightboxIndex() !== null) this.closeLightbox(); }
+
+  // === Lightbox pinch-to-zoom + pan ===
+  lbZoom = 1;
+  lbPanX = 0;
+  lbPanY = 0;
+  private lbLastDist = 0;
+  private lbLastX = 0;
+  private lbLastY = 0;
+  private lbTouches = 0;
+
+  getLbTransform(): string {
+    return `scale(${this.lbZoom}) translate(${this.lbPanX}px, ${this.lbPanY}px)`;
+  }
+
+  onLbDoubleTap() {
+    if (this.lbZoom > 1) {
+      this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
+    } else {
+      this.lbZoom = 2.5;
+    }
+  }
+
+  onLbTouchStart(e: TouchEvent) {
+    this.lbTouches = e.touches.length;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      this.lbLastDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    } else if (e.touches.length === 1 && this.lbZoom > 1) {
+      this.lbLastX = e.touches[0].clientX;
+      this.lbLastY = e.touches[0].clientY;
+    }
+  }
+
+  onLbTouchMove(e: TouchEvent) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scale = dist / this.lbLastDist;
+      this.lbZoom = Math.max(1, Math.min(5, this.lbZoom * scale));
+      this.lbLastDist = dist;
+      if (this.lbZoom <= 1) { this.lbPanX = 0; this.lbPanY = 0; }
+    } else if (e.touches.length === 1 && this.lbZoom > 1) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - this.lbLastX;
+      const dy = e.touches[0].clientY - this.lbLastY;
+      this.lbPanX += dx / this.lbZoom;
+      this.lbPanY += dy / this.lbZoom;
+      this.lbLastX = e.touches[0].clientX;
+      this.lbLastY = e.touches[0].clientY;
+    }
+  }
+
+  onLbTouchEnd() {
+    if (this.lbZoom <= 1) { this.lbPanX = 0; this.lbPanY = 0; }
+  }
 
   getFontFamily(key?: string): string {
     const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
