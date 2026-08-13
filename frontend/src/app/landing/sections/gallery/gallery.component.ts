@@ -143,6 +143,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     @if (lightboxIndex() !== null) {
       <div class="lightbox" (click)="closeLightbox()">
         <div class="lightbox-blur-bg" [style.background-image]="'url(' + photos[lightboxIndex()!].url + ')'"></div>
+        <button class="lightbox-close" (click)="closeLightbox();$event.stopPropagation()"><span class="material-icons">close</span></button>
         <div class="lightbox-content" (click)="$event.stopPropagation()"
              (touchstart)="onLbTouchStart($event)"
              (touchmove)="onLbTouchMove($event)"
@@ -151,7 +152,6 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           <img [src]="photos[lightboxIndex()!].url" class="lightbox-img"
                [style.transform]="getLbTransform()">
         </div>
-        <button class="lightbox-close" (click)="closeLightbox();$event.stopPropagation()"><span class="material-icons">close</span> Cerrar</button>
       </div>
     }
   `,
@@ -274,11 +274,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
     .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
 
-    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; }
-    .lightbox-blur-bg { position: absolute; inset: -20px; background-size: cover; background-position: center; filter: blur(25px) brightness(0.4) saturate(1.2); transform: scale(1.1); z-index: 0; pointer-events: none; }
+    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); }
+    .lightbox-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(20px) brightness(0.35) saturate(1.2); z-index: 0; pointer-events: none; }
     .lightbox-content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
-    .lightbox-img { max-width: 92vw; max-height: 85vh; object-fit: contain; border-radius: 4px; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; }
-    .lightbox-close { position: fixed; bottom: max(24px, env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); .material-icons { font-size: 18px; } &:hover { background: rgba(0,0,0,0.8); } }
+    .lightbox-img { max-width: 94vw; max-height: 90vh; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; }
+    .lightbox-close { position: fixed; top: max(12px, env(safe-area-inset-top, 8px)); right: 12px; z-index: 3; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); .material-icons { font-size: 20px; } }
 
     @media (max-width: 768px) {
       .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {

@@ -76,7 +76,7 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
 
       // Generate thumbnail (100x100) — for props panel grid
       const thumbPath = path.join(file.destination, thumbFilename);
-      sharp(file.path)
+      await sharp(file.path)
         .rotate()
         .resize(100, 100, { fit: 'cover' })
         .jpeg({ quality: 60 })
@@ -85,7 +85,7 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
 
       // Generate gallery variant (600px) — for gallery cards on mobile
       const galleryPath = path.join(file.destination, galleryFilename);
-      sharp(file.path)
+      await sharp(file.path)
         .rotate()
         .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 75 })
