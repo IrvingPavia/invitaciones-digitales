@@ -678,9 +678,10 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
   > **Fix**: Se eliminó `background-attachment: fixed` del canvas.
 
 - [x] **Canvas: delay en carga de imagenes de galeria** — las fotos cargan lento de forma progresiva. Se resolvió usando `loading="eager"` + `thumb_url` en modo `staticMode` (canvas del builder). Las imágenes se cargan inmediatamente con thumbnails ligeros en el canvas.
-- [x] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — al switchear el estilo, el componente se destruía y recreaba. Se resolvió pre-renderizando todos los estilos con `[style.display]="..."` en vez de `@if`, solo se alterna visibilidad.
+- [ ] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — al switchear el estilo, el componente se destruye y recrea (Angular `@if`). Se intentó pre-renderizar con `[style.display]` y `[hidden]` pero causaba parpadeo en landing/preview por bindings activos en estilos ocultos. Se revertió a `@if`. El parpadeo al cambiar estilo es un trade-off aceptable vs el parpadeo continuo. **Fix real pendiente:** ver sección 20 (variantes de imagen optimizadas).
 - [x] **Canvas mobile: panel se abre automatico al tocar seccion** — ya estaba implementado el guard `isMobileView()` en `selectSection()` que previene auto-apertura del panel en mobile. Solo se abre con el FAB button.
 - [x] **Canvas: no se puede interactuar con el carrusel** — pointer-events:none bloquea gestos. Esto es por diseño (click selecciona seccion), interaccion real solo en Preview.
+- [ ] **Landing/Preview: parpadeo en galería al scrollear o abrir lightbox (Android)** — cuadros negros intermitentes en dispositivo físico. Afecta principalmente Polaroid y Mosaico (muestran todas las fotos a la vez). **Causa raíz:** imágenes de 1920px decodificadas ocupan ~295MB de texturas GPU. **Fix planificado en sección 20** (variante `gallery_url` de 600px).
 
 ---
 
@@ -726,6 +727,181 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - Las fotos ocupan los primeros N slots, el resto queda como placeholder
 
 **Estado: ✅ Implementado** — Galería usa `photo-slots-grid` con 20 slots fijos y selección múltiple. Vestimenta usa `dress-slots-grid` con 4 slots fijos por card, misma UX de selección tap-to-select + botón "Eliminar (N)".
+
+---
+
+## 20. Fix Parpadeo Galería en Android Mobile (Plan de Implementación)
+
+### Problema
+
+En dispositivos Android físicos (Samsung Galaxy S24 Ultra, Chrome y Samsung Browser), la galería produce cuadros negros intermitentes (flickering) al:
+- Scrollear la landing page cuando la galería es visible
+- Navegar entre fotos del carrusel
+- Abrir el lightbox para ver una foto completa
+
+**Afecta a todos los estilos**, pero es más notorio en Polaroid y Mosaico porque muestran TODAS las fotos simultáneamente.
+
+**NO ocurre en:** desktop, modo "Escritorio" del browser mobile, iOS Safari, ni al grabar pantalla.
+
+### Causa Raíz Identificada
+
+El problema NO es solo CSS. Es una combinación de:
+
+1. **Imágenes demasiado grandes en memoria GPU**: El backend redimensiona a máx 1920x1920 JPEG 80%. Una imagen de 1920×1920 ocupa ~14.7MB en RGBA decodificada. Con 20 fotos = **~295MB de texturas GPU** que Chromium Android tiene que mantener simultáneamente.
+
+2. **Presión de memoria del compositor**: Cuando la GPU no puede mantener todas las texturas, Chromium recicla layers → aparecen cuadros negros momentáneos mientras re-rasteriza.
+
+3. **Viewport dinámico de Android**: La barra de dirección auto-hide causa recálculos de layout que fuerzan re-composición de las texturas de imágenes.
+
+4. **Lightbox agrava el problema**: Al abrir `position: fixed` con una imagen de 1920px, se agrega otra textura grande + cambio de overflow del body que causa relayout global.
+
+### Solución: Variantes de Imagen Optimizadas
+
+#### Backend: Generar variante `gallery_url` (~600px)
+
+**Archivo:** `backend/src/routes/uploads.js`
+
+Al subir fotos en la ruta `POST /uploads/photos/:eventId`, además del thumbnail (100x100) generar una variante para galería:
+
+```javascript
+// Variante galería: 600px, JPEG 75%
+const galleryFilename = 'gallery_' + file.filename.replace(path.extname(file.filename), '.jpg');
+const galleryPath = path.join(file.destination, galleryFilename);
+sharp(file.path)
+  .rotate()
+  .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+  .jpeg({ quality: 75 })
+  .toFile(galleryPath)
+  .catch(() => {});
+```
+
+**Memoria GPU por variante:**
+| Variante | Dimensiones | RGBA en GPU | 20 fotos |
+|---|---|---|---|
+| Original (actual) | 1920×1920 | ~14.7 MB | ~295 MB |
+| Gallery (nueva) | 600×600 | ~1.4 MB | ~28 MB |
+| Thumbnail (actual) | 100×100 | ~40 KB | ~800 KB |
+
+#### Base de datos: Agregar columna `gallery_url`
+
+```sql
+ALTER TABLE photos ADD COLUMN gallery_url VARCHAR(500) AFTER thumb_url;
+```
+
+#### Frontend: Usar la variante correcta según contexto
+
+**Archivo:** `frontend/src/app/landing/sections/gallery/gallery.component.ts`
+
+| Contexto | URL a usar | Razón |
+|---|---|---|
+| Canvas del builder (staticMode) | `thumb_url` (100px) | Solo preview, no necesita calidad |
+| Galería en landing/preview | `gallery_url` (600px) | Suficiente para cards de 140-300px |
+| Lightbox (foto completa) | `url` (1920px) | Solo 1 imagen a la vez |
+
+```html
+<!-- En las cards de la galería (Polaroid, Grid, Carousel, etc.) -->
+<img [src]="getDisplayUrl(photo)" ...>
+
+<!-- En el lightbox -->
+<img [src]="photos[lightboxIndex()!].url" ...>
+```
+
+```typescript
+getDisplayUrl(photo: Photo): string {
+  if (this.staticMode) return photo.thumb_url || photo.url;
+  return photo.gallery_url || photo.url;
+}
+```
+
+#### Modelo: Agregar `gallery_url` a la interfaz Photo
+
+**Archivo:** `frontend/src/app/core/models/models.ts`
+
+```typescript
+export interface Photo {
+  id: number;
+  event_id: number;
+  filename: string;
+  url: string;
+  thumb_url?: string;
+  gallery_url?: string;  // <-- NUEVO
+  sort_order: number;
+}
+```
+
+### Migración de Fotos Existentes
+
+Script para generar la variante gallery de las fotos que ya existen:
+
+**Archivo:** `backend/src/migrations/generate-gallery-variants.js`
+
+```javascript
+// Recorre todas las fotos en la BD
+// Para cada una: leer el archivo original → generar variante gallery_600px → actualizar gallery_url
+// Ejecutar: node src/migrations/generate-gallery-variants.js
+```
+
+### Optimizaciones Adicionales (misma sesión)
+
+#### 1. Dimensiones explícitas en imágenes
+
+Agregar `width` y `height` a todas las `<img>` de la galería para evitar layout shift durante la carga:
+
+```html
+<!-- Polaroid cards: ~140px de ancho, aspect-ratio 1:1 -->
+<img [src]="getDisplayUrl(photo)" width="140" height="140" ...>
+
+<!-- Grid items: variable pero aspect-ratio 1:1 -->
+<img [src]="getDisplayUrl(photo)" style="aspect-ratio:1" ...>
+
+<!-- Carousel cards: 240×300 -->
+<img [src]="getDisplayUrl(photo)" width="240" height="300" ...>
+```
+
+#### 2. Rotaciones estables en Polaroid
+
+Verificar que `polaroidRotations` se calcula UNA sola vez en `ngOnInit` y no se recalcula en cada change detection. Actualmente ya se hace así — pero confirmar que no hay `Math.random()` en el template.
+
+#### 3. Lightbox optimizado
+
+- Usar imagen completa (`url` 1920px) SOLO para el lightbox
+- No precargar la imagen full hasta que el usuario toque la foto
+- Al cerrar el lightbox, liberar la referencia (Angular ya lo hace con `@if`)
+
+#### 4. Carrusel: limitar imágenes decodificadas
+
+Para estilos de carrusel (3D, Vertical, Coverflow, Stack), donde solo se ven 2-3 fotos a la vez, considerar usar `loading="lazy"` en las fotos lejanas (>3 posiciones del current). Con `gallery_url` de 600px esto ya debería ser suficiente, pero si persiste se puede agregar.
+
+### Checklist de Implementación
+
+- [ ] SQL: `ALTER TABLE photos ADD COLUMN gallery_url VARCHAR(500) AFTER thumb_url`
+- [ ] Backend: generar `gallery_` al subir fotos nuevas
+- [ ] Backend: migración para fotos existentes
+- [ ] Frontend modelo: agregar `gallery_url` a interfaz Photo
+- [ ] Frontend galería: usar `getDisplayUrl(photo)` en todos los estilos
+- [ ] Frontend galería: agregar dimensiones explícitas a las imágenes
+- [ ] Frontend lightbox: confirmar que usa `photo.url` (full)
+- [ ] Probar en Android físico: scroll, navegar carrusel, abrir/cerrar lightbox
+- [ ] Verificar que todos los estilos se ven correctos visualmente
+
+### Pruebas en Dispositivo (Samsung Galaxy S24 Ultra)
+
+1. Scroll lento por la landing con galería en Polaroid → sin cuadros negros
+2. Scroll rápido → sin cuadros negros
+3. Cambiar a Mosaico → sin cuadros negros
+4. Abrir lightbox → sin flickering en la página detrás
+5. Cerrar lightbox → sin flickering
+6. Carrusel 3D: navegar entre fotos → transiciones fluidas
+7. Stack/Flip/Slideshow → sin parpadeo
+8. Chrome modo escritorio → sigue funcionando (no regresión)
+9. iOS Safari → sigue funcionando
+
+### Notas Importantes
+
+- **NO reemplazar Polaroid por Grid, ni usar Swiper.js** — el diseño visual actual es correcto
+- **NO modificar propiedades CSS experimentales** sin evidencia de que resuelvan algo (ya se intentó `will-change`, `contain`, `backface-visibility`, etc. sin éxito)
+- La solución se centra en **reducir el peso de las texturas GPU** que es la causa raíz
+- Si después de implementar `gallery_url` persiste algo de parpadeo, el siguiente paso sería `content-visibility: auto` en las cards del Grid/Polaroid (solo si no afecta los transforms de Polaroid)
 
 ---
 
