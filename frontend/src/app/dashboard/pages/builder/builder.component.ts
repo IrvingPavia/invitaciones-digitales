@@ -328,9 +328,8 @@ interface BuilderSection {
     .preview-guest-label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
     .preview-guest-selector app-custom-select { flex: 1; }
     .builder-preview-frame {
-      border-radius: 16px; overflow: hidden; flex: 1; width: 100%;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
-      background: #0d1117;
+      border-radius: 12px; overflow: hidden; flex: 1; width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       &.mobile { width: 375px; }
       &.desktop { width: 100%; max-width: 900px; }
     }
