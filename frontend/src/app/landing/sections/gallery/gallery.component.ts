@@ -139,16 +139,16 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       </div>
     </section>
 
-    <!-- Lightbox fullscreen with blur background + pinch zoom -->
+    <!-- Lightbox fullscreen: swipe between photos, pinch-zoom, blur background -->
     @if (lightboxIndex() !== null) {
-      <div class="lightbox" (click)="closeLightbox()">
-        <div class="lightbox-blur-bg" [style.background-image]="'url(' + (photos[lightboxIndex()!].gallery_url || photos[lightboxIndex()!].url) + ')'"></div>
-        <button class="lightbox-close" (click)="closeLightbox();$event.stopPropagation()"><span class="material-icons">close</span></button>
-        <div class="lightbox-content"
+      <div class="lightbox">
+        <button class="lightbox-close" (click)="closeLightbox()"><span class="material-icons">close</span></button>
+        <span class="lightbox-counter">{{ lightboxIndex()! + 1 }} / {{ photos.length }}</span>
+        <div class="lightbox-swipe-area"
              (touchstart)="onLbTouchStart($event)"
              (touchmove)="onLbTouchMove($event)"
              (touchend)="onLbTouchEnd()"
-             (dblclick)="onLbDoubleTap();$event.stopPropagation()">
+             (dblclick)="onLbDoubleTap()">
           @if (!lbImageLoaded) {
             <div class="lightbox-loader"><div class="lb-spinner"></div></div>
           }
@@ -279,12 +279,12 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
     .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
 
-    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); }
-    .lightbox-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(20px) brightness(0.35) saturate(1.2); z-index: 0; pointer-events: none; }
-    .lightbox-content { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; padding: 48px 8px 8px; }
-    .lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; opacity: 0; }
+    .lightbox { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .lightbox-close { position: absolute; top: 12px; left: 12px; z-index: 10; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); .material-icons { font-size: 22px; } }
+    .lightbox-counter { position: absolute; top: 16px; right: 16px; z-index: 10; color: white; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; }
+    .lightbox-swipe-area { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden; }
+    .lightbox-img { max-width: 96%; max-height: 92%; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; opacity: 0; }
     .lightbox-img.loaded { opacity: 1; }
-    .lightbox-close { position: absolute; top: 10px; right: 10px; z-index: 10; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.7); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); .material-icons { font-size: 22px; } }
     .lightbox-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
     .lb-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: lbSpin 0.7s linear infinite; }
     @keyframes lbSpin { to { transform: rotate(360deg); } }
@@ -445,25 +445,34 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
     this.lightboxIndex.set(i);
     this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
     this.lbImageLoaded = false;
+    this.lbSwipeX = 0;
+    document.body.style.overflow = 'hidden';
   }
   closeLightbox() {
     this.lightboxIndex.set(null);
     this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
+    document.body.style.overflow = '';
   }
-  @HostListener('window:scroll') onScroll() { if (this.lightboxIndex() !== null) this.closeLightbox(); }
+  @HostListener('window:scroll') onScroll() { /* no auto-close on scroll when lightbox is open */ }
 
-  // === Lightbox pinch-to-zoom + pan ===
+  // === Lightbox: swipe between photos + pinch-to-zoom + pan ===
   lbZoom = 1;
   lbPanX = 0;
   lbPanY = 0;
   lbImageLoaded = false;
+  lbSwipeX = 0;
   private lbLastDist = 0;
   private lbLastX = 0;
   private lbLastY = 0;
   private lbTouches = 0;
+  private lbSwipeStartX = 0;
+  private lbSwipeLocked = false;
 
   getLbTransform(): string {
-    return `scale(${this.lbZoom}) translate(${this.lbPanX}px, ${this.lbPanY}px)`;
+    if (this.lbZoom > 1) {
+      return `scale(${this.lbZoom}) translate(${this.lbPanX}px, ${this.lbPanY}px)`;
+    }
+    return `translateX(${this.lbSwipeX}px)`;
   }
 
   onLbDoubleTap() {
@@ -471,6 +480,24 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
       this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
     } else {
       this.lbZoom = 2.5;
+    }
+  }
+
+  lbNextPhoto() {
+    const idx = this.lightboxIndex()!;
+    if (idx < this.photos.length - 1) {
+      this.lightboxIndex.set(idx + 1);
+      this.lbImageLoaded = false;
+      this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
+    }
+  }
+
+  lbPrevPhoto() {
+    const idx = this.lightboxIndex()!;
+    if (idx > 0) {
+      this.lightboxIndex.set(idx - 1);
+      this.lbImageLoaded = false;
+      this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
     }
   }
 
@@ -482,9 +509,12 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
-    } else if (e.touches.length === 1 && this.lbZoom > 1) {
+    } else if (e.touches.length === 1) {
+      this.lbSwipeStartX = e.touches[0].clientX;
       this.lbLastX = e.touches[0].clientX;
       this.lbLastY = e.touches[0].clientY;
+      this.lbSwipeLocked = false;
+      this.lbSwipeX = 0;
     }
   }
 
@@ -499,19 +529,33 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
       this.lbZoom = Math.max(1, Math.min(5, this.lbZoom * scale));
       this.lbLastDist = dist;
       if (this.lbZoom <= 1) { this.lbPanX = 0; this.lbPanY = 0; }
-    } else if (e.touches.length === 1 && this.lbZoom > 1) {
+    } else if (e.touches.length === 1) {
       e.preventDefault();
-      const dx = e.touches[0].clientX - this.lbLastX;
-      const dy = e.touches[0].clientY - this.lbLastY;
-      this.lbPanX += dx / this.lbZoom;
-      this.lbPanY += dy / this.lbZoom;
-      this.lbLastX = e.touches[0].clientX;
-      this.lbLastY = e.touches[0].clientY;
+      if (this.lbZoom > 1) {
+        // Pan mode when zoomed
+        const dx = e.touches[0].clientX - this.lbLastX;
+        const dy = e.touches[0].clientY - this.lbLastY;
+        this.lbPanX += dx / this.lbZoom;
+        this.lbPanY += dy / this.lbZoom;
+        this.lbLastX = e.touches[0].clientX;
+        this.lbLastY = e.touches[0].clientY;
+      } else {
+        // Swipe mode: horizontal swipe to change photo
+        this.lbSwipeX = e.touches[0].clientX - this.lbSwipeStartX;
+      }
     }
   }
 
   onLbTouchEnd() {
-    if (this.lbZoom <= 1) { this.lbPanX = 0; this.lbPanY = 0; }
+    if (this.lbZoom <= 1) {
+      this.lbPanX = 0; this.lbPanY = 0;
+      // Determine swipe direction
+      if (Math.abs(this.lbSwipeX) > 60) {
+        if (this.lbSwipeX < 0) this.lbNextPhoto();
+        else this.lbPrevPhoto();
+      }
+      this.lbSwipeX = 0;
+    }
   }
 
   getFontFamily(key?: string): string {
