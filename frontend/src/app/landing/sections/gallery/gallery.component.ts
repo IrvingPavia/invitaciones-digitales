@@ -144,11 +144,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       <div class="lightbox" (click)="closeLightbox()">
         <div class="lightbox-blur-bg" [style.background-image]="'url(' + (photos[lightboxIndex()!].gallery_url || photos[lightboxIndex()!].url) + ')'"></div>
         <button class="lightbox-close" (click)="closeLightbox();$event.stopPropagation()"><span class="material-icons">close</span></button>
-        <div class="lightbox-content" (click)="$event.stopPropagation()"
+        <div class="lightbox-content"
              (touchstart)="onLbTouchStart($event)"
              (touchmove)="onLbTouchMove($event)"
              (touchend)="onLbTouchEnd()"
-             (dblclick)="onLbDoubleTap()">
+             (dblclick)="onLbDoubleTap();$event.stopPropagation()">
           @if (!lbImageLoaded) {
             <div class="lightbox-loader"><div class="lb-spinner"></div></div>
           }
@@ -284,7 +284,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .lightbox-content { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; padding: 48px 8px 8px; }
     .lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; opacity: 0; }
     .lightbox-img.loaded { opacity: 1; }
-    .lightbox-close { position: absolute; top: 10px; right: 10px; z-index: 3; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; .material-icons { font-size: 20px; } }
+    .lightbox-close { position: absolute; top: 10px; right: 10px; z-index: 10; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.7); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5); .material-icons { font-size: 22px; } }
     .lightbox-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
     .lb-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: lbSpin 0.7s linear infinite; }
     @keyframes lbSpin { to { transform: rotate(360deg); } }
