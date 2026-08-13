@@ -142,15 +142,20 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     <!-- Lightbox fullscreen with blur background + pinch zoom -->
     @if (lightboxIndex() !== null) {
       <div class="lightbox" (click)="closeLightbox()">
-        <div class="lightbox-blur-bg" [style.background-image]="'url(' + photos[lightboxIndex()!].url + ')'"></div>
+        <div class="lightbox-blur-bg" [style.background-image]="'url(' + (photos[lightboxIndex()!].gallery_url || photos[lightboxIndex()!].url) + ')'"></div>
         <button class="lightbox-close" (click)="closeLightbox();$event.stopPropagation()"><span class="material-icons">close</span></button>
         <div class="lightbox-content" (click)="$event.stopPropagation()"
              (touchstart)="onLbTouchStart($event)"
              (touchmove)="onLbTouchMove($event)"
              (touchend)="onLbTouchEnd()"
              (dblclick)="onLbDoubleTap()">
+          @if (!lbImageLoaded) {
+            <div class="lightbox-loader"><div class="lb-spinner"></div></div>
+          }
           <img [src]="photos[lightboxIndex()!].url" class="lightbox-img"
-               [style.transform]="getLbTransform()">
+               [class.loaded]="lbImageLoaded"
+               [style.transform]="getLbTransform()"
+               (load)="lbImageLoaded = true">
         </div>
       </div>
     }
@@ -276,9 +281,13 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
     .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); }
     .lightbox-blur-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(20px) brightness(0.35) saturate(1.2); z-index: 0; pointer-events: none; }
-    .lightbox-content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
-    .lightbox-img { max-width: 94vw; max-height: 90vh; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; }
-    .lightbox-close { position: fixed; top: max(12px, env(safe-area-inset-top, 8px)); right: 12px; z-index: 3; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); .material-icons { font-size: 20px; } }
+    .lightbox-content { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; padding: 48px 8px 8px; }
+    .lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; opacity: 0; }
+    .lightbox-img.loaded { opacity: 1; }
+    .lightbox-close { position: absolute; top: 10px; right: 10px; z-index: 3; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; .material-icons { font-size: 20px; } }
+    .lightbox-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
+    .lb-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: lbSpin 0.7s linear infinite; }
+    @keyframes lbSpin { to { transform: rotate(360deg); } }
 
     @media (max-width: 768px) {
       .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
@@ -435,6 +444,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   openLightbox(i: number) {
     this.lightboxIndex.set(i);
     this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
+    this.lbImageLoaded = false;
   }
   closeLightbox() {
     this.lightboxIndex.set(null);
@@ -446,6 +456,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   lbZoom = 1;
   lbPanX = 0;
   lbPanY = 0;
+  lbImageLoaded = false;
   private lbLastDist = 0;
   private lbLastX = 0;
   private lbLastY = 0;
