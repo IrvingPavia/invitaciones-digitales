@@ -143,7 +143,7 @@ import { LightboxService } from '../../../core/services/lightbox.service';
     <!-- Lightbox is rendered via portal to document.body (see openLightbox method) -->
   `,
   styles: [`
-    .gallery-section { padding: 80px 20px; overflow: hidden; }
+    .gallery-section { padding: 80px 20px; }
     .section-container { max-width: 600px; margin: 0 auto; position: relative; }
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; position: relative; z-index: 2; }
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; position: relative; z-index: 2; }
@@ -170,7 +170,7 @@ import { LightboxService } from '../../../core/services/lightbox.service';
       -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 70%, rgba(255,255,255,0.12) 100%);
     }
     .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
-    .gallery-3d.vertical { height: 380px; margin-top: 24px; overflow: visible; }
+    .gallery-3d.vertical { height: 380px; margin-top: 24px; overflow: hidden; }
     .gallery-3d.vertical .gallery-3d-card { width: 220px; height: 280px; -webkit-box-reflect: none; }
     .gallery-3d.coverflow .gallery-3d-card { width: 220px; height: 280px; }
 
