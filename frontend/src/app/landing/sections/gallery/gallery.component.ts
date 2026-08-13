@@ -1,7 +1,8 @@
-﻿import { Component, Input, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
+﻿import { Component, Input, signal, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GalleryConfig, Photo, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
+import { LightboxService } from '../../../core/services/lightbox.service';
 
 @Component({
   selector: 'app-landing-gallery',
@@ -85,6 +86,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                   <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
+              <button class="flip-view-btn" (click)="openLightbox(current());$event.stopPropagation()"><span class="material-icons">fullscreen</span></button>
               <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
             </div>
           }
@@ -126,12 +128,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
           <!-- Dots (for carousel/stack/flip/slideshow) -->
           @if (displayStyle !== 'grid' && displayStyle !== 'polaroid') {
-            <div class="carousel-dots">
+            <div class="carousel-dots" [class.vertical-dots]="displayStyle === 'carousel-vertical'">
               @for (photo of photos; track photo.id; let i = $index) {
                 <button class="dot" [class.active]="i === current()" (click)="goTo(i)"></button>
               }
             </div>
-            <p class="carousel-counter">{{ current() + 1 }} / {{ photos.length }}</p>
           }
         } @else {
           <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Sin fotos</p>
@@ -139,35 +140,16 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       </div>
     </section>
 
-    <!-- Lightbox fullscreen: swipe between photos, pinch-zoom, blur background -->
-    @if (lightboxIndex() !== null) {
-      <div class="lightbox">
-        <button class="lightbox-close" (click)="closeLightbox()"><span class="material-icons">close</span></button>
-        <span class="lightbox-counter">{{ lightboxIndex()! + 1 }} / {{ photos.length }}</span>
-        <div class="lightbox-swipe-area"
-             (touchstart)="onLbTouchStart($event)"
-             (touchmove)="onLbTouchMove($event)"
-             (touchend)="onLbTouchEnd()"
-             (dblclick)="onLbDoubleTap()">
-          @if (!lbImageLoaded) {
-            <div class="lightbox-loader"><div class="lb-spinner"></div></div>
-          }
-          <img [src]="photos[lightboxIndex()!].url" class="lightbox-img"
-               [class.loaded]="lbImageLoaded"
-               [style.transform]="getLbTransform()"
-               (load)="lbImageLoaded = true">
-        </div>
-      </div>
-    }
+    <!-- Lightbox is rendered via portal to document.body (see openLightbox method) -->
   `,
   styles: [`
-    .gallery-section { padding: 80px 20px; contain: content; }
-    .section-container { max-width: 600px; margin: 0 auto; }
-    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; }
+    .gallery-section { padding: 80px 20px; overflow: hidden; }
+    .section-container { max-width: 600px; margin: 0 auto; position: relative; }
+    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; position: relative; z-index: 2; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; position: relative; z-index: 2; }
     .section-line { flex: 1; height: 1px; }
     .section-heading { text-align: center; }
-    .gallery-desc { text-align: center; margin-bottom: 32px; }
+    .gallery-desc { text-align: center; margin-bottom: 32px; position: relative; z-index: 2; }
 
     /* === 3D CAROUSEL === */
     .gallery-3d {
@@ -188,8 +170,8 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 70%, rgba(255,255,255,0.12) 100%);
     }
     .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
-    .gallery-3d.vertical { height: 360px; }
-    .gallery-3d.vertical .gallery-3d-card { width: 260px; height: 200px; -webkit-box-reflect: none; }
+    .gallery-3d.vertical { height: 380px; margin-top: 24px; overflow: visible; }
+    .gallery-3d.vertical .gallery-3d-card { width: 220px; height: 280px; -webkit-box-reflect: none; }
     .gallery-3d.coverflow .gallery-3d-card { width: 220px; height: 280px; }
 
     /* === STACK === */
@@ -231,6 +213,15 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.7);
       padding: 6px 12px; border-radius: 20px; font-size: 12px;
       backdrop-filter: blur(4px);
+    }
+    .flip-view-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 5;
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.8);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px); transition: background 0.2s;
+      .material-icons { font-size: 20px; }
+      &:hover { background: rgba(0,0,0,0.7); color: white; }
     }
 
     /* === POLAROID === */
@@ -277,17 +268,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; border: none; padding: 0; background: rgba(255,255,255,0.3); cursor: pointer; transition: all 0.3s; }
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
-    .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
-
-    .lightbox { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-    .lightbox-close { position: absolute; top: 12px; left: 12px; z-index: 10; width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); .material-icons { font-size: 22px; } }
-    .lightbox-counter { position: absolute; top: 16px; right: 16px; z-index: 10; color: white; font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; }
-    .lightbox-swipe-area { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden; }
-    .lightbox-img { max-width: 96%; max-height: 92%; object-fit: contain; transform-origin: center center; transition: transform 0.15s ease; pointer-events: none; opacity: 0; }
-    .lightbox-img.loaded { opacity: 1; }
-    .lightbox-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
-    .lb-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: lbSpin 0.7s linear infinite; }
-    @keyframes lbSpin { to { transform: rotate(360deg); } }
+    .carousel-dots.vertical-dots { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); flex-direction: column; margin-top: 0; gap: 6px; }
 
     @media (max-width: 768px) {
       .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
@@ -301,7 +282,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     @media (max-width: 520px) {
       .gallery-3d-card { width: 200px; height: 260px; }
       .gallery-3d { height: 300px; }
-      .gallery-3d.vertical .gallery-3d-card { width: 220px; height: 160px; }
+      .gallery-3d.vertical .gallery-3d-card { width: 190px; height: 240px; }
       .stack-card { width: 220px; height: 280px; }
       .polaroid-card { width: 120px; padding: 6px 6px 24px; }
     }
@@ -365,7 +346,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
     const norm = offset / this.CARD_SPACING;
     const scale = Math.max(0.65, 1.05 - Math.abs(norm) * 0.15);
     if (this.displayStyle === 'carousel-vertical') {
-      return `translateY(${offset * 0.6}px) scale(${scale}) rotateX(${norm * 8}deg)`;
+      return `translateY(${offset * 0.45}px) scale(${scale}) rotateX(${norm * 6}deg)`;
     }
     if (this.displayStyle === 'coverflow') {
       const tx = offset * 0.7;
@@ -375,6 +356,9 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
   getCardOpacity(i: number): number {
     const norm = Math.abs(this.getOffset(i)) / this.CARD_SPACING;
+    if (this.displayStyle === 'carousel-vertical') {
+      return norm > 1.5 ? 0 : Math.max(0, 1 - norm * 0.4);
+    }
     return norm > 2.5 ? 0 : Math.max(0, 1 - norm * 0.3);
   }
   getCardZIndex(i: number): number { return 100 - Math.round(Math.abs(this.getOffset(i)) / 10); }
@@ -441,123 +425,16 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
 
   onPhotoClick(i: number) { if (!this.isDragging && Math.abs(this.dragOffset) < 5) { if (i === this.current()) this.openLightbox(i); else this.goTo(i); } }
+
+  private lightbox = inject(LightboxService);
+
   openLightbox(i: number) {
     this.lightboxIndex.set(i);
-    this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
-    this.lbImageLoaded = false;
-    this.lbSwipeX = 0;
-    document.body.style.overflow = 'hidden';
+    const urls = this.photos.map(p => p.url);
+    this.lightbox.open(urls, i);
   }
-  closeLightbox() {
-    this.lightboxIndex.set(null);
-    this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
-    document.body.style.overflow = '';
-  }
-  @HostListener('window:scroll') onScroll() { /* no auto-close on scroll when lightbox is open */ }
-
-  // === Lightbox: swipe between photos + pinch-to-zoom + pan ===
-  lbZoom = 1;
-  lbPanX = 0;
-  lbPanY = 0;
-  lbImageLoaded = false;
-  lbSwipeX = 0;
-  private lbLastDist = 0;
-  private lbLastX = 0;
-  private lbLastY = 0;
-  private lbTouches = 0;
-  private lbSwipeStartX = 0;
-  private lbSwipeLocked = false;
-
-  getLbTransform(): string {
-    if (this.lbZoom > 1) {
-      return `scale(${this.lbZoom}) translate(${this.lbPanX}px, ${this.lbPanY}px)`;
-    }
-    return `translateX(${this.lbSwipeX}px)`;
-  }
-
-  onLbDoubleTap() {
-    if (this.lbZoom > 1) {
-      this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
-    } else {
-      this.lbZoom = 2.5;
-    }
-  }
-
-  lbNextPhoto() {
-    const idx = this.lightboxIndex()!;
-    if (idx < this.photos.length - 1) {
-      this.lightboxIndex.set(idx + 1);
-      this.lbImageLoaded = false;
-      this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
-    }
-  }
-
-  lbPrevPhoto() {
-    const idx = this.lightboxIndex()!;
-    if (idx > 0) {
-      this.lightboxIndex.set(idx - 1);
-      this.lbImageLoaded = false;
-      this.lbZoom = 1; this.lbPanX = 0; this.lbPanY = 0;
-    }
-  }
-
-  onLbTouchStart(e: TouchEvent) {
-    this.lbTouches = e.touches.length;
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      this.lbLastDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-    } else if (e.touches.length === 1) {
-      this.lbSwipeStartX = e.touches[0].clientX;
-      this.lbLastX = e.touches[0].clientX;
-      this.lbLastY = e.touches[0].clientY;
-      this.lbSwipeLocked = false;
-      this.lbSwipeX = 0;
-    }
-  }
-
-  onLbTouchMove(e: TouchEvent) {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const scale = dist / this.lbLastDist;
-      this.lbZoom = Math.max(1, Math.min(5, this.lbZoom * scale));
-      this.lbLastDist = dist;
-      if (this.lbZoom <= 1) { this.lbPanX = 0; this.lbPanY = 0; }
-    } else if (e.touches.length === 1) {
-      e.preventDefault();
-      if (this.lbZoom > 1) {
-        // Pan mode when zoomed
-        const dx = e.touches[0].clientX - this.lbLastX;
-        const dy = e.touches[0].clientY - this.lbLastY;
-        this.lbPanX += dx / this.lbZoom;
-        this.lbPanY += dy / this.lbZoom;
-        this.lbLastX = e.touches[0].clientX;
-        this.lbLastY = e.touches[0].clientY;
-      } else {
-        // Swipe mode: horizontal swipe to change photo
-        this.lbSwipeX = e.touches[0].clientX - this.lbSwipeStartX;
-      }
-    }
-  }
-
-  onLbTouchEnd() {
-    if (this.lbZoom <= 1) {
-      this.lbPanX = 0; this.lbPanY = 0;
-      // Determine swipe direction
-      if (Math.abs(this.lbSwipeX) > 60) {
-        if (this.lbSwipeX < 0) this.lbNextPhoto();
-        else this.lbPrevPhoto();
-      }
-      this.lbSwipeX = 0;
-    }
-  }
-
+  closeLightbox() { this.lightboxIndex.set(null); this.lightbox.close(); }
+  @HostListener('window:scroll') onScroll() { /* lightbox handles its own scroll blocking */ }
   getFontFamily(key?: string): string {
     const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
     return m[key||'sans']||'var(--font-sans)';

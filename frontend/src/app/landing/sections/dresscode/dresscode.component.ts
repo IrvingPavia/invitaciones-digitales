@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DresscodeConfig, DresscodeCard, GlobalTextStyles, SectionIconConfig, SectionStyle } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
+import { LightboxService } from '../../../core/services/lightbox.service';
 
 @Component({
   selector: 'app-landing-dresscode',
@@ -65,8 +66,8 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
               <div class="example-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
                 @if (card.images && card.images.length > 0) {
                   <div class="example-images" [class.single]="card.images.length === 1">
-                    @for (img of card.images; track img) {
-                      <div class="example-img-wrapper">
+                    @for (img of card.images; track img; let j = $index) {
+                      <div class="example-img-wrapper" (click)="openImageViewer(card.images, j)">
                         <img [src]="img" [alt]="card.title" loading="lazy">
                       </div>
                     }
@@ -170,6 +171,12 @@ export class LandingDresscodeComponent {
   @Input() config!: DresscodeConfig;
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+
+  private lightbox = inject(LightboxService);
+
+  openImageViewer(images: string[], index: number) {
+    this.lightbox.open(images, index);
+  }
 
   hasOrnament(): boolean {
     return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
