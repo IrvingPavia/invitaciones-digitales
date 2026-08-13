@@ -62,22 +62,34 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     const photos = [];
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
-      const thumbFilename = 'thumb_' + file.filename.replace(path.extname(file.filename), '.jpg');
+      const baseName = file.filename.replace(path.extname(file.filename), '.jpg');
+      const thumbFilename = 'thumb_' + baseName;
+      const galleryFilename = 'gallery_' + baseName;
       const url = `/uploads/images/${file.filename}`;
       const thumbUrl = `/uploads/images/${thumbFilename}`;
+      const galleryUrl = `/uploads/images/${galleryFilename}`;
       const [r] = await conn.query(
-        'INSERT INTO photos (event_id, filename, url, thumb_url, sort_order) VALUES (?, ?, ?, ?, ?)',
-        [req.params.eventId, `images/${file.filename}`, url, thumbUrl, i]
+        'INSERT INTO photos (event_id, filename, url, thumb_url, gallery_url, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+        [req.params.eventId, `images/${file.filename}`, url, thumbUrl, galleryUrl, i]
       );
-      photos.push({ id: r.insertId, url, thumb_url: thumbUrl });
+      photos.push({ id: r.insertId, url, thumb_url: thumbUrl, gallery_url: galleryUrl });
 
-      // Generate thumbnail async (non-blocking)
+      // Generate thumbnail (100x100) — for props panel grid
       const thumbPath = path.join(file.destination, thumbFilename);
       sharp(file.path)
         .rotate()
         .resize(100, 100, { fit: 'cover' })
         .jpeg({ quality: 60 })
         .toFile(thumbPath)
+        .catch(() => {});
+
+      // Generate gallery variant (600px) — for gallery cards on mobile
+      const galleryPath = path.join(file.destination, galleryFilename);
+      sharp(file.path)
+        .rotate()
+        .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 75 })
+        .toFile(galleryPath)
         .catch(() => {});
     }
     await conn.commit();

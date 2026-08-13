@@ -55,7 +55,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="getCardZIndex(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -71,7 +71,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="photos.length - getStackDistance(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -82,7 +82,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-flip" (click)="next()">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
               <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
@@ -94,7 +94,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-polaroid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -105,7 +105,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-grid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="gallery-grid-item" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -115,7 +115,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           @if (displayStyle === 'slideshow') {
             <div class="gallery-slideshow">
               @for (photo of photos; track photo.id; let i = $index) {
-                <img class="slideshow-img" [class.active]="i === current()" [src]="photo.url" loading="lazy" (click)="openLightbox(current())">
+                <img class="slideshow-img" [class.active]="i === current()" [src]="getDisplayUrl(photo)" loading="lazy" (click)="openLightbox(current())">
               }
               @if (photos.length > 1) {
                 <button class="slideshow-arrow arrow-left" (click)="prev(); $event.stopPropagation()"><span class="material-icons">chevron_left</span></button>
@@ -318,6 +318,16 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
 
   get displayStyle(): string { return this.config.displayStyle || 'carousel-3d'; }
 
+  /** Returns optimized image URL based on context:
+   *  - staticMode (canvas): thumb_url (100px) for lightweight preview
+   *  - gallery cards (landing/preview): gallery_url (600px) to reduce GPU memory
+   *  - lightbox: uses photo.url directly (1920px, only 1 image at a time)
+   */
+  getDisplayUrl(photo: Photo): string {
+    if (this.staticMode) return photo.thumb_url || photo.gallery_url || photo.url;
+    return photo.gallery_url || photo.url;
+  }
+
   ngOnInit() {
     if (this.displayStyle === 'slideshow' && !this.staticMode) this.startAuto();
     this.polaroidRotations = this.photos.map(() => (Math.random() - 0.5) * 12);
@@ -432,3 +442,4 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
     switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
   }
 }
+

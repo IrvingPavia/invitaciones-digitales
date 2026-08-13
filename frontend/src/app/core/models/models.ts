@@ -458,6 +458,7 @@ export interface Photo {
   filename: string;
   url: string;
   thumb_url?: string;
+  gallery_url?: string;
   sort_order: number;
 }
 
