@@ -685,6 +685,9 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - [ ] **Canvas: secciones se superponen** — el fondo wave/ondas de la sección siguiente (ej: Vestimenta) se sale y se superpone con la galería en el Canvas. En Preview/Landing se ve bien.
 - [ ] **Canvas: decoradores de títulos no se muestran** — las líneas decorativas a los lados del título de sección no se renderizan en el Canvas (sí se ven en Preview/Landing).
 - [ ] **Preview/Landing: textura de fondo (dots) no se aplica** — el Canvas muestra la textura de puntos del BG correctamente, pero en Preview y Landing no se renderiza.
+- [ ] **Desktop: Color Picker no se visualiza** — en modo desktop, el popup del color picker (`position: fixed; right: 292px`) queda fuera del viewport visible. En mobile sí se muestra (inline en el panel). El picker se abre (el estado `pickerOpen` cambia a true) pero el popup está posicionado fuera del área visible. Probablemente necesita reposicionarse relativo al swatch en vez de usar coordenadas fijas.
+- [ ] **Desktop: doble scrollbar en builder** — al abrir el builder en desktop fullscreen, aparece un scrollbar extra a la derecha del panel de propiedades. Parece que el contenedor del builder o el layout grid está desbordando. No es causado por los cambios de galería (el builder.component `:host` ya tenía `overflow: hidden`).
+- [ ] **Desktop: cards del dashboard se superponen** — en el dashboard principal, cuando la ventana está en fullscreen, las cards de eventos crecen y se superponen con los botones de acción debajo. Al reducir el tamaño de ventana se ven bien. No es causado por cambios en esta rama (no se tocó el dashboard).
 
 ---
 
