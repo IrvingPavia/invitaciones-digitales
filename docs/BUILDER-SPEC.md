@@ -677,11 +677,14 @@ Sección para ir registrando detalles visuales, bugs y ajustes menores que se de
 - [ ] **Background animado "brinca" al scrollear en mobile**: En el canvas y preview, la imagen de fondo (GIF/video) se mueve con el scroll y luego regresa a su posición, causando un efecto de "brinco" continuo. Ocurre porque `background-attachment: fixed` no funciona correctamente en mobile browsers. Solo afecta canvas y preview, no la landing real.
   > **Fix**: Se eliminó `background-attachment: fixed` del canvas.
 
-- [x] **Canvas: delay en carga de imagenes de galeria** — las fotos cargan lento de forma progresiva. Se resolvió usando `loading="eager"` + `thumb_url` en modo `staticMode` (canvas del builder). Las imágenes se cargan inmediatamente con thumbnails ligeros en el canvas.
-- [ ] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — al switchear el estilo, el componente se destruye y recrea (Angular `@if`). Se intentó pre-renderizar con `[style.display]` y `[hidden]` pero causaba parpadeo en landing/preview por bindings activos en estilos ocultos. Se revertió a `@if`. El parpadeo al cambiar estilo es un trade-off aceptable vs el parpadeo continuo. **Fix real pendiente:** ver sección 20 (variantes de imagen optimizadas).
+- [x] **Canvas: delay en carga de imagenes de galeria** — las fotos cargan lento de forma progresiva. Se resolvió usando `loading="eager"` + `gallery_url` (600px) en modo `staticMode` (canvas del builder).
+- [x] **Canvas: parpadeo al cambiar estilo de galeria (Polaroid/Mosaico)** — el parpadeo era causado por imágenes de 1920px que saturaban la GPU. Se resolvió con variantes `gallery_url` de 600px que reducen la memoria GPU de ~295MB a ~28MB.
 - [x] **Canvas mobile: panel se abre automatico al tocar seccion** — ya estaba implementado el guard `isMobileView()` en `selectSection()` que previene auto-apertura del panel en mobile. Solo se abre con el FAB button.
 - [x] **Canvas: no se puede interactuar con el carrusel** — pointer-events:none bloquea gestos. Esto es por diseño (click selecciona seccion), interaccion real solo en Preview.
-- [ ] **Landing/Preview: parpadeo en galería al scrollear o abrir lightbox (Android)** — cuadros negros intermitentes en dispositivo físico. Afecta principalmente Polaroid y Mosaico (muestran todas las fotos a la vez). **Causa raíz:** imágenes de 1920px decodificadas ocupan ~295MB de texturas GPU. **Fix planificado en sección 20** (variante `gallery_url` de 600px).
+- [x] **Landing/Preview: parpadeo en galería al scrollear o abrir lightbox (Android)** — Resuelto con variantes `gallery_url` (600px JPEG 75%) generadas en el backend. Las cards de galería usan la variante optimizada, el lightbox usa la imagen full (1920px, solo 1 a la vez). Memoria GPU reducida de ~295MB a ~28MB para 20 fotos.
+- [ ] **Canvas: secciones se superponen** — el fondo wave/ondas de la sección siguiente (ej: Vestimenta) se sale y se superpone con la galería en el Canvas. En Preview/Landing se ve bien.
+- [ ] **Canvas: decoradores de títulos no se muestran** — las líneas decorativas a los lados del título de sección no se renderizan en el Canvas (sí se ven en Preview/Landing).
+- [ ] **Preview/Landing: textura de fondo (dots) no se aplica** — el Canvas muestra la textura de puntos del BG correctamente, pero en Preview y Landing no se renderiza.
 
 ---
 
@@ -874,34 +877,38 @@ Para estilos de carrusel (3D, Vertical, Coverflow, Stack), donde solo se ven 2-3
 
 ### Checklist de Implementación
 
-- [ ] SQL: `ALTER TABLE photos ADD COLUMN gallery_url VARCHAR(500) AFTER thumb_url`
-- [ ] Backend: generar `gallery_` al subir fotos nuevas
-- [ ] Backend: migración para fotos existentes
-- [ ] Frontend modelo: agregar `gallery_url` a interfaz Photo
-- [ ] Frontend galería: usar `getDisplayUrl(photo)` en todos los estilos
-- [ ] Frontend galería: agregar dimensiones explícitas a las imágenes
-- [ ] Frontend lightbox: confirmar que usa `photo.url` (full)
-- [ ] Probar en Android físico: scroll, navegar carrusel, abrir/cerrar lightbox
-- [ ] Verificar que todos los estilos se ven correctos visualmente
+- [x] SQL: `ALTER TABLE photos ADD COLUMN gallery_url VARCHAR(500) AFTER thumb_url`
+- [x] Backend: generar `gallery_` al subir fotos nuevas (await para que estén listas antes de responder)
+- [x] Backend: migración para fotos existentes (`generate-gallery-variants.js`)
+- [x] Frontend modelo: agregar `gallery_url` a interfaz Photo
+- [x] Frontend galería: usar `getDisplayUrl(photo)` en todos los estilos
+- [x] Frontend lightbox: usa `photo.url` (full 1920px) — solo 1 imagen a la vez
+- [x] Lightbox fullscreen: DOM portal en body, blur de fondo, swipe entre fotos, pinch-zoom, double-tap, mouse wheel zoom, drag pan, flechas desktop, keyboard nav
+- [x] Lightbox en Vestimenta: misma funcionalidad al tocar imágenes de ejemplo
+- [x] Loading spinners en slots durante upload de fotos
+- [x] Carrusel Vertical: cards portrait (220x280), solo 3 visibles, dots laterales, sin contador
+- [x] Estilo Flip: botón fullscreen para abrir lightbox sin interferir con el gesto de avance
+- [x] Probar en Android físico: scroll, navegar carrusel, abrir/cerrar lightbox — ✅ SIN PARPADEO
+- [x] Verificar que todos los estilos se ven correctos visualmente
 
-### Pruebas en Dispositivo (Samsung Galaxy S24 Ultra)
+### Pruebas en Dispositivo (Samsung Galaxy S24 Ultra) — ✅ COMPLETADAS
 
-1. Scroll lento por la landing con galería en Polaroid → sin cuadros negros
-2. Scroll rápido → sin cuadros negros
-3. Cambiar a Mosaico → sin cuadros negros
-4. Abrir lightbox → sin flickering en la página detrás
-5. Cerrar lightbox → sin flickering
-6. Carrusel 3D: navegar entre fotos → transiciones fluidas
-7. Stack/Flip/Slideshow → sin parpadeo
-8. Chrome modo escritorio → sigue funcionando (no regresión)
-9. iOS Safari → sigue funcionando
+1. ✅ Scroll lento por la landing con galería en Polaroid → sin cuadros negros
+2. ✅ Scroll rápido → sin cuadros negros
+3. ✅ Cambiar a Mosaico → sin cuadros negros
+4. ✅ Abrir lightbox → sin flickering en la página detrás
+5. ✅ Cerrar lightbox → sin flickering
+6. ✅ Carrusel 3D: navegar entre fotos → transiciones fluidas
+7. ✅ Stack/Flip/Slideshow → sin parpadeo
+8. ✅ Chrome modo escritorio → sigue funcionando (no regresión)
+9. Pendiente: iOS Safari
 
 ### Notas Importantes
 
 - **NO reemplazar Polaroid por Grid, ni usar Swiper.js** — el diseño visual actual es correcto
 - **NO modificar propiedades CSS experimentales** sin evidencia de que resuelvan algo (ya se intentó `will-change`, `contain`, `backface-visibility`, etc. sin éxito)
-- La solución se centra en **reducir el peso de las texturas GPU** que es la causa raíz
-- Si después de implementar `gallery_url` persiste algo de parpadeo, el siguiente paso sería `content-visibility: auto` en las cards del Grid/Polaroid (solo si no afecta los transforms de Polaroid)
+- La solución fue **reducir el peso de las texturas GPU** (de ~295MB a ~28MB con gallery_url de 600px)
+- El `LightboxService` es un servicio compartido reutilizable por cualquier componente que necesite visor de imágenes
 
 ---
 
