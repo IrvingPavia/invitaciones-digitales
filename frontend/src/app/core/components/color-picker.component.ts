@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="color-picker-wrapper">
       <div class="color-picker-row">
-        <div class="color-swatch" [style.background]="value" (click)="togglePicker($event)"></div>
+        <div class="color-swatch" #swatchEl [style.background]="value" (click)="togglePicker($event)"></div>
         <input type="text" class="color-hex-input" [ngModel]="hexColor" (ngModelChange)="onHexType($event)" (blur)="onHexType(hexColor)" spellcheck="false" maxlength="7">
         @if (showOpacity) {
           <span class="color-opacity-label">{{ opacityPercent }}%</span>
@@ -93,22 +93,26 @@ import { FormsModule } from '@angular/forms';
     .color-opacity-label { font-size: 11px; color: rgba(255,255,255,0.5); min-width: 32px; }
 
     .picker-overlay {
-      position: fixed; inset: 0; z-index: 99998;
+      position: fixed; inset: 0; z-index: 9000;
       background: transparent;
     }
     .picker-popup {
-      position: fixed; top: 100px; right: 292px; z-index: 99999;
-      width: 260px; border-radius: 12px;
-      background: #111; box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
+      position: relative; z-index: 9002;
+      width: 100%; max-width: 240px; border-radius: 12px;
+      background: #111; box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
       display: flex; flex-direction: column;
+      margin-top: 8px;
+      overflow: hidden;
+      animation: pickerSlideDown 0.2s ease-out;
     }
-    @media (max-width: 900px) {
-      .picker-popup { right: 50%; transform: translateX(50%); }
+    @keyframes pickerSlideDown {
+      from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+      to { opacity: 1; max-height: 500px; transform: translateY(0); }
     }
 
     /* Saturation area */
     .picker-saturation {
-      position: relative; width: 100%; height: 180px; cursor: crosshair;
+      position: relative; width: 100%; height: 150px; cursor: crosshair;
       border-radius: 10px 10px 0 0; overflow: hidden;
       touch-action: none;
     }
@@ -130,8 +134,8 @@ import { FormsModule } from '@angular/forms';
 
     /* Opacity */
     .picker-opacity-section {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 12px 6px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 10px 4px;
     }
     .opacity-value {
       font-size: 12px; color: rgba(255,255,255,0.6); min-width: 24px; text-align: right;
@@ -159,8 +163,8 @@ import { FormsModule } from '@angular/forms';
 
     /* Bottom row */
     .picker-bottom-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
     }
     .picker-presets-btn {
       display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
@@ -174,9 +178,9 @@ import { FormsModule } from '@angular/forms';
     }
     .picker-hex-input {
       flex: 1; background: transparent; border: none;
-      color: white; font-size: 15px; font-weight: 600;
+      color: white; font-size: 13px; font-weight: 600;
       font-family: 'Courier New', monospace;
-      text-align: center; letter-spacing: 1.5px;
+      text-align: center; letter-spacing: 1px;
       min-width: 0;
       &:focus { outline: none; }
     }
@@ -203,7 +207,7 @@ import { FormsModule } from '@angular/forms';
 
     /* Hue slider */
     .picker-hue-track {
-      height: 14px; margin: 0 12px 10px;
+      height: 14px; margin: 0 10px 8px;
       border-radius: 7px; position: relative; cursor: pointer;
       background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
       touch-action: none;
@@ -231,11 +235,14 @@ export class ColorPickerComponent implements OnInit, OnChanges {
   @ViewChild('hueTrack') hueTrackRef!: ElementRef<HTMLElement>;
   @ViewChild('opacityTrack') opacityTrackRef!: ElementRef<HTMLElement>;
   @ViewChild('pickerPopup') pickerPopupRef!: ElementRef<HTMLElement>;
+  @ViewChild('swatchEl') swatchRef!: ElementRef<HTMLElement>;
 
   hexColor = '#d4a017';
   opacityPercent = 100;
   pickerOpen = false;
   showPresets = false;
+  popupTop = 0;
+  popupLeft = 0;
 
   // HSL values
   hue = 0;

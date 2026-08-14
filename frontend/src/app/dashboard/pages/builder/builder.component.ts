@@ -311,7 +311,7 @@ interface BuilderSection {
 
     .builder-layout {
       display: grid; grid-template-columns: 220px 1fr;
-      flex: 1; overflow: hidden; position: relative;
+      flex: 1; overflow: hidden; position: relative; min-height: 0;
     }
     .builder-layout.panel-hidden { grid-template-columns: 1fr; }
     .builder-layout.preview-layout { grid-template-columns: 1fr; }
@@ -342,7 +342,7 @@ interface BuilderSection {
     .builder-panel-right {
       border-right: none; border-left: 1px solid rgba(139,92,246,0.1);
       width: 280px; z-index: 20;
-      display: none; flex-direction: column; overflow: hidden;
+      display: none; flex-direction: column;
       min-height: 0; height: 100%;
     }
     .builder-panel-right.panel-visible { display: flex; }
