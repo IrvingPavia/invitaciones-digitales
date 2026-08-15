@@ -244,8 +244,9 @@ interface BuilderSection {
       z-index: 200;
       overflow: hidden;
       background: #0a0a14;
+      height: 100%;
       height: 100dvh;
-      height: 100vh;
+      max-height: 100dvh;
       overscroll-behavior: none;
     }
     .builder-toolbar {
@@ -779,7 +780,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
 
   isMobileView(): boolean {
-    return 'ontouchstart' in window && window.innerWidth <= 1024;
+    return window.innerWidth <= 768;
   }
   canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
@@ -851,6 +852,14 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
+    // Lock all parent scrolling while builder is open
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    const pageContent = document.querySelector('.page-content') as HTMLElement;
+    if (pageContent) pageContent.style.overflow = 'hidden';
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    if (mainContent) mainContent.style.overflow = 'hidden';
+
     this.api.getEvent(this.eventId).subscribe(e => {
       this.eventName.set(e.name);
       this.eventData.set(e);
@@ -872,6 +881,13 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+    // Restore scroll when leaving builder
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    const pageContent = document.querySelector('.page-content') as HTMLElement;
+    if (pageContent) pageContent.style.overflow = '';
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    if (mainContent) mainContent.style.overflow = '';
   }
 
   private buildSections(cfg: any) {

@@ -11,9 +11,9 @@ import { FormsModule } from '@angular/forms';
       <div class="color-picker-row">
         <div class="color-swatch" #swatchEl [style.background]="value" (click)="togglePicker($event)"></div>
         <input type="text" class="color-hex-input" [ngModel]="hexColor" (ngModelChange)="onHexType($event)" (blur)="onHexType(hexColor)" spellcheck="false" maxlength="7">
-        @if (showOpacity) {
-          <span class="color-opacity-label">{{ opacityPercent }}%</span>
-        }
+        <button class="color-copy-btn" [class.copied]="justCopied" (click)="copyHex($event)" title="Copiar color">
+          <span class="material-icons">{{ justCopied ? 'check' : 'content_copy' }}</span>
+        </button>
       </div>
 
       @if (pickerOpen) {
@@ -84,12 +84,22 @@ import { FormsModule } from '@angular/forms';
       &:hover { border-color: var(--gold); }
     }
     .color-hex-input {
-      width: 80px; background: rgba(255,255,255,0.05);
+      width: 100px; background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
-      padding: 6px 10px; color: white; font-size: 13px;
+      padding: 6px 8px; color: white; font-size: 12px;
       font-family: 'Courier New', monospace; letter-spacing: 0.5px;
       &:focus { outline: none; border-color: var(--gold); }
     }
+    .color-copy-btn {
+      width: 24px; height: 24px; border-radius: 6px; border: none;
+      background: rgba(139,92,246,0.85); color: white;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; padding: 0; transition: background 0.3s ease;
+      .material-icons { font-size: 13px; line-height: 1; }
+      &.copied { background: #10b981; }
+    }
+    :host-context(body.light-mode) .color-copy-btn { color: #111; }
+    :host-context(body.light-mode) .color-copy-btn.copied { color: #111; }
     .color-opacity-label { font-size: 11px; color: rgba(255,255,255,0.5); min-width: 32px; }
 
     .picker-overlay {
@@ -98,10 +108,10 @@ import { FormsModule } from '@angular/forms';
     }
     .picker-popup {
       position: relative; z-index: 9002;
-      width: 100%; max-width: 240px; border-radius: 12px;
+      width: 240px; max-width: 240px; border-radius: 12px;
       background: #111; box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
       display: flex; flex-direction: column;
-      margin-top: 8px;
+      margin-top: 8px; margin-left: -4px;
       overflow: hidden;
       animation: pickerSlideDown 0.2s ease-out;
     }
@@ -243,6 +253,7 @@ export class ColorPickerComponent implements OnInit, OnChanges {
   showPresets = false;
   popupTop = 0;
   popupLeft = 0;
+  justCopied = false;
 
   // HSL values
   hue = 0;
@@ -289,6 +300,14 @@ export class ColorPickerComponent implements OnInit, OnChanges {
     if (this.pickerOpen) { this.closePicker(); return; }
     this.pickerOpen = true;
     this.showPresets = false;
+  }
+
+  copyHex(event: Event) {
+    event.stopPropagation();
+    navigator.clipboard.writeText(this.hexColor).then(() => {
+      this.justCopied = true;
+      setTimeout(() => this.justCopied = false, 1500);
+    });
   }
 
   private _resizeListener: (() => void) | null = null;

@@ -539,10 +539,8 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="stepper-btn" (click)="adjustHeroFont('celebrantNamesStyle',2);$event.stopPropagation()">+</button>
                 </div>
               </div>
-              <div class="pf-row">
-                <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color1||'#ffffff'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color1',$event)"></app-color-picker></div>
-                <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color2||'#d4a017'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color2',$event)"></app-color-picker></div>
-              </div>
+              <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color1||'#ffffff'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color1',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color 2</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color2||'#d4a017'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color2',$event)"></app-color-picker></div>
               <div class="pf"><label>Angulo degradado ({{sec('hero')?.celebrantNamesStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.celebrantNamesStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','gradientAngle',+$event)"></div>
               <div class="pf"><label>Intensidad ({{sec('hero')?.celebrantNamesStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.celebrantNamesStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','gradientIntensity',+$event)"></div>
               <div class="pf"><label>Grosor ({{sec('hero')?.celebrantNamesStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontWeight',+$event)"></div>
@@ -565,10 +563,8 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',1);$event.stopPropagation()">+</button>
                 </div>
               </div>
-              <div class="pf-row">
-                <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
-                <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
-              </div>
+              <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
               <div class="pf"><label>Angulo degradado ({{sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientAngle',+$event)"></div>
               <div class="pf"><label>Intensidad ({{sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientIntensity',+$event)"></div>
               <div class="pf"><label>Grosor ({{sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontWeight',+$event)"></div>
@@ -1418,11 +1414,12 @@ import { ApiService } from '../../../../../core/services/api.service';
     .props-panel-content { padding: 0; padding-bottom: 60px; contain: layout style; }
     .props-badge { display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(139,92,246,0.06);border-bottom:1px solid rgba(139,92,246,0.1); .material-icons{font-size:16px;color:var(--gold-light)} span:last-child{font-size:13px;font-weight:600;color:white} }
     .section-desc { font-size:11px;color:rgba(255,255,255,0.4);padding:4px 14px 8px;margin:0;border-bottom:1px solid rgba(255,255,255,0.04); }
-    .accordion { cursor:pointer; contain: content; }
-    .accordion-header { display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s; .material-icons{font-size:16px;color:rgba(255,255,255,0.35)} }
+    .accordion { cursor:pointer; }
+    .accordion-header { display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s; .material-icons{font-size:16px;color:rgba(255,255,255,0.35);transition:transform 0.2s} }
     .accordion-header:hover { background:rgba(139,92,246,0.04); }
     .accordion.open .accordion-header { color:white;background:rgba(139,92,246,0.06); .material-icons{color:var(--gold-light)} }
-    .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);contain:layout; }
+    .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);animation:accordionOpen 0.25s ease-out; }
+    @keyframes accordionOpen { from { opacity:0; max-height:0; transform:translateY(-6px); } to { opacity:1; max-height:1000px; transform:translateY(0); } }
     .pf { margin-bottom:10px; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pf-section-title { display:block;font-size:11px;font-weight:600;color:rgba(139,92,246,0.8);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(139,92,246,0.15); }
     .pf-row { display:flex;gap:8px;margin-bottom:10px; }
@@ -1576,7 +1573,13 @@ export class BuilderPropsPanelComponent {
     return descs[this.canvasState.selectedSection()||''] || '';
   }
 
-  toggle(key: string) { this.expanded[key] = !this.expanded[key]; }
+  toggle(key: string) {
+    const wasOpen = this.expanded[key];
+    // Close all other accordions
+    Object.keys(this.expanded).forEach(k => this.expanded[k] = false);
+    // Toggle the clicked one
+    this.expanded[key] = !wasOpen;
+  }
 
   sec(key: string): any { return (this.cfg() as any)?.[key] || null; }
 
