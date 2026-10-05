@@ -9,6 +9,19 @@
   font-display: swap;
 }
 
+/* Fuente "Aura" (comercial, no esta en Google Fonts). Coloca el archivo de la fuente en
+   frontend/src/assets/fonts/ con alguno de estos nombres. Si no existe, cae al fallback. */
+@font-face {
+  font-family: 'Aura';
+  src: url('/assets/fonts/Aura.woff2') format('woff2'),
+       url('/assets/fonts/Aura.woff') format('woff'),
+       url('/assets/fonts/Aura.ttf') format('truetype'),
+       url('/assets/fonts/Aura.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ===== GLOBAL STYLES ===== */
 :root {
   --gold: #7c5cbf;
@@ -36,6 +49,8 @@
   --font-tangerine: 'Tangerine', cursive;
   --font-alexbrush: 'Alex Brush', cursive;
   --font-pinyon: 'Pinyon Script', cursive;
+  --font-aura: 'Aura', cursive;
+  --font-allura: 'Allura', cursive;
   --font-josefin: 'Josefin Sans', sans-serif;
   --font-baskerville: 'Libre Baskerville', serif;
   --shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -670,7 +685,7 @@ body {
   height: calc(100vh - 24px);
   height: calc(100dvh - 24px);
   transition: var(--transition);
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   background: rgba(10, 10, 20, 0.4);
   border: 1px solid rgba(139, 92, 246, 0.3);
@@ -683,7 +698,13 @@ body {
   &.expanded { margin-left: 94px; width: calc(100% - 94px); }
 }
 
-.page-content { padding: 24px; flex: 1; min-height: 0; max-width: 1400px; margin: 0 auto; width: 100%; overflow-x: hidden; display: flex; flex-direction: column; }
+.page-content { padding: 24px; flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
+/* Desktop: el contenido ocupa todo el ancho del panel. Al reducir la ventana no se
+   comprimen ni enciman los controles: se mantiene un ancho mínimo y aparece scroll
+   horizontal en .main-content. */
+@media (min-width: 769px) {
+  .page-content { min-width: 900px; }
+}
 .page-content > *:not(.mobile-menu-btn) { flex-shrink: 1; min-height: 0; }
 .page-content > app-guests, .page-content > app-events, .page-content > app-users, .page-content > app-registrations, .page-content > app-home { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .page-content .card.desktop-table { overflow: hidden; padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }

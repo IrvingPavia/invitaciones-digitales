@@ -85,6 +85,10 @@ export interface ThemeConfig {
   landingBgIntensity?: number;
   landingBgTexture?: 'none' | 'noise' | 'grain' | 'dots' | 'lines' | 'cross' | 'paper' | 'linen' | 'stars';
   landingBgTextureOpacity?: number;
+  // Ajuste del fondo global en DESKTOP: 'cover' (pantalla completa) o 'banner' (columna angosta centrada,
+  // ideal para imagenes verticales). En movil siempre se comporta como 'cover'.
+  landingBgFit?: 'cover' | 'banner';
+  landingBgBannerWidth?: number; // ancho del banner como % del ancho de la ventana (10-100), default 70
   // Scroll animation
   scrollAnimation?: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
   // Navbar & Menu
@@ -189,6 +193,10 @@ export interface EnvelopeConfig {
   splashSubtitle?: string;
   splashImage?: string;
   splashButtonText?: string;
+  // Ajuste de la imagen de fondo en DESKTOP: 'cover' (pantalla completa) o 'banner' (columna
+  // angosta centrada, ideal para imagenes verticales). En movil siempre 'cover'.
+  splashBgFit?: 'cover' | 'banner';
+  splashBgBannerWidth?: number; // ancho del banner como % del ancho de la ventana (10-100), default 70
   // Plain template
   plainTitle?: string;
   plainSubtitle?: string;
@@ -337,7 +345,10 @@ export interface ItineraryConfig {
   timeFontSize?: number;
   textAlign?: 'left' | 'center' | 'right';
   timelineAlign?: 'left' | 'center' | 'right';
-  lineStyle?: 'solid' | 'dashed' | 'dotted' | 'none';
+  lineStyle?: 'solid' | 'beam' | 'wave' | 'zigzag' | 'none';
+  lineColor?: string;
+  dotBgColor?: string;
+  dotBorderColor?: string;
   dotStyle?: 'diamond' | 'circle' | 'star' | 'none';
   items: ItineraryItem[];
   sectionStyle?: SectionStyle;

@@ -19,7 +19,7 @@ import { EnvelopeConfig } from '../../../core/models/models';
 
       <!-- Background image layer -->
       @if (config.splashImage) {
-        <div class="envelope-bg-image" [style.background-image]="'url(' + config.splashImage + ')'"></div>
+        <div class="envelope-bg-image" [class.bg-banner]="bannerActive" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" [style.background-image]="'url(' + config.splashImage + ')'"></div>
       }
 
       <!-- ============ TEMPLATE: ENVELOPE (classic) ============ -->
@@ -146,6 +146,20 @@ import { EnvelopeConfig } from '../../../core/models/models';
     .envelope-bg-image {
       position: absolute; inset: 0; z-index: 0;
       background-size: cover; background-position: center; background-repeat: no-repeat;
+    }
+    /* Modo banner (columna angosta centrada) — solo desktop, para imagenes verticales.
+       Ancho relativo al contenedor (100%), no al viewport (96vw), para que funcione igual
+       en la landing (overlay fixed a viewport completo) y en el canvas del builder (overlay
+       de 500px). El alto se hereda del overlay (top/bottom:0) y cover recorta a los lados. */
+    @media (min-width: 768px) {
+      .envelope-bg-image.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
     }
     .envelope-overlay.opened { opacity: 0; pointer-events: none; }
 
@@ -352,6 +366,14 @@ export class LandingEnvelopeComponent {
   @Input() config!: EnvelopeConfig;
   @Input() globalStyles?: any;
   @Input() previewLoop = false;
+  /** Unidad del ancho del banner: 'vw' (landing, relativo al viewport) o '%' (canvas, relativo al contenedor). */
+  @Input() bannerUnit: 'vw' | '%' = 'vw';
+  /** Fuerza pantalla completa ignorando el modo banner (usado en canvas mobile). */
+  @Input() forceCover = false;
+  /** True si debe aplicarse el modo banner (banner configurado y no forzado a cover). */
+  get bannerActive(): boolean {
+    return this.config.splashBgFit === 'banner' && !this.forceCover;
+  }
   @Output() done = new EventEmitter<void>();
   opened = false;
   Math = Math;
@@ -369,7 +391,7 @@ export class LandingEnvelopeComponent {
       'montserrat': 'Montserrat, sans-serif', 'raleway': 'Raleway, sans-serif', 'cinzel': 'Cinzel, serif',
       'cormorant': 'Cormorant Garamond, serif', 'dancing': 'Dancing Script, cursive',
       'sacramento': 'Sacramento, cursive', 'tangerine': 'Tangerine, cursive',
-      'alexbrush': 'Alex Brush, cursive', 'pinyon': 'Pinyon Script, cursive',
+      'alexbrush': 'Alex Brush, cursive', 'pinyon': 'Pinyon Script, cursive', 'aura': 'Aura, cursive', 'allura': 'Allura, cursive',
       'josefin': 'Josefin Sans, sans-serif', 'baskerville': 'Libre Baskerville, serif'
     };
     return map[key || 'sans'] || 'Lato, sans-serif';

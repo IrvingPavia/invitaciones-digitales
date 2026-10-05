@@ -96,13 +96,15 @@ import { environment } from '../../../../environments/environment';
               <span class="mobile-action-label">Invitados</span>
             </a>
           }
-          <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="mobile-action">
-            <span class="material-icons">settings</span>
-            <span class="mobile-action-label">Config</span>
-          </a>
+          @if (isRoot) {
+            <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="mobile-action">
+              <span class="material-icons">settings</span>
+              <span class="mobile-action-label">Config</span>
+            </a>
+          }
           <a [routerLink]="['/dashboard/builder', selectedEvent()!.id]" class="mobile-action">
             <span class="material-icons">dashboard_customize</span>
-            <span class="mobile-action-label">Builder</span>
+            <span class="mobile-action-label">Diseñar</span>
           </a>
           <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="mobile-action">
             <span class="material-icons">style</span>
@@ -128,11 +130,13 @@ import { environment } from '../../../../environments/environment';
                 <span class="material-icons">people</span> Invitados
               </a>
             }
-            <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="action-btn">
-              <span class="material-icons">settings</span> Configurar
-            </a>
+            @if (isRoot) {
+              <a [routerLink]="['/dashboard/config', selectedEvent()!.id]" class="action-btn">
+                <span class="material-icons">settings</span> Configurar
+              </a>
+            }
             <a [routerLink]="['/dashboard/builder', selectedEvent()!.id]" class="action-btn">
-              <span class="material-icons">dashboard_customize</span> Builder
+              <span class="material-icons">dashboard_customize</span> Diseñar
             </a>
             <a [routerLink]="['/dashboard/cards', selectedEvent()!.id]" class="action-btn">
               <span class="material-icons">style</span> Tarjetas
@@ -232,16 +236,20 @@ import { environment } from '../../../../environments/environment';
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px 0 40px;
-      flex-shrink: 1;
+      padding: 20px 0 56px;
+      flex-shrink: 0;
       min-height: 200px;
+      width: 100%;
+      /* Recorta las cards laterales que se desbordan para que no se encimen con el
+         saludo (arriba) ni con la barra de acciones/KPIs (abajo) al reducir el ancho. */
+      overflow: hidden;
     }
     .carousel-stage {
       position: relative;
       width: 100%;
-      height: 100%;
-      min-height: 220px;
-      max-height: 340px;
+      /* Altura fija = alto de la card central escalada (~270px * 1.1) + margen inferior
+         para el piso. Consistente entre desktop y mobile para que la base no se mueva. */
+      height: 340px;
       display: flex;
       align-items: flex-start;
       padding-top: 20px;
@@ -255,12 +263,18 @@ import { environment } from '../../../../environments/environment';
     .carousel-stage::after {
       content: '';
       position: absolute;
-      bottom: 0; left: 10%; right: 10%;
-      height: 80px;
-      background: linear-gradient(to bottom, rgba(124,92,191,0.06) 0%, transparent 100%);
+      /* Sombra/piso amplia y difusa bajo la card central. La card (max 270px) arranca
+         en padding-top 20px, así que su base queda ~285px desde arriba. */
+      top: 278px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(420px, 68%, 760px);
+      height: 110px;
+      background: radial-gradient(ellipse at center, rgba(124,92,191,0.5) 0%, rgba(124,92,191,0.26) 32%, rgba(124,92,191,0.1) 55%, transparent 78%);
       border-radius: 50%;
-      filter: blur(2px);
+      filter: blur(16px);
       pointer-events: none;
+      z-index: 0;
     }
 
     /* === CARD === */
@@ -352,7 +366,8 @@ import { environment } from '../../../../environments/environment';
     /* === DOTS === */
     .carousel-dots {
       display: flex; justify-content: center; gap: 8px;
-      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      z-index: 20;
     }
     .dot {
       width: 10px; height: 10px; border-radius: 50%; border: none;
@@ -362,9 +377,9 @@ import { environment } from '../../../../environments/environment';
     .dot:hover:not(.active) { background: rgba(124,92,191,0.6); }
 
     /* === SELECTED PANEL === */
-    .selected-panel { animation: fadeUp 0.3s ease; flex-shrink: 1; min-height: 0; }
+    .selected-panel { animation: fadeUp 0.3s ease; flex-shrink: 1; min-height: 0; position: relative; z-index: 200; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .actions-bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .actions-bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 200; margin-top: 12px; }
     .mb-20 { margin-bottom: 20px; }
     .action-btn {
       display: inline-flex; align-items: center; gap: 8px;
@@ -405,6 +420,10 @@ import { environment } from '../../../../environments/environment';
     :host-context(body.light-mode) .nav-arrow { background: #fff; border-color: #e0e0e8; color: var(--gold); }
     :host-context(body.light-mode) .nav-arrow:hover:not(:disabled) { background: #f8f8fc; border-color: var(--gold); }
     :host-context(body.light-mode) .carousel-card { border-color: rgba(0,0,0,0.06); box-shadow: 0 10px 40px rgba(0,0,0,0.12); }
+    /* En light mode la sombra púrpura no se aprecia sobre fondo claro: usamos una sombra gris/oscura y algo de tinte púrpura */
+    :host-context(body.light-mode) .carousel-stage::after {
+      background: radial-gradient(ellipse at center, rgba(90,70,140,0.28) 0%, rgba(60,50,90,0.16) 32%, rgba(60,50,90,0.06) 55%, transparent 78%);
+    }
     :host-context(body.light-mode) .carousel-card-wrapper.is-active .carousel-card { border-color: var(--gold); box-shadow: 0 20px 60px rgba(124,92,191,0.15), 0 0 0 1px var(--gold); }
     :host-context(body.light-mode) .card-reflect { opacity: 0.08; }
     :host-context(body.light-mode) .dot { background: rgba(124,92,191,0.2); }
@@ -471,11 +490,14 @@ import { environment } from '../../../../environments/environment';
 
     /* === RESPONSIVE === */
     @media (max-width: 768px) {
-      :host { overflow-y: auto; }
-      .carousel-stage { height: 300px; max-height: 300px; padding-top: 10px; touch-action: pan-y; overscroll-behavior-x: none; }
-      .carousel-3d { padding: 8px 0 16px; min-height: auto; flex-shrink: 0; }
+      /* Scroll funcional por touch pero sin barra visible (estilo app nativa) */
+      :host { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+      :host::-webkit-scrollbar { display: none; }
+      .carousel-stage { height: 300px; padding-top: 10px; touch-action: pan-y; overscroll-behavior-x: none; }
+      .carousel-stage::after { top: 218px; width: 340px; height: 88px; filter: blur(14px); }
+      .carousel-3d { padding: 8px 0 20px; min-height: auto; flex-shrink: 0; }
       .carousel-card { width: 155px; height: 225px; border-radius: 16px; }
-      .carousel-dots { bottom: 8px; }
+      .carousel-dots { bottom: 6px; }
       .nav-arrow { display: none; }
       .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .actions-bar { display: none !important; }
@@ -496,6 +518,7 @@ export class HomeComponent implements OnInit {
   environment = environment;
   user = this.auth.getUser();
   isClient = this.user?.role === 'client';
+  isRoot = this.user?.role === 'root';
   themes = signal<Record<number, { theme: any; heroBackground: string | null; globalStyles: any }>>({});
   registrationStats = signal<{ registered: number; capacity: number | null }>({ registered: 0, capacity: null });
 

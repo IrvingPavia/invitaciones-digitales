@@ -6,13 +6,14 @@ import { ColorPickerComponent } from '../../../../../core/components/color-picke
 import { CustomSelectComponent, SelectOption } from '../../../../../core/components/custom-select.component';
 import { WheelTimePickerComponent } from '../../../../../core/components/wheel-time-picker.component';
 import { WheelDatePickerComponent } from '../../../../../core/components/wheel-date-picker.component';
+import { RichTextEditorComponent } from '../../../../../core/components/rich-text-editor.component';
 import { CanvasStateService } from '../../services/canvas-state.service';
 import { ApiService } from '../../../../../core/services/api.service';
 
 @Component({
   selector: 'app-builder-props-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent, WheelDatePickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent, WheelDatePickerComponent, RichTextEditorComponent],
   template: `
     <div class="props-panel-content">
       <!-- Section badge -->
@@ -100,6 +101,9 @@ import { ApiService } from '../../../../../core/services/api.service';
             </div>
             @if (cfg()!.theme.landingBgType === 'linear' || cfg()!.theme.landingBgType === 'mesh') {
               <div class="pf"><label>Angulo ({{cfg()!.theme.landingBgAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="cfg()!.theme.landingBgAngle ?? 135" (ngModelChange)="setTheme('landingBgAngle', +$event)"></div>
+            }
+            @if (cfg()!.theme.landingBgType === 'linear') {
+              <div class="pf"><label>Intensidad ({{cfg()!.theme.landingBgIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="cfg()!.theme.landingBgIntensity ?? 50" (ngModelChange)="setTheme('landingBgIntensity', +$event)"></div>
             }
             @if (cfg()!.theme.landingBgType === 'radial' || cfg()!.theme.landingBgType === 'mesh') {
               <div class="pf"><label>Intensidad ({{cfg()!.theme.landingBgIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="10" max="100" [ngModel]="cfg()!.theme.landingBgIntensity ?? 50" (ngModelChange)="setTheme('landingBgIntensity', +$event)"></div>
@@ -339,6 +343,14 @@ import { ApiService } from '../../../../../core/services/api.service';
                   @else{<button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Subir</button>}
                 </div>
               </div>
+              @if (sec('envelope')?.splashImage) {
+                <div class="pf"><label>Ajuste en escritorio</label>
+                  <app-custom-select [options]="bgFitOptions" [value]="sec('envelope')?.splashBgFit || 'cover'" (valueChange)="setSec('envelope','splashBgFit',$event)"></app-custom-select>
+                </div>
+                @if (sec('envelope')?.splashBgFit === 'banner') {
+                  <div class="pf"><label>Ancho del banner ({{sec('envelope')?.splashBgBannerWidth || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="sec('envelope')?.splashBgBannerWidth || 70" (ngModelChange)="setSec('envelope','splashBgBannerWidth',+$event)"></div>
+                }
+              }
               @if (!sec('envelope')?.splashImage) {
                 <div class="pf"><label>Tipo de fondo</label>
                   <app-custom-select [options]="envBgTypeOptions" [value]="sec('envelope')?.bgType||'linear'" (valueChange)="setSec('envelope','bgType',$event)"></app-custom-select>
@@ -649,6 +661,15 @@ import { ApiService } from '../../../../../core/services/api.service';
                   @else{<button class="sm-btn" (click)="upload('hero','backgroundGif','gifs');$event.stopPropagation()">Subir</button>}
                 </div>
               </div>
+              @if (sec('hero')?.backgroundGif) {
+                <div class="pf"><label>Ajuste en escritorio</label>
+                  <app-custom-select [options]="bgFitOptions" [value]="cfg()!.theme.landingBgFit || 'cover'" (valueChange)="setTheme('landingBgFit', $event)"></app-custom-select>
+                </div>
+                @if (cfg()!.theme.landingBgFit === 'banner') {
+                  <div class="pf"><label>Ancho del banner ({{cfg()!.theme.landingBgBannerWidth || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="cfg()!.theme.landingBgBannerWidth || 70" (ngModelChange)="setTheme('landingBgBannerWidth', +$event)"></div>
+                }
+                <p class="pf-hint">En "banner centrado" la imagen mantiene su tamaño (ajustado al alto de la ventana); el slider solo define el ancho visible del banner, recortando mas o menos los lados. Solo aplica en escritorio; en movil ocupa toda la pantalla.</p>
+              }
               <div class="pf"><label>Audio</label>
                 <div class="upload-row">
                   @if(sec('hero')?.audioUrl){<span class="file-name">{{getFileName(sec('hero')?.audioUrl)}}</span><button class="sm-btn" (click)="upload('hero','audioUrl','audio');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('hero','audioUrl','');$event.stopPropagation()">X</button>}
@@ -717,14 +738,40 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="items-header"><span>Cards ({{sec('details')?.cards?.length||0}})</span><button class="sm-btn" (click)="addCard('details');$event.stopPropagation()">+ Agregar</button></div>
               @for (card of sec('details')?.cards||[]; track card.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>Card {{i+1}}</span><button class="x-btn" (click)="removeCard('details',i);$event.stopPropagation()">X</button></div>
+                  <div class="item-head"><button class="delete-btn" (click)="removeCard('details',i);$event.stopPropagation()"><span class="material-icons">close</span></button></div>
                   <input class="pinput" [ngModel]="card.title" (ngModelChange)="updateCard('details',i,'title',$event)" placeholder="Titulo">
-                  <textarea class="pinput sm" [ngModel]="card.content" (ngModelChange)="updateCard('details',i,'content',$event)" placeholder="Contenido"></textarea>
-                  <div class="pf"><label>Tipo icono</label>
-                    <app-custom-select [options]="iconTypeOptions" [value]="card.iconType||'none'" (valueChange)="updateCard('details',i,'iconType',$event)"></app-custom-select>
+                  <div class="pf"><label>Contenido</label>
+                    <app-rich-text-editor [ngModel]="card.content" (ngModelChange)="updateCard('details',i,'content',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
+                  </div>
+                  <div class="pf"><label>Tipo de icono</label>
+                    <div class="btn-row">
+                      <button class="chip" [class.active]="card.iconType === 'none' || !card.iconType" (click)="updateCard('details',i,'iconType','none');$event.stopPropagation()">Sin icono</button>
+                      <button class="chip" [class.active]="card.iconType === 'emoji'" (click)="updateCard('details',i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
+                      <button class="chip" [class.active]="card.iconType === 'image'" (click)="updateCard('details',i,'iconType','image');$event.stopPropagation()">Imagen</button>
+                    </div>
                   </div>
                   @if (card.iconType === 'emoji') {
-                    <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="card.icon" (ngModelChange)="updateCard('details',i,'icon',$event)" placeholder="Emoji"></div>
+                    <div class="pf"><label>Emoji</label>
+                      <div class="emoji-grid">
+                        @for (e of detailEmojis; track e) {
+                          <button class="emoji-btn" [class.active]="card.icon === e" (click)="updateCard('details',i,'icon',e);$event.stopPropagation()">{{e}}</button>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (card.iconType === 'image') {
+                    <div class="pf"><label>Imagen de icono</label>
+                      @if (card.iconUrl) {
+                        <div class="icon-img-row">
+                          <div class="icon-img-preview"><img [src]="card.iconUrl" alt="icono"></div>
+                          <button class="sm-btn" (click)="uploadDetailIcon(i);$event.stopPropagation()">Cambiar</button>
+                          <button class="delete-btn" (click)="updateCard('details',i,'iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      } @else {
+                        <button class="sm-btn" (click)="uploadDetailIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                      }
+                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
+                    </div>
                   }
                   <div class="pf"><label>Alineacion</label>
                     <app-custom-select [options]="textAlignOptions" [value]="card.textAlign||'center'" (valueChange)="updateCard('details',i,'textAlign',$event)"></app-custom-select>
@@ -805,10 +852,16 @@ import { ApiService } from '../../../../../core/services/api.service';
                   }
                   @if (item.iconType === 'image') {
                     <div class="pf"><label>Imagen de icono</label>
-                      <div class="upload-row">
-                        @if (item.icon) {<span class="file-name">{{getFileName(item.icon)}}</span><button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="updateVenue(i,'icon','');$event.stopPropagation()">X</button>}
-                        @else {<button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Subir</button>}
-                      </div>
+                      @if (item.icon) {
+                        <div class="icon-img-row">
+                          <div class="icon-img-preview"><img [src]="item.icon" alt="icono"></div>
+                          <button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Cambiar</button>
+                          <button class="delete-btn" (click)="updateVenue(i,'icon','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      } @else {
+                        <button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                      }
+                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
                     </div>
                   }
                   <div class="toggle-row" style="margin-top:6px">
@@ -869,7 +922,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="items-header"><span>Actividades ({{itineraryItems().length}})</span><button class="sm-btn" (click)="addItineraryItem();$event.stopPropagation()">+ Agregar</button></div>
               @for (item of itineraryItems(); track item.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>{{i+1}}</span><button class="x-btn" (click)="removeItineraryItem(i);$event.stopPropagation()">X</button></div>
+                  <div class="item-head"><button class="delete-btn" (click)="removeItineraryItem(i);$event.stopPropagation()"><span class="material-icons">close</span></button></div>
                   <div class="pf"><label>Hora</label>
                     <app-wheel-time-picker [value]="item.time" (valueChange)="updateItineraryItem(i,'time',$event)"></app-wheel-time-picker>
                   </div>
@@ -889,14 +942,16 @@ import { ApiService } from '../../../../../core/services/api.service';
                       </div>
                     }
                     @if (item.iconType === 'custom') {
-                      <div class="upload-row">
-                        @if (item.iconUrl) {
-                          <span class="file-name">{{getFileName(item.iconUrl)}}</span>
-                          <button class="sm-btn danger" (click)="updateItineraryItem(i,'iconUrl','');$event.stopPropagation()">X</button>
-                        } @else {
-                          <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()">Subir imagen</button>
-                        }
-                      </div>
+                      @if (item.iconUrl) {
+                        <div class="icon-img-row">
+                          <div class="icon-img-preview"><img [src]="item.iconUrl" alt="icono"></div>
+                          <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()">Cambiar</button>
+                          <button class="delete-btn" (click)="updateItineraryItem(i,'iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      } @else {
+                        <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                      }
+                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
                     }
                   </div>
                 </div>
@@ -922,12 +977,16 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Estilo de linea</label>
                 <div class="btn-row">
-                  <button class="chip" [class.active]="!sec('itinerary')?.lineStyle||sec('itinerary')?.lineStyle==='solid'" (click)="setSec('itinerary','lineStyle','solid');$event.stopPropagation()">Solida</button>
-                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='dashed'" (click)="setSec('itinerary','lineStyle','dashed');$event.stopPropagation()">Discontinua</button>
-                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='dotted'" (click)="setSec('itinerary','lineStyle','dotted');$event.stopPropagation()">Punteada</button>
+                  <button class="chip" [class.active]="!sec('itinerary')?.lineStyle||sec('itinerary')?.lineStyle==='solid'" (click)="setSec('itinerary','lineStyle','solid');$event.stopPropagation()">Aguja</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='beam'" (click)="setSec('itinerary','lineStyle','beam');$event.stopPropagation()">Haz (glow)</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='wave'" (click)="setSec('itinerary','lineStyle','wave');$event.stopPropagation()">Ondeada</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='zigzag'" (click)="setSec('itinerary','lineStyle','zigzag');$event.stopPropagation()">Zigzag</button>
                   <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='none'" (click)="setSec('itinerary','lineStyle','none');$event.stopPropagation()">Sin linea</button>
                 </div>
               </div>
+              <div class="pf"><label>Color de linea</label><app-color-picker [value]="sec('itinerary')?.lineColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.6)'" (valueChange)="setSec('itinerary','lineColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Relleno del circulo</label><app-color-picker [value]="sec('itinerary')?.dotBgColor || 'rgba(0,0,0,0)'" [showOpacity]="true" (valueChange)="setSec('itinerary','dotBgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Borde del circulo</label><app-color-picker [value]="sec('itinerary')?.dotBorderColor || sec('itinerary')?.lineColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.5)'" (valueChange)="setSec('itinerary','dotBorderColor',$event)"></app-color-picker></div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showCardBg !== false" (ngModelChange)="setSec('itinerary','showCardBg',$event)"><span class="slider"></span></label>
@@ -1127,7 +1186,13 @@ import { ApiService } from '../../../../../core/services/api.service';
                 </div>
               </div>
               @if (sec('gifts')?.sectionIcon?.iconType === 'emoji') {
-                <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="sec('gifts')?.sectionIcon?.icon||'🎁'" (ngModelChange)="setSectionIconProp('gifts','icon',$event)" placeholder="🎁" style="max-width:60px"></div>
+                <div class="pf"><label>Emoji</label>
+                  <div class="emoji-grid">
+                    @for (e of giftEmojis; track e) {
+                      <button class="emoji-btn" [class.active]="sec('gifts')?.sectionIcon?.icon === e" (click)="setSectionIconProp('gifts','icon',e);$event.stopPropagation()">{{e}}</button>
+                    }
+                  </div>
+                </div>
               }
             </div>
           }
@@ -1200,7 +1265,13 @@ import { ApiService } from '../../../../../core/services/api.service';
                 </div>
               </div>
               @if (sec('rsvp')?.sectionIcon?.iconType === 'emoji') {
-                <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="sec('rsvp')?.sectionIcon?.icon||'✅'" (ngModelChange)="setSectionIconProp('rsvp','icon',$event)" placeholder="✅" style="max-width:60px"></div>
+                <div class="pf"><label>Emoji</label>
+                  <div class="emoji-grid">
+                    @for (e of rsvpEmojis; track e) {
+                      <button class="emoji-btn" [class.active]="sec('rsvp')?.sectionIcon?.icon === e" (click)="setSectionIconProp('rsvp','icon',e);$event.stopPropagation()">{{e}}</button>
+                    }
+                  </div>
+                </div>
               }
             </div>
           }
@@ -1216,7 +1287,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <span style="font-size:10px;color:rgba(255,255,255,0.5);min-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{field.label}}</span>
                   <button class="chip" [class.active]="field.required" (click)="toggleRegFieldRequired(i);$event.stopPropagation()" style="font-size:9px;padding:3px 6px">{{field.required ? 'Oblig.' : 'Opc.'}}</button>
                   @if (field.key !== 'name') {
-                    <button class="x-btn" (click)="removeRegField(i);$event.stopPropagation()">X</button>
+                    <button class="delete-btn" (click)="removeRegField(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
                   }
                 </div>
               }
@@ -1273,7 +1344,11 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="ss('bgType')==='image'" (click)="setSS('bgType','image');$event.stopPropagation()">Imagen</button>
                 </div>
                 @if(ss('bgType')==='solid'||ss('bgType')==='linear'){<div class="pf"><label>Color 1</label><app-color-picker [value]="ss('bgColor1')||'#fff'" (valueChange)="setSS('bgColor1',$event)"></app-color-picker></div>}
-                @if(ss('bgType')==='linear'){<div class="pf"><label>Color 2</label><app-color-picker [value]="ss('bgColor2')||'#eee'" (valueChange)="setSS('bgColor2',$event)"></app-color-picker></div>}
+                @if(ss('bgType')==='linear'){
+                  <div class="pf"><label>Color 2</label><app-color-picker [value]="ss('bgColor2')||'#eee'" (valueChange)="setSS('bgColor2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Angulo ({{ss('bgAngle') ?? 180}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('bgAngle') ?? 180" (ngModelChange)="setSS('bgAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{ss('bgIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgIntensity') ?? 50" (ngModelChange)="setSS('bgIntensity',+$event)"></div>
+                }
               </div>
             }
 
@@ -1422,6 +1497,7 @@ import { ApiService } from '../../../../../core/services/api.service';
     @keyframes accordionOpen { from { opacity:0; max-height:0; transform:translateY(-6px); } to { opacity:1; max-height:1000px; transform:translateY(0); } }
     .pf { margin-bottom:10px; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pf-section-title { display:block;font-size:11px;font-weight:600;color:rgba(139,92,246,0.8);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(139,92,246,0.15); }
+    .pf-hint { font-size:10px;color:rgba(255,255,255,0.4);line-height:1.4;margin:2px 0 10px; }
     .pf-row { display:flex;gap:8px;margin-bottom:10px; }
     .pf-half { flex:1; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pinput { width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.15);border-radius:6px;padding:7px 10px;color:white;font-size:12px;font-family:var(--font-sans); &:focus{outline:none;border-color:rgba(139,92,246,0.4)} }
@@ -1439,6 +1515,29 @@ import { ApiService } from '../../../../../core/services/api.service';
     .chip { padding:5px 9px;border-radius:5px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.6);font-size:10px;cursor:pointer;transition:all 0.15s;white-space:nowrap; &:hover{background:rgba(139,92,246,0.08);color:white} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
     .upload-row { display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
     .upload-ok { font-size:11px;color:#10b981; }
+    /* Fila de imagen de icono: preview + cambiar + quitar (mismo estilo que venues) */
+    .icon-img-row { display:flex;align-items:center;gap:8px; }
+    .icon-img-preview {
+      width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;
+      border:1px solid rgba(139,92,246,0.2);
+      display:flex;align-items:center;justify-content:center;
+      /* Tablero de ajedrez para que se note la transparencia del icono */
+      background-color:rgba(255,255,255,0.06);
+      background-image:
+        linear-gradient(45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.08) 75%);
+      background-size:10px 10px;
+      background-position:0 0, 0 5px, 5px -5px, -5px 0;
+      img { width:100%;height:100%;object-fit:contain;display:block; }
+    }
+    .upload-hint {
+      display:flex;align-items:flex-start;gap:5px;
+      margin:8px 0 0;font-size:10px;line-height:1.4;
+      color:rgba(255,255,255,0.4);
+      .material-icons { font-size:13px;color:rgba(139,92,246,0.7);flex-shrink:0;margin-top:1px; }
+    }
     .file-name { font-size:10px;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
     .sm-btn { padding:4px 10px;border-radius:5px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.06);color:rgba(255,255,255,0.7);font-size:10px;cursor:pointer;transition:all 0.15s; &:hover{background:rgba(139,92,246,0.12)} &.danger{border-color:rgba(239,68,68,0.2);color:#ef4444} }
     .tpl-grid-2x2 { display:grid;grid-template-columns:1fr 1fr;gap:4px; }
@@ -1872,6 +1971,19 @@ export class BuilderPropsPanelComponent {
     input.click();
   }
 
+  uploadDetailIcon(i: number) {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg) return;
+        (cfg as any).details.cards[i].iconUrl = r.url;
+        this.canvasState.notifyChange();
+      }});
+    };
+    input.click();
+  }
+
   addDresscode() {
     const cfg=this.canvasState.getConfig();if(!cfg)return;
     if(!cfg.dresscode.cards)cfg.dresscode.cards=[];
@@ -2058,13 +2170,30 @@ export class BuilderPropsPanelComponent {
     '🏨','🏡','🌳','🌊','⛰️','🌅','🎭','🎬'
   ];
 
+  detailEmojis = [
+    '💒','⛪','🏛️','💍','👰','🤵','👪','🙏',
+    '✝️','🕊️','💐','🌹','🎊','🎉','💝','❤️',
+    '🥂','🍾','🎂','🎵','📸','🌟','👑','🦋'
+  ];
+
+  giftEmojis = [
+    '🎁','💝','🛍️','💐','🎀','💳','💵','🏦',
+    '🪙','💎','🧧','🎊','✨','🛒','📦','❤️'
+  ];
+
+  rsvpEmojis = [
+    '✅','📝','💌','✉️','📩','🖊️','🗓️','📌',
+    '🙋','👍','🎉','🥂','💃','🕺','⭐','❤️'
+  ];
+
   // Custom select option arrays
   fontOptions: SelectOption[] = [
     {value:'sans',label:'Lato (Sans)'},{value:'montserrat',label:'Montserrat'},{value:'raleway',label:'Raleway'},
     {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
     {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
     {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
-    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'}
+    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'},
+    {value:'aura',label:'Aura'},{value:'allura',label:'Allura'}
   ];
 
   themeFontOptions: SelectOption[] = [
@@ -2073,7 +2202,8 @@ export class BuilderPropsPanelComponent {
     {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
     {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
     {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
-    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'}
+    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'},
+    {value:'aura',label:'Aura'},{value:'allura',label:'Allura'}
   ];
 
   separatorStyleOptions: SelectOption[] = [
@@ -2106,6 +2236,10 @@ export class BuilderPropsPanelComponent {
 
   landingBgTypeOptions: SelectOption[] = [
     {value:'solid',label:'Solido'},{value:'linear',label:'Lineal'},{value:'radial',label:'Radial'},{value:'mesh',label:'Difuminado'}
+  ];
+
+  bgFitOptions: SelectOption[] = [
+    {value:'cover',label:'Pantalla completa'},{value:'banner',label:'Banner centrado'}
   ];
 
   landingBgTextureOptions: SelectOption[] = [

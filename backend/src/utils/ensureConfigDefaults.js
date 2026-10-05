@@ -6,7 +6,7 @@
 function ensureConfigDefaults(cfg) {
   if (!cfg || typeof cfg !== 'object') cfg = {};
 
-  return {
+  const normalized = {
     envelope: {
       enabled: false,
       template: 'envelope',
@@ -242,6 +242,8 @@ function ensureConfigDefaults(cfg) {
       buttonText: '#1a1a2e',
       buttonFont: '',
       landingBgTexture: 'none',
+      landingBgFit: 'cover',
+      landingBgBannerWidth: 70,
       scrollAnimation: 'fade-up',
       ...(cfg.theme || {}),
     },
@@ -283,6 +285,17 @@ function ensureConfigDefaults(cfg) {
     // Preserve favicon if set
     favicon: cfg.favicon || undefined,
   };
+
+  // Migracion: el ancho del banner paso de px (360-1000) a % (10-100).
+  // Configs viejas con valores >100 se normalizan al default (70%).
+  if (normalized.theme && typeof normalized.theme.landingBgBannerWidth === 'number' && normalized.theme.landingBgBannerWidth > 100) {
+    normalized.theme.landingBgBannerWidth = 70;
+  }
+  if (normalized.envelope && typeof normalized.envelope.splashBgBannerWidth === 'number' && normalized.envelope.splashBgBannerWidth > 100) {
+    normalized.envelope.splashBgBannerWidth = 70;
+  }
+
+  return normalized;
 }
 
 module.exports = { ensureConfigDefaults };

@@ -304,7 +304,7 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
       'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
       'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
       'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
-      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key || 'sans'] || 'var(--font-sans)';
   }
@@ -318,7 +318,7 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     if (!c2 || !validColor.test(c2)) return `linear-gradient(0deg, ${safe1}, ${safe1})`;
     const angle = s?.gradientAngle ?? 135;
     const intensity = s?.gradientIntensity ?? 50;
-    return `linear-gradient(${angle}deg, ${safe1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
+    return this.buildTextGradient(angle, safe1, c2, intensity);
   }
 
   getGradient(): string {
@@ -326,11 +326,22 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     const c1 = s?.color1 || '#d4a017';
     const c2 = s?.color2 || c1;
     const angle = s?.gradientAngle ?? 135;
+    const intensity = s?.gradientIntensity ?? 50;
     // Validate colors (hex or rgba)
     const validColor = /^(#[0-9a-fA-F]{6}|rgba?\(.+\))$/;
     const safe1 = validColor.test(c1) ? c1 : '#d4a017';
     const safe2 = validColor.test(c2) ? c2 : safe1;
-    return `linear-gradient(${angle}deg, ${safe1}, ${safe2})`;
+    return this.buildTextGradient(angle, safe1, safe2, intensity);
+  }
+
+  /** Degradado de texto con intensidad 0-100 (predominancia): 0 = color1, 100 = color2,
+      50 = mitad. Desplaza el punto medio del degradado. */
+  private buildTextGradient(angle: number, c1: string, c2: string, intensity: number): string {
+    const v = Math.max(0, Math.min(100, intensity ?? 50));
+    const mid = 100 - v; // v=0 -> 100% (todo c1); v=100 -> 0% (todo c2)
+    const a = Math.max(0, mid - 25);
+    const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
   }
 
   getCountdownBorderStyle(): string {

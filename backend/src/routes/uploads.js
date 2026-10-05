@@ -42,10 +42,23 @@ router.post('/:type', auth, upload.single('file'), async (req, res) => {
   if (type === 'images' && /\.(jpg|jpeg|png|webp)$/.test(ext)) {
     try {
       const filePath = req.file.path;
-      const buffer = await sharp(filePath)
-        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toBuffer();
+      // Redimensiona respetando el formato original para PRESERVAR TRANSPARENCIA.
+      // JPEG no soporta canal alfa: forzar JPEG rellenaba de negro los PNG/WebP
+      // transparentes (típico en iconos). Por eso solo re-encodeamos a JPEG los
+      // formatos opacos (jpg/jpeg) y mantenemos PNG/WebP en su formato con alfa.
+      const pipeline = sharp(filePath)
+        .rotate()
+        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true });
+
+      if (/\.png$/.test(ext)) {
+        pipeline.png({ compressionLevel: 9, palette: true });
+      } else if (/\.webp$/.test(ext)) {
+        pipeline.webp({ quality: 80 });
+      } else {
+        pipeline.jpeg({ quality: 80 });
+      }
+
+      const buffer = await pipeline.toBuffer();
       await fs.promises.writeFile(filePath, buffer);
     } catch (e) { /* If compression fails, keep original */ }
   }

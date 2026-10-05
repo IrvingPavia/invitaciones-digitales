@@ -43,9 +43,9 @@ import { ApiService } from '../core/services/api.service';
               <span class="material-icons">people</span>
               @if (!collapsed()) { <span>Invitados</span> }
             </a>
-            <a [routerLink]="['/dashboard/config', clientEventId]" routerLinkActive="active" (click)="closeMobile()">
-              <span class="material-icons">settings</span>
-              @if (!collapsed()) { <span>Configurar</span> }
+            <a [routerLink]="['/dashboard/builder', clientEventId]" routerLinkActive="active" (click)="closeMobile()">
+              <span class="material-icons">dashboard_customize</span>
+              @if (!collapsed()) { <span>Diseñar</span> }
             </a>
             <a [routerLink]="['/dashboard/cards', clientEventId]" routerLinkActive="active" (click)="closeMobile()">
               <span class="material-icons">style</span>

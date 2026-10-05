@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -81,7 +81,7 @@ interface BuilderSection {
       </div>
     </div>
 
-    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'" [class.panel-hidden]="!panelVisible()" [class.props-open]="showProps() && canvasMode() === 'canvas'">
+    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'" [class.panel-hidden]="!panelVisible()" [class.props-open]="showProps() && canvasMode() === 'canvas'" [class.wide]="isWide()">
       <!-- Left Panel: Sections + Elements (hidden in preview) -->
       @if (canvasMode() === 'canvas' && panelVisible()) {
       <aside class="builder-panel builder-panel-left" [class.mobile-open]="showLeftPanel()">
@@ -102,9 +102,14 @@ interface BuilderSection {
               <span class="material-icons drag-handle" cdkDragHandle>drag_indicator</span>
               <span class="material-icons section-icon">{{ section.icon }}</span>
               <span class="section-label">{{ section.label }}</span>
-              <button class="section-toggle" (click)="toggleSection(section.key); $event.stopPropagation()">
-                <span class="material-icons">{{ section.enabled ? 'visibility' : 'visibility_off' }}</span>
-              </button>
+              @if (isPermanentSection(section.key)) {
+                <!-- Secciones permanentes (Carátula): no se pueden ocultar, es la sección principal -->
+                <span class="section-permanent material-icons" title="Sección principal, siempre visible">push_pin</span>
+              } @else {
+                <button class="section-toggle" (click)="toggleSection(section.key); $event.stopPropagation()">
+                  <span class="material-icons">{{ section.enabled ? 'visibility' : 'visibility_off' }}</span>
+                </button>
+              }
             </div>
           }
         </div>
@@ -118,20 +123,12 @@ interface BuilderSection {
       <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
         <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'">          @if (canvasState.config()) {
               <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.--theme-nav-btn-bg]="canvasState.config()?.theme?.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="canvasState.config()?.theme?.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="canvasState.config()?.theme?.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="canvasState.config()?.theme?.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="canvasState.config()?.theme?.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(canvasState.config()?.theme?.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(canvasState.config()?.theme?.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="canvasState.config()?.theme?.navBarBorder || 'rgba(212,160,23,0.2)'" [style.background]="getCanvasLandingBg()">
-                @if (canvasState.config()?.hero?.backgroundGif) {
-                  @if (isCanvasBgVideo()) {
-                    <video class="canvas-bg-media" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
-                  } @else {
-                    <div class="canvas-bg-image" [style.backgroundImage]="'url(' + canvasState.config()!.hero.backgroundGif + ')'"></div>
-                  }
-                  <div class="canvas-bg-overlay"></div>
-                }
-                @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
-                  <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
-                }
+                <!-- Pantalla de inicio (envelope) e Intro van ANTES del fondo: el fondo
+                     configurado (GIF/imagen/video) solo aplica desde la carátula hacia abajo,
+                     igual que en la landing real (que oculta el bg mientras hay envelope/intro). -->
                 @if (canvasState.config()?.envelope?.enabled) {
                   <div class="preview-section-click" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
-                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" />
+                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" bannerUnit="%" [forceCover]="previewDevice() === 'mobile'" />
                   </div>
                 }
                 @if (canvasState.config()?.intro?.enabled) {
@@ -139,6 +136,31 @@ interface BuilderSection {
                     <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [themeTexture]="canvasState.config()?.theme?.landingBgTexture || 'none'" [themeTextureOpacity]="canvasState.config()?.theme?.landingBgTextureOpacity || 5" [previewLoop]="true" />
                   </div>
                 }
+
+                <!-- Wrapper que contiene el fondo + carátula + resto de secciones. El fondo se
+                     posiciona respecto a ESTE contenedor (que empieza en la carátula), por eso
+                     no se ve detrás de la pantalla de inicio ni de la intro. -->
+                <div class="canvas-bg-scope">
+                  <!-- Capa de fondo sticky: se mantiene fija respecto al viewport visible del
+                       canvas mientras el contenido scrollea por encima, replicando el
+                       position:fixed de la landing real. Así el fondo es CONTINUO desde la
+                       carátula hasta el final del scope, y el GIF no se estira (se dimensiona
+                       al viewport visible, no a la altura total del documento). -->
+                  @if (canvasState.config()?.hero?.backgroundGif || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
+                    <div class="canvas-bg-sticky">
+                      @if (canvasState.config()?.hero?.backgroundGif) {
+                        @if (isCanvasBgVideo()) {
+                          <video class="canvas-bg-media" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
+                        } @else {
+                          <div class="canvas-bg-image" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" [style.backgroundImage]="'url(' + canvasState.config()!.hero.backgroundGif + ')'"></div>
+                        }
+                        <div class="canvas-bg-overlay" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'"></div>
+                      }
+                      @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
+                        <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                      }
+                    </div>
+                  }
                 <div class="preview-section-click" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
                   @if (canvasState.config()!.hero) {
                     <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
@@ -184,6 +206,7 @@ interface BuilderSection {
                     <app-landing-rsvp [config]="canvasState.config()!.rsvp" [guest]="previewGuest" slug="preview" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
+                </div><!-- /.canvas-bg-scope -->
               </div>
           }
         </div>
@@ -316,8 +339,21 @@ interface BuilderSection {
     }
     .builder-layout.panel-hidden { grid-template-columns: 1fr; }
     .builder-layout.preview-layout { grid-template-columns: 1fr; }
-    .builder-layout.props-open { grid-template-columns: 220px 1fr 280px; }
-    .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr 280px; }
+    /* Panel de propiedades con ancho fluido: minimo 280px (el ancho original, para que al
+       achicar la ventana no ocupe de mas), escala con el viewport, tope 400px. El canvas
+       (1fr) absorbe el resto. */
+    .builder-layout.props-open { grid-template-columns: 220px 1fr clamp(280px, 26vw, 400px); }
+    .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr clamp(280px, 26vw, 400px); }
+
+    /* === MODO AMPLIO (>=1280px): ambos paneles a la vez, propiedades mas ancho === */
+    .builder-layout.wide { grid-template-columns: 240px 1fr; }
+    .builder-layout.wide.panel-hidden { grid-template-columns: 1fr; }
+    .builder-layout.wide.props-open { grid-template-columns: 240px 1fr clamp(280px, 24vw, 480px); }
+    .builder-layout.wide.props-open.panel-hidden { grid-template-columns: 1fr clamp(280px, 24vw, 480px); }
+    .builder-layout.wide.preview-layout { grid-template-columns: 1fr; }
+    /* El ancho lo controla la columna del grid; el panel se estira al 100% de su columna. */
+    .builder-layout.wide .builder-panel-right { width: 100%; }
+
     .builder-preview-area {
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       background: #06060e; padding: 8px; overflow: hidden; flex: 1; min-height: 0;
@@ -334,7 +370,7 @@ interface BuilderSection {
       &.mobile { width: 375px; max-width: 100%; }
       &.desktop { width: 100%; max-width: 900px; }
     }
-    .preview-iframe { width: 100%; height: 100%; border: none; }
+    .preview-iframe { width: 100%; height: 100%; border: none; display: block; }
     .builder-panel {
       background: rgba(10,10,20,0.98);
       border-right: 1px solid rgba(139,92,246,0.1);
@@ -342,7 +378,7 @@ interface BuilderSection {
     }
     .builder-panel-right {
       border-right: none; border-left: 1px solid rgba(139,92,246,0.1);
-      width: 280px; z-index: 20;
+      width: 100%; z-index: 20;
       display: none; flex-direction: column;
       min-height: 0; height: 100%;
     }
@@ -385,6 +421,12 @@ interface BuilderSection {
       .material-icons { font-size: 14px; }
       &:hover { color: var(--gold-light); }
     }
+    .section-permanent {
+      font-size: 13px; padding: 2px;
+      color: rgba(139,92,246,0.6);
+      transform: rotate(45deg);
+      cursor: default;
+    }
     .builder-add-elements { padding-bottom: 8px; }
     .add-el-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px; }
     .add-el-btn {
@@ -398,15 +440,22 @@ interface BuilderSection {
 
     .builder-canvas-area {
       display: flex; align-items: flex-start; justify-content: center;
-      background: #06060e; padding: 16px; overflow-y: auto;
+      background: #06060e; padding: 16px; overflow: hidden; min-height: 0;
     }
+    /* El VIEWPORT es ahora el contenedor scrolleable (antes lo era .builder-canvas-area).
+       Esto permite que el fondo (position:sticky) se ancle al viewport y quede fijo mientras
+       las secciones scrollean por encima — replicando el fondo fijo de la landing real. */
     .builder-canvas-viewport {
-      border-radius: 16px; overflow: hidden;
+      border-radius: 16px; overflow-y: auto; overflow-x: hidden;
+      max-height: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
       background: #0d1117;
       &.mobile { width: 375px; }
       &.desktop { width: 100%; max-width: 900px; }
     }
+    /* Ocultar la barra de scroll del viewport para que el mockup se vea limpio */
+    .builder-canvas-viewport::-webkit-scrollbar { width: 0; height: 0; }
+    .builder-canvas-viewport { scrollbar-width: none; }
     .canvas-section-wrapper {
       position: relative; cursor: default;
       border: 1px solid transparent; transition: border-color 0.15s;
@@ -439,10 +488,45 @@ interface BuilderSection {
       --font-script: 'Great Vibes', cursive;
       --gold: #d4a017; --gold-light: #e6c655;
     }
-    .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
-    .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; }
-    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-    .canvas-bg-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    /* Contenedor de fondo sticky: se pega al tope del canvas y ocupa solo la altura del
+       viewport visible. Antes el GIF (position:absolute; inset:0 sobre .preview-mode-canvas
+       de altura completa) se estiraba a miles de px de alto y background-size:cover lo
+       escalaba de forma extrema → pixelado. Con sticky + altura acotada, el GIF se dimensiona
+       como en la landing (position:fixed) y se ve nítido. */
+    /* Contenedor del fondo: empieza en la carátula (hero), por eso el fondo no cubre
+       la pantalla de inicio ni la intro (que quedan fuera de este scope). */
+    .canvas-bg-scope { position: relative; }
+    /* Fondo FIJO como en la landing real: sticky al tope del viewport scrolleable, con alto
+       del área visible. Al scrollear las secciones pasan por encima y el fondo permanece
+       estático (no se repite ni se estira). El margin-bottom negativo evita que ocupe espacio
+       en el flujo para que el contenido se pinte sobre él. */
+    .canvas-bg-sticky {
+      position: sticky; top: 0; z-index: 0;
+      /* Altura relativa al alto visible del viewport del canvas (medido por JS en
+         --canvas-vh). Así el fondo cubre exactamente la ventana visible, como el 100vh
+         de la landing, y se adapta al alto del canvas. */
+      width: 100%; height: var(--canvas-vh, 640px);
+      margin-bottom: calc(-1 * var(--canvas-vh, 640px));
+      overflow: hidden;
+      pointer-events: none;
+    }
+    /* Orden de capas igual que la landing real: textura (1) < GIF (2) < overlay (3) < secciones (4). */
+    .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
+    .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; pointer-events: none; }
+    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .canvas-bg-texture { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    /* Modo banner en el canvas: la imagen se dibuja a un TAMAÑO FIJO (alto = 100% de la ventana,
+       ancho proporcional -> "auto 100%"). El slider solo cambia el ancho de la ventana/mascara
+       centrada: recorta mas o menos la imagen SIN re-escalarla. */
+    .canvas-bg-media.bg-banner,
+    .canvas-bg-image.bg-banner,
+    .canvas-bg-overlay.bg-banner {
+      left: 50%; right: auto;
+      transform: translateX(-50%);
+      width: var(--banner-w, 70%);
+    }
+    .canvas-bg-image.bg-banner { background-size: auto 100%; background-position: center center; background-repeat: no-repeat; }
+    .canvas-bg-media.bg-banner { object-fit: cover; object-position: center center; }
     .canvas-bg-texture[data-texture="noise"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
     .canvas-bg-texture[data-texture="grain"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); }
     .canvas-bg-texture[data-texture="dots"] { background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 8px 8px; }
@@ -451,9 +535,10 @@ interface BuilderSection {
     .canvas-bg-texture[data-texture="paper"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"); }
     .canvas-bg-texture[data-texture="linen"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px), repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px); }
     .canvas-bg-texture[data-texture="stars"] { background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 24px 24px; }
-    .preview-mode-canvas > .preview-section-click { position: relative; z-index: 1; }
+    .preview-mode-canvas > .preview-section-click,
+    .canvas-bg-scope > .preview-section-click { position: relative; z-index: 4; }
     .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(var(--theme-nav-bar-blur, 12px)) !important; border-bottom: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2)) !important; }
-    .preview-mode-canvas ::ng-deep .hero-section { min-height: 500px !important; padding-top: 60px !important; }
+    .preview-mode-canvas ::ng-deep .hero-section { min-height: var(--canvas-vh, 640px) !important; padding-top: 60px !important; }
     .preview-mode-canvas ::ng-deep .countdown { justify-content: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-item { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-value { display: block !important; text-align: center !important; }
@@ -465,7 +550,7 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .timeline-item { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .reveal { animation: none !important; opacity: 1 !important; transform: none !important; }
     .preview-mode-canvas ::ng-deep .scroll-hidden { opacity: 1 !important; transform: none !important; }
-    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
+    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; height: var(--canvas-vh, 640px); min-height: auto !important; inset: auto !important; overflow: hidden; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="fade"] { animation: builderFade 1s ease forwards !important; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-up"] { animation: builderSlideUp 1s ease forwards !important; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-down"] { animation: builderSlideDown 1s ease forwards !important; }
@@ -482,13 +567,21 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .intro-bg-overlay { /* preserve landing overlay for GIF quality */ }
     .preview-mode-canvas ::ng-deep .intro-bg-video,
     .preview-mode-canvas ::ng-deep .intro-bg { animation: none !important; }
-    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
+    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; height: var(--canvas-vh, 640px); min-height: auto !important; inset: auto !important; overflow: hidden; }
+    /* En el canvas, el fondo banner del envelope debe llenar el alto de la seccion (500px) y
+       acotar su ancho al contenedor del canvas (no al viewport). Neutraliza el 96vw heredado
+       y el max-width:100% global para que cover recorte a los lados manteniendo el alto. */
+    .preview-mode-canvas ::ng-deep .envelope-bg-image.bg-banner {
+      width: var(--banner-w, 70%) !important;
+      height: 100% !important; top: 0 !important; bottom: 0 !important;
+      background-size: auto 100% !important; background-position: center center !important; background-repeat: no-repeat !important;
+    }
     /* In canvas mode, prevent envelope from disappearing after being opened */
     .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 1 !important; pointer-events: auto !important; }
     /* In live preview, overlays stay same height but are fully interactive */
-    .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay { height: 500px; cursor: pointer; }
+    .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 0 !important; pointer-events: none !important; }
-    .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: 500px; cursor: pointer; }
+    .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
@@ -766,7 +859,7 @@ interface BuilderSection {
     }
   `]
 })
-export class BuilderComponent implements OnInit, OnDestroy {
+export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   private sanitizer = inject(DomSanitizer);
@@ -779,8 +872,48 @@ export class BuilderComponent implements OnInit, OnDestroy {
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
 
+  /** Ancho del viewport, reactivo para recalcular el layout de paneles al redimensionar. */
+  viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1280);
+  /** Umbral a partir del cual ambos paneles pueden estar abiertos a la vez (pantalla amplia). */
+  private readonly WIDE_BREAKPOINT = 1280;
+
   isMobileView(): boolean {
-    return window.innerWidth <= 768;
+    return this.viewportWidth() <= 768;
+  }
+  /** True cuando hay ancho suficiente para mostrar ambos paneles simultáneamente. */
+  isWide(): boolean {
+    return this.viewportWidth() >= this.WIDE_BREAKPOINT;
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    const w = window.innerWidth;
+    if (w === this.viewportWidth()) return;
+    const wasWide = this.isWide();
+    this.viewportWidth.set(w);
+    const nowWide = this.isWide();
+    if (this.canvasMode() !== 'canvas') return;
+
+    if (!wasWide && nowWide) {
+      // Paso a pantalla amplia: ambos paneles pueden convivir. Abre secciones y,
+      // si hay una seccion seleccionada, tambien propiedades.
+      this.panelVisible.set(true);
+      if (this.canvasState.selectedSection()) {
+        this.showProps.set(true);
+      }
+    } else if (wasWide && !nowWide) {
+      // Salio de pantalla amplia con ambos paneles abiertos: aplica exclusion mutua
+      // automatica para que los overlays no tapen el canvas. Prioriza propiedades si
+      // hay una seccion seleccionada; si no, deja secciones.
+      if (this.showProps() && this.panelVisible()) {
+        if (this.canvasState.selectedSection()) {
+          this.panelVisible.set(false);
+          this.showLeftPanel.set(false);
+        } else {
+          this.showProps.set(false);
+        }
+      }
+    }
   }
   canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
@@ -816,15 +949,17 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   hasUnsavedChanges(): boolean { return this.canvasState.isDirty(); }
 
-  /** Open sections panel, close props */
+  /** Open sections panel. En pantalla amplia NO cierra propiedades (ambos abiertos). */
   openSections() {
     this.panelVisible.set(true);
     this.showLeftPanel.set(true);
-    this.showProps.set(false);
+    if (!this.isWide()) {
+      this.showProps.set(false);
+    }
   }
 
   isSectionsPanelOpen(): boolean {
-    if (window.innerWidth <= 768) {
+    if (this.isMobileView()) {
       return this.showLeftPanel();
     }
     return this.panelVisible();
@@ -839,12 +974,12 @@ export class BuilderComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Toggle props panel, close sections */
+  /** Toggle props panel. En pantalla amplia NO cierra secciones (ambos abiertos). */
   toggleProps() {
     const opening = !this.showProps();
     this.showProps.set(opening);
-    // Mutual exclusion: close sections when opening props
-    if (opening) {
+    // Exclusion mutua solo en pantallas no amplias
+    if (opening && !this.isWide()) {
       this.panelVisible.set(false);
       this.showLeftPanel.set(false);
     }
@@ -870,6 +1005,14 @@ export class BuilderComponent implements OnInit, OnDestroy {
       this.canvasState.initializeState(v2);
       this.currentConfig.set(v2);
       this.buildSections(v2);
+      // En pantalla amplia, abrir el panel de secciones por defecto para aprovechar el espacio.
+      if (this.isWide()) {
+        this.panelVisible.set(true);
+      }
+      // Precargar medios de fondo (intro + hero) para que estén decodificados en el
+      // primer render del canvas. Sin esto, la intro salía sin fondo hasta reiniciar.
+      this.preloadCanvasMedia(v2?.intro?.background);
+      this.preloadCanvasMedia(v2?.hero?.backgroundGif);
     });
     // Register auto-save so props-panel changes trigger save
     this.canvasState.registerAutoSave(() => this.scheduleAutoSave());
@@ -879,8 +1022,62 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.loadGuests();
   }
 
+  private canvasResizeObserver?: ResizeObserver;
+
+  /** Precarga una imagen/GIF/video de fondo para que esté lista en el primer render del canvas. */
+  private preloadCanvasMedia(url?: string | null) {
+    if (!url) return;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'ogg'].includes(ext)) {
+      const video = document.createElement('video');
+      video.preload = 'auto'; video.muted = true; video.src = url; video.load();
+    } else {
+      const img = new Image();
+      img.src = url;
+    }
+  }
+
+  ngAfterViewInit() {
+    // Medir la altura visible del viewport del canvas y exponerla como --canvas-vh,
+    // para que el fondo fijo (.canvas-bg-sticky) cubra exactamente esa altura y se
+    // adapte al tamaño del canvas (como el 100vh de la landing).
+    this.installCanvasHeightObserver();
+  }
+
+  private installCanvasHeightObserver() {
+    const apply = () => {
+      const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
+      const canvas = document.querySelector('.preview-mode-canvas') as HTMLElement | null;
+      if (viewport && canvas) {
+        const h = viewport.clientHeight;
+        // Solo actualizar si cambió, para no forzar reflows innecesarios que rompan
+        // el primer render de secciones como la intro (que pinta su fondo absolute).
+        const prev = canvas.style.getPropertyValue('--canvas-vh');
+        if (prev !== h + 'px') {
+          canvas.style.setProperty('--canvas-vh', h + 'px');
+        }
+      }
+    };
+    // Reintentar hasta que el viewport exista (el canvas se renderiza tras cargar config).
+    // Aplicamos en rAF (antes del paint) para evitar setear --canvas-vh DESPUÉS del primer
+    // paint, lo que provocaba un reflow tardío que dejaba la intro sin fondo hasta reiniciar.
+    const trySetup = () => {
+      const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
+      if (!viewport) { requestAnimationFrame(trySetup); return; }
+      apply();
+      // Segundo apply en el siguiente frame por si la altura definitiva del grid
+      // aún no estaba resuelta en el primer frame.
+      requestAnimationFrame(apply);
+      this.canvasResizeObserver?.disconnect();
+      this.canvasResizeObserver = new ResizeObserver(() => apply());
+      this.canvasResizeObserver.observe(viewport);
+    };
+    requestAnimationFrame(trySetup);
+  }
+
   ngOnDestroy() {
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+    this.canvasResizeObserver?.disconnect();
     // Restore scroll when leaving builder
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
@@ -914,9 +1111,12 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (!this.isMobileView()) {
       this.showProps.set(true);
     }
-    // Close sections panel to give canvas space
-    this.panelVisible.set(false);
-    this.showLeftPanel.set(false);
+    // En pantalla amplia se mantiene el panel de secciones abierto (ambos visibles).
+    // En pantallas menores se cierra para dar espacio al canvas.
+    if (!this.isWide()) {
+      this.panelVisible.set(false);
+      this.showLeftPanel.set(false);
+    }
     this.scrollToSection(key);
     this.updateSectionGlow(key);
   }
@@ -940,7 +1140,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
         const areaRect = area.getBoundingClientRect();
         const secRect = section.getBoundingClientRect();
         const vpRect = viewport.getBoundingClientRect();
-        this.sectionGlowTopValue.set(secRect.top - areaRect.top + area.scrollTop);
+        // El scroll ahora vive en el viewport, no en el area.
+        this.sectionGlowTopValue.set(secRect.top - areaRect.top + viewport.scrollTop);
         this.sectionGlowHeightValue.set(secRect.height);
         // Position glows at the edges of the viewport
         this.sectionGlowLeftValue.set(vpRect.left - areaRect.left - 16);
@@ -952,7 +1153,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   private scrollToSection(key: string) {
     setTimeout(() => {
       const el = document.querySelector(`.preview-section-click[data-section="${key}"]`);
-      const container = document.querySelector('.builder-canvas-area');
+      // El scroll ahora ocurre en el viewport del mockup, no en el area.
+      const container = document.querySelector('.builder-canvas-viewport');
       if (el && container) {
         const elRect = el.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
@@ -1075,6 +1277,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
     return ['mp4', 'webm', 'ogg'].includes(ext);
   }
 
+  /** Degradado lineal de 2 colores con intensidad 0-100:
+      0 = predomina color1, 100 = predomina color2, 50 = mitad. El punto de mezcla se
+      desplaza con la intensidad usando un "color hint" central. */
+  private buildLinearGradient(angle: number, c1: string, c2: string, intensity: number): string {
+    const v = Math.max(0, Math.min(100, intensity ?? 50));
+    // mid = posicion del punto medio del degradado. v=0 -> 100% (todo c1); v=100 -> 0% (todo c2).
+    const mid = 100 - v;
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${Math.max(0, mid - 25)}%, ${c2} ${Math.min(100, mid + 25)}%, ${c2} 100%)`;
+  }
+
   getSectionBgStyle(sectionKey: string): string {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return '';
@@ -1084,8 +1296,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (ss.bgType && ss.bgType !== 'inherit') {
       switch (ss.bgType) {
         case 'solid': css = `background: ${ss.bgColor1 || '#1a1a2e'}`; break;
-        case 'linear': css = `background: linear-gradient(${ss.bgAngle || 180}deg, ${ss.bgColor1 || '#1a1a2e'}, ${ss.bgColor2 || '#0d1117'})`; break;
-        case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor2 || '#0d1117'}, ${ss.bgColor1 || '#1a1a2e'})`; break;
+        case 'linear': css = `background: ${this.buildLinearGradient(ss.bgAngle ?? 180, ss.bgColor1 || '#1a1a2e', ss.bgColor2 || '#0d1117', ss.bgIntensity ?? 50)}`; break;
+        case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor1 || '#1a1a2e'} ${(ss.bgIntensity ?? 50)}%, ${ss.bgColor2 || '#0d1117'})`; break;
         case 'image': css = ss.bgImage ? `background: url(${ss.bgImage}) center/cover` : ''; break;
       }
     }
@@ -1196,7 +1408,14 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.canvasState.selectSection(null);
   }
 
+  /** Secciones permanentes que no se pueden ocultar (siempre visibles en la invitación). */
+  isPermanentSection(key: string): boolean {
+    return key === 'hero' || key === 'invitation';
+  }
+
   toggleSection(key: string) {
+    // La Carátula (y la Invitación) son secciones principales: no se pueden ocultar.
+    if (this.isPermanentSection(key)) return;
     const s = this.sections();
     const idx = s.findIndex(x => x.key === key);
     if (idx >= 0) {

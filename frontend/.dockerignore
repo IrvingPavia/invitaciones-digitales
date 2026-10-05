@@ -1,0 +1,12 @@
+# Dependencias y artefactos que NO deben entrar al contexto de build.
+# El contenedor corre su propio `npm install` + `ng build`, así que estos
+# solo hacen lento el paso COPY (se copiaban ~megas innecesarios).
+node_modules
+.angular
+dist
+.git
+.vscode
+
+# Logs y temporales
+*.log
+npm-debug.log*

@@ -120,11 +120,11 @@ import { SectionStyle } from '../core/models/models';
       <!-- Hero background media (fades in after intro) -->
       @if (data()!.config.hero.backgroundGif) {
         @if (isVideoBackground()) {
-          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
+          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
         } @else {
-          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
         }
-        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded"></div>
+        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'"></div>
       }
 
       <!-- Envelope -->
@@ -356,6 +356,34 @@ import { SectionStyle } from '../core/models/models';
       transition: opacity 1.2s ease;
     }
     .landing-bg-overlay.visible { opacity: 1; }
+    /* === MODO BANNER (columna angosta centrada) — solo desktop === */
+    /* Imagenes verticales que se ven mal estiradas a pantalla completa se muestran como una
+       columna centrada del ancho configurado, con la proporcion preservada (contain). */
+    @media (min-width: 768px) {
+      /* En modo banner la imagen se muestra como una TIRA vertical de alto completo, centrada.
+         El slider de ancho controla el ancho de esa tira (recorta la imagen horizontalmente,
+         no la achica): background-size:cover fijado al alto, dentro de la columna elegida. */
+      .landing-bg.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
+      .landing-bg-video.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+        object-fit: cover;
+        object-position: center center;
+      }
+      .landing-bg-overlay.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+      }
+    }
     .landing-wrapper {
       max-width: clamp(520px, 50vw, 680px);
       margin: 0 auto;
@@ -390,7 +418,7 @@ import { SectionStyle } from '../core/models/models';
     .section-block[style*="--section-heading-color2"] ::ng-deep h3,
     .section-block[style*="--section-heading-color2"] ::ng-deep .example-title,
     .section-block[style*="--section-heading-color2"] ::ng-deep .venue-title {
-      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color2) var(--section-heading-intensity, 50%)) !important;
+      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color) var(--section-heading-mid-a, 25%), var(--section-heading-color2) var(--section-heading-mid-b, 75%), var(--section-heading-color2) 100%) !important;
       -webkit-background-clip: text !important;
       -webkit-text-fill-color: transparent !important;
       background-clip: text !important;
@@ -511,20 +539,35 @@ export class LandingComponent implements OnInit, OnDestroy {
 
     switch (type) {
       case 'solid': return color1;
-      case 'linear': return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
-      case 'radial': return `radial-gradient(ellipse ${intensity}% ${intensity}% at center, ${color2}, ${color1})`;
-      case 'mesh': {
-        const s1 = Math.max(0, 50 - intensity / 2);
-        const s2 = Math.min(100, 50 + intensity / 2);
-        return `linear-gradient(${angle}deg, ${color1} ${s1}%, ${color2} ${s2}%)`;
-      }
+      case 'linear': return this.buildBlendGradient(angle, color1, color2, intensity);
+      case 'radial': return `radial-gradient(ellipse at center, ${color1} ${intensity}%, ${color2})`;
+      case 'mesh': return this.buildBlendGradient(angle, color1, color2, intensity);
       default: return color1;
     }
+  }
+
+  /** Degradado lineal de 2 colores con intensidad 0-100 que controla la PREDOMINANCIA:
+      0 = predomina color1, 100 = predomina color2, 50 = mitad. Desplaza el punto medio. */
+  private buildBlendGradient(angle: number, c1: string, c2: string, intensity: number): string {
+    const v = Math.max(0, Math.min(100, intensity ?? 50));
+    const mid = 100 - v; // v=0 -> mid 100% (todo c1); v=100 -> mid 0% (todo c2)
+    const a = Math.max(0, mid - 25);
+    const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
   }
 
   /** Returns just the primary solid color for SVG fill (no gradients) */
   getLandingBgColor(): string {
     return this.data()?.config.theme?.landingBgColor1 || '#0d1117';
+  }
+
+  /** Modo banner (columna angosta centrada) del fondo global en desktop */
+  isBgBanner(): boolean {
+    return this.data()?.config.theme?.landingBgFit === 'banner';
+  }
+  /** Ancho del banner como % del ancho de la ventana (10-100). 100% = pantalla completa. */
+  bannerWidth(): number {
+    return this.data()?.config.theme?.landingBgBannerWidth || 70;
   }
 
   onBgLoaded() {
@@ -549,6 +592,10 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   @HostListener('window:scroll')
   onScroll() { this.scrolled = window.scrollY > 300; }
+
+  // Al redimensionar se re-evalua bannerWidth() (depende de window.innerHeight).
+  @HostListener('window:resize')
+  onResize() { /* dispara deteccion de cambios para recalcular el ancho del banner */ }
 
   scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -884,7 +931,7 @@ export class LandingComponent implements OnInit, OnDestroy {
       'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
       'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
       'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
-      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key] || 'inherit';
   }
@@ -897,12 +944,11 @@ export class LandingComponent implements OnInit, OnDestroy {
         css = `background: ${style.bgColor1 || '#ffffff'}`;
         break;
       case 'linear': {
-        const intensity = style.bgIntensity || 50;
-        css = `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'} ${50 - intensity / 2}%, ${style.bgColor2 || '#f0f0f0'} ${50 + intensity / 2}%)`;
+        css = `background: ${this.buildBlendGradient(style.bgAngle ?? 180, style.bgColor1 || '#ffffff', style.bgColor2 || '#f0f0f0', style.bgIntensity ?? 50)}`;
         break;
       }
       case 'radial':
-        css = `background: radial-gradient(ellipse at center, ${style.bgColor2 || '#f0f0f0'}, ${style.bgColor1 || '#ffffff'})`;
+        css = `background: radial-gradient(ellipse at center, ${style.bgColor1 || '#ffffff'} ${(style.bgIntensity ?? 50)}%, ${style.bgColor2 || '#f0f0f0'})`;
         break;
       case 'image':
         css = `background: url(${style.bgImage}) center/cover no-repeat`;
@@ -915,7 +961,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (style.headingColor) css += `; --section-heading-color: ${style.headingColor}`;
     if (style.headingColor2) css += `; --section-heading-color2: ${style.headingColor2}`;
     if (style.headingGradientAngle) css += `; --section-heading-angle: ${style.headingGradientAngle}deg`;
-    if (style.headingGradientIntensity) css += `; --section-heading-intensity: ${style.headingGradientIntensity}`;
+    if (style.headingGradientIntensity != null) { const v = Math.max(0, Math.min(100, style.headingGradientIntensity)); const mid = 100 - v; css += `; --section-heading-mid-a: ${Math.max(0, mid - 25)}%; --section-heading-mid-b: ${Math.min(100, mid + 25)}%`; }
     if (style.headingFontWeight) css += `; --section-heading-weight: ${style.headingFontWeight}`;
     if (style.contentColor) css += `; --section-content-color: ${style.contentColor}`;
     if (style.headingFont) css += `; --section-heading-font: ${this.getThemeFont(style.headingFont)}`;

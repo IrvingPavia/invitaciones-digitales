@@ -183,6 +183,17 @@ export class MigrationService {
       };
     }
 
+    // Migracion: el ancho del banner paso de px (360-1000) a % (10-100).
+    // Configs viejas con valores >100 se normalizan al default (70%).
+    const th: any = config.theme;
+    if (typeof th.landingBgBannerWidth === 'number' && th.landingBgBannerWidth > 100) {
+      th.landingBgBannerWidth = 70;
+    }
+    const env: any = config.envelope;
+    if (env && typeof env.splashBgBannerWidth === 'number' && env.splashBgBannerWidth > 100) {
+      env.splashBgBannerWidth = 70;
+    }
+
     return config;
   }
 

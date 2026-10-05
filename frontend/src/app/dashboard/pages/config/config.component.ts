@@ -41,7 +41,9 @@ const FONT_OPTIONS = `
 <option value="sacramento">Sacramento</option>
 <option value="tangerine">Tangerine</option>
 <option value="alexbrush">Alex Brush</option>
-<option value="pinyon">Pinyon Script</option>`;
+<option value="pinyon">Pinyon Script</option>
+<option value="aura">Aura</option>
+<option value="allura">Allura</option>`;
 
 @Component({
   selector: "app-config",
@@ -1514,6 +1516,8 @@ export class ConfigComponent implements OnInit {
       tangerine: "var(--font-tangerine)",
       alexbrush: "var(--font-alexbrush)",
       pinyon: "var(--font-pinyon)",
+      aura: "var(--font-aura)",
+      allura: "var(--font-allura)",
       josefin: "var(--font-josefin)",
       baskerville: "var(--font-baskerville)",
     };
@@ -1916,7 +1920,7 @@ export class ConfigComponent implements OnInit {
       'cormorant': 'Cormorant', 'spumoni': 'Spumoni', 'dancing': 'Dancing Script',
       'montserrat': 'Montserrat', 'raleway': 'Raleway', 'cinzel': 'Cinzel',
       'sacramento': 'Sacramento', 'tangerine': 'Tangerine', 'alexbrush': 'Alex Brush',
-      'pinyon': 'Pinyon Script', 'josefin': 'Josefin Sans', 'baskerville': 'Baskerville'
+      'pinyon': 'Pinyon Script', 'aura': 'Aura', 'allura': 'Allura', 'josefin': 'Josefin Sans', 'baskerville': 'Baskerville'
     };
     return map[key] || key || 'Sans';
   }
