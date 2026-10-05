@@ -116,7 +116,7 @@ import { EnvelopeConfig } from '../../../core/models/models';
             <p class="plain-subtitle" [style.font-family]="getFontFamily(globalStyles?.subtitleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.subtitleStyle?.fontSize || 16" [style.color]="config.textColor || globalStyles?.subtitleStyle?.color || 'rgba(255,255,255,0.7)'">{{ config.plainSubtitle }}</p>
           }
           @if (config.plainContent) {
-            <p class="plain-content" [style.font-family]="getFontFamily(globalStyles?.contentStyle?.fontFamily)" [style.font-size.px]="globalStyles?.contentStyle?.fontSize || 14" [style.color]="config.textColor || globalStyles?.contentStyle?.color || 'rgba(255,255,255,0.6)'">{{ config.plainContent }}</p>
+            <div class="plain-content" [style.font-family]="getFontFamily(globalStyles?.contentStyle?.fontFamily)" [style.font-size.px]="globalStyles?.contentStyle?.fontSize || 14" [style.color]="config.textColor || globalStyles?.contentStyle?.color || 'rgba(255,255,255,0.6)'" [innerHTML]="config.plainContent"></div>
           }
         </div>
       }
@@ -359,6 +359,8 @@ import { EnvelopeConfig } from '../../../core/models/models';
       max-width: 320px; line-height: 1.6;
       animation: splashTextIn 1s ease 0.6s both;
     }
+    .plain-content p { margin: 0 0 8px; }
+    .plain-content p:last-child { margin-bottom: 0; }
     .opened .plain-container { animation: splashOut 0.8s ease forwards; }
   `]
 })

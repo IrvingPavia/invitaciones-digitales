@@ -68,15 +68,12 @@ import { ColorPickerComponent } from './color-picker.component';
             </select>
             <span class="material-icons rte-select-caret">expand_more</span>
           </div>
-          <div class="rte-select-wrap rte-select-sm" title="Tamaño">
-            <select (change)="execSize($event)" aria-label="Tamaño">
-              <option value="">Tamaño</option>
-              <option value="1">Pequeño</option>
-              <option value="3">Normal</option>
-              <option value="5">Grande</option>
-              <option value="7">Muy grande</option>
-            </select>
-            <span class="material-icons rte-select-caret">expand_more</span>
+          <div class="rte-size-wrap" title="Tamaño del texto (px)">
+            <input type="number" class="rte-size-input" min="8" max="200" step="1"
+                   [value]="currentSize" placeholder="Tamaño"
+                   (mousedown)="saveSelectionBeforeInput()"
+                   (change)="execSizePx($event)" aria-label="Tamaño en px">
+            <span class="rte-size-unit">px</span>
           </div>
         </div>
         <!-- Fila 3: color picker incrustado (en flujo, empuja el contenido; no flota) -->
@@ -230,6 +227,36 @@ import { ColorPickerComponent } from './color-picker.component';
       pointer-events: none;
     }
 
+    /* Input numerico de tamaño (px) */
+    .rte-size-wrap {
+      position: relative;
+      flex: 0 0 92px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .rte-size-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(124,92,191,0.22);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.85);
+      padding: 6px 24px 6px 10px;
+      font-size: 12px;
+      height: 32px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .rte-size-input:hover { background: rgba(124,92,191,0.15); border-color: rgba(124,92,191,0.45); }
+    .rte-size-input:focus { outline: none; border-color: rgba(157,110,231,0.7); box-shadow: 0 0 0 2px rgba(124,92,191,0.2); }
+    .rte-size-input::placeholder { color: rgba(255,255,255,0.4); }
+    .rte-size-unit {
+      position: absolute; right: 8px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px; color: rgba(255,255,255,0.4);
+      pointer-events: none;
+    }
+    :host-context(body.light-mode) .rte-size-input { color: #333; background: #fff; }
+    :host-context(body.light-mode) .rte-size-unit { color: #999; }
+
     /* === ÁREA DE CONTENIDO === */
     .rte-content {
       min-height: 120px;
@@ -315,11 +342,41 @@ export class RichTextEditorComponent implements AfterViewInit, OnChanges, Contro
     this.emitChange();
   }
 
-  execSize(e: Event) {
-    const val = (e.target as HTMLSelectElement).value;
-    if (!val) return;
-    document.execCommand('fontSize', false, val);
-    (e.target as HTMLSelectElement).value = '';
+  /** Tamaño actual mostrado en el input (px). Se refleja al aplicar. */
+  currentSize: number | null = null;
+
+  /** Guarda la seleccion antes de que el input numerico robe el foco. */
+  saveSelectionBeforeInput() {
+    this.saveSelection();
+  }
+
+  /** Aplica un tamaño de fuente en PX a la seleccion actual, envolviendola en un
+      <span style="font-size:Npx">. Usa execCommand('fontSize') con un tamaño temporal
+      para marcar la seleccion y luego reemplaza por el px exacto (tecnica estandar para
+      aplicar px, ya que execCommand solo soporta tallas 1-7). */
+  execSizePx(e: Event) {
+    const px = parseInt((e.target as HTMLInputElement).value, 10);
+    if (!px || px < 1) return;
+    this.currentSize = px;
+    const el = this.editorRef.nativeElement;
+    el.focus();
+    this.restoreSelection();
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      // Sin seleccion: no hay texto al que aplicar; salir sin romper nada.
+      return;
+    }
+
+    // 1) Marca la seleccion con un tamaño temporal (talla 7) para localizar los <font>.
+    document.execCommand('fontSize', false, '7');
+    // 2) Reemplaza esos <font size="7"> por spans con el font-size en px exacto.
+    el.querySelectorAll('font[size="7"]').forEach((node) => {
+      const span = document.createElement('span');
+      span.style.fontSize = px + 'px';
+      span.innerHTML = (node as HTMLElement).innerHTML;
+      node.replaceWith(span);
+    });
     this.emitChange();
   }
 

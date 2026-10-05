@@ -397,7 +397,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="accordion-body">
                 <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('envelope')?.plainTitle" (ngModelChange)="setSec('envelope','plainTitle',$event)"></div>
                 <div class="pf"><label>Subtitulo</label><input class="pinput" [ngModel]="sec('envelope')?.plainSubtitle" (ngModelChange)="setSec('envelope','plainSubtitle',$event)"></div>
-                <div class="pf"><label>Contenido</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('envelope')?.plainContent" (ngModelChange)="setSec('envelope','plainContent',$event)"></textarea></div>
+                <div class="pf"><label>Contenido</label>
+                  <app-rich-text-editor [ngModel]="sec('envelope')?.plainContent" (ngModelChange)="setSec('envelope','plainContent',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
+                </div>
               </div>
             }
           }
