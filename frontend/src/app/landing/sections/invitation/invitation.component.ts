@@ -38,11 +38,17 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
               @if (guest.guest_type === 'family') {
                 <div class="invitation-names-list">
                   @for (name of guestNames(); track name) {
-                    <span class="guest-name-chip">{{ name.trim() }}</span>
+                    <span class="guest-name-chip"
+                          [style.background]="config.guestChipBg || null"
+                          [style.color]="config.guestChipText || null"
+                          [style.border-color]="config.guestChipBorder || null">{{ name.trim() }}</span>
                   }
                 </div>
               }
-              <div class="invitation-count">
+              <div class="invitation-count"
+                   [style.background]="config.countBg || null"
+                   [style.color]="config.countText || null"
+                   [style.border-color]="config.countBorder || null">
                 <span class="material-icons">people</span>
                 <span>{{ guestCount() }} {{ guestCount() === 1 ? 'asistente' : 'asistentes' }}</span>
               </div>

@@ -23,6 +23,9 @@ function ensureConfigDefaults(cfg) {
       ...(cfg.envelope || {}),
     },
     intro: {
+      // Preservar campos adicionales (phraseHtml, progressBar, positions, showSkip,
+      // transition, useVideoDuration, etc.) que no se listan explícitamente abajo.
+      ...(cfg.intro || {}),
       enabled: cfg.intro?.enabled ?? true,
       background: cfg.intro?.background || '',
       phrase: cfg.intro?.phrase || '',
@@ -51,6 +54,10 @@ function ensureConfigDefaults(cfg) {
       },
     },
     hero: {
+      // Preservar campos adicionales (positions, countdownValueColor, countdownLabelColor,
+      // showCountdown, y cualquier otro) que no se listan explícitamente abajo. Sin este
+      // spread, la landing pública perdía el posicionamiento y los colores del countdown.
+      ...(cfg.hero || {}),
       backgroundGif: cfg.hero?.backgroundGif || '',
       audioUrl: cfg.hero?.audioUrl || '',
       eventDescription: cfg.hero?.eventDescription || '',
@@ -97,6 +104,7 @@ function ensureConfigDefaults(cfg) {
       },
     },
     invitation: {
+      ...(cfg.invitation || {}),
       title: cfg.invitation?.title || 'Están cordialmente invitados',
       subtitle: cfg.invitation?.subtitle || '',
       showCardBg: cfg.invitation?.showCardBg,
@@ -111,6 +119,7 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.invitation?.sectionStyle,
     },
     details: {
+      ...(cfg.details || {}),
       enabled: cfg.details?.enabled ?? true,
       title: cfg.details?.title || 'Detalles del Evento',
       showCardBg: cfg.details?.showCardBg,
@@ -126,6 +135,7 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.details?.sectionStyle,
     },
     venues: {
+      ...(cfg.venues || {}),
       enabled: cfg.venues?.enabled ?? true,
       iconStyle: cfg.venues?.iconStyle || 'circle',
       showCardBg: cfg.venues?.showCardBg,
@@ -141,6 +151,7 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.venues?.sectionStyle,
     },
     itinerary: {
+      ...(cfg.itinerary || {}),
       enabled: cfg.itinerary?.enabled ?? true,
       title: cfg.itinerary?.title || 'Itinerario',
       showCardBg: cfg.itinerary?.showCardBg,
@@ -156,6 +167,7 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.itinerary?.sectionStyle,
     },
     gallery: {
+      ...(cfg.gallery || {}),
       enabled: cfg.gallery?.enabled ?? true,
       title: cfg.gallery?.title || 'Galería',
       description: cfg.gallery?.description || '',
@@ -163,6 +175,7 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.gallery?.sectionStyle,
     },
     dresscode: {
+      ...(cfg.dresscode || {}),
       enabled: cfg.dresscode?.enabled ?? true,
       title: cfg.dresscode?.title || 'Código de Vestimenta',
       description: cfg.dresscode?.description || '',
@@ -180,6 +193,7 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.dresscode?.sectionStyle,
     },
     gifts: {
+      ...(cfg.gifts || {}),
       enabled: cfg.gifts?.enabled ?? true,
       title: cfg.gifts?.title || 'Mesa de Regalos',
       description: cfg.gifts?.description || '',
@@ -209,6 +223,7 @@ function ensureConfigDefaults(cfg) {
       },
     },
     rsvp: {
+      ...(cfg.rsvp || {}),
       enabled: cfg.rsvp?.enabled ?? true,
       title: cfg.rsvp?.title || 'Confirmar Asistencia',
       showCardBg: cfg.rsvp?.showCardBg,

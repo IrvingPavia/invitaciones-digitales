@@ -114,6 +114,10 @@ export interface SectionStyle {
   bgIntensity?: number;
   bgImage?: string;
   bgOverlay?: number;
+  /** Ajuste de la imagen de fondo en escritorio: 'cover' (pantalla completa) o 'banner' (columna centrada). */
+  bgFit?: 'cover' | 'banner';
+  /** Ancho de la columna banner en % del ancho (solo escritorio). */
+  bgBannerWidth?: number;
   // Divider
   dividerType: 'none' | 'wave' | 'curve' | 'slant' | 'zigzag' | 'mountains' | 'drops' | 'arrow';
   dividerColor?: string;
@@ -167,6 +171,20 @@ export interface SeparatorStyle {
   color: string;
 }
 
+/** Posición relativa de un elemento dentro de su sección (centro del elemento, en %). */
+export interface ElementPosition {
+  x: number; // 0-100 (% del ancho de la sección)
+  y: number; // 0-100 (% del alto de la sección)
+  w?: number; // ancho del elemento en % del ancho de la sección (opcional)
+  h?: number; // alto del elemento en % del alto de la sección (opcional)
+}
+
+/** Mapa de posiciones por dispositivo. key = id del elemento (ej: 'title', 'names'). */
+export interface ElementPositions {
+  desktop?: Record<string, ElementPosition>;
+  mobile?: Record<string, ElementPosition>;
+}
+
 export interface EnvelopeConfig {
   enabled: boolean;
   template: 'envelope' | 'ticket' | 'minimal-splash' | 'plain';
@@ -178,6 +196,9 @@ export interface EnvelopeConfig {
   sealImage: string;
   instructionText: string;
   instructionAnimation?: 'pulse' | 'bounce' | 'fade' | 'slide-up' | 'glow' | 'none';
+  /** Color propio del texto de instruccion (independiente de textColor). Si no se define,
+      hereda el comportamiento previo (textColor / default CSS). */
+  instructionColor?: string;
   bgColor: string;
   bgColor2: string;
   textColor: string;
@@ -201,6 +222,8 @@ export interface EnvelopeConfig {
   plainTitle?: string;
   plainSubtitle?: string;
   plainContent?: string;
+  /** Posiciones personalizadas de los elementos del template Plano (title, subtitle, content, instruction). */
+  plainPositions?: ElementPositions;
 }
 
 export interface IntroParticlesConfig {
@@ -215,10 +238,26 @@ export interface IntroParticlesConfig {
   opacity: number;    // 0.1-1
 }
 
+export interface IntroProgressBarConfig {
+  /** Mostrar u ocultar la linea de carga. */
+  enabled?: boolean;
+  /** Color de la barra (sobrescribe el color del tema). */
+  color?: string;
+  /** Estilo visual de la linea. */
+  style?: 'solid' | 'glow' | 'gradient' | 'dashed';
+  /** Grosor en px (1-12). */
+  thickness?: number;
+  /** Ancho de la linea en px (80-400). */
+  width?: number;
+}
+
 export interface IntroConfig {
   enabled: boolean;
   background: string;
   phrase: string;
+  /** Contenido de la frase como HTML enriquecido (editor homologado). Si existe, manda
+      sobre `phrase` + `phraseStyle`. Retrocompatible: configs viejos siguen usando `phrase`. */
+  phraseHtml?: string;
   duration: number;
   videoStart?: number;
   videoEnd?: number;
@@ -233,12 +272,17 @@ export interface IntroConfig {
     fontWeight?: number;
   };
   particles?: IntroParticlesConfig;
+  /** Configuracion de la linea de carga (progress bar). */
+  progressBar?: IntroProgressBarConfig;
+  /** Posiciones personalizadas de los elementos de la intro (phrase). */
+  positions?: ElementPositions;
 }
 
 export interface HeroTextStyle {
   fontFamily: string;
   fontSize: number;
   color: string;
+  fontWeight?: number; // 100-900
 }
 
 export interface HeroGradientStyle {
@@ -264,9 +308,22 @@ export interface HeroConfig {
   showDescription?: boolean;
   description?: string;
   countdownDate: string;
+  /** Mostrar u ocultar la cuenta regresiva. Por defecto visible si hay fecha. */
+  showCountdown?: boolean;
   countdownShowCardBg?: boolean;
   countdownCardBorderRadius?: number;
   countdownCardBgOpacity?: number;
+  countdownCardBgColor?: string;
+  countdownCardBorderStyle?: string;
+  countdownCardBorderWidth?: number;
+  countdownCardBorderColor?: string;
+  countdownCardGlowColor?: string;
+  countdownCardShape?: string;
+  /** Colores personalizados del texto de la cuenta regresiva. */
+  countdownValueColor?: string;
+  countdownLabelColor?: string;
+  /** Posiciones personalizadas de los elementos de la caratula (eventType, names, description, phrase, countdown). */
+  positions?: ElementPositions;
 }
 
 export interface InvitationConfig {
@@ -276,6 +333,13 @@ export interface InvitationConfig {
   cardBgOpacity?: number;
   cardBorderRadius?: number;
   sectionStyle?: SectionStyle;
+  /** Colores propios de los chips de invitados y del contador de asistentes (independientes del tema). */
+  guestChipBg?: string;
+  guestChipText?: string;
+  guestChipBorder?: string;
+  countBg?: string;
+  countText?: string;
+  countBorder?: string;
 }
 
 export interface DetailsConfig {

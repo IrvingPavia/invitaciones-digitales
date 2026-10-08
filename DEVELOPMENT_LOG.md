@@ -11,9 +11,135 @@
 
 ---
 
-## Estado actual del proyecto: 2025-07-07
+## Estado actual del proyecto: 2026-10-08
 
-### Rama activa: `feature/dashboard-redesign`
+### Rama activa: `feature/canvas-posicionamiento`
+
+### Sesión: Revisión sección por sección de la Invitación Valeria + fixes de fidelidad canvas↔landing
+
+Tanda enfocada en la invitación Valeria (evento id=17), revisando sección por sección contra
+las imágenes de ejemplo del usuario. Varios fixes resultaron ser bugs de fondo que afectan a
+TODAS las invitaciones, no solo Valeria.
+
+**Pantalla de Inicio (template Plano):**
+- Nuevo campo opcional `EnvelopeConfig.instructionColor` + control "Color instruccion" en el
+  props-panel. La instrucción del plano usa ese color (con sombra para legibilidad) si está
+  definido; si no, comportamiento previo. Retrocompatible.
+- Valeria: instrucción "Toca para iniciar", color crema `#f3efe4`, contenido desktop reubicado
+  (y:44, w:88) para que calce como en mobile.
+
+**Intro — editor enriquecido + drag + línea de carga:**
+- Nuevo `IntroConfig.phraseHtml`: la frase ahora se edita con `app-rich-text-editor` (homologado
+  al del plano). Retrocompatible: sin `phraseHtml` cae a `phrase` + `phraseStyle`. Migra el texto
+  plano la primera vez. Se quitaron los controles viejos (fuente/tamaño/color/grosor).
+- La frase se envuelve en `app-drag-box` (posicionamiento asistido como en el plano), con
+  `editable`/`previewDevice`/`(positionsChange)` desde el builder (`onIntroPositionsChange`).
+- Nuevo `IntroConfig.progressBar` { enabled, color, style(solid/glow/gradient/dashed), thickness,
+  width } + acordeón "Linea de carga" en el props-panel.
+- Fix: en modo canvas (`editable`) la intro NO dispara la transición de salida (antes desaparecía
+  todo al terminar la animación). Queda estática y editable; la barra se muestra llena.
+- Fix: la textura del tema global solo se renderiza en la intro cuando NO hay multimedia de fondo
+  (antes se superponía sobre la imagen/gif/video restándole detalle).
+
+**Carátula (hero) en landing/preview — bug de datos perdidos (CRÍTICO, resuelto):**
+- `ensureConfigDefaults` (backend) reconstruía el `hero` campo por campo SIN spread raíz, por lo
+  que la landing pública DESCARTABA `positions`, `countdownValueColor`, `countdownLabelColor`,
+  `showCountdown`. Por eso en el canvas se veía bien (lee config crudo vía /config) pero en
+  landing/preview (vía /public con ensureConfigDefaults) se perdían posiciones y colores.
+- Fix: `...(cfg.hero || {})` al inicio del hero. Y por consistencia se añadió el mismo spread a
+  TODAS las secciones de contenido (invitation, details, venues, itinerary, gallery, dresscode,
+  gifts, rsvp) para no perder nunca campos nuevos (p. ej. invitation.guestChipBg/countBg que
+  también se perdían). Mismo patrón que ya tenían envelope/intro/sharing/theme.
+
+**Velo oscuro del fondo global — eliminado:**
+- `.landing-bg-overlay` tenía `rgba(0,0,0,0.55)` fijo que oscurecía TODA la landing (pensado para
+  fondos oscuros; con imágenes claras tipo Ghibli oscurecía de más). Ahora es transparente.
+
+**Countdown — tamaño estable canvas↔landing:**
+- `.countdown-value/label/sep` usaban `clamp(...vw...)` dependiente del ancho del viewport (grande
+  en canvas, chico en mobile real). Cambiado a px fijos (32/10/26) para que se vea igual en todos
+  lados.
+- Reforzada la medición de `--canvas-vh`: ignora alturas 0 (canvas oculto en modo preview) y se
+  re-mide al volver a modo canvas (antes el hero/intro perdían el alto al alternar preview↔canvas).
+
+**Fondo de sección en modo banner (foco mobile):**
+- Mobile (prioridad): la imagen CUBRE ancho y alto (cover) y la sección toma `min-height:100svh`,
+  para que abarque el alto de pantalla y NO quede hueco con el fondo de la landing entre secciones.
+  (Antes `cover` recortaba lateralmente / A1 dejaba huecos.)
+- Desktop: columna centrada `--sec-banner-w` (se afina en otra sesión).
+- El canvas (`getSectionBgStyle`) replica banner por `previewDevice` y aplica el oscurecido por
+  sección (`bgOverlay`) como capa de gradiente, para verse igual que la landing.
+
+**sanitize.js (backend):** permite `font-family`, `line-height` y tags `<div style>` para que el
+editor enriquecido conserve fuente/interlineado; `phraseHtml` añadido a campos sanitizados.
+
+**Pendientes de verificación visual del usuario (en navegador / Galaxy A55):**
+- Flechas del scroll-indicator de la carátula: el usuario las vio ligeramente descentradas; no se
+  halló causa clara en CSS (`left:50%` debería centrar). Reconfirmar tras estos cambios.
+- Cards de Detalles: el toggle "Fondo" per-card solo controla visibilidad; NO hay color/opacidad
+  por card (el color viene del acordeón global "Apariencia de Cards"). Si se quiere control de
+  fondo por card, es una mejora pendiente por decidir.
+- Banner en DESKTOP: pendiente de afinar (anchos laterales uniformes por sección).
+
+---
+
+## Estado anterior: 2026-10-07
+
+### Rama: `feature/canvas-posicionamiento`
+
+### Feature: Posicionamiento asistido de elementos (spec `canvas-posicionamiento`)
+Editor tipo Word/PowerPoint para mover (y redimensionar) los elementos de texto de las
+secciones de apertura directamente en el canvas del builder, con posiciones independientes
+mobile/desktop. Spec en `.kiro/specs/canvas-posicionamiento/`.
+
+**Implementado y funcional:**
+- Modelo `ElementPosition` / `ElementPositions` + campos opcionales en los configs:
+  `EnvelopeConfig.plainPositions`, `IntroConfig.positions`, `HeroConfig.positions`. Aditivo y
+  retrocompatible (configs viejos sin cambios).
+- Helper de render `posStyle(key, positions, isMobile)` en `core/utils/element-position.util.ts`:
+  devuelve `{}` (layout flex por defecto) o un objeto `position:absolute` centrado en (x,y)%.
+- Componente de arrastre `app-drag-box` (`core/components/drag-box.component.ts`) +
+  `drag-box-selection.service.ts`. Mueve y redimensiona (ancho/alto en %), snap a guías,
+  confinamiento, mouse + touch. Reemplazó al enfoque inicial de directiva `appAssistedDrag`
+  (que queda como variante previa en `core/directives/assisted-drag.directive.ts`).
+- Integrado en **Plano (envelope)**, **Intro** y **Carátula (hero)** con `editable`,
+  `previewDevice`, `(positionsChange)`. El contenedor de cada sección usa `data-drag-bounds`.
+- Builder pasa `editable=true` + `previewDevice` en modo canvas (`editable=false` en preview)
+  y persiste con `onEnvelopePositionsChange` / `onHeroPositionsChange` / handler de intro.
+- Landing real elige mapa mobile/desktop por ancho (breakpoint 768px) con fallback al otro
+  dispositivo.
+- Reset de tamaño al recargar resuelto: el ancho/alto arrastrado persiste tras refrescar.
+
+**Pendiente (próxima sesión):**
+- Botón "Restablecer posiciones" en el props-panel (Plano, Intro, Carátula) con confirmación
+  vía `DialogService` que borre las posiciones de la sección y vuelva al layout por defecto
+  (tareas 18-19 del spec).
+
+### Feature: Configurabilidad de la sección Invitación
+Tres mejoras sobre el config de la sección Invitación:
+1. **Estilo de Sección reducido**: al activar "Estilo de Sección" en Invitación solo aparecen
+   Fondo de Sección, Transición Superior y Animación. Ocultos (solo en Invitación): Texto de
+   Sección, Presets Rápidos y Adorno de Título. Las demás secciones los conservan.
+2. **Colores propios de invitados y asistentes**: nuevo acordeón "Invitados y Asistentes" con
+   colores independientes del Tema Global — chips de invitados (fondo, texto, borde) y contador
+   de asistentes (fondo, texto, borde). Si no se definen, caen por defecto a los colores del
+   tema; al definirlos mandan sobre la sección sin afectar botones globales.
+3. **Imagen de fondo con banner / pantalla completa**: homologado con Multimedia de Carátula.
+   Al elegir "Imagen" en Fondo de Sección aparece "Ajuste en escritorio" (Pantalla completa /
+   Banner centrado) + slider de ancho en modo banner. Desktop ya no deforma la imagen; móvil
+   siempre cover.
+   - Nota: en el canvas del builder la imagen de fondo de sección se ve en modo cover siempre;
+     el modo banner se aplica en Preview y landing real. (Replicar banner en el CSS del canvas
+     queda como posible mejora.)
+
+> Recordatorio: el autoguardado del builder está deshabilitado. Hay que pulsar "Guardar"
+> para persistir a Preview/landing.
+
+---
+
+## Estado anterior: 2025-07-07
+
+### Rama: `feature/dashboard-redesign`
 
 ### Lo que esta funcionando:
 - **Page Builder Visual** completo con canvas + preview iframe
