@@ -1,0 +1,22 @@
+name: Deploy PAVI a produccion
+on:
+  push:
+    branches: [deploy_prod]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy por SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/pavi
+            git fetch origin deploy_prod
+            git reset --hard origin/deploy_prod
+            docker compose up -d --build
+            docker image prune -f
