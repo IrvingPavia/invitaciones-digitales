@@ -32,3 +32,4 @@ npm-debug.log*
 # Database dumps
 backup.sql
 *.dump.sql
+deploy.sh
