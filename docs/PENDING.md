@@ -109,6 +109,57 @@
 - [ ] Gestión de imágenes en cards de vestimenta
 - [ ] Verificar landing real en dispositivo móvil: Validar que clip-path de transiciones funciona en iOS Safari y Android Chrome
 
+### 🆕 Posicionamiento asistido de elementos (spec `canvas-posicionamiento`)
+
+> **Contexto**: Editor tipo Word/PowerPoint para mover y redimensionar los elementos de texto de las secciones de apertura (Plano, Intro, Carátula) directamente en el canvas del builder. Posiciones independientes mobile/desktop. Aditivo y retrocompatible. Spec completa en `.kiro/specs/canvas-posicionamiento/`.
+
+**Implementado:**
+- [x] **Modelo de posiciones**: `ElementPosition` / `ElementPositions` + campos opcionales `EnvelopeConfig.plainPositions`, `IntroConfig.positions`, `HeroConfig.positions`. Configs viejos sin cambios.
+- [x] **Helper `posStyle`** (`core/utils/element-position.util.ts`): devuelve layout flex por defecto o `position:absolute` centrado en (x,y)%. Fallback mobile↔desktop.
+- [x] **Componente `app-drag-box`** (`core/components/drag-box.component.ts`) + `drag-box-selection.service.ts`: mover y redimensionar (ancho/alto en %), snap a guías, confinamiento, mouse + touch. Reemplazó al enfoque inicial de directiva `appAssistedDrag`.
+- [x] **Integración en Plano, Intro y Carátula**: `editable`, `previewDevice`, `(positionsChange)`; contenedor con `data-drag-bounds`.
+- [x] **Builder**: pasa `editable`/`previewDevice` en canvas, persiste con handlers por sección. Autoguardado deshabilitado (requiere pulsar Guardar).
+- [x] **Landing real**: mapa mobile/desktop por ancho (breakpoint 768px) con fallback.
+- [x] **Reset de tamaño al recargar**: el ancho/alto arrastrado persiste tras refrescar.
+
+**Pendiente:**
+- [ ] **Botón "Restablecer posiciones"** (tareas 18-19 del spec): control en el props-panel para Plano, Intro y Carátula que borre las posiciones personalizadas de la sección (con confirmación vía `DialogService`) y devuelva el layout por defecto.
+
+### 🆕 Configurabilidad de la sección Invitación
+
+**Implementado:**
+- [x] **Estilo de Sección reducido en Invitación**: al activarlo solo aparecen Fondo de Sección, Transición Superior y Animación. Ocultos solo en Invitación: Texto de Sección, Presets Rápidos y Adorno de Título (las demás secciones los conservan).
+- [x] **Colores propios de invitados y asistentes**: acordeón "Invitados y Asistentes" con colores independientes del Tema Global — chips de invitados (fondo/texto/borde) y contador de asistentes (fondo/texto/borde). Fallback a colores del tema si no se definen; no afectan botones globales.
+- [x] **Imagen de fondo con banner / pantalla completa**: homologado con Multimedia de Carátula. "Ajuste en escritorio" (Pantalla completa / Banner centrado) + slider de ancho en banner. Desktop sin deformación, móvil cover.
+
+**Pendiente / nota:**
+- [x] En el canvas del builder la imagen de fondo de sección ya refleja el modo banner por dispositivo (mobile cover + min-height de pantalla; desktop columna) y el oscurecido por sección (`bgOverlay`), igual que la landing. (2026-10-08)
+- [x] Colores propios de chips de invitados / contador de asistentes (`invitation.guestChipBg`, `countBg`, etc.) se perdían en la landing pública por `ensureConfigDefaults` sin spread; corregido. (2026-10-08)
+
+### 🆕 Intro: editor enriquecido, drag de la frase y línea de carga (2026-10-08)
+
+**Implementado:**
+- [x] Frase de la intro con `app-rich-text-editor` (homologado al del template Plano). Campo `IntroConfig.phraseHtml`, retrocompatible con `phrase`+`phraseStyle`. Controles viejos retirados.
+- [x] Drag & drop de la frase en la intro (posicionamiento asistido mobile/desktop, mismo patrón del plano).
+- [x] Configuración de la "Línea de carga" (`IntroConfig.progressBar`): mostrar/ocultar, estilo (sólida/resplandor/degradado/punteada), color, grosor, ancho.
+- [x] En modo canvas la intro ya no desaparece al terminar la animación (no dispara la transición de salida en `editable`); barra de carga estática.
+- [x] La textura del tema global solo se muestra en la intro cuando NO hay multimedia de fondo.
+
+### 🆕 Fidelidad canvas ↔ landing / fixes de la Carátula (2026-10-08)
+
+**Implementado:**
+- [x] **CRÍTICO**: `ensureConfigDefaults` perdía campos del hero en la landing pública (`positions`, `countdownValueColor`, `countdownLabelColor`, `showCountdown`). Añadido spread raíz al hero y a TODAS las secciones de contenido. La carátula ahora respeta posiciones y colores en landing/preview igual que en el canvas.
+- [x] Eliminado el velo oscuro fijo del fondo global de la landing (`.landing-bg-overlay` rgba(0,0,0,0.55) → transparente).
+- [x] Countdown con tamaño en px fijo (antes `clamp(...vw...)` daba tamaños distintos entre canvas y mobile real).
+- [x] Medición de `--canvas-vh` robusta: ignora alturas 0 y re-mide al volver a modo canvas (el hero/intro ya no pierden el alto al alternar preview↔canvas).
+- [x] Pantalla de Inicio (plano): color propio de la instrucción (`EnvelopeConfig.instructionColor`).
+
+**Pendiente / por verificar:**
+- [ ] Flechas del scroll-indicator de la carátula: el usuario las vio ligeramente descentradas; no se halló causa clara en CSS. Reconfirmar en navegador tras los últimos cambios.
+- [ ] Cards de Detalles: evaluar si se agrega control de fondo (color/opacidad) POR card (hoy el toggle "Fondo" per-card solo controla visibilidad; el color viene del acordeón global "Apariencia de Cards").
+- [ ] Modo banner en DESKTOP: afinar los anchos laterales para que todas las secciones queden uniformes (se dejó para otra sesión; el foco de esta fue mobile).
+- [ ] `sanitize.js`: se permitió `font-family`/`line-height`/`<div style>` para el editor enriquecido; validar que no haya efectos colaterales en otros campos de texto enriquecido.
+
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.
 - [x] **Border-radius configurable en cards de landing**: Slider 0–24px en todas las secciones. Per-item en Detalles. Global en el resto.

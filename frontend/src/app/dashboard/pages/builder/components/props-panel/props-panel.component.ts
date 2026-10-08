@@ -313,6 +313,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Animacion</label>
                 <app-custom-select [options]="instructionAnimOptions" [value]="sec('envelope')?.instructionAnimation||'pulse'" (valueChange)="setSec('envelope','instructionAnimation',$event)"></app-custom-select>
               </div>
+              <div class="pf"><label>Color instruccion</label><app-color-picker [value]="sec('envelope')?.instructionColor||'#ffffff'" (valueChange)="setSec('envelope','instructionColor',$event)"></app-color-picker></div>
             </div>
           }
 
@@ -412,13 +413,10 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['intro-phrase']) {
             <div class="accordion-body">
-              <div class="pf"><label>Frase</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('intro')?.phrase" (ngModelChange)="setSec('intro','phrase',$event)"></textarea></div>
-              <div class="pf"><label>Fuente</label>
-                <app-custom-select [options]="fontOptions" [value]="sec('intro')?.phraseStyle?.fontFamily||'Great Vibes'" (valueChange)="setSecNested('intro','phraseStyle','fontFamily',$event)"></app-custom-select>
+              <div class="pf"><label>Frase</label>
+                <app-rich-text-editor [ngModel]="introPhraseHtml()" (ngModelChange)="setSec('intro','phraseHtml',$event)" [placeholder]="'Escribe la frase de la intro...'"></app-rich-text-editor>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontSize||32" (ngModelChange)="setSecNested('intro','phraseStyle','fontSize',+$event)" min="12" max="80"></div>
-              <div class="pf"><label>Color</label><app-color-picker [value]="sec('intro')?.phraseStyle?.color||'#ffffff'" (valueChange)="setSecNested('intro','phraseStyle','color',$event)"></app-color-picker></div>
-              <div class="pf"><label>Grosor ({{sec('intro')?.phraseStyle?.fontWeight||400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('intro')?.phraseStyle?.fontWeight||400" (ngModelChange)="setSecNested('intro','phraseStyle','fontWeight',+$event)"></div>
+              <p class="pf-hint">Arrastra la frase en el lienzo para posicionarla.</p>
             </div>
           }
 
@@ -529,10 +527,55 @@ import { ApiService } from '../../../../../core/services/api.service';
               }
             </div>
           }
+
+          <!-- ===== Linea de carga ===== -->
+          <div class="accordion" [class.open]="expanded['intro-progress']" (click)="toggle('intro-progress')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['intro-progress'] ? 'expand_more' : 'chevron_right' }}</span><span>Linea de carga</span></div>
+          </div>
+          @if (expanded['intro-progress']) {
+            <div class="accordion-body">
+              <div class="toggle-row">
+                <span class="toggle-title">Mostrar linea de carga</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('intro')?.progressBar?.enabled !== false" (ngModelChange)="setSecNested('intro','progressBar','enabled',$event)"><span class="slider"></span></label>
+              </div>
+              @if (sec('intro')?.progressBar?.enabled !== false) {
+                <div class="pf"><label>Estilo</label>
+                  <app-custom-select [options]="introProgressStyleOptions" [value]="sec('intro')?.progressBar?.style||'solid'" (valueChange)="setSecNested('intro','progressBar','style',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="sec('intro')?.progressBar?.color||'#d4a017'" (valueChange)="setSecNested('intro','progressBar','color',$event)"></app-color-picker></div>
+                <div class="pf"><label>Grosor ({{sec('intro')?.progressBar?.thickness||2}}px)</label><input type="range" class="pinput-range" min="1" max="12" [ngModel]="sec('intro')?.progressBar?.thickness||2" (ngModelChange)="setSecNested('intro','progressBar','thickness',+$event)"></div>
+                <div class="pf"><label>Ancho ({{sec('intro')?.progressBar?.width||200}}px)</label><input type="range" class="pinput-range" min="80" max="400" step="10" [ngModel]="sec('intro')?.progressBar?.width||200" (ngModelChange)="setSecNested('intro','progressBar','width',+$event)"></div>
+              }
+            </div>
+          }
         }
 
         <!-- ===== HERO ===== -->
         @if (canvasState.selectedSection() === 'hero') {
+          <div class="accordion" [class.open]="expanded['hero-event']" (click)="toggle('hero-event')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['hero-event'] ? 'expand_more' : 'chevron_right' }}</span><span>Tipo de Evento</span></div>
+          </div>
+          @if (expanded['hero-event']) {
+            <div class="accordion-body">
+              <div class="pf"><label>Descripcion del evento</label><input class="pinput" [ngModel]="sec('hero')?.eventDescription" (ngModelChange)="setSec('hero','eventDescription',$event)"></div>
+              <div class="pf"><label>Fuente</label>
+                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.eventDescriptionStyle?.fontFamily||'montserrat'" (valueChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Tamano ({{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px)</label>
+                <div class="stepper-row">
+                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',-1);$event.stopPropagation()">-</button>
+                  <span class="stepper-value">{{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px</span>
+                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',1);$event.stopPropagation()">+</button>
+                </div>
+              </div>
+              <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Angulo degradado ({{sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientAngle',+$event)"></div>
+              <div class="pf"><label>Intensidad ({{sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientIntensity',+$event)"></div>
+              <div class="pf"><label>Grosor ({{sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontWeight',+$event)"></div>
+            </div>
+          }
+
           <div class="accordion" [class.open]="expanded['hero-names']" (click)="toggle('hero-names')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['hero-names'] ? 'expand_more' : 'chevron_right' }}</span><span>Nombres</span></div>
           </div>
@@ -561,47 +604,14 @@ import { ApiService } from '../../../../../core/services/api.service';
             </div>
           }
 
-          <div class="accordion" [class.open]="expanded['hero-event']" (click)="toggle('hero-event')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['hero-event'] ? 'expand_more' : 'chevron_right' }}</span><span>Tipo de Evento</span></div>
-          </div>
-          @if (expanded['hero-event']) {
-            <div class="accordion-body">
-              <div class="pf"><label>Descripcion del evento</label><input class="pinput" [ngModel]="sec('hero')?.eventDescription" (ngModelChange)="setSec('hero','eventDescription',$event)"></div>
-              <div class="pf"><label>Fuente</label>
-                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.eventDescriptionStyle?.fontFamily||'montserrat'" (valueChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)"></app-custom-select>
-              </div>
-              <div class="pf"><label>Tamano ({{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px)</label>
-                <div class="stepper-row">
-                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',-1);$event.stopPropagation()">-</button>
-                  <span class="stepper-value">{{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px</span>
-                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',1);$event.stopPropagation()">+</button>
-                </div>
-              </div>
-              <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
-              <div class="pf"><label>Angulo degradado ({{sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientAngle',+$event)"></div>
-              <div class="pf"><label>Intensidad ({{sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientIntensity',+$event)"></div>
-              <div class="pf"><label>Grosor ({{sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontWeight',+$event)"></div>
-            </div>
-          }
-
           <div class="accordion" [class.open]="expanded['hero-phrase']" (click)="toggle('hero-phrase')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['hero-phrase'] ? 'expand_more' : 'chevron_right' }}</span><span>Frase</span></div>
           </div>
           @if (expanded['hero-phrase']) {
             <div class="accordion-body">
-              <div class="pf"><label>Frase</label><input class="pinput" [ngModel]="sec('hero')?.heroPhrase" (ngModelChange)="setSec('hero','heroPhrase',$event)"></div>
-              <div class="pf"><label>Fuente</label>
-                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.heroPhraseStyle?.fontFamily||'raleway'" (valueChange)="setSecNested('hero','heroPhraseStyle','fontFamily',$event)"></app-custom-select>
+              <div class="pf"><label>Frase</label>
+                <app-rich-text-editor [ngModel]="sec('hero')?.heroPhrase" (ngModelChange)="setSec('hero','heroPhrase',$event)" [placeholder]="'Escribe la frase...'"></app-rich-text-editor>
               </div>
-              <div class="pf"><label>Tamano ({{sec('hero')?.heroPhraseStyle?.fontSize||14}}px)</label>
-                <div class="stepper-row">
-                  <button class="stepper-btn" (click)="adjustHeroFont('heroPhraseStyle',-1);$event.stopPropagation()">-</button>
-                  <span class="stepper-value">{{sec('hero')?.heroPhraseStyle?.fontSize||14}}px</span>
-                  <button class="stepper-btn" (click)="adjustHeroFont('heroPhraseStyle',1);$event.stopPropagation()">+</button>
-                </div>
-              </div>
-              <div class="pf"><label>Color</label><app-color-picker [value]="sec('hero')?.heroPhraseStyle?.color||'rgba(255,255,255,0.7)'" (valueChange)="setSecNested('hero','heroPhraseStyle','color',$event)"></app-color-picker></div>
             </div>
           }
 
@@ -615,7 +625,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.showDescription!==false" (ngModelChange)="setSec('hero','showDescription',$event)"><span class="slider"></span></label>
               </div>
               @if (sec('hero')?.showDescription!==false) {
-                <div class="pf"><label>Texto</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('hero')?.description" (ngModelChange)="setSec('hero','description',$event)"></textarea></div>
+                <div class="pf"><label>Texto</label>
+                  <app-rich-text-editor [ngModel]="sec('hero')?.description" (ngModelChange)="setSec('hero','description',$event)" [placeholder]="'Escribe la descripción...'"></app-rich-text-editor>
+                </div>
               }
             </div>
           }
@@ -625,30 +637,44 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['hero-countdown']) {
             <div class="accordion-body">
+              <div class="toggle-row">
+                <span class="toggle-title">Mostrar cuenta regresiva</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.showCountdown !== false" (ngModelChange)="setSec('hero','showCountdown',$event)"><span class="slider"></span></label>
+              </div>
+              @if (sec('hero')?.showCountdown !== false) {
               <div class="pf"><label>Fecha del countdown</label>
                 <app-wheel-date-picker [value]="getCountdownDate()" (valueChange)="setCountdownDate($event)"></app-wheel-date-picker>
               </div>
               <div class="pf"><label>Hora del countdown</label>
                 <app-wheel-time-picker [value]="getCountdownTime()" (valueChange)="setCountdownTime($event)"></app-wheel-time-picker>
               </div>
+              <!-- Colores del texto -->
+              <div class="pf"><label>Color de los números</label><app-color-picker [value]="sec('hero')?.countdownValueColor || cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setSec('hero','countdownValueColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de las etiquetas</label><app-color-picker [value]="sec('hero')?.countdownLabelColor || 'rgba(255,255,255,0.5)'" (valueChange)="setSec('hero','countdownLabelColor',$event)"></app-color-picker></div>
+              <!-- Fondo de las cards -->
               <div class="toggle-row">
                 <span class="toggle-title">Fondo cards</span>
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.countdownShowCardBg !== false" (ngModelChange)="setSec('hero','countdownShowCardBg',$event)"><span class="slider"></span></label>
               </div>
-              <div class="pf"><label>Opacidad fondo ({{sec('hero')?.countdownCardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.countdownCardBgOpacity ?? 100" (ngModelChange)="setSec('hero','countdownCardBgOpacity',+$event)"></div>
-              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('hero')?.countdownCardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('hero','countdownCardBgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
-              <div class="pf"><label>Estilo borde</label>
-                <app-custom-select [options]="borderStyleOptions" [value]="sec('hero')?.countdownCardBorderStyle || 'none'" (valueChange)="setSec('hero','countdownCardBorderStyle',$event)"></app-custom-select>
-              </div>
-              <div class="pf"><label>Grosor borde ({{sec('hero')?.countdownCardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('hero')?.countdownCardBorderWidth ?? 1" (ngModelChange)="setSec('hero','countdownCardBorderWidth',+$event)"></div>
-              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('hero')?.countdownCardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('hero','countdownCardBorderColor',$event)"></app-color-picker></div>
-              @if (sec('hero')?.countdownCardBorderStyle === 'glow' || sec('hero')?.countdownCardBorderStyle === 'neon') {
-                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('hero')?.countdownCardGlowColor || '#d4a017'" (valueChange)="setSec('hero','countdownCardGlowColor',$event)"></app-color-picker></div>
+              @if (sec('hero')?.countdownShowCardBg !== false) {
+                <div class="pf"><label>Opacidad fondo ({{sec('hero')?.countdownCardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.countdownCardBgOpacity ?? 100" (ngModelChange)="setSec('hero','countdownCardBgOpacity',+$event)"></div>
+                <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('hero')?.countdownCardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('hero','countdownCardBgColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
+                <div class="pf"><label>Estilo borde</label>
+                  <app-custom-select [options]="borderStyleOptions" [value]="sec('hero')?.countdownCardBorderStyle || 'none'" (valueChange)="setSec('hero','countdownCardBorderStyle',$event)"></app-custom-select>
+                </div>
+                @if (sec('hero')?.countdownCardBorderStyle !== 'none') {
+                  <div class="pf"><label>Grosor borde ({{sec('hero')?.countdownCardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('hero')?.countdownCardBorderWidth ?? 1" (ngModelChange)="setSec('hero','countdownCardBorderWidth',+$event)"></div>
+                  <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('hero')?.countdownCardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('hero','countdownCardBorderColor',$event)"></app-color-picker></div>
+                }
+                @if (sec('hero')?.countdownCardBorderStyle === 'glow' || sec('hero')?.countdownCardBorderStyle === 'neon') {
+                  <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('hero')?.countdownCardGlowColor || '#d4a017'" (valueChange)="setSec('hero','countdownCardGlowColor',$event)"></app-color-picker></div>
+                }
+                <div class="pf"><label>Forma de card</label>
+                  <app-custom-select [options]="cardShapeOptions" [value]="sec('hero')?.countdownCardShape || 'standard'" (valueChange)="setSec('hero','countdownCardShape',$event)"></app-custom-select>
+                </div>
               }
-              <div class="pf"><label>Forma de card</label>
-                <app-custom-select [options]="cardShapeOptions" [value]="sec('hero')?.countdownCardShape || 'standard'" (valueChange)="setSec('hero','countdownCardShape',$event)"></app-custom-select>
-              </div>
+              }
             </div>
           }
 
@@ -717,6 +743,22 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Forma de card</label>
                 <app-custom-select [options]="cardShapeOptions" [value]="sec('invitation')?.cardShape || 'standard'" (valueChange)="setSec('invitation','cardShape',$event)"></app-custom-select>
               </div>
+            </div>
+          }
+
+          <div class="accordion" [class.open]="expanded['inv-guests']" (click)="toggle('inv-guests')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['inv-guests'] ? 'expand_more' : 'chevron_right' }}</span><span>Invitados y Asistentes</span></div>
+          </div>
+          @if (expanded['inv-guests']) {
+            <div class="accordion-body">
+              <span class="pf-section-title">Chips de invitados</span>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('invitation')?.guestChipBg || cfg()!.theme.cardBg || 'rgba(212,160,23,0.15)'" (valueChange)="setSec('invitation','guestChipBg',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de texto</label><app-color-picker [value]="sec('invitation')?.guestChipText || cfg()!.theme.textPrimary || '#ffffff'" (valueChange)="setSec('invitation','guestChipText',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('invitation')?.guestChipBorder || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('invitation','guestChipBorder',$event)"></app-color-picker></div>
+              <span class="pf-section-title" style="margin-top:8px">Contador de asistentes</span>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('invitation')?.countBg || cfg()!.theme.cardBg || 'rgba(212,160,23,0.1)'" (valueChange)="setSec('invitation','countBg',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de texto</label><app-color-picker [value]="sec('invitation')?.countText || cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setSec('invitation','countText',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('invitation')?.countBorder || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('invitation','countBorder',$event)"></app-color-picker></div>
             </div>
           }
         }
@@ -1351,6 +1393,24 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Angulo ({{ss('bgAngle') ?? 180}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('bgAngle') ?? 180" (ngModelChange)="setSS('bgAngle',+$event)"></div>
                   <div class="pf"><label>Intensidad ({{ss('bgIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgIntensity') ?? 50" (ngModelChange)="setSS('bgIntensity',+$event)"></div>
                 }
+                @if(ss('bgType')==='image'){
+                  <div class="pf"><label>Imagen de fondo</label>
+                    <div class="upload-row">
+                      @if(ss('bgImage')){<span class="file-name">{{getFileName(ss('bgImage'))}}</span><button class="sm-btn" (click)="uploadSectionBg();$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSS('bgImage','');$event.stopPropagation()">X</button>}
+                      @else{<button class="sm-btn" (click)="uploadSectionBg();$event.stopPropagation()">Subir imagen</button>}
+                    </div>
+                  </div>
+                  @if(ss('bgImage')){
+                    <div class="pf"><label>Oscurecer fondo ({{ss('bgOverlay') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgOverlay') ?? 50" (ngModelChange)="setSS('bgOverlay',+$event)"></div>
+                    <div class="pf"><label>Ajuste en escritorio</label>
+                      <app-custom-select [options]="bgFitOptions" [value]="ss('bgFit') || 'cover'" (valueChange)="setSS('bgFit',$event)"></app-custom-select>
+                    </div>
+                    @if(ss('bgFit') === 'banner'){
+                      <div class="pf"><label>Ancho del banner ({{ss('bgBannerWidth') || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="ss('bgBannerWidth') || 70" (ngModelChange)="setSS('bgBannerWidth',+$event)"></div>
+                    }
+                    <p class="pf-hint">En "banner centrado" la imagen mantiene su proporción (ajustada al alto) en una columna centrada; el slider define su ancho. Solo aplica en escritorio; en móvil ocupa todo el ancho.</p>
+                  }
+                }
               </div>
             }
 
@@ -1384,6 +1444,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
+            @if (canvasState.selectedSection() !== 'invitation') {
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>
@@ -1416,6 +1477,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar todo</button>
               </div>
             }
+            }
 
             <div class="accordion" [class.open]="expanded['sec-anim']" (click)="toggle('sec-anim')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-anim'] ? 'expand_more' : 'chevron_right' }}</span><span>Animacion</span></div>
@@ -1434,6 +1496,7 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
+            @if (canvasState.selectedSection() !== 'invitation') {
             <div class="accordion" [class.open]="expanded['sec-presets']" (click)="toggle('sec-presets')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-presets'] ? 'expand_more' : 'chevron_right' }}</span><span>Presets Rapidos</span></div>
             </div>
@@ -1473,6 +1536,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Tamano ({{getOrnamentProp('size') || 1}}x)</label><input type="range" class="pinput-range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp('size') || 1" (ngModelChange)="setOrnament('size',+$event)"></div>
                 }
               </div>
+            }
             }
           }
         }
@@ -1894,6 +1958,22 @@ export class BuilderPropsPanelComponent {
     const cfg = this.canvasState.getConfig(); if(!cfg) return;
     Object.assign(cfg.theme, t);
     this.canvasState.isDirty.set(true);
+  }
+
+  /** Sube una imagen y la asigna como fondo de la SECCIÓN activa (sectionStyle.bgImage). */
+  uploadSectionBg() {
+    const input = document.createElement('input'); input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({
+        next: (r: any) => {
+          this.setSS('bgImage', r.url);
+          this.canvasState.notifyChange();
+        }
+      });
+    };
+    input.click();
   }
 
   upload(secKey: string, prop: string, type: 'images'|'audio'|'gifs') {
@@ -2334,6 +2414,24 @@ export class BuilderPropsPanelComponent {
 
   getParticlesProp(prop: string): any {
     return this.sec('intro')?.particles?.[prop] ?? null;
+  }
+
+  /** Opciones de estilo de la línea de carga de la intro. */
+  introProgressStyleOptions = [
+    { value: 'solid', label: 'Sólida' },
+    { value: 'glow', label: 'Resplandor' },
+    { value: 'gradient', label: 'Degradado' },
+    { value: 'dashed', label: 'Punteada' },
+  ];
+
+  /** Contenido inicial del editor enriquecido de la frase. Si ya hay HTML, lo usa; si no,
+      migra el texto plano `phrase` (envuelto en <p>) la primera vez para no perderlo. */
+  introPhraseHtml(): string {
+    const intro = this.sec('intro');
+    if (!intro) return '';
+    if (intro.phraseHtml) return intro.phraseHtml;
+    const plain = (intro.phrase || '').trim();
+    return plain ? `<p>${plain}</p>` : '';
   }
 
   getSealType(): string {

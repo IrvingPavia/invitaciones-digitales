@@ -7,11 +7,12 @@ const sanitizeHtml = require('sanitize-html');
 function sanitizeRichText(dirty) {
   if (!dirty || typeof dirty !== 'string') return dirty;
   return sanitizeHtml(dirty, {
-    allowedTags: ['b', 'i', 'em', 'strong', 'u', 'br', 'p', 'span', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4'],
+    allowedTags: ['b', 'i', 'em', 'strong', 'u', 'br', 'p', 'span', 'div', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4'],
     allowedAttributes: {
       'a': ['href', 'target', 'rel'],
       'span': ['style'],
       'p': ['style'],
+      'div': ['style'],
     },
     allowedStyles: {
       '*': {
@@ -21,6 +22,10 @@ function sanitizeRichText(dirty) {
         'font-weight': [/^\d+$/, /^bold$/, /^normal$/],
         'font-style': [/^italic$/, /^normal$/],
         'text-decoration': [/^underline$/, /^none$/],
+        // Permitir familias de fuente (lista separada por comas con nombres y genéricos).
+        'font-family': [/^[\w\s,'"-]+$/],
+        // Interlineado aplicado por el editor enriquecido.
+        'line-height': [/^\d+(?:\.\d+)?$/],
       },
     },
     // Force all links to open in new tab and be safe
@@ -69,7 +74,7 @@ function sanitizeConfigJson(obj) {
 /** Fields that can contain user text (potential XSS vectors) */
 function isTextContentField(key) {
   const textFields = [
-    'title', 'subtitle', 'description', 'text', 'phrase', 'instructionText',
+    'title', 'subtitle', 'description', 'text', 'phrase', 'phraseHtml', 'instructionText',
     'sealText', 'buttonText', 'heroPhrase', 'eventDescription', 'celebrantNames',
     'accountName', 'bank', 'accountNumber', 'admin_note', 'notes',
     'label', 'name',

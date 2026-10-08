@@ -127,13 +127,13 @@ interface BuilderSection {
                      configurado (GIF/imagen/video) solo aplica desde la carátula hacia abajo,
                      igual que en la landing real (que oculta el bg mientras hay envelope/intro). -->
                 @if (canvasState.config()?.envelope?.enabled) {
-                  <div class="preview-section-click" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
-                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" bannerUnit="%" [forceCover]="previewDevice() === 'mobile'" />
+                  <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas' && canvasState.config()!.envelope.template === 'plain'" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
+                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" bannerUnit="%" [forceCover]="previewDevice() === 'mobile'" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onEnvelopePositionsChange($event)" />
                   </div>
                 }
                 @if (canvasState.config()?.intro?.enabled) {
-                  <div class="preview-section-click" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
-                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [themeTexture]="canvasState.config()?.theme?.landingBgTexture || 'none'" [themeTextureOpacity]="canvasState.config()?.theme?.landingBgTextureOpacity || 5" [previewLoop]="true" />
+                  <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
+                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [themeTexture]="canvasState.config()?.theme?.landingBgTexture || 'none'" [themeTextureOpacity]="canvasState.config()?.theme?.landingBgTextureOpacity || 5" [previewLoop]="canvasMode() === 'preview'" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onIntroPositionsChange($event)" />
                   </div>
                 }
 
@@ -161,9 +161,9 @@ interface BuilderSection {
                       }
                     </div>
                   }
-                <div class="preview-section-click" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
+                <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
                   @if (canvasState.config()!.hero) {
-                    <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
+                    <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onHeroPositionsChange($event)" />
                   }
                 </div>
                 <div class="preview-section-click" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
@@ -276,15 +276,14 @@ interface BuilderSection {
       display: flex; align-items: center;
       padding: 8px 16px; background: rgba(10,10,20,0.95);
       border-bottom: 1px solid rgba(139,92,246,0.15);
-      z-index: 10; position: relative; min-height: 48px; flex-wrap: wrap; gap: 4px 12px;
+      z-index: 10; position: relative; min-height: 48px; gap: 12px;
     }
-    .builder-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 1 0 100%; }
-    .builder-toolbar-center { display: flex; align-items: center; gap: 4px; order: 1; }
-    .builder-toolbar-right { display: flex; align-items: center; order: 2; margin-left: auto; }
-    @media (min-width: 850px) {
-      .builder-toolbar-left { flex: 0 0 auto; }
-      .builder-toolbar-center { flex: 1; justify-content: center; }
-    }
+    /* Tres grupos en una sola fila: izquierda (ancho natural), centro (crece y centra),
+       derecha (empujada al borde por margin-left:auto del propio grupo via flex). */
+    .builder-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; min-width: 0; }
+    .builder-toolbar-center { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1 1 auto; }
+    .builder-toolbar-right { display: flex; align-items: center; flex: 0 0 auto; }
+    .builder-event-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .builder-back {
       display: flex; align-items: center; justify-content: center;
       width: 32px; height: 32px; border-radius: 8px; color: rgba(255,255,255,0.6);
@@ -610,8 +609,10 @@ interface BuilderSection {
       &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
     .preview-section-click[data-section="hero"] { overflow: visible; }
-    /* Block pointer events on inner content so clicks go to the wrapper */
+    /* Block pointer events on inner content so clicks go to the wrapper.
+       Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
     .preview-section-click > * { pointer-events: none; }
+    .preview-section-click.drag-enabled > * { pointer-events: auto; }
     /* Live preview mode — enable interactions, remove selection UI */
     .live-preview .preview-section-click { cursor: default; }
     .live-preview .preview-section-click > * { pointer-events: all; }
@@ -1023,6 +1024,8 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private canvasResizeObserver?: ResizeObserver;
+  /** Referencia a la función que re-mide --canvas-vh, para forzarla al volver a modo canvas. */
+  private _applyCanvasHeight?: () => void;
 
   /** Precarga una imagen/GIF/video de fondo para que esté lista en el primer render del canvas. */
   private preloadCanvasMedia(url?: string | null) {
@@ -1050,6 +1053,10 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       const canvas = document.querySelector('.preview-mode-canvas') as HTMLElement | null;
       if (viewport && canvas) {
         const h = viewport.clientHeight;
+        // Ignorar medidas de 0 (p. ej. cuando el canvas está oculto en modo preview):
+        // conservaríamos el último alto válido para no colapsar la altura del hero/intro
+        // al volver al modo canvas.
+        if (h <= 0) return;
         // Solo actualizar si cambió, para no forzar reflows innecesarios que rompan
         // el primer render de secciones como la intro (que pinta su fondo absolute).
         const prev = canvas.style.getPropertyValue('--canvas-vh');
@@ -1058,6 +1065,7 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     };
+    this._applyCanvasHeight = apply;
     // Reintentar hasta que el viewport exista (el canvas se renderiza tras cargar config).
     // Aplicamos en rAF (antes del paint) para evitar setear --canvas-vh DESPUÉS del primer
     // paint, lo que provocaba un reflow tardío que dejaba la intro sin fondo hasta reiniciar.
@@ -1211,6 +1219,12 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       if (envelopeEl) {
         envelopeEl.classList.remove('opened');
       }
+      // Al volver a modo canvas el viewport vuelve a ser visible: re-medir --canvas-vh
+      // para que el hero/intro recuperen el alto de pantalla (antes quedaba colapsado).
+      requestAnimationFrame(() => {
+        this._applyCanvasHeight?.();
+        requestAnimationFrame(() => this._applyCanvasHeight?.());
+      });
     }
   }
 
@@ -1255,13 +1269,16 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     const c2 = theme.landingBgColor2 || '#1a1a2e';
     const type = theme.landingBgType || 'solid';
     const angle = theme.landingBgAngle || 135;
+    const intensity = theme.landingBgIntensity ?? 50;
 
+    // Replicar EXACTAMENTE la lógica de la landing real (getLandingBg) para que el canvas
+    // muestre el mismo degradado con intensidad.
     let colorBg = c1;
     switch (type) {
       case 'solid': colorBg = c1; break;
-      case 'linear': colorBg = `linear-gradient(${angle}deg, ${c1}, ${c2})`; break;
-      case 'radial': colorBg = `radial-gradient(ellipse at center, ${c2}, ${c1})`; break;
-      case 'mesh': colorBg = `radial-gradient(ellipse at 25% 25%, ${c2} 0%, transparent 50%), radial-gradient(ellipse at 75% 75%, ${c2} 0%, transparent 50%), ${c1}`; break;
+      case 'linear': colorBg = this.buildLinearGradient(angle, c1, c2, intensity); break;
+      case 'radial': colorBg = `radial-gradient(ellipse at center, ${c1} ${intensity}%, ${c2})`; break;
+      case 'mesh': colorBg = this.buildLinearGradient(angle, c1, c2, intensity); break;
       default: colorBg = c1;
     }
 
@@ -1298,7 +1315,28 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         case 'solid': css = `background: ${ss.bgColor1 || '#1a1a2e'}`; break;
         case 'linear': css = `background: ${this.buildLinearGradient(ss.bgAngle ?? 180, ss.bgColor1 || '#1a1a2e', ss.bgColor2 || '#0d1117', ss.bgIntensity ?? 50)}`; break;
         case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor1 || '#1a1a2e'} ${(ss.bgIntensity ?? 50)}%, ${ss.bgColor2 || '#0d1117'})`; break;
-        case 'image': css = ss.bgImage ? `background: url(${ss.bgImage}) center/cover` : ''; break;
+        case 'image': {
+          if (!ss.bgImage) { css = ''; break; }
+          // Oscurecido (overlay) replicado como capa de gradiente sobre la imagen, para que
+          // el canvas se vea igual que la landing (que usa un div .section-bg-overlay).
+          const ov = Math.max(0, Math.min(100, ss.bgOverlay ?? 0)) / 100;
+          const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
+          if (ss.bgFit === 'banner') {
+            const isMobile = this.previewDevice() === 'mobile';
+            if (isMobile) {
+              // Mobile (prioridad): la imagen CUBRE el ancho y alto de la sección (cover) y la
+              // sección toma el alto de pantalla, igual que la landing. Sin huecos.
+              css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
+            } else {
+              // Desktop: columna centrada del ancho configurado (--sec-banner-w).
+              css = `background: ${dark}url(${ss.bgImage}) top center / ${ss.bgBannerWidth ?? 70}% auto no-repeat`;
+            }
+          } else {
+            // Pantalla completa: cover (sin cambios).
+            css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat`;
+          }
+          break;
+        }
       }
     }
     // Apply clip-path for section transitions — keep outline visible by using overflow visible
@@ -1406,6 +1444,33 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   onCanvasAreaClick() {
     if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(null);
+  }
+
+  /** Persiste las posiciones del template Plano tras arrastrar un elemento. */
+  onEnvelopePositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.envelope as any).plainPositions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de la carátula (hero) tras arrastrar un elemento. */
+  onHeroPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.hero as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de la intro tras arrastrar la frase. */
+  onIntroPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.intro as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
   }
 
   /** Secciones permanentes que no se pueden ocultar (siempre visibles en la invitación). */

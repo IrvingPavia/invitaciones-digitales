@@ -1,16 +1,19 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, DoCheck, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, DoCheck, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { IntroConfig, IntroParticlesConfig, ElementPosition, ElementPositions } from '../../../core/models/models';
+import { posStyle } from '../../../core/utils/element-position.util';
+import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
 @Component({
   selector: 'app-landing-intro',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DragBoxComponent],
   template: `
-    <div class="intro-overlay" [class.fade-out]="fading" [attr.data-transition]="config.transition || 'fade'" (click)="onTap()">
+    <div class="intro-overlay" [class.fade-out]="fading" [class.intro-preloading]="!active" [attr.data-transition]="config.transition || 'fade'" data-drag-bounds (click)="onOverlayClick()">
       @if (config.background) {
         @if (isVideo(config.background)) {
-          <video #introVideo class="intro-bg-video" [attr.loop]="previewLoop ? null : true" muted playsinline [src]="config.background"></video>
+          <video #introVideo class="intro-bg-video" [attr.loop]="previewLoop ? true : null" muted playsinline [src]="config.background"></video>
           <div class="intro-bg-overlay"></div>
           @if (showPlayHint) {
             <div class="play-hint"><span class="material-icons">touch_app</span><span>Toca para iniciar</span></div>
@@ -22,7 +25,9 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       } @else {
         <div class="intro-bg" [style.background]="defaultBg"></div>
       }
-      @if (themeTexture && themeTexture !== 'none') {
+      <!-- La textura del tema solo aplica cuando NO hay multimedia de fondo. Si hay imagen/
+           gif/video, no debe superponerse encima para no restarle detalle visual. -->
+      @if (themeTexture && themeTexture !== 'none' && !config.background) {
         <div class="intro-texture" [attr.data-texture]="themeTexture" [style.opacity]="(themeTextureOpacity || 5) / 100"></div>
       }
       @if (particlesConfig.enabled) {
@@ -32,19 +37,36 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
           }
         </div>
       }
-      <div class="intro-content">
-        <p class="intro-phrase"
-           [style.font-family]="getFontFamily(config.phraseStyle?.fontFamily)"
-           [style.font-size.px]="config.phraseStyle?.fontSize || 42"
-           [style.color]="config.phraseStyle?.color || '#d4a017'"
-           [style.font-weight]="config.phraseStyle?.fontWeight || 400"
-        >{{ config.phrase }}</p>
-        <div class="intro-progress">
-          @if (!fading || !previewLoop) {
-            <div class="intro-progress-bar" [style.background]="themeColor" [style.animation-duration]="effectiveDuration + 's'"></div>
-          }
+      <!-- Frase: con DragBox para posicionarla libremente (como en la pantalla de inicio). -->
+      <app-drag-box [editable]="editable" [position]="introPosData('phrase')" [ngStyle]="phraseWrapStyle()" (positionChange)="onPosChange('phrase', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+        @if (config.phraseHtml) {
+          <div class="intro-phrase intro-phrase-rich" [innerHTML]="safePhrase()"></div>
+        } @else {
+          <p class="intro-phrase"
+             [style.font-family]="getFontFamily(config.phraseStyle?.fontFamily)"
+             [style.font-size.px]="config.phraseStyle?.fontSize || 42"
+             [style.color]="config.phraseStyle?.color || '#d4a017'"
+             [style.font-weight]="config.phraseStyle?.fontWeight || 400"
+          >{{ config.phrase }}</p>
+        }
+      </app-drag-box>
+
+      <!-- Linea de carga (progress). Configurable: color, estilo, grosor, ancho y visibilidad. -->
+      @if (progressVisible) {
+        <div class="intro-progress-wrap">
+          <div class="intro-progress" [style.width.px]="progressWidth" [style.height.px]="progressThickness">
+            @if (progressStarted) {
+              <div class="intro-progress-bar" [class.filled]="editable" [attr.data-style]="progressStyle" [style.color]="progressColor" [style.background]="progressBg" [style.animation-duration]="effectiveDuration + 's'"></div>
+            }
+          </div>
         </div>
-      </div>
+      }
+
+      <!-- Guias de alineacion (solo durante el arrastre en modo edicion). -->
+      @if (editable && dragging && guides) {
+        @if (guides.x !== undefined) { <div class="ad-guide ad-guide-v" [style.left.%]="guides.x"></div> }
+        @if (guides.y !== undefined) { <div class="ad-guide ad-guide-h" [style.top.%]="guides.y"></div> }
+      }
       @if (config.showSkip !== false) {
         <button class="intro-skip" (click)="skip(); $event.stopPropagation()">Saltar</button>
       }
@@ -60,6 +82,12 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
       backface-visibility: hidden; -webkit-backface-visibility: hidden;
     }
     .intro-overlay.fade-out { pointer-events: none; transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease; }
+    /* Precarga: montada tras el envelope sin animación de entrada ni interacción.
+       El video decodifica y pinta su primer frame aunque el overlay esté invisible,
+       de modo que al activarse ya se ve el gif/video sin frame en blanco. */
+    .intro-overlay.intro-preloading { animation: none !important; opacity: 0; pointer-events: none; }
+    .intro-overlay.intro-preloading .intro-phrase,
+    .intro-overlay.intro-preloading .play-hint { animation: none !important; opacity: 0 !important; }
     /* Transition variants - only apply on fade-out */
     .intro-overlay[data-transition="fade"].fade-out { opacity: 0; }
     .intro-overlay[data-transition="slide-up"].fade-out { opacity: 0; transform: translateY(-100%); }
@@ -102,24 +130,50 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
     .intro-texture[data-texture="paper"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"); }
     .intro-texture[data-texture="linen"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px), repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px); }
     .intro-texture[data-texture="stars"] { background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 24px 24px; }
-    .intro-content { position: relative; z-index: 2; text-align: center; width: 100%; padding: 0 20px; }
     .intro-phrase {
+      position: relative; z-index: 2; text-align: center;
       font-family: var(--font-script);
       font-size: clamp(28px, 6vw, 52px);
       text-shadow: 0 0 30px rgba(212,160,23,0.5);
       animation: phraseIn 1s ease 0.5s both;
-      margin-bottom: 24px;
+      margin: 0;
+      padding: 0 20px;
+    }
+    /* Frase enriquecida: respeta los estilos inline del editor (fuente/tamaño/color/alineación). */
+    .intro-phrase-rich { text-shadow: 0 0 24px rgba(0,0,0,0.35); }
+    .intro-phrase-rich p { margin: 0 0 6px; }
+    .intro-phrase-rich p:last-child { margin-bottom: 0; }
+    /* Cuando el DragBox fija un ancho al wrapper, la frase llena ese ancho. */
+    app-drag-box[style*="width"] .intro-phrase { padding: 0; width: 100%; }
+
+    /* Linea de carga (centrada abajo por defecto; posicion absoluta en el overlay). */
+    .intro-progress-wrap {
+      position: absolute; left: 0; right: 0; bottom: 80px; z-index: 2;
+      display: flex; justify-content: center;
     }
     .intro-progress {
-      width: 200px; height: 2px;
       background: rgba(255,255,255,0.2);
-      border-radius: 2px; margin: 0 auto;
+      border-radius: 999px;
       overflow: hidden;
     }
     .intro-progress-bar {
       height: 100%; width: 0;
       animation: progressFill linear forwards;
     }
+    /* En modo edición la barra se muestra llena y estática (sin animación de llenado),
+       para previsualizar su estilo/color de inmediato. */
+    .intro-progress-bar.filled { width: 100%; animation: none; }
+    .intro-progress-bar[data-style="glow"] { box-shadow: 0 0 8px currentColor, 0 0 16px currentColor; }
+    .intro-progress-bar[data-style="dashed"] {
+      background-image: repeating-linear-gradient(90deg, currentColor 0, currentColor 6px, transparent 6px, transparent 11px) !important;
+    }
+
+    /* Guias de alineacion (reutilizadas del patron del plain). */
+    .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
+    .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
+    .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
+
+
     .intro-skip {
       position: absolute; top: 16px; right: 16px; z-index: 5;
       padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3);
@@ -229,6 +283,10 @@ import { IntroConfig, IntroParticlesConfig } from '../../../core/models/models';
   `]
 })
 export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, DoCheck {
+  private sanitizer = inject(DomSanitizer);
+  private _safePhraseCache = '';
+  private _safePhraseValue: SafeHtml = '';
+
   @Input() config!: IntroConfig;
   @Input() themeColor: string = '#d4a017';
   @Input() themeBg: string = '';
@@ -237,12 +295,114 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   @Input() themeTexture: string = 'none';
   @Input() themeTextureOpacity: number = 5;
   @Input() previewLoop = false;
+  /** Dispositivo activo para elegir el mapa de posiciones. En landing es null (auto por ancho). */
+  @Input() previewDevice: 'mobile' | 'desktop' | null = null;
+  /** Si la intro está "activa" (visible y corriendo). Cuando se monta antes de tiempo
+      (detrás del envelope) para precargar el video, llega como false; al activarse arranca
+      el timer y la animación de entrada. Por defecto true (canvas/uso directo). */
+  private _active = true;
+  @Input() set active(val: boolean) {
+    const was = this._active;
+    this._active = val;
+    if (!was && val) this.onActivated();
+  }
+  get active(): boolean { return this._active; }
+
+  /** Modo edición (canvas builder): activa el arrastre de la frase. */
+  @Input() editable = false;
+  /** Emite el nuevo mapa de posiciones de la intro para que el builder lo persista. */
+  @Output() positionsChange = new EventEmitter<ElementPositions>();
+
+  /** Estado de arrastre para dibujar guías. */
+  dragging = false;
+  guides: { x?: number; y?: number } | null = null;
+
+  get isMobilePos(): boolean {
+    if (this.previewDevice) return this.previewDevice === 'mobile';
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  /** Estilo de posicionamiento del wrapper de la frase (DragBox host). */
+  phraseWrapStyle(): Record<string, string> {
+    return posStyle('phrase', this.config.positions, this.isMobilePos);
+  }
+
+  /** Devuelve la posición cruda guardada de la frase (para preservar el ancho). */
+  introPosData(key: string): ElementPosition | null {
+    const positions = this.config.positions;
+    if (!positions) return null;
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const other = this.isMobilePos ? 'desktop' : 'mobile';
+    return positions[dev]?.[key] ?? positions[other]?.[key] ?? null;
+  }
+
+  /** Persiste la nueva posición de un elemento en el dispositivo activo y emite el cambio. */
+  onPosChange(key: string, pos: ElementPosition) {
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const positions: ElementPositions = { ...(this.config.positions || {}) };
+    positions[dev] = { ...(positions[dev] || {}), [key]: pos };
+    this.config.positions = positions;
+    this.positionsChange.emit(positions);
+  }
+
+  /** Click en el overlay: en modo edición NO salta (solo compone); fuera, mantiene onTap(). */
+  onOverlayClick() {
+    if (this.editable) return;
+    this.onTap();
+  }
+
+  /** Frase como HTML confiable (ya sanitizada en backend). Cacheada por valor. */
+  safePhrase(): SafeHtml {
+    const html = this.config?.phraseHtml || '';
+    if (html !== this._safePhraseCache) {
+      this._safePhraseCache = html;
+      this._safePhraseValue = this.sanitizer.bypassSecurityTrustHtml(html);
+    }
+    return this._safePhraseValue;
+  }
+
+  // ===== Línea de carga (progress) =====
+  get progressVisible(): boolean {
+    return this.config.progressBar?.enabled !== false;
+  }
+  get progressThickness(): number {
+    return this.config.progressBar?.thickness ?? 2;
+  }
+  get progressWidth(): number {
+    return this.config.progressBar?.width ?? 200;
+  }
+  get progressStyle(): string {
+    return this.config.progressBar?.style || 'solid';
+  }
+  /** Color base de la barra (config propia o color del tema). */
+  get progressColor(): string {
+    return this.config.progressBar?.color || this.themeColor;
+  }
+  /** Fondo final de la barra según el estilo. */
+  get progressBg(): string {
+    const c = this.progressColor;
+    if (this.progressStyle === 'gradient') {
+      return `linear-gradient(90deg, ${c}00, ${c} 50%, ${c}00)`;
+    }
+    if (this.progressStyle === 'dashed') {
+      // El patrón de rayas se dibuja con currentColor en CSS; fijamos color para que
+      // currentColor lo tome. Devolvemos 'transparent' para no pisar el repeating-gradient.
+      return 'transparent';
+    }
+    // solid / glow usan color sólido.
+    return c;
+  }
+
   @Output() done = new EventEmitter<void>();
   @ViewChild('introVideo') introVideo?: ElementRef<HTMLVideoElement>;
   fading = false;
   particles: string[] = [];
   showPlayHint = false;
   loopKey = 0;
+  /** La barra de progreso solo anima cuando el timer ha arrancado, para que ambos
+      queden sincronizados (importante con video, cuyo timer arranca tras play()). */
+  progressStarted = false;
+  private videoReady = false;
   private timer: any;
   private timerStarted = false;
   private lastParticlesKey = '';
@@ -260,19 +420,42 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
       if (this.config.videoStart) {
         video.currentTime = this.config.videoStart;
       }
-      // Try autoplay — if blocked, show tap hint (only in non-loop mode)
+      // Try autoplay — if blocked, show tap hint (only in non-loop mode).
+      // El play() arranca aunque la intro aún esté en precarga (oculta tras el envelope),
+      // así el primer frame ya está pintado cuando se activa. El timer/animación solo
+      // arrancan cuando la intro está activa (onActivated lo gestiona).
       video.play().then(() => {
         this.startVideoMonitor();
-        this.startTimer();
+        this.videoReady = true;
+        if (this.active) this.startTimer();
       }).catch(() => {
+        this.videoReady = true;
         if (this.previewLoop) {
-          // In builder preview, start timer anyway even if video can't play
-          this.startTimer();
-        } else {
+          if (this.active) this.startTimer();
+        } else if (this.active) {
           this.showPlayHint = true;
         }
       });
     }
+  }
+
+  /** Se llama cuando la intro pasa de precarga a activa (envelope terminó). Arranca el
+      timer y, si el video no pudo autoreproducir, muestra el hint de toque. */
+  private onActivated() {
+    if (this.config.background && this.isVideo(this.config.background)) {
+      const video = this.introVideo?.nativeElement;
+      if (video) {
+        // Reiniciar al inicio del segmento para que la intro empiece desde el principio.
+        video.currentTime = this.config.videoStart || 0;
+        video.play().then(() => this.startTimer()).catch(() => {
+          if (this.previewLoop) this.startTimer();
+          else this.showPlayHint = true;
+        });
+        return;
+      }
+    }
+    // Imagen/gif/sin fondo: arrancar timer directo.
+    this.startTimer();
   }
 
   onTap() {
@@ -290,12 +473,21 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   }
 
   private startVideoMonitor() {
-    // Stop video at videoEnd and loop back to videoStart
-    if (!this.config.videoEnd || !this.introVideo?.nativeElement) return;
+    if (!this.introVideo?.nativeElement) return;
     const video = this.introVideo.nativeElement;
+    const end = this.config.videoEnd || null;
     const checkEnd = () => {
-      if (video.currentTime >= (this.config.videoEnd || video.duration)) {
-        video.currentTime = this.config.videoStart || 0;
+      const limit = end ?? video.duration;
+      if (!limit) return;
+      if (video.currentTime >= limit) {
+        if (this.previewLoop) {
+          // En el canvas: reiniciar el segmento (loop continuo mientras se previsualiza).
+          video.currentTime = this.config.videoStart || 0;
+        } else {
+          // En la landing real: NO reiniciar, quedarse en el último frame del segmento.
+          video.currentTime = limit;
+          video.pause();
+        }
       }
     };
     video.addEventListener('timeupdate', checkEnd);
@@ -304,37 +496,43 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   private startTimer() {
     if (this.timerStarted) return;
     this.timerStarted = true;
+    this.progressStarted = true;
+    // En modo edición (canvas): la intro es configuración, no reproducción. Mostramos la
+    // barra de carga pero NO disparamos la transición de salida, para que nada desaparezca
+    // y se pueda editar/arrastrar la frase y ver la línea de carga de forma estática.
+    if (this.editable) return;
     const dur = this.effectiveDuration * 1000;
-    // Start transition slightly before the end so it overlaps with media still playing
-    const transitionDuration = 1000; // 1s animation
-    const triggerTime = Math.max(0, dur - transitionDuration);
+    // La transición de salida se dispara JUSTO cuando la barra de progreso termina
+    // (dur completo). La animación de fade (1.2s) ocurre encima, con el medio aún
+    // visible en su último frame, así nada se corta antes de tiempo.
     this.timer = setTimeout(() => {
       if (this.previewLoop) {
-        // Builder loop: transition out, show landing bg briefly, restart
+        // Canvas: transición de salida, breve pausa sobre el fondo, y reinicio del loop.
         this.fading = true;
-        // Wait for animation to complete (1s keyframe)
         setTimeout(() => {
           this.done.emit();
-          // Reset video while faded out
+          // Reiniciar el video mientras está desvanecido (solo en el canvas).
           if (this.introVideo?.nativeElement) {
             const video = this.introVideo.nativeElement;
             video.currentTime = this.config.videoStart || 0;
             video.play().catch(() => {});
           }
-          // Hold on landing background for 1s, then restart
           setTimeout(() => {
             this.loopKey++;
             this.fading = false;
             this.timerStarted = false;
-            this.startTimer();
+            // Reiniciar la barra: ocultarla un tick y volver a arrancarla con el timer
+            // en el siguiente ciclo para que la animación CSS parta desde 0.
+            this.progressStarted = false;
+            setTimeout(() => this.startTimer(), 50);
           }, 1000);
-        }, 1100);
+        }, 1200);
       } else {
-        // Normal landing: fade out and emit done
+        // Landing real: desvanecer y continuar (el medio se queda en su último frame).
         this.fading = true;
         setTimeout(() => this.done.emit(), 1200);
       }
-    }, triggerTime);
+    }, dur);
   }
 
   get effectiveDuration(): number {
@@ -393,9 +591,11 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
       this.particles = this.generateParticles(pc);
     }
 
-    // For images/GIF, start timer immediately. For video, timer starts after play succeeds.
+    // Imágenes/GIF: arrancar el timer solo si la intro ya está activa. Si se montó en
+    // precarga (detrás del envelope), el timer arrancará al activarse (onActivated).
+    // Para video, el timer arranca tras play() + active.
     if (!this.config.background || !this.isVideo(this.config.background)) {
-      this.startTimer();
+      if (this.active) this.startTimer();
     }
   }
 

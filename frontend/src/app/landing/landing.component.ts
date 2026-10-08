@@ -132,9 +132,12 @@ import { SectionStyle } from '../core/models/models';
         <app-landing-envelope [config]="data()!.config.envelope" [globalStyles]="data()!.config.globalStyles" (done)="onEnvelopeOpened()" />
       }
 
-      <!-- Intro -->
-      @if (showIntro() && !showEnvelope() && data()!.config.intro.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" [themeTexture]="data()!.config.theme.landingBgTexture || 'none'" [themeTextureOpacity]="data()!.config.theme.landingBgTextureOpacity || 5" (done)="showIntro.set(false)" />
+      <!-- Intro: se MONTA desde el inicio si está habilitada (incluso mientras el envelope
+           está visible) para precargar el video/gif y evitar el frame en blanco. Queda oculta
+           tras el envelope hasta que éste termina; recién entonces se "activa" (arranca timer
+           y animación de entrada). -->
+      @if (data()!.config.intro.enabled && (showIntro() || showEnvelope())) {
+        <app-landing-intro [config]="data()!.config.intro" [active]="showIntro() && !showEnvelope()" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" [themeTexture]="data()!.config.theme.landingBgTexture || 'none'" [themeTextureOpacity]="data()!.config.theme.landingBgTextureOpacity || 5" (done)="showIntro.set(false)" />
       }
 
       @if (!showIntro() && !showEnvelope()) {
@@ -342,7 +345,9 @@ import { SectionStyle } from '../core/models/models';
     .landing-bg-video.visible { opacity: 1; }
     .landing-bg-overlay {
       position: fixed; z-index: 3;
-      background: rgba(0,0,0,0.55);
+      /* Sin velo oscuro: la imagen de fondo global se muestra a plena luz (igual que el
+         canvas). El overlay se mantiene transparente para no alterar z-index/banner. */
+      background: transparent;
       /* Match bg extension */
       top: -15vh;
       left: -5vw;
@@ -435,6 +440,28 @@ import { SectionStyle } from '../core/models/models';
     .section-block[style*="--section-content-color"] ::ng-deep .venue-name,
     .section-block[style*="--section-content-color"] ::ng-deep .venue-address {
       color: var(--section-content-color) !important;
+    }
+    /* Fondo de sección en modo BANNER.
+       Móvil (prioridad): la imagen CUBRE el ancho y el alto de la sección (cover). Para que
+       SIEMPRE abarque el alto de la pantalla por defecto, la sección con imagen de fondo toma
+       min-height del viewport; así no quedan huecos con el fondo de la landing entre secciones.
+       En secciones altas (muchas cards) el usuario ajusta/quita el fondo él mismo.
+       Escritorio (≥768px): columna centrada del ancho --sec-banner-w (se afina después). */
+    .section-block[style*="--sec-bg-image"] {
+      background-image: var(--sec-bg-image);
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      min-height: 100svh;
+    }
+    @media (min-width: 768px) {
+      .section-block[style*="--sec-banner-w"] {
+        /* La imagen se escala al % del ancho del bloque (columna centrada); el slider
+           --sec-banner-w controla ese ancho. */
+        background-size: var(--sec-banner-w, 70%) auto;
+        background-position: top center;
+      }
     }
     .section-bg-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.5); pointer-events: none;
@@ -951,7 +978,14 @@ export class LandingComponent implements OnInit, OnDestroy {
         css = `background: radial-gradient(ellipse at center, ${style.bgColor1 || '#ffffff'} ${(style.bgIntensity ?? 50)}%, ${style.bgColor2 || '#f0f0f0'})`;
         break;
       case 'image':
-        css = `background: url(${style.bgImage}) center/cover no-repeat`;
+        if (style.bgFit === 'banner') {
+          // Banner: la imagen se centra a su proporción (ajustada al alto). El ancho visible
+          // de la columna lo controla una media query de escritorio con --sec-banner-w.
+          // En móvil cae a cover (ver CSS .section-block con --sec-bg-image).
+          css = `--sec-bg-image: url(${style.bgImage}); --sec-banner-w: ${style.bgBannerWidth ?? 70}%`;
+        } else {
+          css = `background: url(${style.bgImage}) center/cover no-repeat`;
+        }
         break;
     }
     // Section Heading (H2) overrides
