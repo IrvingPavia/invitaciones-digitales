@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { HeroConfig, Event, ElementPosition, ElementPositions } from '../../../core/models/models';
 import { posStyle } from '../../../core/utils/element-position.util';
+import { resolveMedia, ResolvedMedia } from '../../../core/utils/media-background.util';
 import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
 @Component({
@@ -48,6 +49,18 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
     <!-- Hero Section -->
     <section id="hero" class="hero-section" data-drag-bounds>
+      <!-- Fondo propio de la carátula (scrollea con la sección). Si no hay media propia, la
+           sección queda transparente y deja ver el fondo global de la landing (retrocompatible). -->
+      @if (heroBg().hasMedia) {
+        @if (heroBg().isVideo) {
+          <video class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.object-position]="heroBg().position" [src]="heroBg().url" autoplay loop muted playsinline></video>
+        } @else {
+          <div class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.background-image]="'url(' + heroBg().url + ')'" [style.background-position]="heroBg().position"></div>
+        }
+        @if (heroBg().overlay > 0) {
+          <div class="hero-bg-overlay" [style.opacity]="heroBg().overlay / 100"></div>
+        }
+      }
       <div class="hero-content">
         @if (config.eventDescription) {
         <app-drag-box [editable]="editable" [position]="heroPosData('eventType')" [ngStyle]="heroPos('eventType')" (positionChange)="onPosChange('eventType', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
@@ -198,8 +211,30 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       display: flex; align-items: center; justify-content: center;
       text-align: center; padding: 80px 20px 40px;
       position: relative;
+      overflow: hidden; /* confina el fondo propio de la carátula */
     }
-    .hero-content { max-width: 800px; }
+    /* Fondo propio de la carátula: capa dentro de la sección (scrollea con ella). */
+    .hero-bg-media {
+      position: absolute; inset: 0; z-index: 0;
+      width: 100%; height: 100%;
+      background-size: cover; background-position: center center; background-repeat: no-repeat;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    @media (min-width: 768px) {
+      /* Modo banner (desktop): columna centrada del ancho configurado. */
+      .hero-bg-media.bg-banner {
+        left: 50%; right: auto; transform: translateX(-50%);
+        width: var(--banner-w, 70%);
+        background-size: cover;
+      }
+    }
+    .hero-bg-overlay {
+      position: absolute; inset: 0; z-index: 0;
+      background: #000; pointer-events: none;
+    }
+    /* El contenido de la carátula va por encima del fondo propio. */
+    .hero-content { max-width: 800px; position: relative; z-index: 1; }
     .hero-event-type {
       letter-spacing: 6px; text-transform: uppercase;
       margin-bottom: 32px;
@@ -302,6 +337,17 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   get isMobilePos(): boolean {
     if (this.previewDevice) return this.previewDevice === 'mobile';
     return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  /** True si el ancho actual (o previewDevice) es escritorio, para elegir override de media. */
+  private get isDesktopMedia(): boolean {
+    if (this.previewDevice) return this.previewDevice === 'desktop';
+    return typeof window !== 'undefined' && window.innerWidth >= 768;
+  }
+
+  /** Fondo propio de la carátula resuelto para el dispositivo activo (override desktop incluido). */
+  heroBg(): ResolvedMedia {
+    return resolveMedia(this.config?.heroBackground, this.isDesktopMedia);
   }
 
   /** Estilo de posicionamiento para un elemento de la caratula. */

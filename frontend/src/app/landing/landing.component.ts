@@ -80,7 +80,8 @@ import { LandingGiftsComponent } from './sections/gifts/gifts.component';
 import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
 import { LandingRegisterComponent } from './sections/register/register.component';
 import { SectionDividerComponent } from './components/section-divider.component';
-import { SectionStyle } from '../core/models/models';
+import { SectionStyle, MediaBackground } from '../core/models/models';
+import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMedia } from '../core/utils/media-background.util';
 
 @Component({
   selector: 'app-landing',
@@ -117,14 +118,17 @@ import { SectionStyle } from '../core/models/models';
       @if (data()!.config.theme.landingBgTexture && data()!.config.theme.landingBgTexture !== 'none') {
         <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme.landingBgTexture" [style.opacity]="(data()!.config.theme.landingBgTextureOpacity || 5) / 100"></div>
       }
-      <!-- Hero background media (fades in after intro) -->
-      @if (data()!.config.hero.backgroundGif) {
-        @if (isVideoBackground()) {
-          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
+      <!-- Fondo GLOBAL fijo (fades in after intro). Usa theme.landingBg con fallback a
+           hero.backgroundGif (retrocompatible). Resuelto por dispositivo (override desktop). -->
+      @if (globalBgResolved().hasMedia) {
+        @if (globalBgResolved().isVideo) {
+          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [src]="globalBgResolved().url" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
         } @else {
-          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [style.backgroundImage]="'url(' + globalBgResolved().url + ')'"></div>
         }
-        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'"></div>
+        @if (globalBgResolved().overlay > 0) {
+          <div class="landing-bg-overlay landing-bg-dark" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [style.opacity]="(!showEnvelope() && !showIntro() && bgLoaded) ? (globalBgResolved().overlay / 100) : 0"></div>
+        }
       }
 
       <!-- Envelope -->
@@ -150,8 +154,11 @@ import { SectionStyle } from '../core/models/models';
           @if (data()!.config.invitation.sectionStyle?.dividerType && data()!.config.invitation.sectionStyle?.dividerType !== 'none') {
             <app-section-divider [type]="data()!.config.invitation.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.invitation.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.invitation.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.invitation.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.invitation.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.invitation.sectionStyle!.dividerStrokeOpacity ?? 1" />
           }
-          @if (data()!.config.invitation.sectionStyle?.bgImage && data()!.config.invitation.sectionStyle?.bgType === 'image') {
-            <div class="section-bg-overlay" [style.opacity]="(data()!.config.invitation.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+          @if (sectionMedia(data()!.config.invitation.sectionStyle).isVideo) {
+            <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.invitation.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.invitation.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.invitation.sectionStyle).url" autoplay loop muted playsinline></video>
+          }
+          @if (sectionMedia(data()!.config.invitation.sectionStyle).hasMedia && sectionMedia(data()!.config.invitation.sectionStyle).overlay > 0) {
+            <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.invitation.sectionStyle).overlay / 100"></div>
           }
           <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
             <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" />
@@ -162,8 +169,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.details.sectionStyle?.dividerType && data()!.config.details.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.details.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.details.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.details.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.details.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.details.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.details.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.details.sectionStyle?.bgImage && data()!.config.details.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.details.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.details.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.details.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.details.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.details.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.details.sectionStyle).hasMedia && sectionMedia(data()!.config.details.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.details.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.details.sectionStyle" />
@@ -175,8 +185,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.venues.sectionStyle?.dividerType && data()!.config.venues.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.venues.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.venues.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.venues.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.venues.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.venues.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.venues.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.venues.sectionStyle?.bgImage && data()!.config.venues.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.venues.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.venues.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.venues.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.venues.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.venues.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.venues.sectionStyle).hasMedia && sectionMedia(data()!.config.venues.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.venues.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.venues.sectionStyle" />
@@ -188,8 +201,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.itinerary.sectionStyle?.dividerType && data()!.config.itinerary.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.itinerary.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.itinerary.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.itinerary.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.itinerary.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.itinerary.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.itinerary.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.itinerary.sectionStyle?.bgImage && data()!.config.itinerary.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.itinerary.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.itinerary.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.itinerary.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.itinerary.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.itinerary.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.itinerary.sectionStyle).hasMedia && sectionMedia(data()!.config.itinerary.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.itinerary.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-itinerary [config]="data()!.config.itinerary" [items]="data()!.itinerary" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.itinerary.sectionStyle" />
@@ -201,8 +217,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.gallery.sectionStyle?.dividerType && data()!.config.gallery.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.gallery.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gallery.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gallery.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.gallery.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.gallery.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.gallery.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.gallery.sectionStyle?.bgImage && data()!.config.gallery.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.gallery.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.gallery.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.gallery.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.gallery.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.gallery.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.gallery.sectionStyle).hasMedia && sectionMedia(data()!.config.gallery.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.gallery.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-gallery [config]="data()!.config.gallery" [photos]="data()!.photos" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.gallery.sectionStyle" />
@@ -214,8 +233,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.dresscode.sectionStyle?.dividerType && data()!.config.dresscode.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.dresscode.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.dresscode.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.dresscode.sectionStyle?.bgImage && data()!.config.dresscode.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.dresscode.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.dresscode.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.dresscode.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.dresscode.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.dresscode.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.dresscode.sectionStyle).hasMedia && sectionMedia(data()!.config.dresscode.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.dresscode.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.dresscode.sectionStyle" />
@@ -227,8 +249,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.gifts.sectionStyle?.dividerType && data()!.config.gifts.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.gifts.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.gifts.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.gifts.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.gifts.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.gifts.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.gifts.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.gifts.sectionStyle?.bgImage && data()!.config.gifts.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.gifts.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.gifts.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.gifts.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.gifts.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.gifts.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.gifts.sectionStyle).hasMedia && sectionMedia(data()!.config.gifts.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.gifts.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-gifts [config]="data()!.config.gifts" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.gifts.sectionStyle" />
@@ -240,8 +265,11 @@ import { SectionStyle } from '../core/models/models';
             @if (data()!.config.rsvp.sectionStyle?.dividerType && data()!.config.rsvp.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.rsvp.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.rsvp.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.rsvp.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.rsvp.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.rsvp.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.rsvp.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (data()!.config.rsvp.sectionStyle?.bgImage && data()!.config.rsvp.sectionStyle?.bgType === 'image') {
-              <div class="section-bg-overlay" [style.opacity]="(data()!.config.rsvp.sectionStyle!.bgOverlay ?? 50) / 100"></div>
+            @if (sectionMedia(data()!.config.rsvp.sectionStyle).isVideo) {
+              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.rsvp.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.rsvp.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.rsvp.sectionStyle).url" autoplay loop muted playsinline></video>
+            }
+            @if (sectionMedia(data()!.config.rsvp.sectionStyle).hasMedia && sectionMedia(data()!.config.rsvp.sectionStyle).overlay > 0) {
+              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.rsvp.sectionStyle).overlay / 100"></div>
             }
             <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
               <app-landing-rsvp [config]="data()!.config.rsvp" [guest]="guest()!" [slug]="slug" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.rsvp.sectionStyle" />
@@ -364,7 +392,9 @@ import { SectionStyle } from '../core/models/models';
       opacity: 0;
       transition: opacity 1.2s ease;
     }
-    .landing-bg-overlay.visible { opacity: 1; }
+    /* El overlay global es transparente por defecto; con .landing-bg-dark pinta un velo negro
+       cuyo nivel lo controla la opacidad inline (overlay configurable de la media global). */
+    .landing-bg-overlay.landing-bg-dark { background: #000; }
     /* === MODO BANNER (columna angosta centrada) — solo desktop === */
     /* Imagenes verticales que se ven mal estiradas a pantalla completa se muestran como una
        columna centrada del ancho configurado, con la proporcion preservada (contain). */
@@ -470,6 +500,19 @@ import { SectionStyle } from '../core/models/models';
     .section-bg-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.5); pointer-events: none;
     }
+    /* Video de fondo por sección (scrollea con la sección). Cubre todo el bloque; el contenido
+       (.section-inner, z-index 1) va por encima. En banner (desktop) se recorta a columna. */
+    .section-bg-video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center center;
+      z-index: 0; pointer-events: none;
+    }
+    @media (min-width: 768px) {
+      .section-bg-video.bg-banner {
+        left: 50%; right: auto; transform: translateX(-50%);
+        width: var(--sec-banner-w, 70%);
+      }
+    }
     .section-inner { position: relative; z-index: 1; }
     .landing-footer {
       text-align: center;
@@ -554,9 +597,30 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   isVideoBackground(): boolean {
-    const url = this.data()?.config.hero.backgroundGif || '';
-    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
-    return ['mp4', 'webm', 'ogg'].includes(ext);
+    return this.globalBgResolved().isVideo;
+  }
+
+  /** True si el ancho actual es escritorio (breakpoint 768px, consistente con el banner). */
+  private isDesktopWidth(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth >= 768;
+  }
+
+  /** Media resuelta del fondo de una sección (nuevo modelo `media` con fallback a los campos
+      legacy bgImage/bgFit/bgBannerWidth/bgOverlay). Para soportar video por sección. */
+  sectionMedia(ss: SectionStyle | undefined | null): ResolvedMedia {
+    return resolveMedia(sectionStyleToMedia(ss), this.isDesktopWidth());
+  }
+
+  /** MediaBackground del fondo GLOBAL: usa theme.landingBg; si no, cae a hero.backgroundGif. */
+  globalBg(): MediaBackground | null {
+    const cfg = this.data()?.config;
+    if (!cfg) return null;
+    return resolveGlobalBackground(cfg.theme?.landingBg, cfg.hero?.backgroundGif);
+  }
+
+  /** Fondo global resuelto para el dispositivo activo (url efectiva, isVideo, fit, etc.). */
+  globalBgResolved(): ResolvedMedia {
+    return resolveMedia(this.globalBg(), this.isDesktopWidth());
   }
 
   getLandingBg(): string {
@@ -592,12 +656,16 @@ export class LandingComponent implements OnInit, OnDestroy {
     return this.data()?.config.theme?.landingBgColor1 || '#0d1117';
   }
 
-  /** Modo banner (columna angosta centrada) del fondo global en desktop */
+  /** Modo banner (columna angosta centrada) del fondo global en desktop.
+      Deriva del fit de la media resuelta (nuevo modelo) o del landingBgFit legacy. */
   isBgBanner(): boolean {
+    if (this.globalBgResolved().fit === 'banner') return true;
     return this.data()?.config.theme?.landingBgFit === 'banner';
   }
   /** Ancho del banner como % del ancho de la ventana (10-100). 100% = pantalla completa. */
   bannerWidth(): number {
+    const r = this.globalBgResolved();
+    if (r.fit === 'banner' && r.bannerWidth) return r.bannerWidth;
     return this.data()?.config.theme?.landingBgBannerWidth || 70;
   }
 
@@ -671,20 +739,20 @@ export class LandingComponent implements OnInit, OnDestroy {
         this.applyScrollbarColor(d.config.theme.cardBorder || '#d4a017');
         this.applyFavicon(d.config.favicon);
         this.applyTitle(d.event.name);
-        // Preload background media so it doesn't render partially
+        // Preload background media so it doesn't render partially.
+        // Usa el fondo GLOBAL resuelto (theme.landingBg con fallback a hero.backgroundGif).
+        const gbg = this.globalBgResolved();
         if (inBuilder) {
           // In builder mode, show bg immediately
           this.bgLoaded = true;
-        } else if (d.config.hero.backgroundGif) {
-          const url = d.config.hero.backgroundGif;
-          const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
-          if (['mp4', 'webm', 'ogg'].includes(ext)) {
+        } else if (gbg.hasMedia) {
+          if (gbg.isVideo) {
             // Video: bgLoaded will be set by (canplaythrough) event on the <video> element
           } else {
             // Image/GIF: preload with Image object
             const img = new Image();
             img.onload = () => { this.bgLoaded = true; };
-            img.src = url;
+            img.src = gbg.url;
           }
         } else {
           this.bgLoaded = true;
@@ -693,9 +761,14 @@ export class LandingComponent implements OnInit, OnDestroy {
         if (d.config.intro.enabled && d.config.intro.background) {
           this.preloadMedia(d.config.intro.background);
         }
-        // Preload hero background ahead of time
-        if (d.config.hero.backgroundGif) {
-          this.preloadMedia(d.config.hero.backgroundGif);
+        // Preload global background ahead of time (fondo global resuelto)
+        if (gbg.hasMedia) {
+          this.preloadMedia(gbg.url);
+        }
+        // Preload hero's own background (carátula) si tiene media propia
+        const hbg = resolveMedia(d.config.hero?.heroBackground, this.isDesktopWidth());
+        if (hbg.hasMedia) {
+          this.preloadMedia(hbg.url);
         }
         if (code) {
           this.api.getGuestByCode(this.slug, code).subscribe({
@@ -981,16 +1054,19 @@ export class LandingComponent implements OnInit, OnDestroy {
       case 'radial':
         css = `background: radial-gradient(ellipse at center, ${style.bgColor1 || '#ffffff'} ${(style.bgIntensity ?? 50)}%, ${style.bgColor2 || '#f0f0f0'})`;
         break;
-      case 'image':
-        if (style.bgFit === 'banner') {
-          // Banner: la imagen se centra a su proporción (ajustada al alto). El ancho visible
-          // de la columna lo controla una media query de escritorio con --sec-banner-w.
-          // En móvil cae a cover (ver CSS .section-block con --sec-bg-image).
-          css = `--sec-bg-image: url(${style.bgImage}); --sec-banner-w: ${style.bgBannerWidth ?? 70}%`;
+      case 'image': {
+        // Resolver la media (nuevo modelo con fallback legacy). Si es VIDEO, no se pinta
+        // background-image: la capa <video> de la sección (ver template) lo renderiza.
+        const m = this.sectionMedia(style);
+        if (!m.hasMedia || m.isVideo) { css = ''; break; }
+        if (m.fit === 'banner') {
+          // Banner: columna centrada; el ancho lo controla la media query con --sec-banner-w.
+          css = `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%`;
         } else {
-          css = `background: url(${style.bgImage}) center/cover no-repeat`;
+          css = `background: url(${m.url}) ${m.position || 'center'}/cover no-repeat`;
         }
         break;
+      }
     }
     // Section Heading (H2) overrides
     if (style.sectionHeadingColor) css += `; --section-h2-color: ${style.sectionHeadingColor}`;

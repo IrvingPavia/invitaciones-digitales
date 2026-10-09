@@ -26,13 +26,15 @@
   fallback a hero.backgroundGif).
 
 ## Fase 3 — Render landing
-- [ ] 9. Fondo global: alimentar `.landing-bg`/`.landing-bg-video` desde `theme.landingBg` vía
-  `resolveMedia`; fallback a `hero.backgroundGif` si vacío. Mantener fijo + svh.
-- [ ] 10. Carátula: renderizar capa de fondo propia dentro de `.hero-section` (imagen/gif como
-  background-image o `<video>` para video), que SCROLLEA con la carátula. Fallback: sin fondo
-  propio deja ver el global. (hero.component.ts)
-- [ ] 11. Secciones: extender el render para soportar VIDEO por sección (hoy solo imagen) usando
-  `resolveMedia(sectionStyle.media ?? fallback)`. Mantener overlay y banner.
+- [x] 9. Fondo global: `.landing-bg`/`.landing-bg-video` desde `theme.landingBg` vía
+  `resolveMedia`/`resolveGlobalBackground`; fallback a `hero.backgroundGif`. Fijo + svh. Overlay
+  global configurable (clase `.landing-bg-dark`). Preload actualizado a la media resuelta.
+- [x] 10. Carátula: capa `.hero-bg-media` (+`.hero-bg-overlay`) dentro de `.hero-section` que
+  SCROLLEA; imagen/gif como background-image o `<video>` para video; banner en desktop. Fallback:
+  sin `heroBackground` deja ver el global. `.hero-content` z-index 1. (hero.component.ts)
+- [x] 11. Secciones: soporte de VIDEO por sección (`.section-bg-video`) en las 8 secciones, vía
+  `sectionMedia()` (= `resolveMedia(sectionStyleToMedia(ss))`). `getSectionBg` no pinta imagen si
+  la media es video. Overlay y banner conservados.
 
 ## Fase 4 — Builder (control reutilizable)
 - [ ] 12. Crear `BackgroundControlComponent` (sub-componente del props-panel): tipo de fondo +
