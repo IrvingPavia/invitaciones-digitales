@@ -98,9 +98,17 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     - **Fase 4 HECHA (2026-10-09):** `BackgroundControlComponent`
       (`builder/components/background-control/`) con upload img/gif/video + validación tamaño por
       tipo (10/15/25) + tooltip + toggle override desktop + ajuste. Integrado en Tema Global,
-      Carátula y Fondo de Sección. Canvas: `canvasGlobalBg()`/`canvasSectionMedia()`. Build OK.
+      Carátula y Fondo de Sección. Canvas: `canvasGlobalBg()`/`canvasSectionMedia()`.
       LIMITACIÓN: canvas no pinta video de fondo por sección (sí en preview/landing).
-      SIGUIENTE: Fase 5 (backend uploads: límites por tipo en Multer + doc nginx host 25m).
+    - **Fase 5 HECHA (2026-10-09):** backend `uploads.js` con límites por tipo (SIZE_LIMITS_MB:
+      image 10/gif 15/video 25/audio 15), valida y devuelve 413 si excede. Frontend ya validaba.
+      `docs/DEPLOY.md` actualizado: nginx host `client_max_body_size 25m` + tabla de límites.
+    - **Fase 6 HECHA (2026-10-09):** verificado que ensureConfigDefaults preserva los nuevos
+      campos y que Valeria no tiene regresión (usa backgroundGif como fondo global fallback).
+      Contenedores reconstruidos, landing HTTP 200.
+    - **SPEC fondos-independientes COMPLETO (todas las fases 0-6).** Pendiente: verificación visual
+      del usuario en navegador/móvil + ajustar `client_max_body_size 25m` en el nginx del server
+      prod cuando se despliegue.
 
 ### Features en curso / pendientes concretos
 

@@ -51,20 +51,21 @@
   si la sección usa video, en el canvas queda transparente (deja ver el global). Aceptable.
 
 ## Fase 5 — Uploads: límites por tipo + validación
-- [ ] 15. Frontend: validar tamaño por extensión antes de subir (img 10MB / gif 15MB / video
-  25MB); leyenda de error bajo el control si excede; no subir.
-- [ ] 16. Backend `uploads.js`: reemplazar `fileSize: 50MB` único por límites por tipo (10/15/25)
-  con mensaje de error claro.
-- [ ] 17. Tooltips de ayuda en cada upload con formatos permitidos + dimensiones + peso recomendado.
-- [ ] 18. Documentar en `docs/DEPLOY.md` / `docs/MIGRATIONS.md`: `client_max_body_size 25m` en el
-  nginx del HOST en prod + alinear nginx del contenedor.
+- [x] 15. Frontend: `BackgroundControlComponent` valida tamaño por extensión antes de subir
+  (img 10MB / gif 15MB / video 25MB); leyenda de error bajo el control; no sube si excede.
+- [x] 16. Backend `uploads.js`: `SIZE_LIMITS_MB` por tipo (image 10/gif 15/video 25/audio 15);
+  multer tope en el mayor y validación específica por tipo en el handler (borra y 413 si excede).
+- [x] 17. Tooltips de ayuda en el control (formatos + dimensiones + peso recomendado por tipo).
+- [x] 18. Documentado en `docs/DEPLOY.md`: `client_max_body_size 25m` en nginx del HOST + nota
+  del 413 + tabla de límites por tipo.
 
 ## Fase 6 — Retrocompatibilidad y verificación
-- [ ] 19. Verificar que `ensureConfigDefaults` preserva los nuevos sub-objetos (theme.landingBg,
-  hero.heroBackground, sectionStyle.media) sin recortarlos.
-- [ ] 20. Verificar que invitaciones existentes (Valeria) se ven igual (fondo global desde
-  `backgroundGif`, carátula hereda) — sin regresión en canvas, preview y landing.
-- [ ] 21. Build + reconstruir contenedores + verificación visual (canvas, preview, móvil real).
+- [x] 19. Verificado: `ensureConfigDefaults` preserva theme.landingBg, hero.heroBackground y
+  sectionStyle.media (probado con node).
+- [x] 20. Verificado: Valeria NO tiene los campos nuevos y sigue usando `hero.backgroundGif` como
+  fondo global (fallback). Landing HTTP 200. Sin regresión.
+- [x] 21. Build OK + backend/frontend reconstruidos + endpoint público verificado. (Verificación
+  visual en navegador/móvil la hace el usuario.)
 
 ## Notas
 - Mantener la lógica de `isDesktop` consistente con el banner actual (breakpoint 768px).
