@@ -58,6 +58,31 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
   ven); velo oscuro global eliminado; countdown en px fijo; `--canvas-vh` robusto; fondo de
   sección banner mobile = cover + min-height de pantalla. Todo ya commiteado.
 
+- **Trabajo de la sesión 2026-10-09 (EN CURSO, revisar antes de seguir):**
+  - **Tema 1 (fix salto de fondo en móvil) — HECHO, sin commitear aún:** cambiado `dvh`→`svh` en
+    las capas de fondo global (`.landing-bg`, `.landing-bg-video`, `.landing-bg-overlay`,
+    `.landing-bg-solid`, `.landing-bg-texture`) en `landing.component.ts`, y `.hero-section`
+    homologada a `min-height:100svh` en `hero.component.ts`. Causa: `dvh` recalcula al
+    mostrar/ocultar la barra del navegador en Chrome Android → saltaba el fondo fixed. Build OK.
+    FALTA: reconstruir frontend + verificar en móvil real + commitear.
+  - **Tema 2 (fondos independientes) — SPEC CREADO en `.kiro/specs/fondos-independientes/`
+    (requirements.md, design.md, tasks.md). Implementación NO empezada.** Resumen de lo acordado:
+    - Fondo GLOBAL de la landing = única capa FIJA (ambientación). Carátula y secciones tendrán
+      su propia media que SCROLLEA con su contenido (la carátula pasa a tener fondo propio).
+    - Modelo HÍBRIDO mobile/desktop (opción 2): imagen BASE para ambos + toggle "Imagen distinta
+      para escritorio" (override solo desktop; mobile usa base). No duplicar toda la config.
+    - Homologar TODOS los fondos (global, carátula, sección) con mismos controles y soporte
+      imagen/GIF/VIDEO (hoy las secciones solo soportan imagen; el global sí distingue video).
+    - Límites de subida POR TIPO: imagen 10MB, gif 15MB, video 25MB (recomendado mucho menos).
+      Alinear Multer + nginx del contenedor + nginx del HOST prod (`client_max_body_size 25m`).
+    - Validación en frontend antes de subir + tooltips con formatos/dimensiones/peso.
+    - Retrocompatible: campos nuevos opcionales; si no hay `theme.landingBg`, usar
+      `hero.backgroundGif` como global (como hoy). No romper Valeria ni prod.
+    - Plan en `tasks.md`: Fase 0 (Tema1 ✅) → Fase 1 modelo (MediaBackground, theme.landingBg,
+      hero.heroBackground, sectionStyle.media) → Fase 2 helper resolveMedia → Fase 3 render
+      (global/carátula/secciones) → Fase 4 builder (BackgroundControlComponent reutilizable) →
+      Fase 5 uploads límites+validación → Fase 6 retrocompat+verificación.
+
 ### Features en curso / pendientes concretos
 
 1. **Spec `canvas-posicionamiento`**: drag en Plano/Intro/Carátula ✅, reset de tamaño ✅.
