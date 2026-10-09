@@ -15,7 +15,9 @@ import { gsap } from 'gsap';
         <div class="lh-nav-links">
           <a href="#features">Funciones</a>
           <a href="#how">Cómo funciona</a>
+          <a routerLink="/paquetes">Paquetes</a>
           <a href="#showcase">Showcase</a>
+          <a routerLink="/registro" class="lh-nav-cta-secondary">Registrarse</a>
           <a routerLink="/login" class="lh-nav-cta">Iniciar sesión</a>
         </div>
       </nav>
@@ -186,6 +188,8 @@ import { gsap } from 'gsap';
     .lh-nav-links { display: flex; align-items: center; gap: 28px; }
     .lh-nav-links a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
     .lh-nav-links a:hover { color: white; }
+    .lh-nav-cta-secondary { color: white !important; padding: 9px 22px; border-radius: 10px; font-weight: 600 !important; border: 1px solid rgba(139,92,246,0.4); transition: all 0.2s; }
+    .lh-nav-cta-secondary:hover { border-color: rgba(139,92,246,0.8); background: rgba(139,92,246,0.1); }
     .lh-nav-cta { background: linear-gradient(135deg, var(--gold), var(--gold-light)) !important; color: white !important; padding: 9px 22px; border-radius: 10px; font-weight: 600 !important; }
 
     /* Hero */

@@ -1,15 +1,19 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, inject, Input, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ColorPickerComponent } from '../../../../../core/components/color-picker.component';
+import { CustomSelectComponent, SelectOption } from '../../../../../core/components/custom-select.component';
+import { WheelTimePickerComponent } from '../../../../../core/components/wheel-time-picker.component';
+import { WheelDatePickerComponent } from '../../../../../core/components/wheel-date-picker.component';
+import { RichTextEditorComponent } from '../../../../../core/components/rich-text-editor.component';
 import { CanvasStateService } from '../../services/canvas-state.service';
 import { ApiService } from '../../../../../core/services/api.service';
 
 @Component({
   selector: 'app-builder-props-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent, WheelDatePickerComponent, RichTextEditorComponent],
   template: `
     <div class="props-panel-content">
       <!-- Section badge -->
@@ -32,12 +36,28 @@ import { ApiService } from '../../../../../core/services/api.service';
         </div>
         @if (expanded['tpl']) {
           <div class="accordion-body">
-            <div class="tpl-grid-2x2">
-              <div class="tpl-card" (click)="applyTemplate('elegante');$event.stopPropagation()"><span>Elegante</span></div>
-              <div class="tpl-card" (click)="applyTemplate('moderno');$event.stopPropagation()"><span>Moderno</span></div>
-              <div class="tpl-card" (click)="applyTemplate('romantico');$event.stopPropagation()"><span>Romantico</span></div>
-              <div class="tpl-card" (click)="applyTemplate('festivo');$event.stopPropagation()"><span>Festivo</span></div>
-              <div class="tpl-card" (click)="applyTemplate('corporativo');$event.stopPropagation()"><span>Corporativo</span></div>
+            <p class="tpl-hint">Selecciona un template para reemplazar todos los colores y fuentes. Los contenidos no se modifican.</p>
+            <div class="tpl-grid-preview">
+              <div class="tpl-preview-card" (click)="applyTemplate('elegante');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #0d1117, #1a1a2e); border-color:rgba(212,160,23,0.3)"><span style="color:#d4a017">Aa</span></div>
+                <span class="tpl-preview-label">Elegante</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('moderno');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #1e1e32, #2d2d44); border-color:rgba(167,139,250,0.3)"><span style="color:#a78bfa">Aa</span></div>
+                <span class="tpl-preview-label">Moderno</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('romantico');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #2d1525, #1a0a14); border-color:rgba(244,167,193,0.3)"><span style="color:#f4a7c1">Aa</span></div>
+                <span class="tpl-preview-label">Romántico</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('festivo');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #1a1a2e, #2d2200); border-color:rgba(251,191,36,0.3)"><span style="color:#fbbf24">Aa</span></div>
+                <span class="tpl-preview-label">Festivo</span>
+              </div>
+              <div class="tpl-preview-card" (click)="applyTemplate('corporativo');$event.stopPropagation()">
+                <div class="tpl-preview-swatch" style="background:linear-gradient(135deg, #0f172a, #1e293b); border-color:rgba(96,165,250,0.3)"><span style="color:#60a5fa">Aa</span></div>
+                <span class="tpl-preview-label">Corporativo</span>
+              </div>
             </div>
           </div>
         }
@@ -48,10 +68,22 @@ import { ApiService } from '../../../../../core/services/api.service';
         @if (expanded['colors']) {
           <div class="accordion-body">
             <div class="pf"><label>Texto primario</label><app-color-picker [value]="cfg()!.theme.textPrimary || '#fff'" (valueChange)="setTheme('textPrimary', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente primaria</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.textPrimaryFont || ''" (valueChange)="setTheme('textPrimaryFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Texto secundario</label><app-color-picker [value]="cfg()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" (valueChange)="setTheme('textSecondary', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente secundaria</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.textSecondaryFont || ''" (valueChange)="setTheme('textSecondaryFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Acento (nav/footer)</label><app-color-picker [value]="cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setTheme('navFooterText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente nav/footer</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.navFooterFont || ''" (valueChange)="setTheme('navFooterFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Botones fondo</label><app-color-picker [value]="cfg()!.theme.buttonBg || '#d4a017'" (valueChange)="setTheme('buttonBg', $event)"></app-color-picker></div>
             <div class="pf"><label>Botones texto</label><app-color-picker [value]="cfg()!.theme.buttonText || '#1a1a2e'" (valueChange)="setTheme('buttonText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fuente botones</label>
+              <app-custom-select [options]="themeFontOptions" [value]="cfg()!.theme.buttonFont || ''" (valueChange)="setTheme('buttonFont', $event)"></app-custom-select>
+            </div>
             <div class="pf"><label>Fondo cards</label><app-color-picker [value]="cfg()!.theme.cardBg || 'rgba(255,255,255,0.05)'" (valueChange)="setTheme('cardBg', $event)"></app-color-picker></div>
             <div class="pf"><label>Borde cards</label><app-color-picker [value]="cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setTheme('cardBorder', $event)"></app-color-picker></div>
           </div>
@@ -65,15 +97,23 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="pf"><label>Color 1</label><app-color-picker [value]="cfg()!.theme.landingBgColor1 || '#0d1117'" (valueChange)="setTheme('landingBgColor1', $event)"></app-color-picker></div>
             <div class="pf"><label>Color 2</label><app-color-picker [value]="cfg()!.theme.landingBgColor2 || '#1a1a2e'" (valueChange)="setTheme('landingBgColor2', $event)"></app-color-picker></div>
             <div class="pf"><label>Tipo</label>
-              <select class="pinput" [ngModel]="cfg()!.theme.landingBgType || 'solid'" (ngModelChange)="setTheme('landingBgType', $event)">
-                <option value="solid">Solido</option><option value="linear">Lineal</option><option value="radial">Radial</option><option value="mesh">Difuminado</option>
-              </select>
+              <app-custom-select [options]="landingBgTypeOptions" [value]="cfg()!.theme.landingBgType || 'solid'" (valueChange)="setTheme('landingBgType', $event)"></app-custom-select>
             </div>
+            @if (cfg()!.theme.landingBgType === 'linear' || cfg()!.theme.landingBgType === 'mesh') {
+              <div class="pf"><label>Angulo ({{cfg()!.theme.landingBgAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="cfg()!.theme.landingBgAngle ?? 135" (ngModelChange)="setTheme('landingBgAngle', +$event)"></div>
+            }
+            @if (cfg()!.theme.landingBgType === 'linear') {
+              <div class="pf"><label>Intensidad ({{cfg()!.theme.landingBgIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="cfg()!.theme.landingBgIntensity ?? 50" (ngModelChange)="setTheme('landingBgIntensity', +$event)"></div>
+            }
+            @if (cfg()!.theme.landingBgType === 'radial' || cfg()!.theme.landingBgType === 'mesh') {
+              <div class="pf"><label>Intensidad ({{cfg()!.theme.landingBgIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="10" max="100" [ngModel]="cfg()!.theme.landingBgIntensity ?? 50" (ngModelChange)="setTheme('landingBgIntensity', +$event)"></div>
+            }
             <div class="pf"><label>Textura</label>
-              <select class="pinput" [ngModel]="cfg()!.theme.landingBgTexture || 'none'" (ngModelChange)="setTheme('landingBgTexture', $event)">
-                <option value="none">Ninguna</option><option value="noise">Noise</option><option value="grain">Grain</option><option value="dots">Dots</option><option value="lines">Lines</option><option value="cross">Cross</option><option value="paper">Paper</option><option value="linen">Linen</option><option value="stars">Stars</option>
-              </select>
+              <app-custom-select [options]="landingBgTextureOptions" [value]="cfg()!.theme.landingBgTexture || 'none'" (valueChange)="setTheme('landingBgTexture', $event)"></app-custom-select>
             </div>
+            @if (cfg()!.theme.landingBgTexture && cfg()!.theme.landingBgTexture !== 'none') {
+              <div class="pf"><label>Intensidad textura ({{cfg()!.theme.landingBgTextureOpacity || 5}}%)</label><input type="range" class="pinput-range" min="1" max="30" [ngModel]="cfg()!.theme.landingBgTextureOpacity || 5" (ngModelChange)="setTheme('landingBgTextureOpacity', +$event)"></div>
+            }
           </div>
         }
 
@@ -85,8 +125,97 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="btn-row">
               <button class="chip" [class.active]="!cfg()!.theme.scrollAnimation || cfg()!.theme.scrollAnimation === 'fade-up'" (click)="setTheme('scrollAnimation','fade-up');$event.stopPropagation()">Fade Up</button>
               <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'fade-in'" (click)="setTheme('scrollAnimation','fade-in');$event.stopPropagation()">Fade In</button>
+              <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'slide-left'" (click)="setTheme('scrollAnimation','slide-left');$event.stopPropagation()">Slide Left</button>
+              <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'slide-right'" (click)="setTheme('scrollAnimation','slide-right');$event.stopPropagation()">Slide Right</button>
               <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'scale'" (click)="setTheme('scrollAnimation','scale');$event.stopPropagation()">Scale</button>
               <button class="chip" [class.active]="cfg()!.theme.scrollAnimation === 'none'" (click)="setTheme('scrollAnimation','none');$event.stopPropagation()">Ninguna</button>
+            </div>
+          </div>
+        }
+
+        <div class="accordion" [class.open]="expanded['nav']" (click)="toggle('nav')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['nav'] ? 'expand_more' : 'chevron_right' }}</span><span>Navbar y Menu</span></div>
+        </div>
+        @if (expanded['nav']) {
+          <div class="accordion-body">
+            <span class="pf-section-title">Barra de Titulo</span>
+            <div class="pf"><label>Color fondo 1</label><app-color-picker [value]="cfg()!.theme.navBarBg1 || '#0d1117'" (valueChange)="setTheme('navBarBg1', $event)"></app-color-picker></div>
+            <div class="pf"><label>Color fondo 2 (degradado)</label><app-color-picker [value]="cfg()!.theme.navBarBg2 || ''" (valueChange)="setTheme('navBarBg2', $event)"></app-color-picker></div>
+            <div class="pf"><label>Opacidad fondo ({{cfg()!.theme.navBarOpacity ?? 85}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="cfg()!.theme.navBarOpacity ?? 85" (ngModelChange)="setTheme('navBarOpacity', +$event)"></div>
+            <div class="pf"><label>Desenfoque de fondo ({{cfg()!.theme.navBarBlur ?? 12}}px)</label><input type="range" class="pinput-range" min="0" max="30" [ngModel]="cfg()!.theme.navBarBlur ?? 12" (ngModelChange)="setTheme('navBarBlur', +$event)"></div>
+            <div class="pf"><label>Color texto titulo</label><app-color-picker [value]="cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setTheme('navFooterText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Color linea inferior</label><app-color-picker [value]="cfg()!.theme.navBarBorder || 'rgba(212,160,23,0.2)'" (valueChange)="setTheme('navBarBorder', $event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Menu de Navegacion</span>
+            <div class="pf"><label>Fondo menu</label><app-color-picker [value]="cfg()!.theme.navMenuBg || 'rgba(13,17,23,0.95)'" (valueChange)="setTheme('navMenuBg', $event)"></app-color-picker></div>
+            <div class="pf"><label>Blur menu ({{cfg()!.theme.navMenuBlur ?? 12}}px)</label><input type="range" class="pinput-range" min="0" max="30" [ngModel]="cfg()!.theme.navMenuBlur ?? 12" (ngModelChange)="setTheme('navMenuBlur', +$event)"></div>
+            <div class="pf"><label>Color texto menu</label><app-color-picker [value]="cfg()!.theme.navMenuText || 'rgba(255,255,255,0.8)'" (valueChange)="setTheme('navMenuText', $event)"></app-color-picker></div>
+            <div class="pf"><label>Fondo botones</label><app-color-picker [value]="cfg()!.theme.navBtnBg || 'rgba(255,255,255,0.1)'" (valueChange)="setTheme('navBtnBg', $event)"></app-color-picker></div>
+            <div class="pf"><label>Borde botones</label><app-color-picker [value]="cfg()!.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" (valueChange)="setTheme('navBtnBorder', $event)"></app-color-picker></div>
+            <div class="pf"><label>Color icono botones</label><app-color-picker [value]="cfg()!.theme.navBtnIcon || '#ffffff'" (valueChange)="setTheme('navBtnIcon', $event)"></app-color-picker></div>
+          </div>
+        }
+
+        <div class="accordion" [class.open]="expanded['global-styles']" (click)="toggle('global-styles')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['global-styles'] ? 'expand_more' : 'chevron_right' }}</span><span>Estilos Globales</span></div>
+        </div>
+        @if (expanded['global-styles']) {
+          <div class="accordion-body">
+            <span class="pf-section-title">Encabezados de Seccion</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.sectionHeadingStyle.fontFamily||'script'" (valueChange)="setGlobalStyle('sectionHeadingStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.sectionHeadingStyle.fontSize||36}}px)</label><input type="range" class="pinput-range" min="12" max="72" [ngModel]="cfg()!.globalStyles.sectionHeadingStyle.fontSize||36" (ngModelChange)="setGlobalStyle('sectionHeadingStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.sectionHeadingStyle.color||'#d4a017'" (valueChange)="setGlobalStyle('sectionHeadingStyle','color',$event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Titulos (Degradado)</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.titleStyle.fontFamily||'script'" (valueChange)="setGlobalStyle('titleStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.titleStyle.fontSize||42}}px)</label><input type="range" class="pinput-range" min="12" max="96" [ngModel]="cfg()!.globalStyles.titleStyle.fontSize||42" (ngModelChange)="setGlobalStyle('titleStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color 1</label><app-color-picker [value]="cfg()!.globalStyles.titleStyle.color||'#d4a017'" (valueChange)="setGlobalStyle('titleStyle','color',$event)"></app-color-picker></div>
+            <div class="pf"><label>Color 2</label><app-color-picker [value]="cfg()!.globalStyles.titleStyle.color2||'#f0c040'" (valueChange)="setGlobalStyle('titleStyle','color2',$event)"></app-color-picker></div>
+            <div class="pf"><label>Angulo ({{cfg()!.globalStyles.titleStyle.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="cfg()!.globalStyles.titleStyle.gradientAngle ?? 135" (ngModelChange)="setGlobalStyle('titleStyle','gradientAngle',+$event)"></div>
+            <div class="pf"><label>Intensidad ({{cfg()!.globalStyles.titleStyle.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="cfg()!.globalStyles.titleStyle.gradientIntensity ?? 50" (ngModelChange)="setGlobalStyle('titleStyle','gradientIntensity',+$event)"></div>
+            <div class="pf"><label>Grosor ({{cfg()!.globalStyles.titleStyle.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="cfg()!.globalStyles.titleStyle.fontWeight ?? 400" (ngModelChange)="setGlobalStyle('titleStyle','fontWeight',+$event)"></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Subtitulos</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.subtitleStyle.fontFamily||'sans'" (valueChange)="setGlobalStyle('subtitleStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.subtitleStyle.fontSize||16}}px)</label><input type="range" class="pinput-range" min="10" max="48" [ngModel]="cfg()!.globalStyles.subtitleStyle.fontSize||16" (ngModelChange)="setGlobalStyle('subtitleStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.subtitleStyle.color||'#ffffffb3'" (valueChange)="setGlobalStyle('subtitleStyle','color',$event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Contenido</span>
+            <div class="pf"><label>Fuente</label>
+              <app-custom-select [options]="fontOptions" [value]="cfg()!.globalStyles.contentStyle.fontFamily||'sans'" (valueChange)="setGlobalStyle('contentStyle','fontFamily',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Tamano ({{cfg()!.globalStyles.contentStyle.fontSize||14}}px)</label><input type="range" class="pinput-range" min="10" max="36" [ngModel]="cfg()!.globalStyles.contentStyle.fontSize||14" (ngModelChange)="setGlobalStyle('contentStyle','fontSize',+$event)"></div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.contentStyle.color||'#ffffffb3'" (valueChange)="setGlobalStyle('contentStyle','color',$event)"></app-color-picker></div>
+
+            <span class="pf-section-title" style="margin-top:12px">Separadores</span>
+            <div class="pf"><label>Estilo</label>
+              <app-custom-select [options]="separatorStyleOptions" [value]="cfg()!.globalStyles.separatorStyle.type||'elegant'" (valueChange)="setGlobalSeparator('type',$event)"></app-custom-select>
+            </div>
+            <div class="pf"><label>Color</label><app-color-picker [value]="cfg()!.globalStyles.separatorStyle.color||'#d4a017'" (valueChange)="setGlobalSeparator('color',$event)"></app-color-picker></div>
+          </div>
+        }
+
+        <div class="accordion" [class.open]="expanded['favicon']" (click)="toggle('favicon')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['favicon'] ? 'expand_more' : 'chevron_right' }}</span><span>Favicon de la Landing</span></div>
+        </div>
+        @if (expanded['favicon']) {
+          <div class="accordion-body">
+            <p class="hint">Icono que aparece en la pestaña del navegador cuando el invitado abre la landing. Si no se configura, se usa el icono de Vitely.</p>
+            <div class="upload-row" style="margin-top:8px;">
+              @if (cfg()!.favicon) {
+                <img [src]="cfg()!.favicon" style="width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid rgba(139,92,246,0.3);">
+                <span class="file-name">{{ getFileName(cfg()!.favicon || '') }}</span>
+                <button class="sm-btn" (click)="upload('_favicon','favicon','images');$event.stopPropagation()">Cambiar</button>
+                <button class="sm-btn danger" (click)="setFavicon('');$event.stopPropagation()">X</button>
+              } @else {
+                <button class="sm-btn" (click)="upload('_favicon','favicon','images');$event.stopPropagation()">Subir icono</button>
+              }
             </div>
           </div>
         }
@@ -103,23 +232,35 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['env-tpl']) {
             <div class="accordion-body">
               <div class="tpl-grid-2x2">
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='envelope'" (click)="setSec('envelope','template','envelope');$event.stopPropagation()"><span>Sobre</span></div>
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='ticket'" (click)="setSec('envelope','template','ticket');$event.stopPropagation()"><span>Ticket</span></div>
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='minimal-splash'" (click)="setSec('envelope','template','minimal-splash');$event.stopPropagation()"><span>Splash</span></div>
-                <div class="tpl-card" [class.active]="sec('envelope')?.template==='plain'" (click)="setSec('envelope','template','plain');$event.stopPropagation()"><span>Plano</span></div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='envelope'" (click)="setSec('envelope','template','envelope');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:24px">💌</span></div>
+                  <span class="tpl-preview-label">✉ Sobre</span>
+                </div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='ticket'" (click)="setSec('envelope','template','ticket');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:24px">🎫</span></div>
+                  <span class="tpl-preview-label">🎟 Ticket</span>
+                </div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='minimal-splash'" (click)="setSec('envelope','template','minimal-splash');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:24px">✨</span></div>
+                  <span class="tpl-preview-label">✨ Splash</span>
+                </div>
+                <div class="tpl-preview-card" [class.active]="sec('envelope')?.template==='plain'" (click)="setSec('envelope','template','plain');$event.stopPropagation()">
+                  <div class="tpl-preview-swatch env-swatch"><span style="font-size:20px;color:rgba(255,255,255,0.4)">━━</span></div>
+                  <span class="tpl-preview-label">📄 Plano</span>
+                </div>
               </div>
             </div>
           }
 
+          <!-- === ENVELOPE-type only properties === -->
+          @if (sec('envelope')?.template === 'envelope') {
           <div class="accordion" [class.open]="expanded['env-style']" (click)="toggle('env-style')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['env-style'] ? 'expand_more' : 'chevron_right' }}</span><span>Estilo de Sobre</span></div>
           </div>
           @if (expanded['env-style']) {
             <div class="accordion-body">
               <div class="pf"><label>Estilo</label>
-                <select class="pinput" [ngModel]="sec('envelope')?.style||'classic'" (ngModelChange)="setSec('envelope','style',$event)">
-                  <option value="classic">Clasico</option><option value="elegant">Elegante</option><option value="vertical">Vertical</option><option value="minimal">Minimal</option><option value="wax">Lacre</option>
-                </select>
+                <app-custom-select [options]="envelopeStyleOptions" [value]="sec('envelope')?.style||'classic'" (valueChange)="setSec('envelope','style',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -130,23 +271,8 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['env-seal']) {
             <div class="accordion-body">
               <div class="pf"><label>Forma</label>
-                <select class="pinput" [ngModel]="sec('envelope')?.sealStyle||'wax-circle'" (ngModelChange)="setSec('envelope','sealStyle',$event)">
-                  <option value="wax-circle">Circulo Lacre</option><option value="wax-heart">Corazon Lacre</option><option value="ribbon">Cinta</option><option value="stamp">Estampa</option><option value="monogram">Monograma</option>
-                </select>
+                <app-custom-select [options]="sealStyleOptions" [value]="sec('envelope')?.sealStyle||'wax-circle'" (valueChange)="setSec('envelope','sealStyle',$event)"></app-custom-select>
               </div>
-            </div>
-          }
-
-          <div class="accordion" [class.open]="expanded['env-colors']" (click)="toggle('env-colors')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['env-colors'] ? 'expand_more' : 'chevron_right' }}</span><span>Colores</span></div>
-          </div>
-          @if (expanded['env-colors']) {
-            <div class="accordion-body">
-              <div class="pf"><label>Color sobre</label><app-color-picker [value]="sec('envelope')?.envelopeColor||'#1a1a2e'" (valueChange)="setSec('envelope','envelopeColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color sello</label><app-color-picker [value]="sec('envelope')?.sealColor||'#8b0000'" (valueChange)="setSec('envelope','sealColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color fondo</label><app-color-picker [value]="sec('envelope')?.bgColor||'#0d1117'" (valueChange)="setSec('envelope','bgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color fondo 2</label><app-color-picker [value]="sec('envelope')?.bgColor2||'#1a1a2e'" (valueChange)="setSec('envelope','bgColor2',$event)"></app-color-picker></div>
-              <div class="pf"><label>Color texto</label><app-color-picker [value]="sec('envelope')?.textColor||'#ffffff'" (valueChange)="setSec('envelope','textColor',$event)"></app-color-picker></div>
             </div>
           }
 
@@ -162,36 +288,75 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="getSealType()==='none'" (click)="setSealType('none');$event.stopPropagation()">Vacio</button>
                 </div>
               </div>
-              <div class="pf"><label>Texto sello</label><input class="pinput" [ngModel]="sec('envelope')?.sealText" (ngModelChange)="setSec('envelope','sealText',$event)"></div>
-              <div class="pf"><label>Imagen del sello</label>
-                <div class="upload-row">
-                  @if(sec('envelope')?.sealImage){<span class="file-name">{{getFileName(sec('envelope')?.sealImage)}}</span><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','sealImage','');$event.stopPropagation()">X</button>}
-                  @else{<button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Subir</button>}
+              @if (getSealType() === 'emoji') {
+                <div class="pf"><label>Emoji / Texto sello</label><input class="pinput" [ngModel]="sec('envelope')?.sealText" (ngModelChange)="setSec('envelope','sealText',$event)" placeholder="💍"></div>
+              }
+              @if (getSealType() === 'icon') {
+                <div class="pf"><label>Imagen del sello</label>
+                  <div class="upload-row">
+                    @if(sec('envelope')?.sealImage){<span class="file-name">{{getFileName(sec('envelope')?.sealImage)}}</span><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','sealImage','');$event.stopPropagation()">X</button>}
+                    @else{<button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Subir</button>}
+                  </div>
                 </div>
-              </div>
+              }
             </div>
           }
+          }
 
+          <!-- === Instruction (all templates) === -->
           <div class="accordion" [class.open]="expanded['env-instr']" (click)="toggle('env-instr')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['env-instr'] ? 'expand_more' : 'chevron_right' }}</span><span>Instruccion</span></div>
           </div>
           @if (expanded['env-instr']) {
             <div class="accordion-body">
-              <div class="pf"><label>Texto de instruccion</label><input class="pinput" [ngModel]="sec('envelope')?.instructionText" (ngModelChange)="setSec('envelope','instructionText',$event)"></div>
+              <div class="pf"><label>Texto</label><input class="pinput" [ngModel]="sec('envelope')?.instructionText||'Toca para abrir'" (ngModelChange)="setSec('envelope','instructionText',$event)"></div>
+              <div class="pf"><label>Animacion</label>
+                <app-custom-select [options]="instructionAnimOptions" [value]="sec('envelope')?.instructionAnimation||'pulse'" (valueChange)="setSec('envelope','instructionAnimation',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Color instruccion</label><app-color-picker [value]="sec('envelope')?.instructionColor||'#ffffff'" (valueChange)="setSec('envelope','instructionColor',$event)"></app-color-picker></div>
+            </div>
+          }
+
+          <!-- === Common properties for all envelope templates === -->
+          <div class="accordion" [class.open]="expanded['env-colors']" (click)="toggle('env-colors')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['env-colors'] ? 'expand_more' : 'chevron_right' }}</span><span>Colores</span></div>
+          </div>
+          @if (expanded['env-colors']) {
+            <div class="accordion-body">
+              <div class="pf"><label>Color fondo</label><app-color-picker [value]="sec('envelope')?.bgColor||'#0d1117'" (valueChange)="setSec('envelope','bgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color fondo 2</label><app-color-picker [value]="sec('envelope')?.bgColor2||'#1a1a2e'" (valueChange)="setSec('envelope','bgColor2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color texto</label><app-color-picker [value]="sec('envelope')?.textColor||'#ffffff'" (valueChange)="setSec('envelope','textColor',$event)"></app-color-picker></div>
+              @if (sec('envelope')?.template === 'envelope') {
+                <div class="pf"><label>Color sobre</label><app-color-picker [value]="sec('envelope')?.envelopeColor||'#1a1a2e'" (valueChange)="setSec('envelope','envelopeColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color sello</label><app-color-picker [value]="sec('envelope')?.sealColor||'#8b0000'" (valueChange)="setSec('envelope','sealColor',$event)"></app-color-picker></div>
+              }
             </div>
           }
 
           <div class="accordion" [class.open]="expanded['env-bg']" (click)="toggle('env-bg')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['env-bg'] ? 'expand_more' : 'chevron_right' }}</span><span>Fondos</span></div>
+            <div class="accordion-header"><span class="material-icons">{{ expanded['env-bg'] ? 'expand_more' : 'chevron_right' }}</span><span>Fondo</span></div>
           </div>
           @if (expanded['env-bg']) {
             <div class="accordion-body">
-              <div class="pf"><label>Fondo (imagen/gif)</label>
+              <div class="pf"><label>Imagen/GIF de fondo</label>
                 <div class="upload-row">
                   @if(sec('envelope')?.splashImage){<span class="file-name">{{getFileName(sec('envelope')?.splashImage)}}</span><button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','splashImage','');$event.stopPropagation()">X</button>}
                   @else{<button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Subir</button>}
                 </div>
               </div>
+              @if (sec('envelope')?.splashImage) {
+                <div class="pf"><label>Ajuste en escritorio</label>
+                  <app-custom-select [options]="bgFitOptions" [value]="sec('envelope')?.splashBgFit || 'cover'" (valueChange)="setSec('envelope','splashBgFit',$event)"></app-custom-select>
+                </div>
+                @if (sec('envelope')?.splashBgFit === 'banner') {
+                  <div class="pf"><label>Ancho del banner ({{sec('envelope')?.splashBgBannerWidth || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="sec('envelope')?.splashBgBannerWidth || 70" (ngModelChange)="setSec('envelope','splashBgBannerWidth',+$event)"></div>
+                }
+              }
+              @if (!sec('envelope')?.splashImage) {
+                <div class="pf"><label>Tipo de fondo</label>
+                  <app-custom-select [options]="envBgTypeOptions" [value]="sec('envelope')?.bgType||'linear'" (valueChange)="setSec('envelope','bgType',$event)"></app-custom-select>
+                </div>
+              }
             </div>
           }
 
@@ -233,7 +398,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="accordion-body">
                 <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('envelope')?.plainTitle" (ngModelChange)="setSec('envelope','plainTitle',$event)"></div>
                 <div class="pf"><label>Subtitulo</label><input class="pinput" [ngModel]="sec('envelope')?.plainSubtitle" (ngModelChange)="setSec('envelope','plainSubtitle',$event)"></div>
-                <div class="pf"><label>Contenido</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('envelope')?.plainContent" (ngModelChange)="setSec('envelope','plainContent',$event)"></textarea></div>
+                <div class="pf"><label>Contenido</label>
+                  <app-rich-text-editor [ngModel]="sec('envelope')?.plainContent" (ngModelChange)="setSec('envelope','plainContent',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
+                </div>
               </div>
             }
           }
@@ -246,14 +413,10 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['intro-phrase']) {
             <div class="accordion-body">
-              <div class="pf"><label>Frase</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('intro')?.phrase" (ngModelChange)="setSec('intro','phrase',$event)"></textarea></div>
-              <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontFamily||'Great Vibes'" (ngModelChange)="setSecNested('intro','phraseStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
-                </select>
+              <div class="pf"><label>Frase</label>
+                <app-rich-text-editor [ngModel]="introPhraseHtml()" (ngModelChange)="setSec('intro','phraseHtml',$event)" [placeholder]="'Escribe la frase de la intro...'"></app-rich-text-editor>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('intro')?.phraseStyle?.fontSize||32" (ngModelChange)="setSecNested('intro','phraseStyle','fontSize',+$event)" min="12" max="80"></div>
-              <div class="pf"><label>Color</label><app-color-picker [value]="sec('intro')?.phraseStyle?.color||'#ffffff'" (valueChange)="setSecNested('intro','phraseStyle','color',$event)"></app-color-picker></div>
+              <p class="pf-hint">Arrastra la frase en el lienzo para posicionarla.</p>
             </div>
           }
 
@@ -295,8 +458,30 @@ import { ApiService } from '../../../../../core/services/api.service';
                     <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('intro')?.useVideoDuration" (ngModelChange)="setSec('intro','useVideoDuration',$event)"><span class="slider"></span></label>
                   </div>
                 </div>
+                @if (!sec('intro')?.useVideoDuration) {
+                  <!-- Video Trimmer -->
+                  <div class="video-trimmer">
+                    <label class="trim-label">Recortar video (max {{maxIntroDuration}}s)</label>
+                    <div class="trimmer-container">
+                      <div class="trimmer-track" #trimmerTrack (click)="onTrimTrackClick($event)" (touchstart)="onTrimTrackTouch($event)">
+                        <div class="trimmer-selected" [style.left.%]="getTrimLeft()" [style.width.%]="getTrimWidth()"></div>
+                        <div class="trimmer-handle handle-start" [style.left.%]="getTrimLeft()" (mousedown)="startTrimDrag('start',$event)" (touchstart)="startTrimDrag('start',$event)"></div>
+                        <div class="trimmer-handle handle-end" [style.left.%]="getTrimRight()" (mousedown)="startTrimDrag('end',$event)" (touchstart)="startTrimDrag('end',$event)"></div>
+                      </div>
+                      <div class="trimmer-labels">
+                        <span>{{formatTrimTime(sec('intro')?.videoStart || 0)}}</span>
+                        <span class="trim-duration">{{getSelectedDuration()}}s</span>
+                        <span>{{formatTrimTime(sec('intro')?.videoEnd || sec('intro')?.videoDuration || 5)}}</span>
+                      </div>
+                    </div>
+                    <button class="trim-preview-btn" (click)="previewTrim();$event.stopPropagation()">
+                      <span class="material-icons">play_arrow</span> Previsualizar
+                    </button>
+                    <video #introTrimVideo [src]="sec('intro')?.background" style="display:none" preload="metadata"></video>
+                  </div>
+                }
               }
-              @if (!sec('intro')?.useVideoDuration || !isVideoFile(sec('intro')?.background)) {
+              @if (sec('intro')?.useVideoDuration || !isVideoFile(sec('intro')?.background)) {
                 <div class="pf"><label>Duracion</label>
                   <div class="stepper-row">
                     <button class="stepper-btn" (click)="adjustDuration(-1);$event.stopPropagation()">-</button>
@@ -306,15 +491,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 </div>
               }
               <div class="pf"><label>Transicion de salida</label>
-                <select class="pinput" [ngModel]="sec('intro')?.transition||'fade'" (ngModelChange)="setSec('intro','transition',$event)">
-                  <option value="fade">Desvanecer</option>
-                  <option value="slide-up">Deslizar arriba</option>
-                  <option value="slide-down">Deslizar abajo</option>
-                  <option value="zoom-in">Zoom acercar</option>
-                  <option value="zoom-out">Zoom alejar</option>
-                  <option value="blur">Desenfoque</option>
-                  <option value="none">Sin transicion</option>
-                </select>
+                <app-custom-select [options]="introTransitionOptions" [value]="sec('intro')?.transition||'fade'" (valueChange)="setSec('intro','transition',$event)"></app-custom-select>
               </div>
               <div class="pf">
                 <div class="toggle-row">
@@ -336,14 +513,10 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               @if (getParticlesProp('enabled')) {
                 <div class="pf"><label>Tipo</label>
-                  <select class="pinput" [ngModel]="getParticlesProp('type')||'sparkles'" (ngModelChange)="setSecNested('intro','particles','type',$event)">
-                    <option value="sparkles">Destellos</option><option value="snow">Nieve</option><option value="fireflies">Luciernagas</option><option value="bubbles">Burbujas</option><option value="stars">Estrellas</option><option value="confetti">Confeti</option>
-                  </select>
+                  <app-custom-select [options]="introParticleTypeOptions" [value]="getParticlesProp('type')||'sparkles'" (valueChange)="setSecNested('intro','particles','type',$event)"></app-custom-select>
                 </div>
                 <div class="pf"><label>Direccion</label>
-                  <select class="pinput" [ngModel]="getParticlesProp('direction')||'up'" (ngModelChange)="setSecNested('intro','particles','direction',$event)">
-                    <option value="up">Arriba</option><option value="down">Abajo</option><option value="left">Izquierda</option><option value="right">Derecha</option>
-                  </select>
+                  <app-custom-select [options]="introParticleDirectionOptions" [value]="getParticlesProp('direction')||'up'" (valueChange)="setSecNested('intro','particles','direction',$event)"></app-custom-select>
                 </div>
                 <div class="pf"><label>Color 1</label><app-color-picker [value]="getParticlesProp('color1')||'#ffffff'" (valueChange)="setSecNested('intro','particles','color1',$event)"></app-color-picker></div>
                 <div class="pf"><label>Color 2</label><app-color-picker [value]="getParticlesProp('color2')||'#d4a017'" (valueChange)="setSecNested('intro','particles','color2',$event)"></app-color-picker></div>
@@ -354,10 +527,55 @@ import { ApiService } from '../../../../../core/services/api.service';
               }
             </div>
           }
+
+          <!-- ===== Linea de carga ===== -->
+          <div class="accordion" [class.open]="expanded['intro-progress']" (click)="toggle('intro-progress')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['intro-progress'] ? 'expand_more' : 'chevron_right' }}</span><span>Linea de carga</span></div>
+          </div>
+          @if (expanded['intro-progress']) {
+            <div class="accordion-body">
+              <div class="toggle-row">
+                <span class="toggle-title">Mostrar linea de carga</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('intro')?.progressBar?.enabled !== false" (ngModelChange)="setSecNested('intro','progressBar','enabled',$event)"><span class="slider"></span></label>
+              </div>
+              @if (sec('intro')?.progressBar?.enabled !== false) {
+                <div class="pf"><label>Estilo</label>
+                  <app-custom-select [options]="introProgressStyleOptions" [value]="sec('intro')?.progressBar?.style||'solid'" (valueChange)="setSecNested('intro','progressBar','style',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="sec('intro')?.progressBar?.color||'#d4a017'" (valueChange)="setSecNested('intro','progressBar','color',$event)"></app-color-picker></div>
+                <div class="pf"><label>Grosor ({{sec('intro')?.progressBar?.thickness||2}}px)</label><input type="range" class="pinput-range" min="1" max="12" [ngModel]="sec('intro')?.progressBar?.thickness||2" (ngModelChange)="setSecNested('intro','progressBar','thickness',+$event)"></div>
+                <div class="pf"><label>Ancho ({{sec('intro')?.progressBar?.width||200}}px)</label><input type="range" class="pinput-range" min="80" max="400" step="10" [ngModel]="sec('intro')?.progressBar?.width||200" (ngModelChange)="setSecNested('intro','progressBar','width',+$event)"></div>
+              }
+            </div>
+          }
         }
 
         <!-- ===== HERO ===== -->
         @if (canvasState.selectedSection() === 'hero') {
+          <div class="accordion" [class.open]="expanded['hero-event']" (click)="toggle('hero-event')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['hero-event'] ? 'expand_more' : 'chevron_right' }}</span><span>Tipo de Evento</span></div>
+          </div>
+          @if (expanded['hero-event']) {
+            <div class="accordion-body">
+              <div class="pf"><label>Descripcion del evento</label><input class="pinput" [ngModel]="sec('hero')?.eventDescription" (ngModelChange)="setSec('hero','eventDescription',$event)"></div>
+              <div class="pf"><label>Fuente</label>
+                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.eventDescriptionStyle?.fontFamily||'montserrat'" (valueChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Tamano ({{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px)</label>
+                <div class="stepper-row">
+                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',-1);$event.stopPropagation()">-</button>
+                  <span class="stepper-value">{{sec('hero')?.eventDescriptionStyle?.fontSize||18}}px</span>
+                  <button class="stepper-btn" (click)="adjustHeroFont('eventDescriptionStyle',1);$event.stopPropagation()">+</button>
+                </div>
+              </div>
+              <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Angulo degradado ({{sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientAngle',+$event)"></div>
+              <div class="pf"><label>Intensidad ({{sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','gradientIntensity',+$event)"></div>
+              <div class="pf"><label>Grosor ({{sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontWeight',+$event)"></div>
+            </div>
+          }
+
           <div class="accordion" [class.open]="expanded['hero-names']" (click)="toggle('hero-names')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['hero-names'] ? 'expand_more' : 'chevron_right' }}</span><span>Nombres</span></div>
           </div>
@@ -369,34 +587,20 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Nombres</label><input class="pinput" [ngModel]="sec('hero')?.celebrantNames" (ngModelChange)="setSec('hero','celebrantNames',$event)"></div>
               <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontFamily||'Great Vibes'" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
-                </select>
+                <app-custom-select [options]="fontOptions" [value]="sec('hero')?.celebrantNamesStyle?.fontFamily||'script'" (valueChange)="setSecNested('hero','celebrantNamesStyle','fontFamily',$event)"></app-custom-select>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontSize||48" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontSize',+$event)" min="16" max="120"></div>
-              <div class="pf-row">
-                <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color1||'#ffffff'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color1',$event)"></app-color-picker></div>
-                <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color2||'#d4a017'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Tamano ({{sec('hero')?.celebrantNamesStyle?.fontSize||48}}px)</label>
+                <div class="stepper-row">
+                  <button class="stepper-btn" (click)="adjustHeroFont('celebrantNamesStyle',-2);$event.stopPropagation()">-</button>
+                  <span class="stepper-value">{{sec('hero')?.celebrantNamesStyle?.fontSize||48}}px</span>
+                  <button class="stepper-btn" (click)="adjustHeroFont('celebrantNamesStyle',2);$event.stopPropagation()">+</button>
+                </div>
               </div>
-            </div>
-          }
-
-          <div class="accordion" [class.open]="expanded['hero-event']" (click)="toggle('hero-event')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['hero-event'] ? 'expand_more' : 'chevron_right' }}</span><span>Tipo de Evento</span></div>
-          </div>
-          @if (expanded['hero-event']) {
-            <div class="accordion-body">
-              <div class="pf"><label>Descripcion del evento</label><input class="pinput" [ngModel]="sec('hero')?.eventDescription" (ngModelChange)="setSec('hero','eventDescription',$event)"></div>
-              <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontFamily||'Montserrat'" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
-                </select>
-              </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('hero')?.eventDescriptionStyle?.fontSize||18" (ngModelChange)="setSecNested('hero','eventDescriptionStyle','fontSize',+$event)" min="10" max="60"></div>
-              <div class="pf-row">
-                <div class="pf-half"><label>Color 1</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color1||'#d4a017'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color1',$event)"></app-color-picker></div>
-                <div class="pf-half"><label>Color 2</label><app-color-picker [value]="sec('hero')?.eventDescriptionStyle?.color2||'#f4e4a0'" (valueChange)="setSecNested('hero','eventDescriptionStyle','color2',$event)"></app-color-picker></div>
-              </div>
+              <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color1||'#ffffff'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color1',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color 2</label><app-color-picker [value]="sec('hero')?.celebrantNamesStyle?.color2||'#d4a017'" (valueChange)="setSecNested('hero','celebrantNamesStyle','color2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Angulo degradado ({{sec('hero')?.celebrantNamesStyle?.gradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('hero')?.celebrantNamesStyle?.gradientAngle ?? 135" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','gradientAngle',+$event)"></div>
+              <div class="pf"><label>Intensidad ({{sec('hero')?.celebrantNamesStyle?.gradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.celebrantNamesStyle?.gradientIntensity ?? 50" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','gradientIntensity',+$event)"></div>
+              <div class="pf"><label>Grosor ({{sec('hero')?.celebrantNamesStyle?.fontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('hero')?.celebrantNamesStyle?.fontWeight ?? 400" (ngModelChange)="setSecNested('hero','celebrantNamesStyle','fontWeight',+$event)"></div>
             </div>
           }
 
@@ -405,14 +609,9 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['hero-phrase']) {
             <div class="accordion-body">
-              <div class="pf"><label>Frase</label><input class="pinput" [ngModel]="sec('hero')?.heroPhrase" (ngModelChange)="setSec('hero','heroPhrase',$event)"></div>
-              <div class="pf"><label>Fuente</label>
-                <select class="pinput" [ngModel]="sec('hero')?.heroPhraseStyle?.fontFamily||'Raleway'" (ngModelChange)="setSecNested('hero','heroPhraseStyle','fontFamily',$event)">
-                  <option value="Lato">Lato (Sans)</option><option value="Montserrat">Montserrat</option><option value="Raleway">Raleway</option><option value="Josefin Sans">Josefin Sans</option><option value="Playfair Display">Playfair Display</option><option value="Cormorant Garamond">Cormorant Garamond</option><option value="Cinzel">Cinzel</option><option value="Libre Baskerville">Libre Baskerville</option><option value="Great Vibes">Great Vibes</option><option value="Spumoni">Spumoni</option><option value="Dancing Script">Dancing Script</option><option value="Sacramento">Sacramento</option><option value="Tangerine">Tangerine</option><option value="Alex Brush">Alex Brush</option><option value="Pinyon Script">Pinyon Script</option>
-                </select>
+              <div class="pf"><label>Frase</label>
+                <app-rich-text-editor [ngModel]="sec('hero')?.heroPhrase" (ngModelChange)="setSec('hero','heroPhrase',$event)" [placeholder]="'Escribe la frase...'"></app-rich-text-editor>
               </div>
-              <div class="pf"><label>Tamano (px)</label><input type="number" class="pinput" [ngModel]="sec('hero')?.heroPhraseStyle?.fontSize||14" (ngModelChange)="setSecNested('hero','heroPhraseStyle','fontSize',+$event)" min="10" max="40"></div>
-              <div class="pf"><label>Color</label><app-color-picker [value]="sec('hero')?.heroPhraseStyle?.color||'rgba(255,255,255,0.7)'" (valueChange)="setSecNested('hero','heroPhraseStyle','color',$event)"></app-color-picker></div>
             </div>
           }
 
@@ -426,7 +625,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.showDescription!==false" (ngModelChange)="setSec('hero','showDescription',$event)"><span class="slider"></span></label>
               </div>
               @if (sec('hero')?.showDescription!==false) {
-                <div class="pf"><label>Texto</label><textarea class="pinput" style="min-height:50px" [ngModel]="sec('hero')?.description" (ngModelChange)="setSec('hero','description',$event)"></textarea></div>
+                <div class="pf"><label>Texto</label>
+                  <app-rich-text-editor [ngModel]="sec('hero')?.description" (ngModelChange)="setSec('hero','description',$event)" [placeholder]="'Escribe la descripción...'"></app-rich-text-editor>
+                </div>
               }
             </div>
           }
@@ -436,12 +637,44 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['hero-countdown']) {
             <div class="accordion-body">
-              <div class="pf"><label>Fecha</label><input type="datetime-local" class="pinput" [ngModel]="sec('hero')?.countdownDate" (ngModelChange)="setSec('hero','countdownDate',$event)"></div>
+              <div class="toggle-row">
+                <span class="toggle-title">Mostrar cuenta regresiva</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.showCountdown !== false" (ngModelChange)="setSec('hero','showCountdown',$event)"><span class="slider"></span></label>
+              </div>
+              @if (sec('hero')?.showCountdown !== false) {
+              <div class="pf"><label>Fecha del countdown</label>
+                <app-wheel-date-picker [value]="getCountdownDate()" (valueChange)="setCountdownDate($event)"></app-wheel-date-picker>
+              </div>
+              <div class="pf"><label>Hora del countdown</label>
+                <app-wheel-time-picker [value]="getCountdownTime()" (valueChange)="setCountdownTime($event)"></app-wheel-time-picker>
+              </div>
+              <!-- Colores del texto -->
+              <div class="pf"><label>Color de los números</label><app-color-picker [value]="sec('hero')?.countdownValueColor || cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setSec('hero','countdownValueColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de las etiquetas</label><app-color-picker [value]="sec('hero')?.countdownLabelColor || 'rgba(255,255,255,0.5)'" (valueChange)="setSec('hero','countdownLabelColor',$event)"></app-color-picker></div>
+              <!-- Fondo de las cards -->
               <div class="toggle-row">
                 <span class="toggle-title">Fondo cards</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.countdownShowCardBg" (ngModelChange)="setSec('hero','countdownShowCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('hero')?.countdownShowCardBg !== false" (ngModelChange)="setSec('hero','countdownShowCardBg',$event)"><span class="slider"></span></label>
               </div>
-              <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
+              @if (sec('hero')?.countdownShowCardBg !== false) {
+                <div class="pf"><label>Opacidad fondo ({{sec('hero')?.countdownCardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('hero')?.countdownCardBgOpacity ?? 100" (ngModelChange)="setSec('hero','countdownCardBgOpacity',+$event)"></div>
+                <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('hero')?.countdownCardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('hero','countdownCardBgColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Radio borde ({{sec('hero')?.countdownCardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('hero')?.countdownCardBorderRadius||8" (ngModelChange)="setSec('hero','countdownCardBorderRadius',+$event)"></div>
+                <div class="pf"><label>Estilo borde</label>
+                  <app-custom-select [options]="borderStyleOptions" [value]="sec('hero')?.countdownCardBorderStyle || 'none'" (valueChange)="setSec('hero','countdownCardBorderStyle',$event)"></app-custom-select>
+                </div>
+                @if (sec('hero')?.countdownCardBorderStyle !== 'none') {
+                  <div class="pf"><label>Grosor borde ({{sec('hero')?.countdownCardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('hero')?.countdownCardBorderWidth ?? 1" (ngModelChange)="setSec('hero','countdownCardBorderWidth',+$event)"></div>
+                  <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('hero')?.countdownCardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('hero','countdownCardBorderColor',$event)"></app-color-picker></div>
+                }
+                @if (sec('hero')?.countdownCardBorderStyle === 'glow' || sec('hero')?.countdownCardBorderStyle === 'neon') {
+                  <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('hero')?.countdownCardGlowColor || '#d4a017'" (valueChange)="setSec('hero','countdownCardGlowColor',$event)"></app-color-picker></div>
+                }
+                <div class="pf"><label>Forma de card</label>
+                  <app-custom-select [options]="cardShapeOptions" [value]="sec('hero')?.countdownCardShape || 'standard'" (valueChange)="setSec('hero','countdownCardShape',$event)"></app-custom-select>
+                </div>
+              }
+              }
             </div>
           }
 
@@ -456,6 +689,15 @@ import { ApiService } from '../../../../../core/services/api.service';
                   @else{<button class="sm-btn" (click)="upload('hero','backgroundGif','gifs');$event.stopPropagation()">Subir</button>}
                 </div>
               </div>
+              @if (sec('hero')?.backgroundGif) {
+                <div class="pf"><label>Ajuste en escritorio</label>
+                  <app-custom-select [options]="bgFitOptions" [value]="cfg()!.theme.landingBgFit || 'cover'" (valueChange)="setTheme('landingBgFit', $event)"></app-custom-select>
+                </div>
+                @if (cfg()!.theme.landingBgFit === 'banner') {
+                  <div class="pf"><label>Ancho del banner ({{cfg()!.theme.landingBgBannerWidth || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="cfg()!.theme.landingBgBannerWidth || 70" (ngModelChange)="setTheme('landingBgBannerWidth', +$event)"></div>
+                }
+                <p class="pf-hint">En "banner centrado" la imagen mantiene su tamaño (ajustado al alto de la ventana); el slider solo define el ancho visible del banner, recortando mas o menos los lados. Solo aplica en escritorio; en movil ocupa toda la pantalla.</p>
+              }
               <div class="pf"><label>Audio</label>
                 <div class="upload-row">
                   @if(sec('hero')?.audioUrl){<span class="file-name">{{getFileName(sec('hero')?.audioUrl)}}</span><button class="sm-btn" (click)="upload('hero','audioUrl','audio');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('hero','audioUrl','');$event.stopPropagation()">X</button>}
@@ -485,9 +727,38 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('invitation')?.showCardBg" (ngModelChange)="setSec('invitation','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('invitation')?.showCardBg !== false" (ngModelChange)="setSec('invitation','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('invitation')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('invitation')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('invitation','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('invitation')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('invitation','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('invitation')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('invitation')?.cardBorderRadius||8" (ngModelChange)="setSec('invitation','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('invitation')?.cardBorderStyle || 'none'" (valueChange)="setSec('invitation','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('invitation')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('invitation')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('invitation','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('invitation')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('invitation','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('invitation')?.cardBorderStyle === 'glow' || sec('invitation')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('invitation')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('invitation','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('invitation')?.cardShape || 'standard'" (valueChange)="setSec('invitation','cardShape',$event)"></app-custom-select>
+              </div>
+            </div>
+          }
+
+          <div class="accordion" [class.open]="expanded['inv-guests']" (click)="toggle('inv-guests')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['inv-guests'] ? 'expand_more' : 'chevron_right' }}</span><span>Invitados y Asistentes</span></div>
+          </div>
+          @if (expanded['inv-guests']) {
+            <div class="accordion-body">
+              <span class="pf-section-title">Chips de invitados</span>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('invitation')?.guestChipBg || cfg()!.theme.cardBg || 'rgba(212,160,23,0.15)'" (valueChange)="setSec('invitation','guestChipBg',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de texto</label><app-color-picker [value]="sec('invitation')?.guestChipText || cfg()!.theme.textPrimary || '#ffffff'" (valueChange)="setSec('invitation','guestChipText',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('invitation')?.guestChipBorder || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('invitation','guestChipBorder',$event)"></app-color-picker></div>
+              <span class="pf-section-title" style="margin-top:8px">Contador de asistentes</span>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('invitation')?.countBg || cfg()!.theme.cardBg || 'rgba(212,160,23,0.1)'" (valueChange)="setSec('invitation','countBg',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de texto</label><app-color-picker [value]="sec('invitation')?.countText || cfg()!.theme.navFooterText || '#d4a017'" (valueChange)="setSec('invitation','countText',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('invitation')?.countBorder || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('invitation','countBorder',$event)"></app-color-picker></div>
             </div>
           }
         }
@@ -511,22 +782,49 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="items-header"><span>Cards ({{sec('details')?.cards?.length||0}})</span><button class="sm-btn" (click)="addCard('details');$event.stopPropagation()">+ Agregar</button></div>
               @for (card of sec('details')?.cards||[]; track card.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>Card {{i+1}}</span><button class="x-btn" (click)="removeCard('details',i);$event.stopPropagation()">X</button></div>
+                  <div class="item-head"><button class="delete-btn" (click)="removeCard('details',i);$event.stopPropagation()"><span class="material-icons">close</span></button></div>
                   <input class="pinput" [ngModel]="card.title" (ngModelChange)="updateCard('details',i,'title',$event)" placeholder="Titulo">
-                  <textarea class="pinput sm" [ngModel]="card.content" (ngModelChange)="updateCard('details',i,'content',$event)" placeholder="Contenido"></textarea>
-                  <div class="pf"><label>Tipo icono</label>
-                    <select class="pinput" [ngModel]="card.iconType||'none'" (ngModelChange)="updateCard('details',i,'iconType',$event)">
-                      <option value="emoji">Emoji</option><option value="image">Imagen</option><option value="none">Ninguno</option>
-                    </select>
+                  <div class="pf"><label>Contenido</label>
+                    <app-rich-text-editor [ngModel]="card.content" (ngModelChange)="updateCard('details',i,'content',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
+                  </div>
+                  <div class="pf"><label>Tipo de icono</label>
+                    <div class="btn-row">
+                      <button class="chip" [class.active]="card.iconType === 'none' || !card.iconType" (click)="updateCard('details',i,'iconType','none');$event.stopPropagation()">Sin icono</button>
+                      <button class="chip" [class.active]="card.iconType === 'emoji'" (click)="updateCard('details',i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
+                      <button class="chip" [class.active]="card.iconType === 'image'" (click)="updateCard('details',i,'iconType','image');$event.stopPropagation()">Imagen</button>
+                    </div>
                   </div>
                   @if (card.iconType === 'emoji') {
-                    <div class="pf"><label>Emoji</label><input class="pinput" [ngModel]="card.icon" (ngModelChange)="updateCard('details',i,'icon',$event)" placeholder="Emoji"></div>
+                    <div class="pf"><label>Emoji</label>
+                      <div class="emoji-grid">
+                        @for (e of detailEmojis; track e) {
+                          <button class="emoji-btn" [class.active]="card.icon === e" (click)="updateCard('details',i,'icon',e);$event.stopPropagation()">{{e}}</button>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (card.iconType === 'image') {
+                    <div class="pf"><label>Imagen de icono</label>
+                      @if (card.iconUrl) {
+                        <div class="icon-img-row">
+                          <div class="icon-img-preview"><img [src]="card.iconUrl" alt="icono"></div>
+                          <button class="sm-btn" (click)="uploadDetailIcon(i);$event.stopPropagation()">Cambiar</button>
+                          <button class="delete-btn" (click)="updateCard('details',i,'iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      } @else {
+                        <button class="sm-btn" (click)="uploadDetailIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                      }
+                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
+                    </div>
                   }
                   <div class="pf"><label>Alineacion</label>
-                    <select class="pinput" [ngModel]="card.textAlign||'center'" (ngModelChange)="updateCard('details',i,'textAlign',$event)">
-                      <option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option>
-                    </select>
+                    <app-custom-select [options]="textAlignOptions" [value]="card.textAlign||'center'" (valueChange)="updateCard('details',i,'textAlign',$event)"></app-custom-select>
                   </div>
+                  <div class="toggle-row">
+                    <span class="toggle-title">Fondo</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="card.showCardBg !== false" (ngModelChange)="updateCard('details',i,'showCardBg',$event)"><span class="slider"></span></label>
+                  </div>
+                  <div class="pf"><label>Esquinas ({{card.cardBorderRadius ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="card.cardBorderRadius ?? 16" (ngModelChange)="updateCard('details',i,'cardBorderRadius',+$event)"></div>
                 </div>
               }
             </div>
@@ -539,9 +837,22 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('details')?.showCardBg" (ngModelChange)="setSec('details','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('details')?.showCardBg !== false" (ngModelChange)="setSec('details','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('details')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('details')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('details','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('details')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('details','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('details')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('details')?.cardBorderRadius||8" (ngModelChange)="setSec('details','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('details')?.cardBorderStyle || 'none'" (valueChange)="setSec('details','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('details')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('details')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('details','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('details')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('details','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('details')?.cardBorderStyle === 'glow' || sec('details')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('details')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('details','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('details')?.cardShape || 'standard'" (valueChange)="setSec('details','cardShape',$event)"></app-custom-select>
+              </div>
             </div>
           }
         }
@@ -553,15 +864,54 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['ven-list']) {
             <div class="accordion-body">
-              <div class="items-header"><span>Lugares ({{sec('venues')?.items?.length||0}})</span><button class="sm-btn" (click)="addVenue();$event.stopPropagation()">+ Agregar</button></div>
+              <div class="items-header"><span>{{sec('venues')?.items?.length||0}} lugar{{(sec('venues')?.items?.length||0) !== 1 ? 'es' : ''}}</span><button class="sm-btn" (click)="addVenue();$event.stopPropagation()">+ Agregar</button></div>
               @for (item of sec('venues')?.items||[]; track item.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>Lugar {{i+1}}</span><button class="x-btn" (click)="removeVenue(i);$event.stopPropagation()">X</button></div>
-                  <input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre">
-                  <input class="pinput" [ngModel]="item.address" (ngModelChange)="updateVenue(i,'address',$event)" placeholder="Direccion">
-                  <input class="pinput" [ngModel]="item.time" (ngModelChange)="updateVenue(i,'time',$event)" placeholder="Hora">
-                  <input class="pinput" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenue(i,'mapsUrl',$event)" placeholder="Link Google Maps">
-                  <div class="pf"><label>Icono (emoji)</label><input class="pinput" [ngModel]="item.icon" (ngModelChange)="updateVenue(i,'icon',$event)" placeholder="Icono"></div>
+                  <div class="item-head">
+                    
+                    <button class="delete-btn" (click)="removeVenue(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
+                  </div>
+                  <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="item.title" (ngModelChange)="updateVenue(i,'title',$event)" placeholder="Ej: Ceremonia"></div>
+                  <div class="pf"><label>Nombre del lugar</label><input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre del recinto"></div>
+                  <div class="pf"><label>Direccion</label><input class="pinput" [ngModel]="item.address" (ngModelChange)="updateVenue(i,'address',$event)" placeholder="Calle, numero, colonia"></div>
+                  <div class="pf"><label>Hora</label>
+                    <app-wheel-time-picker [value]="item.time" (valueChange)="updateVenue(i,'time',$event)"></app-wheel-time-picker>
+                  </div>
+                  <div class="pf"><label>URL Google Maps</label><input class="pinput" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenue(i,'mapsUrl',$event)" placeholder="https://maps.google.com/..."></div>
+                  <div class="pf"><label>Tipo de icono</label>
+                    <div class="btn-row">
+                      <button class="chip" [class.active]="item.iconType === 'none' || !item.iconType" (click)="updateVenue(i,'iconType','none');$event.stopPropagation()">Sin icono</button>
+                      <button class="chip" [class.active]="item.iconType === 'emoji'" (click)="updateVenue(i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
+                      <button class="chip" [class.active]="item.iconType === 'image'" (click)="updateVenue(i,'iconType','image');$event.stopPropagation()">Imagen</button>
+                    </div>
+                  </div>
+                  @if (item.iconType === 'emoji') {
+                    <div class="pf"><label>Emoji</label>
+                      <div class="emoji-grid">
+                        @for (e of venueEmojis; track e) {
+                          <button class="emoji-btn" [class.active]="item.iconEmoji === e" (click)="updateVenue(i,'iconEmoji',e);$event.stopPropagation()">{{e}}</button>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (item.iconType === 'image') {
+                    <div class="pf"><label>Imagen de icono</label>
+                      @if (item.icon) {
+                        <div class="icon-img-row">
+                          <div class="icon-img-preview"><img [src]="item.icon" alt="icono"></div>
+                          <button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Cambiar</button>
+                          <button class="delete-btn" (click)="updateVenue(i,'icon','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      } @else {
+                        <button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                      }
+                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
+                    </div>
+                  }
+                  <div class="toggle-row" style="margin-top:6px">
+                    <span class="toggle-title">Fondo</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="item.showCardBg !== false" (ngModelChange)="updateVenue(i,'showCardBg',$event)"><span class="slider"></span></label>
+                  </div>
                 </div>
               }
             </div>
@@ -573,15 +923,26 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['ven-appear']) {
             <div class="accordion-body">
               <div class="pf"><label>Estilo de icono</label>
-                <select class="pinput" [ngModel]="sec('venues')?.iconStyle||'circle'" (ngModelChange)="setSec('venues','iconStyle',$event)">
-                  <option value="circle">Circulo</option><option value="plain">Plano</option><option value="none">Sin icono</option>
-                </select>
+                <app-custom-select [options]="iconStyleOptions" [value]="sec('venues')?.iconStyle||'circle'" (valueChange)="setSec('venues','iconStyle',$event)"></app-custom-select>
               </div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('venues')?.showCardBg" (ngModelChange)="setSec('venues','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('venues')?.showCardBg !== false" (ngModelChange)="setSec('venues','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('venues')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('venues')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('venues','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('venues')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('venues','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('venues')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('venues')?.cardBorderRadius||8" (ngModelChange)="setSec('venues','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('venues')?.cardBorderStyle || 'none'" (valueChange)="setSec('venues','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('venues')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('venues')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('venues','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('venues')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('venues','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('venues')?.cardBorderStyle === 'glow' || sec('venues')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('venues')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('venues','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('venues')?.cardShape || 'standard'" (valueChange)="setSec('venues','cardShape',$event)"></app-custom-select>
+              </div>
             </div>
           }
         }
@@ -605,20 +966,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="items-header"><span>Actividades ({{itineraryItems().length}})</span><button class="sm-btn" (click)="addItineraryItem();$event.stopPropagation()">+ Agregar</button></div>
               @for (item of itineraryItems(); track item.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>{{i+1}}</span><button class="x-btn" (click)="removeItineraryItem(i);$event.stopPropagation()">X</button></div>
+                  <div class="item-head"><button class="delete-btn" (click)="removeItineraryItem(i);$event.stopPropagation()"><span class="material-icons">close</span></button></div>
                   <div class="pf"><label>Hora</label>
-                    <div class="time-picker-row">
-                      <select class="pinput time-select" [ngModel]="getHour(item.time)" (ngModelChange)="setTime(i, $event, getMinute(item.time), getAmPm(item.time))">
-                        @for (h of hours; track h) { <option [value]="h">{{h}}</option> }
-                      </select>
-                      <span class="time-sep">:</span>
-                      <select class="pinput time-select" [ngModel]="getMinute(item.time)" (ngModelChange)="setTime(i, getHour(item.time), $event, getAmPm(item.time))">
-                        @for (m of minutes; track m) { <option [value]="m">{{m}}</option> }
-                      </select>
-                      <select class="pinput time-select ampm" [ngModel]="getAmPm(item.time)" (ngModelChange)="setTime(i, getHour(item.time), getMinute(item.time), $event)">
-                        <option value="AM">AM</option><option value="PM">PM</option>
-                      </select>
-                    </div>
+                    <app-wheel-time-picker [value]="item.time" (valueChange)="updateItineraryItem(i,'time',$event)"></app-wheel-time-picker>
                   </div>
                   <input class="pinput" [ngModel]="item.title" (ngModelChange)="updateItineraryItem(i,'title',$event)" placeholder="Titulo de actividad">
                   <textarea class="pinput sm" [ngModel]="item.description" (ngModelChange)="updateItineraryItem(i,'description',$event)" placeholder="Descripcion"></textarea>
@@ -636,14 +986,16 @@ import { ApiService } from '../../../../../core/services/api.service';
                       </div>
                     }
                     @if (item.iconType === 'custom') {
-                      <div class="upload-row">
-                        @if (item.iconUrl) {
-                          <span class="file-name">{{getFileName(item.iconUrl)}}</span>
-                          <button class="sm-btn danger" (click)="updateItineraryItem(i,'iconUrl','');$event.stopPropagation()">X</button>
-                        } @else {
-                          <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()">Subir imagen</button>
-                        }
-                      </div>
+                      @if (item.iconUrl) {
+                        <div class="icon-img-row">
+                          <div class="icon-img-preview"><img [src]="item.iconUrl" alt="icono"></div>
+                          <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()">Cambiar</button>
+                          <button class="delete-btn" (click)="updateItineraryItem(i,'iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                        </div>
+                      } @else {
+                        <button class="sm-btn" (click)="uploadItineraryIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                      }
+                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
                     }
                   </div>
                 </div>
@@ -669,17 +1021,34 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
               <div class="pf"><label>Estilo de linea</label>
                 <div class="btn-row">
-                  <button class="chip" [class.active]="!sec('itinerary')?.lineStyle||sec('itinerary')?.lineStyle==='solid'" (click)="setSec('itinerary','lineStyle','solid');$event.stopPropagation()">Solida</button>
-                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='dashed'" (click)="setSec('itinerary','lineStyle','dashed');$event.stopPropagation()">Discontinua</button>
-                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='dotted'" (click)="setSec('itinerary','lineStyle','dotted');$event.stopPropagation()">Punteada</button>
+                  <button class="chip" [class.active]="!sec('itinerary')?.lineStyle||sec('itinerary')?.lineStyle==='solid'" (click)="setSec('itinerary','lineStyle','solid');$event.stopPropagation()">Aguja</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='beam'" (click)="setSec('itinerary','lineStyle','beam');$event.stopPropagation()">Haz (glow)</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='wave'" (click)="setSec('itinerary','lineStyle','wave');$event.stopPropagation()">Ondeada</button>
+                  <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='zigzag'" (click)="setSec('itinerary','lineStyle','zigzag');$event.stopPropagation()">Zigzag</button>
                   <button class="chip" [class.active]="sec('itinerary')?.lineStyle==='none'" (click)="setSec('itinerary','lineStyle','none');$event.stopPropagation()">Sin linea</button>
                 </div>
               </div>
+              <div class="pf"><label>Color de linea</label><app-color-picker [value]="sec('itinerary')?.lineColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.6)'" (valueChange)="setSec('itinerary','lineColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Relleno del circulo</label><app-color-picker [value]="sec('itinerary')?.dotBgColor || 'rgba(0,0,0,0)'" [showOpacity]="true" (valueChange)="setSec('itinerary','dotBgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Borde del circulo</label><app-color-picker [value]="sec('itinerary')?.dotBorderColor || sec('itinerary')?.lineColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.5)'" (valueChange)="setSec('itinerary','dotBorderColor',$event)"></app-color-picker></div>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showCardBg" (ngModelChange)="setSec('itinerary','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('itinerary')?.showCardBg !== false" (ngModelChange)="setSec('itinerary','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('itinerary')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('itinerary')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('itinerary','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('itinerary')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('itinerary','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('itinerary')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('itinerary')?.cardBorderRadius||8" (ngModelChange)="setSec('itinerary','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('itinerary')?.cardBorderStyle || 'none'" (valueChange)="setSec('itinerary','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('itinerary')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('itinerary')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('itinerary','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('itinerary')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('itinerary','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('itinerary')?.cardBorderStyle === 'glow' || sec('itinerary')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('itinerary')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('itinerary','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('itinerary')?.cardShape || 'standard'" (valueChange)="setSec('itinerary','cardShape',$event)"></app-custom-select>
+              </div>
               <div class="pf"><label>Tamano titulo ({{sec('itinerary')?.titleFontSize||16}}px)</label><input type="range" class="pinput-range" min="12" max="28" [ngModel]="sec('itinerary')?.titleFontSize||16" (ngModelChange)="setSec('itinerary','titleFontSize',+$event)"></div>
               <div class="pf"><label>Tamano descripcion ({{sec('itinerary')?.descFontSize||13}}px)</label><input type="range" class="pinput-range" min="10" max="20" [ngModel]="sec('itinerary')?.descFontSize||13" (ngModelChange)="setSec('itinerary','descFontSize',+$event)"></div>
               <div class="pf"><label>Tamano horario ({{sec('itinerary')?.timeFontSize||12}}px)</label><input type="range" class="pinput-range" min="9" max="16" [ngModel]="sec('itinerary')?.timeFontSize||12" (ngModelChange)="setSec('itinerary','timeFontSize',+$event)"></div>
@@ -729,10 +1098,31 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['gal-photos']) {
             <div class="accordion-body">
-              <div class="items-header"><span>Fotos ({{photos().length}})</span><button class="sm-btn" (click)="uploadPhotos();$event.stopPropagation()">+ Subir</button></div>
-              <div class="photo-grid">
-                @for(p of photos();track p.id){
-                  <div class="photo-thumb"><img [src]="p.url"><button class="x-btn mini" (click)="deletePhoto(p.id);$event.stopPropagation()">X</button></div>
+              <p class="hint">Max. 20 fotos, 10MB c/u. JPG, PNG, WebP.</p>
+              <div class="items-header">
+                <span>Fotos ({{photos().length}}/20)</span>
+                @if (selectedPhotos.size > 0) {
+                  <button class="photo-upload-btn delete" (click)="deleteSelectedPhotos();$event.stopPropagation()">Eliminar ({{selectedPhotos.size}})</button>
+                } @else {
+                  <button class="photo-upload-btn upload" [disabled]="uploadingPhotos || photos().length >= 20" (click)="uploadPhotos();$event.stopPropagation()">{{ uploadingPhotos ? 'Subiendo...' : '+ Subir' }}</button>
+                }
+              </div>
+              <div class="photo-slots-grid">
+                @for(p of photos();track p.id; let i = $index){
+                  <div class="photo-slot filled" [class.selected]="selectedPhotos.has(p.id)" (click)="togglePhotoSelect(p.id);$event.stopPropagation()">
+                    <img [src]="p.thumb_url || p.url" loading="lazy" decoding="async" width="52" height="52" (load)="onPhotoLoad($event)">
+                    @if (selectedPhotos.has(p.id)) { <span class="slot-check"><span class="material-icons">check</span></span> }
+                  </div>
+                }
+                @for(slot of getLoadingSlots(); track $index) {
+                  <div class="photo-slot loading">
+                    <div class="slot-spinner"></div>
+                  </div>
+                }
+                @for(slot of getRemainingEmptySlots(); track $index) {
+                  <div class="photo-slot empty" [class.disabled]="uploadingPhotos" (click)="!uploadingPhotos && uploadPhotos();$event.stopPropagation()">
+                    <span class="material-icons">add_photo_alternate</span>
+                  </div>
                 }
               </div>
             </div>
@@ -752,16 +1142,43 @@ import { ApiService } from '../../../../../core/services/api.service';
           }
 
           <div class="accordion" [class.open]="expanded['dress-cards']" (click)="toggle('dress-cards')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['dress-cards'] ? 'expand_more' : 'chevron_right' }}</span><span>Ejemplos</span></div>
+            <div class="accordion-header"><span class="material-icons">{{ expanded['dress-cards'] ? 'expand_more' : 'chevron_right' }}</span><span>Ejemplos de vestimenta</span></div>
           </div>
           @if (expanded['dress-cards']) {
             <div class="accordion-body">
-              <div class="items-header"><span>Cards ({{sec('dresscode')?.cards?.length||0}})</span><button class="sm-btn" (click)="addDresscode();$event.stopPropagation()">+ Agregar</button></div>
+              <div class="items-header"><span>{{sec('dresscode')?.cards?.length||0}} ejemplo{{(sec('dresscode')?.cards?.length||0) !== 1 ? 's' : ''}}</span><button class="sm-btn" (click)="addDresscode();$event.stopPropagation()">+ Agregar</button></div>
               @for (card of sec('dresscode')?.cards||[]; track card.id; let i=$index) {
                 <div class="item-card">
-                  <div class="item-head"><span>{{i+1}}</span><button class="x-btn" (click)="removeDresscode(i);$event.stopPropagation()">X</button></div>
-                  <input class="pinput" [ngModel]="card.title" (ngModelChange)="updateDresscode(i,'title',$event)" placeholder="Titulo">
-                  <textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea>
+                  <div class="item-head">
+                    
+                    <button class="delete-btn" (click)="removeDresscode(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
+                  </div>
+                  <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="card.title" (ngModelChange)="updateDresscode(i,'title',$event)" placeholder="Titulo del ejemplo"></div>
+                  <div class="pf"><label>Descripcion</label><textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea></div>
+                  <div class="pf" style="margin-top:6px">
+                    <label>Imagenes de ejemplo ({{card.images?.length || 0}}/4)</label>
+                    <div class="dress-slots-grid">
+                      @for (img of card.images || []; track img; let j=$index) {
+                        <div class="dress-slot filled" [class.selected]="isDressImageSelected(i, j)" (click)="toggleDressImageSelect(i, j);$event.stopPropagation()">
+                          <img [src]="img" alt="">
+                          @if (isDressImageSelected(i, j)) { <span class="slot-check"><span class="material-icons">check</span></span> }
+                        </div>
+                      }
+                      @for (slot of getDressEmptySlots(i); track $index) {
+                        <div class="dress-slot empty" (click)="uploadDresscodeImage(i);$event.stopPropagation()">
+                          <span class="material-icons">add_photo_alternate</span>
+                        </div>
+                      }
+                    </div>
+                    @if (getSelectedDressImages(i).length > 0) {
+                      <button class="photo-upload-btn delete" style="margin-top:6px;width:100%" (click)="deleteSelectedDressImages(i);$event.stopPropagation()">Eliminar ({{getSelectedDressImages(i).length}})</button>
+                    }
+                  </div>
+                  <div class="toggle-row" style="margin-top:6px">
+                    <span class="toggle-title">Fondo</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="card.showCardBg !== false" (ngModelChange)="updateDresscode(i,'showCardBg',$event)"><span class="slider"></span></label>
+                  </div>
+                  <div class="pf"><label>Esquinas ({{card.cardBorderRadius ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="card.cardBorderRadius ?? 16" (ngModelChange)="updateDresscode(i,'cardBorderRadius',+$event)"></div>
                 </div>
               }
             </div>
@@ -774,9 +1191,22 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('dresscode')?.showCardBg" (ngModelChange)="setSec('dresscode','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('dresscode')?.showCardBg !== false" (ngModelChange)="setSec('dresscode','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('dresscode')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('dresscode')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('dresscode','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('dresscode')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('dresscode','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('dresscode')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('dresscode')?.cardBorderRadius||8" (ngModelChange)="setSec('dresscode','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('dresscode')?.cardBorderStyle || 'none'" (valueChange)="setSec('dresscode','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('dresscode')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('dresscode')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('dresscode','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('dresscode')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('dresscode','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('dresscode')?.cardBorderStyle === 'glow' || sec('dresscode')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('dresscode')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('dresscode','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('dresscode')?.cardShape || 'standard'" (valueChange)="setSec('dresscode','cardShape',$event)"></app-custom-select>
+              </div>
             </div>
           }
         }
@@ -792,6 +1222,22 @@ import { ApiService } from '../../../../../core/services/api.service';
               <div class="pf"><label>Descripcion</label><textarea class="pinput" style="min-height:40px" [ngModel]="sec('gifts')?.description" (ngModelChange)="setSec('gifts','description',$event)"></textarea></div>
               <div class="pf"><label>Link</label><input class="pinput" [ngModel]="sec('gifts')?.link" (ngModelChange)="setSec('gifts','link',$event)" placeholder="https://..."></div>
               <div class="pf"><label>Texto del boton</label><input class="pinput" [ngModel]="sec('gifts')?.buttonText" (ngModelChange)="setSec('gifts','buttonText',$event)"></div>
+              <div class="pf"><label>Icono de seccion</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="!sec('gifts')?.sectionIcon?.iconType || sec('gifts')?.sectionIcon?.iconType==='material'" (click)="setSectionIcon('gifts','material');$event.stopPropagation()">Default</button>
+                  <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='emoji'" (click)="setSectionIcon('gifts','emoji');$event.stopPropagation()">Emoji</button>
+                  <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='none'" (click)="setSectionIcon('gifts','none');$event.stopPropagation()">Sin icono</button>
+                </div>
+              </div>
+              @if (sec('gifts')?.sectionIcon?.iconType === 'emoji') {
+                <div class="pf"><label>Emoji</label>
+                  <div class="emoji-grid">
+                    @for (e of giftEmojis; track e) {
+                      <button class="emoji-btn" [class.active]="sec('gifts')?.sectionIcon?.icon === e" (click)="setSectionIconProp('gifts','icon',e);$event.stopPropagation()">{{e}}</button>
+                    }
+                  </div>
+                </div>
+              }
             </div>
           }
 
@@ -810,15 +1256,11 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Titular</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountName" (ngModelChange)="setSecNested('gifts','transfer','accountName',$event)"></div>
                 <div class="pf"><label>Banco</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.bank" (ngModelChange)="setSecNested('gifts','transfer','bank',$event)"></div>
                 <div class="pf"><label>Tipo de cuenta</label>
-                  <select class="pinput" [ngModel]="sec('gifts')?.transfer?.accountType||'cuenta'" (ngModelChange)="setSecNested('gifts','transfer','accountType',$event)">
-                    <option value="tarjeta">Tarjeta</option><option value="cuenta">Cuenta</option><option value="clabe">CLABE</option>
-                  </select>
+                  <app-custom-select [options]="accountTypeOptions" [value]="sec('gifts')?.transfer?.accountType||'cuenta'" (valueChange)="setSecNested('gifts','transfer','accountType',$event)"></app-custom-select>
                 </div>
                 <div class="pf"><label>Numero</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountNumber" (ngModelChange)="setSecNested('gifts','transfer','accountNumber',$event)"></div>
                 <div class="pf"><label>Animacion</label>
-                  <select class="pinput" [ngModel]="sec('gifts')?.transfer?.animation||'none'" (ngModelChange)="setSecNested('gifts','transfer','animation',$event)">
-                    <option value="coins">Monedas</option><option value="bills">Billetes</option><option value="none">Ninguna</option>
-                  </select>
+                  <app-custom-select [options]="transferAnimOptions" [value]="sec('gifts')?.transfer?.animation||'none'" (valueChange)="setSecNested('gifts','transfer','animation',$event)"></app-custom-select>
                 </div>
               }
             </div>
@@ -831,9 +1273,22 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('gifts')?.showCardBg" (ngModelChange)="setSec('gifts','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('gifts')?.showCardBg !== false" (ngModelChange)="setSec('gifts','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('gifts')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('gifts')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('gifts','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('gifts')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('gifts','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('gifts')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('gifts')?.cardBorderRadius||8" (ngModelChange)="setSec('gifts','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('gifts')?.cardBorderStyle || 'none'" (valueChange)="setSec('gifts','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('gifts')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('gifts')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('gifts','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('gifts')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('gifts','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('gifts')?.cardBorderStyle === 'glow' || sec('gifts')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('gifts')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('gifts','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('gifts')?.cardShape || 'standard'" (valueChange)="setSec('gifts','cardShape',$event)"></app-custom-select>
+              </div>
             </div>
           }
         }
@@ -846,6 +1301,41 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['rsvp-content']) {
             <div class="accordion-body">
               <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('rsvp')?.title" (ngModelChange)="setSec('rsvp','title',$event)"></div>
+              <div class="pf"><label>Icono de seccion</label>
+                <div class="btn-row">
+                  <button class="chip" [class.active]="!sec('rsvp')?.sectionIcon?.iconType || sec('rsvp')?.sectionIcon?.iconType==='material'" (click)="setSectionIcon('rsvp','material');$event.stopPropagation()">Default</button>
+                  <button class="chip" [class.active]="sec('rsvp')?.sectionIcon?.iconType==='emoji'" (click)="setSectionIcon('rsvp','emoji');$event.stopPropagation()">Emoji</button>
+                  <button class="chip" [class.active]="sec('rsvp')?.sectionIcon?.iconType==='none'" (click)="setSectionIcon('rsvp','none');$event.stopPropagation()">Sin icono</button>
+                </div>
+              </div>
+              @if (sec('rsvp')?.sectionIcon?.iconType === 'emoji') {
+                <div class="pf"><label>Emoji</label>
+                  <div class="emoji-grid">
+                    @for (e of rsvpEmojis; track e) {
+                      <button class="emoji-btn" [class.active]="sec('rsvp')?.sectionIcon?.icon === e" (click)="setSectionIconProp('rsvp','icon',e);$event.stopPropagation()">{{e}}</button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="accordion" [class.open]="expanded['rsvp-fields']" (click)="toggle('rsvp-fields')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['rsvp-fields'] ? 'expand_more' : 'chevron_right' }}</span><span>Campos de Registro</span></div>
+          </div>
+          @if (expanded['rsvp-fields']) {
+            <div class="accordion-body">
+              <p class="hint">Configura los campos del formulario. Nombre siempre es obligatorio.</p>
+              @for (field of getRegFields(); track field.key; let i=$index) {
+                <div class="item-card" style="flex-direction:row;align-items:center;gap:6px;">
+                  <span style="font-size:10px;color:rgba(255,255,255,0.5);min-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{field.label}}</span>
+                  <button class="chip" [class.active]="field.required" (click)="toggleRegFieldRequired(i);$event.stopPropagation()" style="font-size:9px;padding:3px 6px">{{field.required ? 'Oblig.' : 'Opc.'}}</button>
+                  @if (field.key !== 'name') {
+                    <button class="delete-btn" (click)="removeRegField(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
+                  }
+                </div>
+              }
+              <button class="sm-btn" style="margin-top:6px;" (click)="addRegField();$event.stopPropagation()">+ Agregar campo</button>
             </div>
           }
 
@@ -856,9 +1346,22 @@ import { ApiService } from '../../../../../core/services/api.service';
             <div class="accordion-body">
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('rsvp')?.showCardBg" (ngModelChange)="setSec('rsvp','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('rsvp')?.showCardBg !== false" (ngModelChange)="setSec('rsvp','showCardBg',$event)"><span class="slider"></span></label>
               </div>
+              <div class="pf"><label>Opacidad fondo ({{sec('rsvp')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('rsvp')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('rsvp','cardBgOpacity',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('rsvp')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('rsvp','cardBgColor',$event)"></app-color-picker></div>
               <div class="pf"><label>Radio borde ({{sec('rsvp')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('rsvp')?.cardBorderRadius||8" (ngModelChange)="setSec('rsvp','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="sec('rsvp')?.cardBorderStyle || 'none'" (valueChange)="setSec('rsvp','cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{sec('rsvp')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('rsvp')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('rsvp','cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('rsvp')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('rsvp','cardBorderColor',$event)"></app-color-picker></div>
+              @if (sec('rsvp')?.cardBorderStyle === 'glow' || sec('rsvp')?.cardBorderStyle === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('rsvp')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('rsvp','cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="sec('rsvp')?.cardShape || 'standard'" (valueChange)="setSec('rsvp','cardShape',$event)"></app-custom-select>
+              </div>
             </div>
           }
         }
@@ -885,7 +1388,29 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="ss('bgType')==='image'" (click)="setSS('bgType','image');$event.stopPropagation()">Imagen</button>
                 </div>
                 @if(ss('bgType')==='solid'||ss('bgType')==='linear'){<div class="pf"><label>Color 1</label><app-color-picker [value]="ss('bgColor1')||'#fff'" (valueChange)="setSS('bgColor1',$event)"></app-color-picker></div>}
-                @if(ss('bgType')==='linear'){<div class="pf"><label>Color 2</label><app-color-picker [value]="ss('bgColor2')||'#eee'" (valueChange)="setSS('bgColor2',$event)"></app-color-picker></div>}
+                @if(ss('bgType')==='linear'){
+                  <div class="pf"><label>Color 2</label><app-color-picker [value]="ss('bgColor2')||'#eee'" (valueChange)="setSS('bgColor2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Angulo ({{ss('bgAngle') ?? 180}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('bgAngle') ?? 180" (ngModelChange)="setSS('bgAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{ss('bgIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgIntensity') ?? 50" (ngModelChange)="setSS('bgIntensity',+$event)"></div>
+                }
+                @if(ss('bgType')==='image'){
+                  <div class="pf"><label>Imagen de fondo</label>
+                    <div class="upload-row">
+                      @if(ss('bgImage')){<span class="file-name">{{getFileName(ss('bgImage'))}}</span><button class="sm-btn" (click)="uploadSectionBg();$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSS('bgImage','');$event.stopPropagation()">X</button>}
+                      @else{<button class="sm-btn" (click)="uploadSectionBg();$event.stopPropagation()">Subir imagen</button>}
+                    </div>
+                  </div>
+                  @if(ss('bgImage')){
+                    <div class="pf"><label>Oscurecer fondo ({{ss('bgOverlay') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgOverlay') ?? 50" (ngModelChange)="setSS('bgOverlay',+$event)"></div>
+                    <div class="pf"><label>Ajuste en escritorio</label>
+                      <app-custom-select [options]="bgFitOptions" [value]="ss('bgFit') || 'cover'" (valueChange)="setSS('bgFit',$event)"></app-custom-select>
+                    </div>
+                    @if(ss('bgFit') === 'banner'){
+                      <div class="pf"><label>Ancho del banner ({{ss('bgBannerWidth') || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="ss('bgBannerWidth') || 70" (ngModelChange)="setSS('bgBannerWidth',+$event)"></div>
+                    }
+                    <p class="pf-hint">En "banner centrado" la imagen mantiene su proporción (ajustada al alto) en una columna centrada; el slider define su ancho. Solo aplica en escritorio; en móvil ocupa todo el ancho.</p>
+                  }
+                }
               </div>
             }
 
@@ -900,19 +1425,58 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <button class="chip" [class.active]="ss('dividerType')==='curve'" (click)="setSS('dividerType','curve');$event.stopPropagation()">Curva</button>
                   <button class="chip" [class.active]="ss('dividerType')==='slant'" (click)="setSS('dividerType','slant');$event.stopPropagation()">Diagonal</button>
                   <button class="chip" [class.active]="ss('dividerType')==='zigzag'" (click)="setSS('dividerType','zigzag');$event.stopPropagation()">Zigzag</button>
+                  <button class="chip" [class.active]="ss('dividerType')==='mountains'" (click)="setSS('dividerType','mountains');$event.stopPropagation()">Montañas</button>
+                  <button class="chip" [class.active]="ss('dividerType')==='drops'" (click)="setSS('dividerType','drops');$event.stopPropagation()">Gotas</button>
+                  <button class="chip" [class.active]="ss('dividerType')==='arrow'" (click)="setSS('dividerType','arrow');$event.stopPropagation()">Flecha</button>
                 </div>
+                @if (ss('dividerType') && ss('dividerType') !== 'none') {
+                  <div class="toggle-row" style="margin-top:8px">
+                    <span class="toggle-title">Invertir</span>
+                    <label class="toggle-switch"><input type="checkbox" [ngModel]="ss('dividerFlip')" (ngModelChange)="setSS('dividerFlip',$event)"><span class="slider"></span></label>
+                  </div>
+                  <div class="pf"><label>Alto ({{ss('dividerHeight') || 50}}px)</label><input type="range" class="pinput-range" min="20" max="100" [ngModel]="ss('dividerHeight') || 50" (ngModelChange)="setSS('dividerHeight',+$event)"></div>
+                  <div class="pf"><label>Borde grosor ({{ss('dividerStrokeWidth') || 0}}px)</label><input type="range" class="pinput-range" min="0" max="5" step="0.5" [ngModel]="ss('dividerStrokeWidth') || 0" (ngModelChange)="setSS('dividerStrokeWidth',+$event)"></div>
+                  @if (ss('dividerStrokeWidth') > 0) {
+                    <div class="pf"><label>Color borde</label><app-color-picker [value]="ss('dividerStrokeColor')||'#ffffff'" (valueChange)="setSS('dividerStrokeColor',$event)"></app-color-picker></div>
+                    <div class="pf"><label>Opacidad borde ({{(ss('dividerStrokeOpacity') ?? 1) * 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="(ss('dividerStrokeOpacity') ?? 1) * 100" (ngModelChange)="setSS('dividerStrokeOpacity',$event / 100)"></div>
+                  }
+                }
               </div>
             }
 
+            @if (canvasState.selectedSection() !== 'invitation') {
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
-              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Colores de Texto</span></div>
+              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>
             @if (expanded['sec-txt']) {
               <div class="accordion-body">
-                <div class="pf"><label>Titulos</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
-                <div class="pf"><label>Contenido</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
-                <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar</button>
+                <span class="pf-section-title">Encabezado</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamano ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+
+                <span class="pf-section-title" style="margin-top:8px">Titulos</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamano ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color 2</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+                <div class="pf"><label>Angulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+                <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
+
+                <span class="pf-section-title" style="margin-top:8px">Contenido</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('contentFont')||''" (valueChange)="setSS('contentFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamano ({{ss('contentFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('contentFontSize')||''" (ngModelChange)="setSS('contentFontSize',$event ? +$event : '')" min="10" max="36" placeholder="Hereda"></div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
+                <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar todo</button>
               </div>
+            }
             }
 
             <div class="accordion" [class.open]="expanded['sec-anim']" (click)="toggle('sec-anim')">
@@ -923,10 +1487,56 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="btn-row">
                   <button class="chip" [class.active]="!ss('animation')||ss('animation')==='inherit'" (click)="setSS('animation','inherit');$event.stopPropagation()">Hereda</button>
                   <button class="chip" [class.active]="ss('animation')==='fade-up'" (click)="setSS('animation','fade-up');$event.stopPropagation()">Fade Up</button>
+                  <button class="chip" [class.active]="ss('animation')==='fade-in'" (click)="setSS('animation','fade-in');$event.stopPropagation()">Fade In</button>
+                  <button class="chip" [class.active]="ss('animation')==='slide-left'" (click)="setSS('animation','slide-left');$event.stopPropagation()">Slide Left</button>
+                  <button class="chip" [class.active]="ss('animation')==='slide-right'" (click)="setSS('animation','slide-right');$event.stopPropagation()">Slide Right</button>
                   <button class="chip" [class.active]="ss('animation')==='scale'" (click)="setSS('animation','scale');$event.stopPropagation()">Scale</button>
                   <button class="chip" [class.active]="ss('animation')==='none'" (click)="setSS('animation','none');$event.stopPropagation()">Ninguna</button>
                 </div>
               </div>
+            }
+
+            @if (canvasState.selectedSection() !== 'invitation') {
+            <div class="accordion" [class.open]="expanded['sec-presets']" (click)="toggle('sec-presets')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-presets'] ? 'expand_more' : 'chevron_right' }}</span><span>Presets Rapidos</span></div>
+            </div>
+            @if (expanded['sec-presets']) {
+              <div class="accordion-body">
+                <div class="btn-row">
+                  <button class="chip" (click)="applySectionPreset('light');$event.stopPropagation()">☀ Claro</button>
+                  <button class="chip" (click)="applySectionPreset('dark');$event.stopPropagation()">🌙 Oscuro</button>
+                  <button class="chip" (click)="applySectionPreset('wine');$event.stopPropagation()">🍷 Vino</button>
+                  <button class="chip" (click)="applySectionPreset('transparent');$event.stopPropagation()">◻ Transparente</button>
+                </div>
+              </div>
+            }
+
+            <div class="accordion" [class.open]="expanded['sec-ornament']" (click)="toggle('sec-ornament')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['sec-ornament'] ? 'expand_more' : 'chevron_right' }}</span><span>Adorno de Titulo</span></div>
+            </div>
+            @if (expanded['sec-ornament']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Tipo</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="getOrnamentType()==='none'" (click)="setOrnament('type','none');$event.stopPropagation()">Ninguno</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='line'" (click)="setOrnament('type','line');$event.stopPropagation()">Linea</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='dots'" (click)="setOrnament('type','dots');$event.stopPropagation()">Puntos</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='sparkles'" (click)="setOrnament('type','sparkles');$event.stopPropagation()">Destellos</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='flourish'" (click)="setOrnament('type','flourish');$event.stopPropagation()">Floritura</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='dash'" (click)="setOrnament('type','dash');$event.stopPropagation()">Guion</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='arrows'" (click)="setOrnament('type','arrows');$event.stopPropagation()">Flechas</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='wave'" (click)="setOrnament('type','wave');$event.stopPropagation()">Onda</button>
+                  </div>
+                </div>
+                @if (getOrnamentType() !== 'none') {
+                  <div class="pf"><label>Posicion</label>
+                    <app-custom-select [options]="ornamentPositionOptions" [value]="getOrnamentProp('position')||'below'" (valueChange)="setOrnament('position',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="getOrnamentProp('color')||'#d4a017'" (valueChange)="setOrnament('color',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Tamano ({{getOrnamentProp('size') || 1}}x)</label><input type="range" class="pinput-range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp('size') || 1" (ngModelChange)="setOrnament('size',+$event)"></div>
+                }
+              </div>
+            }
             }
           }
         }
@@ -941,50 +1551,147 @@ import { ApiService } from '../../../../../core/services/api.service';
     </div>
   `,
   styles: [`
-    :host { display: block; height: 100%; overflow-y: auto; }
-    .props-panel-content { padding: 0; padding-bottom: 60px; }
+    :host { display: block; height: 100%; overflow-y: auto; will-change: transform; transform: translate3d(0,0,0); }
+    .props-panel-content { padding: 0; padding-bottom: 60px; contain: layout style; }
     .props-badge { display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(139,92,246,0.06);border-bottom:1px solid rgba(139,92,246,0.1); .material-icons{font-size:16px;color:var(--gold-light)} span:last-child{font-size:13px;font-weight:600;color:white} }
     .section-desc { font-size:11px;color:rgba(255,255,255,0.4);padding:4px 14px 8px;margin:0;border-bottom:1px solid rgba(255,255,255,0.04); }
     .accordion { cursor:pointer; }
-    .accordion-header { display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s; .material-icons{font-size:16px;color:rgba(255,255,255,0.35)} }
+    .accordion-header { display:flex;align-items:center;gap:6px;padding:9px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s; .material-icons{font-size:16px;color:rgba(255,255,255,0.35);transition:transform 0.2s} }
     .accordion-header:hover { background:rgba(139,92,246,0.04); }
     .accordion.open .accordion-header { color:white;background:rgba(139,92,246,0.06); .material-icons{color:var(--gold-light)} }
-    .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04); }
+    .accordion-body { padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);animation:accordionOpen 0.25s ease-out; }
+    @keyframes accordionOpen { from { opacity:0; max-height:0; transform:translateY(-6px); } to { opacity:1; max-height:1000px; transform:translateY(0); } }
     .pf { margin-bottom:10px; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
+    .pf-section-title { display:block;font-size:11px;font-weight:600;color:rgba(139,92,246,0.8);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(139,92,246,0.15); }
+    .pf-hint { font-size:10px;color:rgba(255,255,255,0.4);line-height:1.4;margin:2px 0 10px; }
     .pf-row { display:flex;gap:8px;margin-bottom:10px; }
     .pf-half { flex:1; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pinput { width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.15);border-radius:6px;padding:7px 10px;color:white;font-size:12px;font-family:var(--font-sans); &:focus{outline:none;border-color:rgba(139,92,246,0.4)} }
     .pinput-range { width:100%;accent-color:#8b5cf6;cursor:pointer; }
     textarea.pinput { resize:vertical; }
     textarea.pinput.sm { min-height:40px; }
-    select.pinput { cursor:pointer; }
+    select.pinput { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b5cf6' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; color:#c084fc; }
+    select.pinput option { background:#0a0a18; color:#c084fc; padding:8px; }
+    select.pinput option:checked { background:rgba(139,92,246,0.25); color:#fff; }
+    select.pinput option:hover { background:rgba(139,92,246,0.2); color:#fff; }
+    :host-context(body.light-mode) select.pinput { color:#5a3d8a; background-color:#fff; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237c5cbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); }
+    :host-context(body.light-mode) select.pinput option { background:#fff; color:#5a3d8a; }
+    :host-context(body.light-mode) select.pinput option:checked { background:#7c5cbf; color:#fff; }
     .btn-row { display:flex;flex-wrap:wrap;gap:4px; }
     .chip { padding:5px 9px;border-radius:5px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.6);font-size:10px;cursor:pointer;transition:all 0.15s;white-space:nowrap; &:hover{background:rgba(139,92,246,0.08);color:white} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
     .upload-row { display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
     .upload-ok { font-size:11px;color:#10b981; }
+    /* Fila de imagen de icono: preview + cambiar + quitar (mismo estilo que venues) */
+    .icon-img-row { display:flex;align-items:center;gap:8px; }
+    .icon-img-preview {
+      width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;
+      border:1px solid rgba(139,92,246,0.2);
+      display:flex;align-items:center;justify-content:center;
+      /* Tablero de ajedrez para que se note la transparencia del icono */
+      background-color:rgba(255,255,255,0.06);
+      background-image:
+        linear-gradient(45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.08) 75%);
+      background-size:10px 10px;
+      background-position:0 0, 0 5px, 5px -5px, -5px 0;
+      img { width:100%;height:100%;object-fit:contain;display:block; }
+    }
+    .upload-hint {
+      display:flex;align-items:flex-start;gap:5px;
+      margin:8px 0 0;font-size:10px;line-height:1.4;
+      color:rgba(255,255,255,0.4);
+      .material-icons { font-size:13px;color:rgba(139,92,246,0.7);flex-shrink:0;margin-top:1px; }
+    }
     .file-name { font-size:10px;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
     .sm-btn { padding:4px 10px;border-radius:5px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.06);color:rgba(255,255,255,0.7);font-size:10px;cursor:pointer;transition:all 0.15s; &:hover{background:rgba(139,92,246,0.12)} &.danger{border-color:rgba(239,68,68,0.2);color:#ef4444} }
     .tpl-grid-2x2 { display:grid;grid-template-columns:1fr 1fr;gap:4px; }
     .tpl-card { padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.7);font-size:11px;cursor:pointer;transition:all 0.15s;text-align:center; &:hover{background:rgba(139,92,246,0.08);border-color:rgba(139,92,246,0.2)} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
+    .tpl-hint { font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;line-height:1.5; }
+    .tpl-grid-preview { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px; }
+    .tpl-preview-card { display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform 0.2s; &:hover{transform:translateY(-2px)} &:active{transform:scale(0.95)} }
+    .tpl-preview-swatch { width:100%;aspect-ratio:3/4;border-radius:10px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;font-family:var(--font-serif);transition:border-color 0.2s,box-shadow 0.2s; &:hover{box-shadow:0 4px 16px rgba(0,0,0,0.3)} }
+    .tpl-preview-label { font-size:10px;color:rgba(255,255,255,0.6); }
+    .tpl-preview-card.active .tpl-preview-swatch { border-color:rgba(139,92,246,0.7);box-shadow:0 0 12px rgba(139,92,246,0.3); }
+    .tpl-preview-card.active .tpl-preview-label { color:#c084fc;font-weight:600; }
+    .env-swatch { background:rgba(20,20,40,0.8) !important; }
     .toggle-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;margin-bottom:8px; }
     .toggle-title { font-size:11px;color:rgba(255,255,255,0.7);font-weight:500; }
     .toggle-switch { position:relative;display:inline-block;width:34px;height:18px;cursor:pointer; input{opacity:0;width:0;height:0} .slider{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.15);border-radius:9px;transition:0.2s} .slider::before{content:'';position:absolute;height:14px;width:14px;left:2px;bottom:2px;background:white;border-radius:50%;transition:0.2s} input:checked+.slider{background:#8b5cf6} input:checked+.slider::before{transform:translateX(16px)} }
     .section-style-toggle { padding:12px 14px;border-top:1px solid rgba(139,92,246,0.1);margin-top:8px; }
     .items-header { display:flex;justify-content:space-between;align-items:center;margin:8px 0 6px; span{font-size:10px;color:rgba(139,92,246,0.7);text-transform:uppercase;font-weight:700} }
     .item-card { padding:8px;margin-bottom:6px;border-radius:5px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px; }
-    .item-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:2px; span{font-size:9px;color:rgba(255,255,255,0.3)} }
+    .item-head { display:flex;justify-content:flex-end;align-items:center;margin-bottom:2px; span{font-size:9px;color:rgba(255,255,255,0.3)} }
     .x-btn { background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:12px;padding:2px; &:hover{color:#ef4444} &.mini{position:absolute;top:2px;right:2px;font-size:10px;background:rgba(0,0,0,0.6);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center} }
-    .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px; }
-    .photo-thumb { position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden; img{width:100%;height:100%;object-fit:cover} }
+    .item-title { font-size:13px;color:white;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .delete-btn { width:24px;height:24px;border-radius:6px;border:none;background:rgba(239,68,68,0.85);color:#ffffff !important;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s;flex-shrink:0; .material-icons{font-size:14px;color:#ffffff !important;opacity:1 !important} &:hover{opacity:0.75} }
+    .dress-images-grid { display:flex;gap:6px;margin-top:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch; &::-webkit-scrollbar{display:none} }
+    .dress-img-thumb { position:relative;width:56px;height:68px;border-radius:8px;overflow:hidden;border:1px solid rgba(139,92,246,0.2);flex-shrink:0; img{width:100%;height:100%;object-fit:cover} }
+    .dress-img-remove { position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,64,87,0.9);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s; .material-icons{font-size:11px} }
+    .dress-img-thumb:hover .dress-img-remove { opacity:1; }
+    .dress-img-add { width:56px;height:68px;border-radius:8px;border:2px dashed rgba(139,92,246,0.3);background:none;color:rgba(139,92,246,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0; .material-icons{font-size:22px} &:hover{border-color:rgba(139,92,246,0.6);color:rgba(139,92,246,0.8);background:rgba(139,92,246,0.05)} }
+    .dress-slots-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px; }
+    .dress-slot { width:100%;aspect-ratio:3/4;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden; }
+    .dress-slot.filled { border:2px solid transparent;transition:border-color 0.15s; img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px} }
+    .dress-slot.filled:hover { border-color:rgba(139,92,246,0.5); }
+    .dress-slot.filled.selected { border-color:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6; }
+    .dress-slot.empty { border:2px dashed rgba(139,92,246,0.4);background:rgba(139,92,246,0.08);border-radius:8px; .material-icons{font-size:20px;color:white;opacity:0.7} }
+    .dress-slot.empty:hover { border-color:rgba(139,92,246,0.7);background:rgba(139,92,246,0.12); }
+    .photo-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px;margin-top:6px;contain:layout;max-height:200px;overflow-y:auto;overflow-x:hidden; }
+    .photo-thumb { position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1);contain:strict; img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.2s} img.loaded{opacity:1} }
+    .photo-list-item { display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04); }
+    .photo-list-name { flex:1;font-size:10px;color:rgba(255,255,255,0.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .photo-slots-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;max-height:280px;overflow-y:auto; }
+    .photo-slot { width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden; }
+    .photo-slot.filled { border:2px solid transparent;transition:border-color 0.15s; img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px} }
+    .photo-slot.filled:hover { border-color:rgba(139,92,246,0.5); }
+    .photo-slot.filled.selected { border-color:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6; }
+    .slot-check { position:absolute;top:4px;right:4px;font-size:18px;color:white;background:#8b5cf6;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.4); }
+    .slot-check .material-icons { font-size:14px; }
+    .photo-slot.empty { border:2px dashed rgba(139,92,246,0.4);background:rgba(139,92,246,0.08);border-radius:8px; .material-icons{font-size:20px;color:white;opacity:0.7} }
+    .photo-slot.empty:hover { border-color:rgba(139,92,246,0.7);background:rgba(139,92,246,0.12); }
+    .photo-slot.empty.disabled { opacity:0.3;pointer-events:none;cursor:not-allowed; }
+    .photo-slot.loading { border:2px solid rgba(139,92,246,0.5);background:rgba(139,92,246,0.12);border-radius:8px; }
+    .slot-spinner { width:20px;height:20px;border:2px solid rgba(139,92,246,0.3);border-top-color:#8b5cf6;border-radius:50%;animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    :host-context(body.light-mode) .photo-slot.empty { border-color:rgba(124,92,191,0.3);background:rgba(124,92,191,0.06); .material-icons{color:#7c5cbf} }
+    .photo-upload-btn { padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s; }
+    .photo-upload-btn.upload { background:#8b5cf6;color:white; &:hover{background:#7c3aed} &:disabled{opacity:0.5;cursor:not-allowed} }
+    .photo-upload-btn.delete { background:#ef4444;color:white; &:hover{background:#dc2626} }
+    :host-context(body.light-mode) .photo-upload-btn.upload { background:rgba(124,92,191,0.15);color:#7c5cbf;border:1px solid rgba(124,92,191,0.3); }
     .hint { font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px; }
     .empty-state { padding:40px 14px;text-align:center; .material-icons{font-size:32px;color:rgba(255,255,255,0.15)} p{font-size:12px;color:rgba(255,255,255,0.3);margin-top:8px} }
     .stepper-row { display:flex;align-items:center;gap:0;border:1px solid rgba(139,92,246,0.2);border-radius:6px;overflow:hidden; }
     .stepper-btn { width:36px;height:34px;border:none;background:rgba(139,92,246,0.1);color:white;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.25)} &:active{background:rgba(139,92,246,0.35)} }
     .stepper-value { flex:1;text-align:center;font-size:13px;font-weight:600;color:white;padding:6px 8px;background:rgba(255,255,255,0.03); }
     .time-picker-row { display:flex;align-items:center;gap:4px; }
-    .time-select { width:auto !important;flex:1;padding:6px 4px !important;text-align:center;font-size:13px; }
+    .time-select { width:auto !important;flex:1;padding:6px 24px 6px 4px !important;text-align:center;font-size:13px; }
     .time-sep { color:rgba(255,255,255,0.5);font-weight:700;font-size:14px; }
-    .ampm { flex:0 0 50px !important; }
+    .ampm { flex:0 0 56px !important; }
+
+    /* Video Trimmer */
+    .video-trimmer { padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;margin-bottom:10px; }
+    .trim-label { display:block;font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px; }
+    .trimmer-container { position:relative; }
+    .trimmer-track { position:relative;height:28px;background:rgba(255,255,255,0.08);border-radius:4px;cursor:pointer;overflow:visible; }
+    .trimmer-selected { position:absolute;top:0;bottom:0;background:rgba(139,92,246,0.3);border:1px solid rgba(139,92,246,0.6);border-radius:4px;pointer-events:none; }
+    .trimmer-handle { position:absolute;top:-3px;bottom:-3px;width:12px;background:var(--gold-light,#a78bfa);border-radius:3px;cursor:ew-resize;z-index:2;transform:translateX(-50%);transition:background 0.15s; }
+    .trimmer-handle:hover { background:#c084fc; }
+    .trimmer-handle::after { content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:12px;background:rgba(0,0,0,0.4);border-radius:1px; }
+    .trimmer-labels { display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:10px;color:rgba(255,255,255,0.5); }
+    .trim-duration { color:#c084fc;font-weight:600;font-size:11px; }
+    .trim-preview-btn { display:flex;align-items:center;gap:4px;margin-top:8px;padding:6px 12px;border-radius:6px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.08);color:#c084fc;font-size:11px;cursor:pointer;transition:all 0.15s; }
+    .trim-preview-btn:hover { background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.5); }
+    .trim-preview-btn .material-icons { font-size:16px; }
+    :host-context(body.light-mode) .video-trimmer { background:rgba(124,92,191,0.04); }
+    :host-context(body.light-mode) .trimmer-track { background:rgba(124,92,191,0.1); }
+    :host-context(body.light-mode) .trimmer-selected { background:rgba(124,92,191,0.15);border-color:rgba(124,92,191,0.4); }
+    :host-context(body.light-mode) .trimmer-handle { background:#7c5cbf; }
+    :host-context(body.light-mode) .trimmer-labels { color:#666; }
+    :host-context(body.light-mode) .trim-duration { color:#7c5cbf; }
+    :host-context(body.light-mode) .trim-label { color:#7c5cbf; }
+    :host-context(body.light-mode) .trim-preview-btn { background:rgba(124,92,191,0.06);border-color:rgba(124,92,191,0.25);color:#7c5cbf; }
     .emoji-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(32px,1fr));gap:3px;max-height:120px;overflow-y:auto;padding:4px;background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.15);border-radius:6px; }
     .emoji-btn { width:32px;height:32px;border:none;background:transparent;border-radius:4px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s; &:hover{background:rgba(139,92,246,0.15)} &.active{background:rgba(139,92,246,0.25);outline:1px solid rgba(139,92,246,0.5)} }
     .media-info { display:flex;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;background:rgba(139,92,246,0.06);border-radius:5px;border:1px solid rgba(139,92,246,0.1); }
@@ -1003,12 +1710,6 @@ export class BuilderPropsPanelComponent {
 
   expanded: Record<string, boolean> = {};
   cfg = this.canvasState.config;
-
-  readonly fontOptions = [
-    'Lato','Montserrat','Raleway','Josefin Sans','Playfair Display',
-    'Cormorant Garamond','Cinzel','Libre Baskerville','Great Vibes',
-    'Spumoni','Dancing Script','Sacramento','Tangerine','Alex Brush','Pinyon Script'
-  ];
 
   get sectionIcon(): string {
     const icons: Record<string,string> = { hero:'image',invitation:'card_giftcard',details:'info',venues:'place',itinerary:'schedule',gallery:'photo_library',dresscode:'checkroom',gifts:'redeem',rsvp:'how_to_reg',envelope:'mail',intro:'auto_awesome' };
@@ -1037,7 +1738,13 @@ export class BuilderPropsPanelComponent {
     return descs[this.canvasState.selectedSection()||''] || '';
   }
 
-  toggle(key: string) { this.expanded[key] = !this.expanded[key]; }
+  toggle(key: string) {
+    const wasOpen = this.expanded[key];
+    // Close all other accordions
+    Object.keys(this.expanded).forEach(k => this.expanded[k] = false);
+    // Toggle the clicked one
+    this.expanded[key] = !wasOpen;
+  }
 
   sec(key: string): any { return (this.cfg() as any)?.[key] || null; }
 
@@ -1045,7 +1752,8 @@ export class BuilderPropsPanelComponent {
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
     if (!(cfg as any)[secKey]) (cfg as any)[secKey] = {};
     (cfg as any)[secKey][prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   setSecNested(secKey: string, nestedKey: string, prop: string, value: any) {
@@ -1053,7 +1761,8 @@ export class BuilderPropsPanelComponent {
     if (!(cfg as any)[secKey]) (cfg as any)[secKey] = {};
     if (!(cfg as any)[secKey][nestedKey]) (cfg as any)[secKey][nestedKey] = {};
     (cfg as any)[secKey][nestedKey][prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   ss(prop: string): any {
@@ -1067,10 +1776,11 @@ export class BuilderPropsPanelComponent {
     const s = (cfg as any)[key];
     if (!s.sectionStyle) s.sectionStyle = { bgType:'inherit', dividerType:'none' };
     s.sectionStyle[prop] = value;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
-  clearColors() { this.setSS('headingColor',''); this.setSS('contentColor',''); }
+  clearColors() { this.setSS('headingColor',''); this.setSS('headingColor2',''); this.setSS('contentColor',''); this.setSS('sectionHeadingColor',''); this.setSS('sectionHeadingFont',''); this.setSS('headingFont',''); this.setSS('contentFont',''); }
 
   hasSectionStyle(): boolean {
     const key = this.canvasState.selectedSection(); if (!key) return false;
@@ -1092,7 +1802,148 @@ export class BuilderPropsPanelComponent {
   setTheme(prop: string, value: any) {
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
     (cfg.theme as any)[prop] = value;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  setGlobalStyle(styleKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    (cfg.globalStyles as any)[styleKey][prop] = value;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  setGlobalSeparator(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    (cfg.globalStyles.separatorStyle as any)[prop] = value;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  setSectionIcon(secKey: string, iconType: string) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const sec = (cfg as any)[secKey];
+    if (!sec.sectionIcon) sec.sectionIcon = { iconType: 'material', icon: '', iconUrl: '' };
+    sec.sectionIcon.iconType = iconType;
+    if (iconType === 'none') { sec.sectionIcon.icon = ''; sec.sectionIcon.iconUrl = ''; }
     this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  setSectionIconProp(secKey: string, prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const sec = (cfg as any)[secKey];
+    if (!sec.sectionIcon) sec.sectionIcon = { iconType: 'emoji', icon: '', iconUrl: '' };
+    (sec.sectionIcon as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  applySectionPreset(preset: string) {
+    const presets: Record<string, any> = {
+      light: { bgType: 'solid', bgColor1: '#ffffff', headingColor: '#1a1a2e', contentColor: '#333333', dividerType: 'wave' },
+      dark: { bgType: 'solid', bgColor1: '#0d1117', headingColor: '#ffffff', contentColor: 'rgba(255,255,255,0.8)', dividerType: 'curve' },
+      wine: { bgType: 'linear', bgColor1: '#2d1525', bgColor2: '#1a0a14', headingColor: '#f4a7c1', contentColor: 'rgba(255,255,255,0.7)', dividerType: 'slant' },
+      transparent: { bgType: 'inherit', headingColor: '', contentColor: '', dividerType: 'none' }
+    };
+    const p = presets[preset]; if (!p) return;
+    Object.keys(p).forEach(k => this.setSS(k, p[k]));
+  }
+
+  // Ornament helpers
+  getOrnamentType(): string {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return 'none';
+    const sec = this.canvasState.selectedSection();
+    if (!sec) return 'none';
+    const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
+    return s?.type || 'none';
+  }
+
+  getOrnamentProp(prop: string): any {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return null;
+    const sec = this.canvasState.selectedSection();
+    if (!sec) return null;
+    const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
+    return s ? (s as any)[prop] : null;
+  }
+
+  setOrnament(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const sec = this.canvasState.selectedSection();
+    if (!sec) return;
+    const section = (cfg as any)[sec];
+    if (!section.sectionStyle) section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
+    if (!section.sectionStyle.headingOrnament) section.sectionStyle.headingOrnament = { type: 'none', position: 'below', color: '#d4a017', size: 1 };
+    (section.sectionStyle.headingOrnament as any)[prop] = value;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  // Registration fields helpers
+  getRegFields(): any[] {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return [];
+    return cfg.rsvp?.registrationFields || [{ key: 'name', label: 'Nombre', type: 'text', enabled: true, required: true }];
+  }
+
+  toggleRegFieldRequired(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!cfg.rsvp.registrationFields) cfg.rsvp.registrationFields = [{ key: 'name', label: 'Nombre', type: 'text', enabled: true, required: true }];
+    const field = cfg.rsvp.registrationFields[index];
+    if (field && field.key !== 'name') { field.required = !field.required; }
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  removeRegField(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!cfg.rsvp.registrationFields) return;
+    if (cfg.rsvp.registrationFields[index]?.key === 'name') return;
+    cfg.rsvp.registrationFields.splice(index, 1);
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  addRegField() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!cfg.rsvp.registrationFields) cfg.rsvp.registrationFields = [{ key: 'name', label: 'Nombre', type: 'text', enabled: true, required: true }];
+    const key = 'field_' + Date.now();
+    cfg.rsvp.registrationFields.push({ key, label: 'Nuevo campo', type: 'text', enabled: true, required: false });
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  // Countdown date/time helpers
+  getCountdownDate(): string {
+    const dt = this.sec('hero')?.countdownDate;
+    if (!dt) return '';
+    return dt.slice(0, 10); // YYYY-MM-DD
+  }
+
+  getCountdownTime(): string {
+    const dt = this.sec('hero')?.countdownDate;
+    if (!dt || dt.length < 16) return '7:00 PM';
+    const h = parseInt(dt.slice(11, 13)) || 0;
+    const m = parseInt(dt.slice(14, 16)) || 0;
+    const h12 = h % 12 || 12;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+  }
+
+  setCountdownDate(dateStr: string) {
+    const time = this.sec('hero')?.countdownDate?.slice(11) || '19:00:00';
+    this.setSec('hero', 'countdownDate', `${dateStr}T${time}`);
+  }
+
+  setCountdownTime(timeStr: string) {
+    const date = this.getCountdownDate() || new Date().toISOString().slice(0, 10);
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return;
+    let h = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    const ap = match[3].toUpperCase();
+    if (ap === 'PM' && h < 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    this.setSec('hero', 'countdownDate', `${date}T${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`);
   }
 
   applyTemplate(key: string) {
@@ -1109,11 +1960,45 @@ export class BuilderPropsPanelComponent {
     this.canvasState.isDirty.set(true);
   }
 
+  /** Sube una imagen y la asigna como fondo de la SECCIÓN activa (sectionStyle.bgImage). */
+  uploadSectionBg() {
+    const input = document.createElement('input'); input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({
+        next: (r: any) => {
+          this.setSS('bgImage', r.url);
+          this.canvasState.notifyChange();
+        }
+      });
+    };
+    input.click();
+  }
+
   upload(secKey: string, prop: string, type: 'images'|'audio'|'gifs') {
     const input = document.createElement('input'); input.type='file';
-    input.accept = type==='audio'?'audio/*':'image/*,video/*';
-    input.onchange = () => { const f=input.files?.[0]; if(!f)return; this.api.uploadFile(type,f).subscribe({next:r=>this.setSec(secKey,prop,r.url)}); };
+    input.accept = type==='audio'?'audio/*':type==='gifs'?'image/*,video/*,.gif,.mp4,.webm':'image/*,image/x-icon,image/svg+xml';
+    input.onchange = () => { const f=input.files?.[0]; if(!f)return;
+      this.api.uploadFile(type,f).subscribe({next:r=>{
+        if(secKey === '_favicon') {
+          const cfg = this.canvasState.getConfig(); if(!cfg)return;
+          (cfg as any).favicon = r.url;
+          this.canvasState.isDirty.set(true);
+        } else {
+          this.setSec(secKey,prop,r.url);
+        }
+        this.canvasState.notifyChange();
+      }});
+    };
     input.click();
+  }
+
+  setFavicon(url: string) {
+    const cfg = this.canvasState.getConfig(); if(!cfg)return;
+    (cfg as any).favicon = url;
+    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
   }
 
   addCard(secKey: string) {
@@ -1152,7 +2037,33 @@ export class BuilderPropsPanelComponent {
   updateVenue(i: number, prop: string, val: any) {
     const cfg=this.canvasState.getConfig();if(!cfg)return;
     (cfg.venues.items[i] as any)[prop]=val;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+  }
+
+  uploadVenueIcon(i: number) {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg) return;
+        (cfg.venues.items[i] as any).icon = r.url;
+        this.canvasState.notifyChange();
+      }});
+    };
+    input.click();
+  }
+
+  uploadDetailIcon(i: number) {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg) return;
+        (cfg as any).details.cards[i].iconUrl = r.url;
+        this.canvasState.notifyChange();
+      }});
+    };
+    input.click();
   }
 
   addDresscode() {
@@ -1165,23 +2076,140 @@ export class BuilderPropsPanelComponent {
   removeDresscode(i: number) {
     const cfg=this.canvasState.getConfig();if(!cfg||!cfg.dresscode.cards)return;
     cfg.dresscode.cards.splice(i,1);
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   updateDresscode(i: number, prop: string, val: any) {
     const cfg=this.canvasState.getConfig();if(!cfg||!cfg.dresscode.cards?.[i])return;
     (cfg.dresscode.cards[i] as any)[prop]=val;
-    this.canvasState.isDirty.set(true);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  uploadDresscodeImage(cardIndex: number) {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
+        if (!cfg.dresscode.cards[cardIndex].images) cfg.dresscode.cards[cardIndex].images = [];
+        if (cfg.dresscode.cards[cardIndex].images.length < 4) {
+          cfg.dresscode.cards[cardIndex].images.push(r.url);
+          this.canvasState.notifyChange();
+          this.canvasState.triggerAutoSave();
+        }
+      }});
+    };
+    input.click();
+  }
+
+  removeDresscodeImage(cardIndex: number, imgIndex: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
+    cfg.dresscode.cards[cardIndex].images?.splice(imgIndex, 1);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  /** Dress code 4-slot grid: selection state */
+  selectedDressImages = new Map<number, Set<number>>();
+
+  getDressEmptySlots(cardIndex: number): number[] {
+    const cfg = this.canvasState.getConfig();
+    const count = Math.max(0, 4 - (cfg?.dresscode?.cards?.[cardIndex]?.images?.length || 0));
+    return new Array(count);
+  }
+
+  isDressImageSelected(cardIndex: number, imgIndex: number): boolean {
+    return this.selectedDressImages.get(cardIndex)?.has(imgIndex) || false;
+  }
+
+  toggleDressImageSelect(cardIndex: number, imgIndex: number) {
+    if (!this.selectedDressImages.has(cardIndex)) {
+      this.selectedDressImages.set(cardIndex, new Set());
+    }
+    const set = this.selectedDressImages.get(cardIndex)!;
+    if (set.has(imgIndex)) set.delete(imgIndex);
+    else set.add(imgIndex);
+  }
+
+  getSelectedDressImages(cardIndex: number): number[] {
+    const set = this.selectedDressImages.get(cardIndex);
+    return set ? Array.from(set) : [];
+  }
+
+  deleteSelectedDressImages(cardIndex: number) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg || !cfg.dresscode.cards?.[cardIndex]?.images) return;
+    const indices = this.getSelectedDressImages(cardIndex).sort((a, b) => b - a);
+    for (const idx of indices) {
+      cfg.dresscode.cards[cardIndex].images.splice(idx, 1);
+    }
+    this.selectedDressImages.delete(cardIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  uploadingPhotos = false;
+  uploadingCount = 0;
+  selectedPhotos = new Set<number>();
+
+  getEmptySlots(): number[] {
+    const count = Math.max(0, 20 - this.photos().length);
+    return new Array(count);
+  }
+
+  /** Returns how many empty slots should show as "loading" */
+  getLoadingSlots(): number[] {
+    if (!this.uploadingPhotos) return [];
+    return new Array(this.uploadingCount);
+  }
+
+  /** Returns remaining empty slots (not loading) */
+  getRemainingEmptySlots(): number[] {
+    const total = Math.max(0, 20 - this.photos().length);
+    const loading = this.uploadingPhotos ? this.uploadingCount : 0;
+    const remaining = Math.max(0, total - loading);
+    return new Array(remaining);
+  }
+
+  togglePhotoSelect(id: number) {
+    if (this.selectedPhotos.has(id)) this.selectedPhotos.delete(id);
+    else this.selectedPhotos.add(id);
+  }
+
+  deleteSelectedPhotos() {
+    const ids = Array.from(this.selectedPhotos);
+    ids.forEach(id => this.api.deletePhoto(this.eventId, id).subscribe());
+    this.selectedPhotos.clear();
+    setTimeout(() => this.api.getPhotos(this.eventId).subscribe(p => this.photos.set(p)), 500);
   }
 
   uploadPhotos() {
     const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;
-    input.onchange=()=>{if(!input.files?.length)return;this.api.uploadPhotos(this.eventId,input.files).subscribe(()=>{this.api.getPhotos(this.eventId).subscribe(p=>this.photos.set(p))})};
+    input.onchange=()=>{
+      if(!input.files?.length)return;
+      const fileCount = Math.min(input.files.length, 20 - this.photos().length);
+      this.uploadingPhotos = true;
+      this.uploadingCount = fileCount;
+      this.api.uploadPhotos(this.eventId,input.files).subscribe({
+        next: ()=>{this.api.getPhotos(this.eventId).subscribe(p=>{this.photos.set(p);this.uploadingPhotos=false;this.uploadingCount=0;})},
+        error: ()=>{this.uploadingPhotos=false;this.uploadingCount=0;}
+      });
+    };
     input.click();
   }
 
   deletePhoto(id: number) {
     this.api.deletePhoto(this.eventId,id).subscribe(()=>{this.api.getPhotos(this.eventId).subscribe(p=>this.photos.set(p))});
+  }
+
+  onPhotoLoad(e: Event) {
+    (e.target as HTMLElement)?.classList.add('loaded');
+  }
+
+  isMobile(): boolean {
+    return window.innerWidth <= 768;
   }
 
   addItineraryItem() {
@@ -1216,6 +2244,132 @@ export class BuilderPropsPanelComponent {
     '⛪','🏛️','👰','✝️','🤝','⏰','🎥','🍰','🎬','🍸','🍾','🎵','🍷','🍺','🖼️','🎶','🎸','💃',
     '🏇','🎠','🌟','🌙','🚌','🍽️','🚕','🏃','✈️','🌹','🌸','🌿',
     '🎁','👑','🏆','❤️','💕','🎲','🎨','🧩','🏃','🕯️','🌅','🌄'
+  ];
+
+  venueEmojis = [
+    '📍','⛪','💒','🏛️','🏰','🎪','🏖️','🏞️',
+    '🍽️','🥂','🎉','🎊','🎶','💃','🕺','🌟',
+    '🏨','🏡','🌳','🌊','⛰️','🌅','🎭','🎬'
+  ];
+
+  detailEmojis = [
+    '💒','⛪','🏛️','💍','👰','🤵','👪','🙏',
+    '✝️','🕊️','💐','🌹','🎊','🎉','💝','❤️',
+    '🥂','🍾','🎂','🎵','📸','🌟','👑','🦋'
+  ];
+
+  giftEmojis = [
+    '🎁','💝','🛍️','💐','🎀','💳','💵','🏦',
+    '🪙','💎','🧧','🎊','✨','🛒','📦','❤️'
+  ];
+
+  rsvpEmojis = [
+    '✅','📝','💌','✉️','📩','🖊️','🗓️','📌',
+    '🙋','👍','🎉','🥂','💃','🕺','⭐','❤️'
+  ];
+
+  // Custom select option arrays
+  fontOptions: SelectOption[] = [
+    {value:'sans',label:'Lato (Sans)'},{value:'montserrat',label:'Montserrat'},{value:'raleway',label:'Raleway'},
+    {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
+    {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
+    {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
+    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'},
+    {value:'aura',label:'Aura'},{value:'allura',label:'Allura'}
+  ];
+
+  themeFontOptions: SelectOption[] = [
+    {value:'',label:'Hereda (default)'},
+    {value:'sans',label:'Lato (Sans)'},{value:'montserrat',label:'Montserrat'},{value:'raleway',label:'Raleway'},
+    {value:'josefin',label:'Josefin Sans'},{value:'serif',label:'Playfair Display'},{value:'cormorant',label:'Cormorant Garamond'},
+    {value:'cinzel',label:'Cinzel'},{value:'baskerville',label:'Libre Baskerville'},{value:'script',label:'Great Vibes'},
+    {value:'spumoni',label:'Spumoni'},{value:'dancing',label:'Dancing Script'},{value:'sacramento',label:'Sacramento'},
+    {value:'tangerine',label:'Tangerine'},{value:'alexbrush',label:'Alex Brush'},{value:'pinyon',label:'Pinyon Script'},
+    {value:'aura',label:'Aura'},{value:'allura',label:'Allura'}
+  ];
+
+  separatorStyleOptions: SelectOption[] = [
+    {value:'elegant',label:'Elegante'},{value:'formal',label:'Formal'},{value:'executive',label:'Ejecutivo'},
+    {value:'festive',label:'Festivo'},{value:'animated',label:'Animado'},{value:'minimal',label:'Minimal'},
+    {value:'ornamental',label:'Ornamental'}
+  ];
+
+  ornamentPositionOptions: SelectOption[] = [
+    {value:'above',label:'Arriba'},{value:'below',label:'Abajo'},{value:'both',label:'Ambos'},{value:'sides',label:'A los lados'}
+  ];
+
+  borderStyleOptions: SelectOption[] = [
+    {value:'none',label:'Sin borde'},{value:'solid',label:'Solido'},{value:'dotted',label:'Punteado'},
+    {value:'dashed',label:'Discontinuo'},{value:'double',label:'Doble'},{value:'glow',label:'Luminoso'},{value:'neon',label:'Neon'}
+  ];
+
+  cardShapeOptions: SelectOption[] = [
+    {value:'standard',label:'Estandar'},{value:'ticket',label:'Ticket'},{value:'wave',label:'Ondulado'},
+    {value:'hexagon',label:'Hexagonal'},{value:'diamond',label:'Diamante'},{value:'cloud',label:'Nube'},{value:'scroll',label:'Pergamino'}
+  ];
+
+  envelopeStyleOptions: SelectOption[] = [
+    {value:'classic',label:'Clasico'},{value:'elegant',label:'Elegante'},{value:'vertical',label:'Vertical'},{value:'minimal',label:'Minimal'},{value:'wax',label:'Lacre'}
+  ];
+
+  sealStyleOptions: SelectOption[] = [
+    {value:'wax-circle',label:'Circulo Lacre'},{value:'wax-heart',label:'Corazon Lacre'},{value:'ribbon',label:'Cinta'},{value:'stamp',label:'Estampa'},{value:'monogram',label:'Monograma'}
+  ];
+
+  landingBgTypeOptions: SelectOption[] = [
+    {value:'solid',label:'Solido'},{value:'linear',label:'Lineal'},{value:'radial',label:'Radial'},{value:'mesh',label:'Difuminado'}
+  ];
+
+  bgFitOptions: SelectOption[] = [
+    {value:'cover',label:'Pantalla completa'},{value:'banner',label:'Banner centrado'}
+  ];
+
+  landingBgTextureOptions: SelectOption[] = [
+    {value:'none',label:'Ninguna'},{value:'noise',label:'Noise'},{value:'grain',label:'Grain'},{value:'dots',label:'Dots'},
+    {value:'lines',label:'Lines'},{value:'cross',label:'Cross'},{value:'paper',label:'Paper'},{value:'linen',label:'Linen'},{value:'stars',label:'Stars'}
+  ];
+
+  introTransitionOptions: SelectOption[] = [
+    {value:'fade',label:'Desvanecer'},{value:'slide-up',label:'Deslizar arriba'},{value:'slide-down',label:'Deslizar abajo'},
+    {value:'zoom-in',label:'Zoom acercar'},{value:'zoom-out',label:'Zoom alejar'},{value:'blur',label:'Desenfoque'},{value:'none',label:'Sin transicion'}
+  ];
+
+  introParticleTypeOptions: SelectOption[] = [
+    {value:'sparkles',label:'Destellos'},{value:'snow',label:'Nieve'},{value:'fireflies',label:'Luciernagas'},
+    {value:'bubbles',label:'Burbujas'},{value:'stars',label:'Estrellas'},{value:'confetti',label:'Confeti'}
+  ];
+
+  introParticleDirectionOptions: SelectOption[] = [
+    {value:'up',label:'Arriba'},{value:'down',label:'Abajo'},{value:'left',label:'Izquierda'},{value:'right',label:'Derecha'}
+  ];
+
+  iconStyleOptions: SelectOption[] = [
+    {value:'circle',label:'Circulo'},{value:'plain',label:'Plano'},{value:'none',label:'Sin icono'}
+  ];
+
+  textAlignOptions: SelectOption[] = [
+    {value:'left',label:'Izquierda'},{value:'center',label:'Centro'},{value:'right',label:'Derecha'}
+  ];
+
+  instructionAnimOptions: SelectOption[] = [
+    {value:'pulse',label:'Pulso'},{value:'bounce',label:'Rebote'},{value:'fade',label:'Aparecer/Desaparecer'},
+    {value:'slide-up',label:'Deslizar arriba'},{value:'glow',label:'Brillar'},{value:'none',label:'Sin animacion'}
+  ];
+
+  envBgTypeOptions: SelectOption[] = [
+    {value:'solid',label:'Solido'},{value:'linear',label:'Lineal'},{value:'radial',label:'Radial'}
+  ];
+
+  iconTypeOptions: SelectOption[] = [
+    {value:'emoji',label:'Emoji'},{value:'image',label:'Imagen'},{value:'none',label:'Ninguno'}
+  ];
+
+  accountTypeOptions: SelectOption[] = [
+    {value:'tarjeta',label:'Tarjeta'},{value:'cuenta',label:'Cuenta'},{value:'clabe',label:'CLABE'}
+  ];
+
+  transferAnimOptions: SelectOption[] = [
+    {value:'coins',label:'Monedas'},{value:'bills',label:'Billetes'},{value:'none',label:'Ninguna'}
   ];
 
   getHour(time: string): string {
@@ -1262,6 +2416,24 @@ export class BuilderPropsPanelComponent {
     return this.sec('intro')?.particles?.[prop] ?? null;
   }
 
+  /** Opciones de estilo de la línea de carga de la intro. */
+  introProgressStyleOptions = [
+    { value: 'solid', label: 'Sólida' },
+    { value: 'glow', label: 'Resplandor' },
+    { value: 'gradient', label: 'Degradado' },
+    { value: 'dashed', label: 'Punteada' },
+  ];
+
+  /** Contenido inicial del editor enriquecido de la frase. Si ya hay HTML, lo usa; si no,
+      migra el texto plano `phrase` (envuelto en <p>) la primera vez para no perderlo. */
+  introPhraseHtml(): string {
+    const intro = this.sec('intro');
+    if (!intro) return '';
+    if (intro.phraseHtml) return intro.phraseHtml;
+    const plain = (intro.phrase || '').trim();
+    return plain ? `<p>${plain}</p>` : '';
+  }
+
   getSealType(): string {
     const seal = this.sec('envelope');
     if (!seal) return 'none';
@@ -1291,6 +2463,150 @@ export class BuilderPropsPanelComponent {
     const current = this.sec('intro')?.duration || 5;
     const next = Math.max(0.5, Math.min(30, Math.round((current + delta * 0.5) * 10) / 10));
     this.setSec('intro', 'duration', next);
+  }
+
+  // === Video Trimmer ===
+  maxIntroDuration = 5;
+  private trimDragging: 'start' | 'end' | null = null;
+  @ViewChild('trimmerTrack') trimmerTrack?: ElementRef<HTMLElement>;
+  @ViewChild('introTrimVideo') introTrimVideo?: ElementRef<HTMLVideoElement>;
+
+  getTrimLeft(): number {
+    const dur = this.sec('intro')?.videoDuration || 5;
+    return ((this.sec('intro')?.videoStart || 0) / dur) * 100;
+  }
+
+  getTrimRight(): number {
+    const dur = this.sec('intro')?.videoDuration || 5;
+    return ((this.sec('intro')?.videoEnd || dur) / dur) * 100;
+  }
+
+  getTrimWidth(): number {
+    return this.getTrimRight() - this.getTrimLeft();
+  }
+
+  getSelectedDuration(): number {
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || (this.sec('intro')?.videoDuration || 5);
+    return Math.round((end - start) * 10) / 10;
+  }
+
+  formatTrimTime(seconds: number): string {
+    const s = Math.round(seconds * 10) / 10;
+    return s.toFixed(1) + 's';
+  }
+
+  startTrimDrag(handle: 'start' | 'end', e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.trimDragging = handle;
+    const onMove = (ev: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in ev ? ev.touches[0].clientX : ev.clientX;
+      this.onTrimMove(clientX);
+    };
+    const onEnd = () => {
+      this.trimDragging = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      this.updateIntroDurationFromTrim();
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onEnd);
+  }
+
+  onTrimTrackClick(event: MouseEvent) {
+    if (!this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    const dur = this.sec('intro')?.videoDuration || 5;
+    const time = percent * dur;
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || dur;
+    if (Math.abs(time - start) < Math.abs(time - end)) {
+      this.setSec('intro', 'videoStart', Math.round(time * 10) / 10);
+    } else {
+      this.setSec('intro', 'videoEnd', Math.round(time * 10) / 10);
+    }
+    this.updateIntroDurationFromTrim();
+  }
+
+  onTrimTrackTouch(event: TouchEvent) {
+    const touch = event.touches[0];
+    if (!this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = (touch.clientX - rect.left) / rect.width;
+    const dur = this.sec('intro')?.videoDuration || 5;
+    const time = percent * dur;
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || dur;
+    if (Math.abs(time - start) < Math.abs(time - end)) {
+      this.setSec('intro', 'videoStart', Math.round(time * 10) / 10);
+    } else {
+      this.setSec('intro', 'videoEnd', Math.round(time * 10) / 10);
+    }
+    this.startTrimDrag(Math.abs(time - start) < Math.abs(time - end) ? 'start' : 'end', event);
+  }
+
+  private onTrimMove(clientX: number) {
+    if (!this.trimDragging || !this.trimmerTrack) return;
+    const rect = this.trimmerTrack.nativeElement.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const dur = this.sec('intro')?.videoDuration || 5;
+    const time = Math.round(percent * dur * 10) / 10;
+    if (this.trimDragging === 'start') {
+      const end = this.sec('intro')?.videoEnd || dur;
+      this.setSec('intro', 'videoStart', Math.min(time, end - 0.5));
+    } else {
+      const start = this.sec('intro')?.videoStart || 0;
+      this.setSec('intro', 'videoEnd', Math.max(time, start + 0.5));
+    }
+    // Enforce max duration
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || dur;
+    if (end - start > this.maxIntroDuration) {
+      if (this.trimDragging === 'start') {
+        this.setSec('intro', 'videoStart', end - this.maxIntroDuration);
+      } else {
+        this.setSec('intro', 'videoEnd', start + this.maxIntroDuration);
+      }
+    }
+  }
+
+  private updateIntroDurationFromTrim() {
+    const start = this.sec('intro')?.videoStart || 0;
+    const end = this.sec('intro')?.videoEnd || 5;
+    this.setSec('intro', 'duration', Math.min(Math.round((end - start) * 10) / 10, this.maxIntroDuration));
+  }
+
+  previewTrim() {
+    if (!this.introTrimVideo?.nativeElement) return;
+    const video = this.introTrimVideo.nativeElement;
+    video.currentTime = this.sec('intro')?.videoStart || 0;
+    video.play();
+    const checkEnd = () => {
+      if (video.currentTime >= (this.sec('intro')?.videoEnd || video.duration)) {
+        video.pause();
+        video.removeEventListener('timeupdate', checkEnd);
+      }
+    };
+    video.addEventListener('timeupdate', checkEnd);
+  }
+
+  adjustHeroFont(styleProp: string, delta: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const style = (cfg.hero as any)[styleProp] || {};
+    const defaults: Record<string, number> = { celebrantNamesStyle: 48, eventDescriptionStyle: 18, heroPhraseStyle: 14 };
+    const mins: Record<string, number> = { celebrantNamesStyle: 16, eventDescriptionStyle: 10, heroPhraseStyle: 10 };
+    const maxs: Record<string, number> = { celebrantNamesStyle: 120, eventDescriptionStyle: 60, heroPhraseStyle: 40 };
+    const current = style.fontSize || defaults[styleProp] || 16;
+    const next = Math.max(mins[styleProp] || 10, Math.min(maxs[styleProp] || 120, current + delta));
+    style.fontSize = next;
+    (cfg.hero as any)[styleProp] = style;
+    this.canvasState.isDirty.set(true);
   }
 
   uploadIntroMedia() {

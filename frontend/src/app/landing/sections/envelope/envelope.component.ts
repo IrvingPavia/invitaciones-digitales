@@ -1,11 +1,15 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EnvelopeConfig } from '../../../core/models/models';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { inject } from '@angular/core';
+import { EnvelopeConfig, ElementPosition, ElementPositions } from '../../../core/models/models';
+import { posStyle } from '../../../core/utils/element-position.util';
+import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
 @Component({
   selector: 'app-landing-envelope',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DragBoxComponent],
   template: `
     <div class="envelope-overlay" [class.opened]="opened"
          [style.--env-color]="config.envelopeColor || '#1a1a2e'"
@@ -16,6 +20,11 @@ import { EnvelopeConfig } from '../../../core/models/models';
          [style.--accent-color]="config.ticketAccentColor || config.sealColor || '#d4a017'"
          [attr.data-style]="config.style"
          [attr.data-template]="getTemplate()">
+
+      <!-- Background image layer -->
+      @if (config.splashImage) {
+        <div class="envelope-bg-image" [class.bg-banner]="bannerActive" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" [style.background-image]="'url(' + config.splashImage + ')'"></div>
+      }
 
       <!-- ============ TEMPLATE: ENVELOPE (classic) ============ -->
       @if (getTemplate() === 'envelope') {
@@ -103,28 +112,41 @@ import { EnvelopeConfig } from '../../../core/models/models';
 
       <!-- ============ TEMPLATE: PLAIN ============ -->
       @if (getTemplate() === 'plain') {
-        <div class="plain-container" (click)="open()">
+        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
           @if (config.plainTitle) {
-            <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
+            <app-drag-box [editable]="editable" [position]="plainPosData('title')" [ngStyle]="plainPos('title')" (positionChange)="onPosChange('title', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+              <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
+            </app-drag-box>
           }
           @if (config.plainSubtitle) {
-            <p class="plain-subtitle" [style.font-family]="getFontFamily(globalStyles?.subtitleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.subtitleStyle?.fontSize || 16" [style.color]="config.textColor || globalStyles?.subtitleStyle?.color || 'rgba(255,255,255,0.7)'">{{ config.plainSubtitle }}</p>
+            <app-drag-box [editable]="editable" [position]="plainPosData('subtitle')" [ngStyle]="plainPos('subtitle')" (positionChange)="onPosChange('subtitle', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+              <p class="plain-subtitle" [style.font-family]="getFontFamily(globalStyles?.subtitleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.subtitleStyle?.fontSize || 16" [style.color]="config.textColor || globalStyles?.subtitleStyle?.color || 'rgba(255,255,255,0.7)'">{{ config.plainSubtitle }}</p>
+            </app-drag-box>
           }
           @if (config.plainContent) {
-            <p class="plain-content" [style.font-family]="getFontFamily(globalStyles?.contentStyle?.fontFamily)" [style.font-size.px]="globalStyles?.contentStyle?.fontSize || 14" [style.color]="config.textColor || globalStyles?.contentStyle?.color || 'rgba(255,255,255,0.6)'">{{ config.plainContent }}</p>
+            <app-drag-box [editable]="editable" [position]="plainPosData('content')" [ngStyle]="plainPos('content')" (positionChange)="onPosChange('content', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+              <div class="plain-content" [style.font-family]="getFontFamily(globalStyles?.contentStyle?.fontFamily)" [style.font-size.px]="globalStyles?.contentStyle?.fontSize || 14" [style.color]="config.textColor || globalStyles?.contentStyle?.color || 'rgba(255,255,255,0.6)'" [innerHTML]="safePlainContent()"></div>
+            </app-drag-box>
+          }
+          @if (!opened) {
+            <app-drag-box [editable]="editable" [position]="plainPosData('instruction')" [ngStyle]="plainPos('instruction')" (positionChange)="onPosChange('instruction', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+              <p class="instruction plain-instruction" [class.has-color]="!!config.instructionColor" [style.color]="config.instructionColor || null" [attr.data-anim]="config.instructionAnimation || 'pulse'">{{ config.instructionText || 'Toca para continuar' }}</p>
+            </app-drag-box>
+          }
+          <!-- Guías de alineación (solo durante el arrastre) -->
+          @if (editable && dragging && guides) {
+            @if (guides.x !== undefined) { <div class="ad-guide ad-guide-v" [style.left.%]="guides.x"></div> }
+            @if (guides.y !== undefined) { <div class="ad-guide ad-guide-h" [style.top.%]="guides.y"></div> }
           }
         </div>
       }
 
       <!-- Instruction (all templates) -->
       @if (!opened && getTemplate() === 'envelope') {
-        <p class="instruction">{{ config.instructionText || 'Toca para abrir' }}</p>
+        <p class="instruction" [attr.data-anim]="config.instructionAnimation || 'pulse'">{{ config.instructionText || 'Toca para abrir' }}</p>
       }
       @if (!opened && getTemplate() === 'ticket') {
-        <p class="instruction">{{ config.instructionText || 'Toca el boleto para entrar' }}</p>
-      }
-      @if (!opened && getTemplate() === 'plain') {
-        <p class="instruction">{{ config.instructionText || 'Toca para continuar' }}</p>
+        <p class="instruction" [attr.data-anim]="config.instructionAnimation || 'pulse'">{{ config.instructionText || 'Toca el boleto para entrar' }}</p>
       }
     </div>
   `,
@@ -135,12 +157,32 @@ import { EnvelopeConfig } from '../../../core/models/models';
       overflow: hidden;
       transition: opacity 0.6s ease;
       transition-delay: 0.8s;
+      -webkit-transform: translateZ(0); transform: translateZ(0);
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    }
+    .envelope-bg-image {
+      position: absolute; inset: 0; z-index: 0;
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+    }
+    /* Modo banner (columna angosta centrada) — solo desktop, para imagenes verticales.
+       Ancho relativo al contenedor (100%), no al viewport (96vw), para que funcione igual
+       en la landing (overlay fixed a viewport completo) y en el canvas del builder (overlay
+       de 500px). El alto se hereda del overlay (top/bottom:0) y cover recorta a los lados. */
+    @media (min-width: 768px) {
+      .envelope-bg-image.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
     }
     .envelope-overlay.opened { opacity: 0; pointer-events: none; }
 
     /* === ENVELOPE TEMPLATE — Classic/Elegant/Wax === */
     .env-top, .env-bottom, .env-flap-top, .env-flap-bottom {
-      position: absolute; left: 0; right: 0;
+      position: absolute; left: 0; right: 0; z-index: 1;
       background: var(--env-color, #1a1a2e);
       transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -166,7 +208,7 @@ import { EnvelopeConfig } from '../../../core/models/models';
 
     /* Vertical doors */
     .env-door-left, .env-door-right {
-      position: absolute; top: 0; bottom: 0; width: 50%;
+      position: absolute; top: 0; bottom: 0; width: 50%; z-index: 1;
       background: var(--env-color, #1a1a2e);
       transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -305,9 +347,18 @@ import { EnvelopeConfig } from '../../../core/models/models';
       text-align: center; z-index: 20;
       color: var(--text-color, rgba(255,255,255,0.5));
       font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
-      animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    .instruction[data-anim="pulse"] { animation: instrPulse 2s ease-in-out infinite; }
+    .instruction[data-anim="bounce"] { animation: instrBounce 1.5s ease infinite; }
+    .instruction[data-anim="fade"] { animation: instrFade 2.5s ease-in-out infinite; }
+    .instruction[data-anim="slide-up"] { animation: instrSlideUp 2s ease-in-out infinite; }
+    .instruction[data-anim="glow"] { animation: instrGlow 2s ease-in-out infinite; }
+    .instruction[data-anim="none"] { opacity: 0.7; }
+    @keyframes instrPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    @keyframes instrBounce { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-4px); } }
+    @keyframes instrFade { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    @keyframes instrSlideUp { 0%, 100% { transform: translateY(6px); opacity: 0.4; } 50% { transform: translateY(0); opacity: 1; } }
+    @keyframes instrGlow { 0%, 100% { text-shadow: 0 0 4px currentColor; opacity: 0.5; } 50% { text-shadow: 0 0 16px currentColor, 0 0 30px currentColor; opacity: 1; } }
 
     /* === PLAIN TEMPLATE === */
     .plain-container {
@@ -315,23 +366,145 @@ import { EnvelopeConfig } from '../../../core/models/models';
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 16px; padding: 40px; cursor: pointer; text-align: center;
     }
+    /* En modo banner (desktop) el contenedor de los textos se limita a la MISMA columna
+       central que el fondo, para que las posiciones en % coincidan con lo que se ve
+       (igual que .bg-banner). Así el posicionamiento es consistente entre canvas y landing. */
+    @media (min-width: 768px) {
+      .plain-container.bg-banner {
+        top: 0; bottom: 0;
+        left: 50%; right: auto;
+        width: var(--banner-w, 70vw);
+        transform: translateX(-50%);
+      }
+    }
     .plain-title {
       animation: splashTextIn 1s ease 0.2s both;
     }
     .plain-subtitle {
       animation: splashTextIn 1s ease 0.4s both;
     }
+    /* La instrucción del template plano se posiciona vía su DragBox host,
+       así que neutralizamos el position:absolute heredado de .instruction. */
+    .plain-instruction {
+      position: static; bottom: auto; left: auto; right: auto;
+    }
+    /* Cuando la instruccion tiene color propio, le damos una sombra sutil para legibilidad
+       sobre fondos de imagen (p. ej. agua/follaje claro). */
+    .plain-instruction.has-color {
+      text-shadow: 0 1px 3px rgba(0,0,0,0.45), 0 0 6px rgba(0,0,0,0.25);
+    }
     .plain-content {
       max-width: 320px; line-height: 1.6;
+      margin-left: auto; margin-right: auto;
       animation: splashTextIn 1s ease 0.6s both;
     }
+    /* Cuando el contenido tiene un ancho definido por el usuario (DragBox fija width al
+       app-drag-box), el .plain-content debe llenar ese box y no quedar limitado por el
+       max-width por defecto, para que respete la posición/centrado configurado. */
+    app-drag-box[style*="width"] .plain-content {
+      max-width: 100%; width: 100%;
+    }
+    .plain-content p { margin: 0 0 8px; }
+    .plain-content p:last-child { margin-bottom: 0; }
+
+    /* === DRAG ASISTIDO (guías de alineación) === */
+    .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
+    .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
+    .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
     .opened .plain-container { animation: splashOut 0.8s ease forwards; }
   `]
 })
 export class LandingEnvelopeComponent {
+  private sanitizer = inject(DomSanitizer);
+  private _safeContentCache = '';
+  private _safeContentValue: SafeHtml = '';
+
+  /** Devuelve el contenido del template Plano como HTML confiable, preservando los
+      estilos inline (font-family/font-size) que el sanitizador por defecto elimina.
+      El contenido ya se sanitiza en el backend (sanitizeRichText), así que es seguro.
+      Se cachea por valor para no regenerar SafeHtml en cada ciclo de detección. */
+  safePlainContent(): SafeHtml {
+    const html = this.config?.plainContent || '';
+    if (html !== this._safeContentCache) {
+      this._safeContentCache = html;
+      this._safeContentValue = this.sanitizer.bypassSecurityTrustHtml(html);
+    }
+    return this._safeContentValue;
+  }
+
   @Input() config!: EnvelopeConfig;
   @Input() globalStyles?: any;
   @Input() previewLoop = false;
+  /** Unidad del ancho del banner: 'vw' (landing, relativo al viewport) o '%' (canvas, relativo al contenedor). */
+  @Input() bannerUnit: 'vw' | '%' = 'vw';
+  /** Fuerza pantalla completa ignorando el modo banner (usado en canvas mobile). */
+  @Input() forceCover = false;
+  /** Dispositivo activo para elegir el mapa de posiciones. En landing se usa null (auto por ancho). */
+  @Input() previewDevice: 'mobile' | 'desktop' | null = null;
+  /** Modo edición (canvas builder): activa el arrastre de elementos. */
+  @Input() editable = false;
+  /** Emite el nuevo mapa de posiciones del template Plano para que el builder lo persista. */
+  @Output() positionsChange = new EventEmitter<ElementPositions>();
+
+  /** Estado de arrastre para dibujar guías. */
+  dragging = false;
+  guides: { x?: number; y?: number } | null = null;
+
+  /** True si debe usar el mapa de posiciones mobile. En canvas usa previewDevice; en landing, el ancho. */
+  get isMobilePos(): boolean {
+    if (this.previewDevice) return this.previewDevice === 'mobile';
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  /** Estilo de posicionamiento para un elemento del template Plano.
+      La instrucción tiene un default especial (abajo centro) si no tiene posición guardada. */
+  plainPos(key: string): Record<string, string> {
+    const pos = posStyle(key, this.config.plainPositions, this.isMobilePos);
+    if (Object.keys(pos).length > 0) return pos;
+    // Default especial para la instrucción: posición absolute abajo-centro.
+    // Usamos absolute (no margin-top:auto) para que el DragBox la pueda mover/redimensionar
+    // igual que al resto de elementos.
+    if (key === 'instruction') {
+      return {
+        position: 'absolute',
+        left: '50%',
+        top: '90%',
+        right: 'auto',
+        bottom: 'auto',
+        transform: 'translate(-50%, -50%)',
+        margin: '0',
+      };
+    }
+    return pos;
+  }
+
+  /** Devuelve la posición cruda guardada de un elemento (para pasarla al DragBox y preservar el ancho). */
+  plainPosData(key: string): ElementPosition | null {
+    const positions = this.config.plainPositions;
+    if (!positions) return null;
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const other = this.isMobilePos ? 'desktop' : 'mobile';
+    return positions[dev]?.[key] ?? positions[other]?.[key] ?? null;
+  }
+
+  /** Click en el contenedor: en modo edición NO abre (solo compone); en landing/preview abre. */
+  onContainerClick() {
+    if (this.editable) return;
+    this.open();
+  }
+
+  /** Persiste la nueva posición de un elemento del Plano en el dispositivo activo y emite el cambio. */
+  onPosChange(key: string, pos: ElementPosition) {
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const positions: ElementPositions = { ...(this.config.plainPositions || {}) };
+    positions[dev] = { ...(positions[dev] || {}), [key]: pos };
+    this.config.plainPositions = positions;
+    this.positionsChange.emit(positions);
+  }
+  /** True si debe aplicarse el modo banner (banner configurado y no forzado a cover). */
+  get bannerActive(): boolean {
+    return this.config.splashBgFit === 'banner' && !this.forceCover;
+  }
   @Output() done = new EventEmitter<void>();
   opened = false;
   Math = Math;
@@ -349,7 +522,7 @@ export class LandingEnvelopeComponent {
       'montserrat': 'Montserrat, sans-serif', 'raleway': 'Raleway, sans-serif', 'cinzel': 'Cinzel, serif',
       'cormorant': 'Cormorant Garamond, serif', 'dancing': 'Dancing Script, cursive',
       'sacramento': 'Sacramento, cursive', 'tangerine': 'Tangerine, cursive',
-      'alexbrush': 'Alex Brush, cursive', 'pinyon': 'Pinyon Script, cursive',
+      'alexbrush': 'Alex Brush, cursive', 'pinyon': 'Pinyon Script, cursive', 'aura': 'Aura, cursive', 'allura': 'Allura, cursive',
       'josefin': 'Josefin Sans, sans-serif', 'baskerville': 'Libre Baskerville, serif'
     };
     return map[key || 'sans'] || 'Lato, sans-serif';

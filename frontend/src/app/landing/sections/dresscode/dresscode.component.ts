@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DresscodeConfig, DresscodeCard, GlobalTextStyles, SectionIconConfig, SectionStyle } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
+import { LightboxService } from '../../../core/services/lightbox.service';
 
 @Component({
   selector: 'app-landing-dresscode',
@@ -38,7 +39,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         <!-- Legacy: main dresscode card with icon + description (shown only if no example cards exist) -->
         @if ((!config.cards || config.cards.length === 0) && (config.description || getIcon())) {
-          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             @if (getIcon(); as icon) {
               @if (icon.type === 'material') {
                 <span class="material-icons dresscode-icon">{{ icon.value }}</span>
@@ -62,11 +63,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         @if (config.cards && config.cards.length > 0) {
           <div class="dresscode-examples">
             @for (card of config.cards; track card.id) {
-              <div class="example-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
+              <div class="example-card reveal" [class.no-bg]="(card.showCardBg ?? config.showCardBg) === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
                 @if (card.images && card.images.length > 0) {
                   <div class="example-images" [class.single]="card.images.length === 1">
-                    @for (img of card.images; track img) {
-                      <div class="example-img-wrapper">
+                    @for (img of card.images; track img; let j = $index) {
+                      <div class="example-img-wrapper" (click)="openImageViewer(card.images, j)">
                         <img [src]="img" [alt]="card.title" loading="lazy">
                       </div>
                     }
@@ -104,11 +105,15 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .dresscode-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
     }
-    .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .dresscode-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); margin-bottom: 16px; display: block; }
     .dresscode-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
     .dresscode-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .dresscode-desc { color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.8; white-space: pre-line; }
@@ -118,11 +123,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       display: flex; flex-direction: column; gap: 20px; margin-top: 24px;
     }
     .example-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 24px;
       transition: transform 0.3s, box-shadow 0.3s;
-      &:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(212,160,23,0.1); }
-      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &:hover { transform: translateY(-3px); }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } &:hover { box-shadow: none; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
+    }
+    @keyframes neonPulse {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
     }
     .example-images {
       display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
@@ -159,6 +172,12 @@ export class LandingDresscodeComponent {
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
 
+  private lightbox = inject(LightboxService);
+
+  openImageViewer(images: string[], index: number) {
+    this.lightbox.open(images, index);
+  }
+
   hasOrnament(): boolean {
     return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
   }
@@ -168,7 +187,7 @@ export class LandingDresscodeComponent {
   getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   getFontFamily(key?: string): string {
-    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
+    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','aura':'var(--font-aura)','allura':'var(--font-allura)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
     return m[key||'sans']||'var(--font-sans)';
   }
   getSeparatorBg(): string {
@@ -183,9 +202,10 @@ export class LandingDresscodeComponent {
   getTitleGradient(): string {
     const s = this.styles?.titleStyle;
     if (!s?.color2) return '';
-    const angle = s.gradientAngle || 135;
-    const intensity = s.gradientIntensity || 50;
-    return `linear-gradient(${angle}deg, ${s.color || '#d4a017'} ${50 - intensity / 2}%, ${s.color2} ${50 + intensity / 2}%)`;
+    const angle = s.gradientAngle ?? 135;
+    const v = Math.max(0, Math.min(100, s.gradientIntensity ?? 50));
+    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${s.color || '#d4a017'} 0%, ${s.color || '#d4a017'} ${a}%, ${s.color2} ${b}%, ${s.color2} 100%)`;
   }
 
   getIcon(): { type: string; value: string } | null {
@@ -195,5 +215,56 @@ export class LandingDresscodeComponent {
     if (si.iconType === 'emoji' && si.icon) return { type: 'emoji', value: si.icon };
     if (si.iconType === 'image' && si.iconUrl) return { type: 'image', value: si.iconUrl };
     return { type: 'material', value: 'checkroom' };
+  }
+
+  getCardBgColor(): string {
+    return (this.config as any).cardBgColor || '';
+  }
+
+  getCardBorderColor(): string {
+    return (this.config as any).cardBorderColor || '';
+  }
+
+  getCardBorderStyle(): string {
+    const s = (this.config as any).cardBorderStyle || 'none';
+    if (s === 'glow' || s === 'neon') return 'solid';
+    return s;
+  }
+
+  getIsNeon(): boolean {
+    return (this.config as any).cardBorderStyle === 'neon';
+  }
+
+  getCardBorderWidth(): number {
+    if ((this.config as any).cardBorderStyle === 'none') return 0;
+    return (this.config as any).cardBorderWidth ?? 1;
+  }
+
+  getCardBoxShadow(): string {
+    const style = (this.config as any).cardBorderStyle;
+    const color = (this.config as any).cardGlowColor || '#d4a017';
+    const width = (this.config as any).cardBorderWidth ?? 1;
+    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+    return 'none';
+  }
+
+  getCardFilter(): string {
+    return 'none';
+  }
+
+  getCardClipPath(): string {
+    return 'none';
+  }
+
+  getCardBorderRadius(): string {
+    const shape = (this.config as any).cardShape || 'standard';
+    const base = (this.config as any).cardBorderRadius ?? 16;
+    switch (shape) {
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
+    }
   }
 }

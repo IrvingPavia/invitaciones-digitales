@@ -1,16 +1,26 @@
-import { Component, Input, OnInit, OnDestroy, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, signal, HostListener, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeroConfig, Event } from '../../../core/models/models';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { HeroConfig, Event, ElementPosition, ElementPositions } from '../../../core/models/models';
+import { posStyle } from '../../../core/utils/element-position.util';
+import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
 @Component({
   selector: 'app-landing-hero',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DragBoxComponent],
   template: `
     <!-- Sticky Navbar -->
     <nav class="landing-nav" [class.scrolled]="scrolled">
       <div class="nav-inner">
-        <span class="nav-title">{{ config.eventDescription }} {{ config.celebrantNames }}</span>
+        <span class="nav-title">
+          @if (config.eventDescription) {
+            <span class="nav-title-type">{{ config.eventDescription }}</span>
+          }
+          @if (config.showCelebrantNames !== false && config.celebrantNames) {
+            <span class="nav-title-names">{{ config.celebrantNames }}</span>
+          }
+        </span>
         <div class="nav-actions">
           @if (config.audioUrl) {
             <button class="nav-btn" (click)="toggleAudio()" [title]="playing ? 'Pausar música' : 'Reproducir música'">
@@ -37,63 +47,77 @@ import { HeroConfig, Event } from '../../../core/models/models';
     }
 
     <!-- Hero Section -->
-    <section id="hero" class="hero-section">
+    <section id="hero" class="hero-section" data-drag-bounds>
       <div class="hero-content">
-        <p class="hero-event-type animate-in" style="animation-delay:0.2s"
-           [style.font-family]="getFontFamily(config.eventDescriptionStyle?.fontFamily)"
-           [style.font-size.px]="config.eventDescriptionStyle?.fontSize || 22"
-           [style.font-weight]="config.eventDescriptionStyle?.fontWeight || 400"
-           [style.background]="getEventDescGradient()"
-           [style.-webkit-background-clip]="'text'"
-           [style.background-clip]="'text'"
-           [style.-webkit-text-fill-color]="'transparent'"
-        >{{ config.eventDescription }}</p>
+        @if (config.eventDescription) {
+        <app-drag-box [editable]="editable" [position]="heroPosData('eventType')" [ngStyle]="heroPos('eventType')" (positionChange)="onPosChange('eventType', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+          <p class="hero-event-type animate-in" style="animation-delay:0.2s"
+             [style.font-family]="getFontFamily(config.eventDescriptionStyle?.fontFamily)"
+             [style.font-size.px]="config.eventDescriptionStyle?.fontSize || 22"
+             [style.font-weight]="config.eventDescriptionStyle?.fontWeight || 400"
+             [style.background-image]="getEventDescGradient()"
+             [style.-webkit-background-clip]="'text'"
+             [style.background-clip]="'text'"
+             [style.-webkit-text-fill-color]="'transparent'"
+          >{{ config.eventDescription }}</p>
+        </app-drag-box>
+        }
         @if (config.showCelebrantNames !== false && config.celebrantNames) {
-        <h1 class="hero-names animate-in" style="animation-delay:0.5s"
-            [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
-            [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
-            [style.font-weight]="config.celebrantNamesStyle?.fontWeight || 400"
-            [style.background]="getGradient()"
-            [style.-webkit-background-clip]="'text'"
-            [style.background-clip]="'text'"
-            [style.-webkit-text-fill-color]="'transparent'"
-        >{{ config.celebrantNames }}</h1>
+        <app-drag-box [editable]="editable" [position]="heroPosData('names')" [ngStyle]="heroPos('names')" (positionChange)="onPosChange('names', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+          <h1 class="hero-names animate-in" style="animation-delay:0.5s"
+              [style.font-family]="getFontFamily(config.celebrantNamesStyle?.fontFamily)"
+              [style.font-size.px]="config.celebrantNamesStyle?.fontSize || 80"
+              [style.font-weight]="config.celebrantNamesStyle?.fontWeight || 400"
+              [style.background-image]="getGradient()"
+              [style.-webkit-background-clip]="'text'"
+              [style.background-clip]="'text'"
+              [style.-webkit-text-fill-color]="'transparent'"
+          >{{ config.celebrantNames }}</h1>
+        </app-drag-box>
         }
 
         @if (config.showDescription && config.description) {
-          <p class="hero-description animate-in" style="animation-delay:0.55s">{{ config.description }}</p>
+          <app-drag-box [editable]="editable" [position]="heroPosData('description')" [ngStyle]="heroPos('description')" (positionChange)="onPosChange('description', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+            <div class="hero-description animate-in" style="animation-delay:0.55s" [innerHTML]="safeHtml(config.description)"></div>
+          </app-drag-box>
         }
 
         @if (config.heroPhrase) {
-          <p class="hero-phrase animate-in" style="animation-delay:0.65s"
-             [style.font-family]="getFontFamily(config.heroPhraseStyle?.fontFamily)"
-             [style.font-size.px]="config.heroPhraseStyle?.fontSize || 16"
-             [style.color]="config.heroPhraseStyle?.color || '#ffffff'"
-          >{{ config.heroPhrase }}</p>
+          <app-drag-box [editable]="editable" [position]="heroPosData('phrase')" [ngStyle]="heroPos('phrase')" (positionChange)="onPosChange('phrase', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+            <div class="hero-phrase animate-in" style="animation-delay:0.65s" [innerHTML]="safeHtml(config.heroPhrase)"></div>
+          </app-drag-box>
         }
 
-        @if (config.countdownDate) {
+        @if (config.countdownDate && config.showCountdown !== false) {
+          <app-drag-box [editable]="editable" [position]="heroPosData('countdown')" [ngStyle]="heroPos('countdown')" (positionChange)="onPosChange('countdown', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
           <div class="countdown animate-in" style="animation-delay:0.8s">
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
-              <span class="countdown-value">{{ countdown.days }}</span>
-              <span class="countdown-label">Días</span>
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+              <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.days }}</span>
+              <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Días</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
-              <span class="countdown-value">{{ countdown.hours }}</span>
-              <span class="countdown-label">Horas</span>
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+              <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.hours }}</span>
+              <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Horas</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
-              <span class="countdown-value">{{ countdown.minutes }}</span>
-              <span class="countdown-label">Min</span>
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+              <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.minutes }}</span>
+              <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Min</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius.px]="config.countdownCardBorderRadius ?? 12">
-              <span class="countdown-value">{{ countdown.seconds }}</span>
-              <span class="countdown-label">Seg</span>
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+              <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.seconds }}</span>
+              <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Seg</span>
             </div>
           </div>
+          </app-drag-box>
+        }
+
+        <!-- Guías de alineación (solo durante el arrastre en modo edición) -->
+        @if (editable && dragging && guides) {
+          @if (guides.x !== undefined) { <div class="ad-guide ad-guide-v" [style.left.%]="guides.x"></div> }
+          @if (guides.y !== undefined) { <div class="ad-guide ad-guide-h" [style.top.%]="guides.y"></div> }
         }
 
         <div class="scroll-indicator animate-in" style="animation-delay:1.2s">
@@ -108,47 +132,70 @@ import { HeroConfig, Event } from '../../../core/models/models';
       position: fixed; top: 0; left: 0; right: 0; z-index: 500;
       transition: all 0.3s ease;
       padding: 0 20px;
+      -webkit-transform: translateZ(0); transform: translateZ(0);
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
     }
     .landing-nav.scrolled {
-      background: var(--theme-card-bg, rgba(13,17,23,0.85));
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
+      background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85));
+      backdrop-filter: blur(var(--theme-nav-bar-blur, 12px));
+      -webkit-backdrop-filter: blur(var(--theme-nav-bar-blur, 12px));
+      border-bottom: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2));
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .nav-inner {
       display: flex; align-items: center; justify-content: space-between;
       height: 72px; width: 100%;
     }
+    /* Título del navbar en dos líneas: tipo de evento (pequeño) arriba y nombres
+       (un poco más grande) abajo. Cada línea se trunca con ellipsis para no desbordar
+       la altura fija del navbar. */
     .nav-title {
-      font-family: var(--theme-nav-font, var(--font-script)); font-size: 22px; color: var(--theme-nav-text, var(--gold));
+      display: flex; flex-direction: column; justify-content: center;
+      font-family: var(--theme-nav-font, var(--font-script)); color: var(--theme-nav-text, var(--gold));
+      min-width: 0; flex: 1; line-height: 1.15; gap: 1px;
+    }
+    .nav-title-type {
+      font-size: 11px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.85;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      min-width: 0; flex: 1;
+    }
+    .nav-title-names {
+      font-size: 17px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .nav-actions { display: flex; gap: 12px; align-items: center; }
     .nav-btn {
-      background: rgba(255,255,255,0.1); border: 1px solid var(--theme-card-border, rgba(255,255,255,0.2));
+      background: var(--theme-nav-btn-bg, rgba(255,255,255,0.1)); border: 1px solid var(--theme-nav-btn-border, rgba(255,255,255,0.2));
       border-radius: 50%; width: 48px; height: 48px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--theme-text-primary, white); transition: all 0.3s;
+      cursor: pointer; color: var(--theme-nav-btn-icon, white); transition: all 0.3s;
       outline: none; -webkit-tap-highlight-color: transparent;
       .material-icons { font-size: 26px; }
-      &:hover { background: rgba(255,255,255,0.15); border-color: var(--theme-card-border, rgba(255,255,255,0.3)); }
-      &:focus, &:active { outline: none; box-shadow: none; border-color: var(--theme-card-border, rgba(255,255,255,0.3)); }
+      &:hover { background: var(--theme-nav-btn-bg, rgba(255,255,255,0.15)); border-color: var(--theme-nav-btn-border, rgba(255,255,255,0.3)); }
+      &:focus, &:active { outline: none; box-shadow: none; border-color: var(--theme-nav-btn-border, rgba(255,255,255,0.3)); }
     }
     .nav-menu {
-      background: var(--theme-card-bg, rgba(13,17,23,0.95)); backdrop-filter: blur(12px);
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: var(--theme-nav-menu-bg, rgba(13,17,23,0.95));
+      backdrop-filter: blur(var(--theme-nav-menu-blur, 12px));
+      -webkit-backdrop-filter: blur(var(--theme-nav-menu-blur, 12px));
       border-top: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
       padding: 8px 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      border-radius: 0 0 16px 16px;
     }
     .nav-menu-item {
       display: block; padding: 14px 28px;
-      color: var(--theme-text-primary, rgba(255,255,255,0.8)); text-decoration: none;
+      color: var(--theme-nav-menu-text, rgba(255,255,255,0.8)); text-decoration: none;
       font-family: var(--theme-text-primary-font, inherit);
       font-size: 17px; transition: all 0.2s;
       &:hover { color: var(--theme-nav-text, var(--gold)); background: rgba(212,160,23,0.05); padding-left: 36px; }
     }
     .hero-section {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      /* svh: altura con la barra del navegador visible, estable al scrollear en móvil
+         (evita el salto/descuadre que produce 100vh cuando la barra aparece/desaparece). */
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex; align-items: center; justify-content: center;
       text-align: center; padding: 80px 20px 40px;
       position: relative;
     }
@@ -180,18 +227,36 @@ import { HeroConfig, Event } from '../../../core/models/models';
     }
     .countdown-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 12px; padding: 14px 0; flex: 1; min-width: 55px;
       text-align: center; box-sizing: border-box;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
     }
+    @keyframes neonPulse {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
+    }
+    /* Tamaño FIJO (no vw) para que el countdown se vea IGUAL en el canvas y en la landing/
+       preview. Antes usaba clamp(...vw...) dependiente del ancho del viewport, lo que hacía
+       que en el canvas (viewport ancho) se viera grande y en mobile real (viewport angosto)
+       se viera chico. Con px fijo, ambos coinciden. */
     .countdown-value {
-      font-size: clamp(20px, 5vw, 36px); font-weight: 700; color: var(--theme-nav-text, var(--gold));
+      font-size: 32px; font-weight: 700; color: var(--theme-nav-text, var(--gold));
       line-height: 1.2; font-family: var(--font-serif); text-align: center; width: 100%;
     }
-    .countdown-label { font-size: clamp(8px, 2vw, 10px); color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; text-align: center; width: 100%; }
-    .countdown-sep { font-size: clamp(16px, 3vw, 28px); color: var(--theme-nav-text, var(--gold)); font-weight: 700; opacity: 0.5; flex-shrink: 0; }
-    .scroll-indicator { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .countdown-label { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; text-align: center; width: 100%; }
+    .countdown-sep { font-size: 26px; color: var(--theme-nav-text, var(--gold)); font-weight: 700; opacity: 0.5; flex-shrink: 0; }
+    /* El indicador de scroll se ancla SIEMPRE al fondo de la carátula, independiente del
+       flujo. Así no se reacomoda cuando otros elementos pasan a position:absolute por el
+       posicionamiento asistido. */
+    .scroll-indicator {
+      position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0; z-index: 3;
+    }
     .scroll-arrow {
       font-size: 32px; color: var(--theme-text-primary, rgba(255,255,255,0.4));
       animation: scrollBounce 1.5s ease-in-out infinite;
@@ -199,6 +264,10 @@ import { HeroConfig, Event } from '../../../core/models/models';
     }
     .animate-in { animation: fadeInUp 0.8s ease both; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    /* Guías de alineación del drag asistido */
+    .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
+    .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
+    .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
     @keyframes scrollBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(6px); opacity: 0.8; } }
   `]
 })
@@ -206,7 +275,57 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   @Input() config!: HeroConfig;
   @Input() event!: Event;
   @Input() enabledSections: string[] = [];
+  /** Dispositivo activo para elegir el mapa de posiciones. En landing es null (auto por ancho). */
+  @Input() previewDevice: 'mobile' | 'desktop' | null = null;
+  /** Modo edición (canvas builder): activa el arrastre de elementos. */
+  @Input() editable = false;
+  /** Emite el nuevo mapa de posiciones de la carátula para que el builder lo persista. */
+  @Output() positionsChange = new EventEmitter<ElementPositions>();
   @ViewChild('audioEl') audioEl?: ElementRef<HTMLAudioElement>;
+
+  private sanitizer = inject(DomSanitizer);
+  /** Estado de arrastre para dibujar guías. */
+  dragging = false;
+  guides: { x?: number; y?: number } | null = null;
+
+  // Cache de SafeHtml por valor para no regenerar en cada ciclo de detección.
+  private _safeCache = new Map<string, SafeHtml>();
+  /** Marca un HTML como confiable preservando estilos inline (ya se sanitiza en backend). */
+  safeHtml(html: string | undefined | null): SafeHtml {
+    const h = html || '';
+    if (!this._safeCache.has(h)) {
+      this._safeCache.set(h, this.sanitizer.bypassSecurityTrustHtml(h));
+    }
+    return this._safeCache.get(h)!;
+  }
+
+  get isMobilePos(): boolean {
+    if (this.previewDevice) return this.previewDevice === 'mobile';
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  /** Estilo de posicionamiento para un elemento de la caratula. */
+  heroPos(key: string): Record<string, string> {
+    return posStyle(key, this.config.positions, this.isMobilePos);
+  }
+
+  /** Posición cruda guardada de un elemento (para pasar al DragBox y preservar w/h). */
+  heroPosData(key: string): ElementPosition | null {
+    const positions = this.config.positions;
+    if (!positions) return null;
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const other = this.isMobilePos ? 'desktop' : 'mobile';
+    return positions[dev]?.[key] ?? positions[other]?.[key] ?? null;
+  }
+
+  /** Persiste la nueva posición de un elemento de la carátula y emite el cambio. */
+  onPosChange(key: string, pos: ElementPosition) {
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const positions: ElementPositions = { ...(this.config.positions || {}) };
+    positions[dev] = { ...(positions[dev] || {}), [key]: pos };
+    this.config.positions = positions;
+    this.positionsChange.emit(positions);
+  }
 
   scrolled = false;
   menuOpen = false;
@@ -288,7 +407,7 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
       'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
       'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
       'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
-      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key || 'sans'] || 'var(--font-sans)';
   }
@@ -297,17 +416,77 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     const s = this.config.eventDescriptionStyle;
     const c1 = s?.color1 || '#ffffff';
     const c2 = s?.color2 || '';
-    if (!c2) return `linear-gradient(0deg, ${c1}, ${c1})`;
+    const validColor = /^(#[0-9a-fA-F]{3,8}|rgba?\(.+\))$/;
+    const safe1 = validColor.test(c1) ? c1 : '#ffffff';
+    if (!c2 || !validColor.test(c2)) return `linear-gradient(0deg, ${safe1}, ${safe1})`;
     const angle = s?.gradientAngle ?? 135;
     const intensity = s?.gradientIntensity ?? 50;
-    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
+    return this.buildTextGradient(angle, safe1, c2, intensity);
   }
 
   getGradient(): string {
     const s = this.config.celebrantNamesStyle;
     const c1 = s?.color1 || '#d4a017';
-    const c2 = s?.color2 || '#b8860b';
+    const c2 = s?.color2 || c1;
     const angle = s?.gradientAngle ?? 135;
-    return `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+    const intensity = s?.gradientIntensity ?? 50;
+    // Validate colors (hex or rgba)
+    const validColor = /^(#[0-9a-fA-F]{6}|rgba?\(.+\))$/;
+    const safe1 = validColor.test(c1) ? c1 : '#d4a017';
+    const safe2 = validColor.test(c2) ? c2 : safe1;
+    return this.buildTextGradient(angle, safe1, safe2, intensity);
+  }
+
+  /** Degradado de texto con intensidad 0-100 (predominancia): 0 = color1, 100 = color2,
+      50 = mitad. Desplaza el punto medio del degradado. */
+  private buildTextGradient(angle: number, c1: string, c2: string, intensity: number): string {
+    const v = Math.max(0, Math.min(100, intensity ?? 50));
+    const mid = 100 - v; // v=0 -> 100% (todo c1); v=100 -> 0% (todo c2)
+    const a = Math.max(0, mid - 25);
+    const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
+  }
+
+  getCountdownBorderStyle(): string {
+    const s = (this.config as any).countdownCardBorderStyle || 'none';
+    if (s === 'glow' || s === 'neon') return 'solid';
+    return s;
+  }
+
+  getIsCountdownNeon(): boolean {
+    return (this.config as any).countdownCardBorderStyle === 'neon';
+  }
+
+  getCountdownBorderWidth(): number {
+    if ((this.config as any).countdownCardBorderStyle === 'none') return 0;
+    return (this.config as any).countdownCardBorderWidth ?? 1;
+  }
+
+  getCountdownBoxShadow(): string {
+    const style = (this.config as any).countdownCardBorderStyle;
+    const color = (this.config as any).countdownCardGlowColor || '#d4a017';
+    const width = (this.config as any).countdownCardBorderWidth ?? 1;
+    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+    return 'none';
+  }
+
+  getCountdownBgColor(): string {
+    return (this.config as any).countdownCardBgColor || '';
+  }
+
+  getCountdownBorderColor(): string {
+    return (this.config as any).countdownCardBorderColor || '';
+  }
+
+  getCountdownBorderRadius(): string {
+    const shape = (this.config as any).countdownCardShape || 'standard';
+    const base = (this.config as any).countdownCardBorderRadius ?? 12;
+    switch (shape) {
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
+    }
   }
 }

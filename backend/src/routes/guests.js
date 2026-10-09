@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { getDB } = require('../models/database');
 const auth = require('../middleware/auth');
+const { requirePackageFeature } = require('../middleware/packageAccess');
 const { v4: uuidv4 } = require('uuid');
 const XLSX = require('xlsx');
 const multer = require('multer');
@@ -152,7 +153,7 @@ router.put('/:id/mark-sent', auth, async (req, res) => {
 });
 
 // Bulk mark invitations as sent
-router.put('/bulk-mark-sent/:eventId', auth, async (req, res) => {
+router.put('/bulk-mark-sent/:eventId', auth, requirePackageFeature('guest_management'), async (req, res) => {
   try {
     const { guest_ids } = req.body;
     if (!guest_ids || !guest_ids.length) return res.status(400).json({ error: 'guest_ids requerido' });
@@ -167,7 +168,7 @@ router.put('/bulk-mark-sent/:eventId', auth, async (req, res) => {
   }
 });
 
-router.post('/import/:eventId', auth, upload.single('file'), async (req, res) => {
+router.post('/import/:eventId', auth, requirePackageFeature('guest_management'), upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
   const conn = await getDB().getConnection();
   try {

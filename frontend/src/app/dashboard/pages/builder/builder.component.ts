@@ -1,11 +1,13 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../../core/services/api.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
+import { CustomSelectComponent, SelectOption } from '../../../core/components/custom-select.component';
 import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS } from '../../../core/models/models';
 import { CanvasStateService } from './services/canvas-state.service';
 import { MigrationService } from './services/migration.service';
@@ -15,6 +17,7 @@ import { LandingEnvelopeComponent } from '../../../landing/sections/envelope/env
 import { LandingIntroComponent } from '../../../landing/sections/intro/intro.component';
 import { LandingHeroComponent } from '../../../landing/sections/hero/hero.component';
 import { LandingInvitationComponent } from '../../../landing/sections/invitation/invitation.component';
+import { LandingRsvpComponent } from '../../../landing/sections/rsvp/rsvp.component';
 import { LandingDetailsComponent } from '../../../landing/sections/details/details.component';
 import { LandingVenuesComponent } from '../../../landing/sections/venues/venues.component';
 import { LandingItineraryComponent } from '../../../landing/sections/itinerary/itinerary.component';
@@ -32,10 +35,10 @@ interface BuilderSection {
 @Component({
   selector: 'app-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, SectionCanvasComponent, BuilderPropsPanelComponent,
+  imports: [CommonModule, FormsModule, RouterLink, DragDropModule, ColorPickerComponent, CustomSelectComponent, SectionCanvasComponent, BuilderPropsPanelComponent,
     LandingEnvelopeComponent, LandingIntroComponent, LandingHeroComponent, LandingInvitationComponent,
     LandingDetailsComponent, LandingVenuesComponent, LandingItineraryComponent, LandingGalleryComponent,
-    LandingDresscodeComponent, LandingGiftsComponent],
+    LandingDresscodeComponent, LandingGiftsComponent, LandingRsvpComponent],
   template: `
     <!-- Toolbar -->
     <div class="builder-toolbar">
@@ -78,16 +81,12 @@ interface BuilderSection {
       </div>
     </div>
 
-    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'" [class.panel-hidden]="!panelVisible()" [class.props-open]="showProps() && canvasMode() === 'canvas'">
+    <div class="builder-layout" [class.preview-layout]="canvasMode() === 'preview'" [class.panel-hidden]="!panelVisible()" [class.props-open]="showProps() && canvasMode() === 'canvas'" [class.wide]="isWide()">
       <!-- Left Panel: Sections + Elements (hidden in preview) -->
       @if (canvasMode() === 'canvas' && panelVisible()) {
       <aside class="builder-panel builder-panel-left" [class.mobile-open]="showLeftPanel()">
         <div class="builder-panel-header">
-          <span class="material-icons">layers</span>
           <span>Secciones</span>
-          <button class="panel-toggle-btn" (click)="panelVisible.set(false)" title="Ocultar secciones">
-            <span class="material-icons">chevron_left</span>
-          </button>
         </div>
         <!-- Theme Global button -->
         <div class="builder-theme-btn" [class.active]="canvasState.selectedSection() === '_theme'" (click)="selectTheme()">
@@ -103,9 +102,14 @@ interface BuilderSection {
               <span class="material-icons drag-handle" cdkDragHandle>drag_indicator</span>
               <span class="material-icons section-icon">{{ section.icon }}</span>
               <span class="section-label">{{ section.label }}</span>
-              <button class="section-toggle" (click)="toggleSection(section.key); $event.stopPropagation()">
-                <span class="material-icons">{{ section.enabled ? 'visibility' : 'visibility_off' }}</span>
-              </button>
+              @if (isPermanentSection(section.key)) {
+                <!-- Secciones permanentes (Carátula): no se pueden ocultar, es la sección principal -->
+                <span class="section-permanent material-icons" title="Sección principal, siempre visible">push_pin</span>
+              } @else {
+                <button class="section-toggle" (click)="toggleSection(section.key); $event.stopPropagation()">
+                  <span class="material-icons">{{ section.enabled ? 'visibility' : 'visibility_off' }}</span>
+                </button>
+              }
             </div>
           }
         </div>
@@ -118,33 +122,53 @@ interface BuilderSection {
       @if (canvasMode() === 'canvas') {
       <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
         <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'">          @if (canvasState.config()) {
-              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.background]="getCanvasLandingBg()">
-                @if (canvasState.config()?.hero?.backgroundGif) {
-                  @if (isCanvasBgVideo()) {
-                    <video class="canvas-bg-media" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
-                  } @else {
-                    <div class="canvas-bg-image" [style.backgroundImage]="'url(' + canvasState.config()!.hero.backgroundGif + ')'"></div>
-                  }
-                  <div class="canvas-bg-overlay"></div>
-                }
+              <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.--theme-nav-btn-bg]="canvasState.config()?.theme?.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="canvasState.config()?.theme?.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="canvasState.config()?.theme?.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="canvasState.config()?.theme?.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="canvasState.config()?.theme?.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(canvasState.config()?.theme?.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(canvasState.config()?.theme?.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="canvasState.config()?.theme?.navBarBorder || 'rgba(212,160,23,0.2)'" [style.background]="getCanvasLandingBg()">
+                <!-- Pantalla de inicio (envelope) e Intro van ANTES del fondo: el fondo
+                     configurado (GIF/imagen/video) solo aplica desde la carátula hacia abajo,
+                     igual que en la landing real (que oculta el bg mientras hay envelope/intro). -->
                 @if (canvasState.config()?.envelope?.enabled) {
-                  <div class="preview-section-click" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
-                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" />
+                  <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas' && canvasState.config()!.envelope.template === 'plain'" data-section="envelope" [class.section-active]="canvasState.selectedSection() === 'envelope'" (click)="selectSection('envelope'); $event.stopPropagation()">
+                    <app-landing-envelope [config]="canvasState.config()!.envelope" [globalStyles]="canvasState.config()?.globalStyles!" [previewLoop]="canvasMode() === 'preview'" bannerUnit="%" [forceCover]="previewDevice() === 'mobile'" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onEnvelopePositionsChange($event)" />
                   </div>
                 }
                 @if (canvasState.config()?.intro?.enabled) {
-                  <div class="preview-section-click" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
-                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.cardBg || ''" [themeBorder]="canvasState.config()?.theme?.cardBorder || ''" [previewLoop]="true" />
+                  <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="intro" [class.section-active]="canvasState.selectedSection() === 'intro'" (click)="selectSection('intro'); $event.stopPropagation()">
+                    <app-landing-intro [config]="canvasState.config()!.intro" [themeColor]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [themeBg]="canvasState.config()?.theme?.landingBgColor1 || '#0d1117'" [themeBorder]="canvasState.config()?.theme?.landingBgColor2 || '#1a1a2e'" [themeBgType]="canvasState.config()?.theme?.landingBgType || 'radial'" [themeTexture]="canvasState.config()?.theme?.landingBgTexture || 'none'" [themeTextureOpacity]="canvasState.config()?.theme?.landingBgTextureOpacity || 5" [previewLoop]="canvasMode() === 'preview'" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onIntroPositionsChange($event)" />
                   </div>
                 }
-                <div class="preview-section-click" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
+
+                <!-- Wrapper que contiene el fondo + carátula + resto de secciones. El fondo se
+                     posiciona respecto a ESTE contenedor (que empieza en la carátula), por eso
+                     no se ve detrás de la pantalla de inicio ni de la intro. -->
+                <div class="canvas-bg-scope">
+                  <!-- Capa de fondo sticky: se mantiene fija respecto al viewport visible del
+                       canvas mientras el contenido scrollea por encima, replicando el
+                       position:fixed de la landing real. Así el fondo es CONTINUO desde la
+                       carátula hasta el final del scope, y el GIF no se estira (se dimensiona
+                       al viewport visible, no a la altura total del documento). -->
+                  @if (canvasState.config()?.hero?.backgroundGif || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
+                    <div class="canvas-bg-sticky">
+                      @if (canvasState.config()?.hero?.backgroundGif) {
+                        @if (isCanvasBgVideo()) {
+                          <video class="canvas-bg-media" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
+                        } @else {
+                          <div class="canvas-bg-image" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" [style.backgroundImage]="'url(' + canvasState.config()!.hero.backgroundGif + ')'"></div>
+                        }
+                        <div class="canvas-bg-overlay" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'"></div>
+                      }
+                      @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
+                        <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                      }
+                    </div>
+                  }
+                <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="hero" [class.section-active]="canvasState.selectedSection() === 'hero'" (click)="selectSection('hero'); $event.stopPropagation()">
                   @if (canvasState.config()!.hero) {
-                    <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" />
+                    <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onHeroPositionsChange($event)" />
                   }
                 </div>
                 <div class="preview-section-click" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
                   @if (canvasState.config()!.invitation) {
-                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="null" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="previewGuest" [styles]="canvasState.config()?.globalStyles!" />
                   }
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
@@ -164,7 +188,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
@@ -177,30 +201,43 @@ interface BuilderSection {
                     <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()?.globalStyles!" />
                   </div>
                 }
+                @if (canvasState.config()?.rsvp?.enabled) {
+                  <div class="preview-section-click" data-section="rsvp" [class.section-active]="canvasState.selectedSection() === 'rsvp'" [attr.style]="getSectionBgStyle('rsvp')" (click)="selectSection('rsvp'); $event.stopPropagation()">
+                    <app-landing-rsvp [config]="canvasState.config()!.rsvp" [guest]="previewGuest" slug="preview" [styles]="canvasState.config()?.globalStyles!" />
+                  </div>
+                }
+                </div><!-- /.canvas-bg-scope -->
               </div>
           }
         </div>
+        <!-- No external glow indicators needed -->
       </div>
       }
 
       <!-- Preview mode: iframe with real landing -->
       @if (canvasMode() === 'preview') {
       <div class="builder-preview-area">
+        <div class="preview-guest-selector">
+          <span class="preview-guest-label">Previsualizar invitación:</span>
+          <app-custom-select [options]="getPreviewGuestOptions()" [value]="previewGuestCode()" [compact]="true" placeholder="Selecciona una invitación" (valueChange)="selectPreviewGuest($event)"></app-custom-select>
+        </div>
         <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
           <iframe [src]="previewUrl()" class="preview-iframe" allow="autoplay"></iframe>
         </div>
       </div>
       }
 
-      <!-- FAB toggle sections panel -->
-      <button class="builder-sections-fab" [class.show-desktop]="!panelVisible()" (click)="panelVisible.set(true); showLeftPanel.set(!showLeftPanel())" title="Secciones">
+      <!-- FAB toggle sections panel (hidden in preview mode) -->
+      @if (canvasMode() === 'canvas') {
+      <button class="builder-sections-fab" [class.active]="isSectionsPanelOpen()" (click)="toggleSectionsPanel()" title="Secciones">
         <span class="material-icons">layers</span>
       </button>
+      }
 
       <!-- FAB toggle props (hidden in preview mode) -->
       @if (canvasMode() === 'canvas') {
-      <button class="builder-props-fab" [class.active]="showProps()" (click)="showProps.set(!showProps())" title="Propiedades">
-        <span class="material-icons">{{ showProps() ? 'close' : 'tune' }}</span>
+      <button class="builder-props-fab" [class.active]="showProps()" (click)="showProps() ? showProps.set(false) : toggleProps()" title="Propiedades">
+        <span class="material-icons">tune</span>
       </button>
       }
 
@@ -208,7 +245,6 @@ interface BuilderSection {
       @if (showProps() && canvasMode() === 'canvas') {
         <aside class="builder-panel builder-panel-right panel-visible">
           <div class="builder-panel-header">
-            <span class="material-icons">tune</span>
             <span>Propiedades</span>
           </div>
           <app-builder-props-panel
@@ -231,20 +267,23 @@ interface BuilderSection {
       z-index: 200;
       overflow: hidden;
       background: #0a0a14;
+      height: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      overscroll-behavior: none;
     }
     .builder-toolbar {
       display: flex; align-items: center;
       padding: 8px 16px; background: rgba(10,10,20,0.95);
       border-bottom: 1px solid rgba(139,92,246,0.15);
-      z-index: 10; position: relative; min-height: 48px; flex-wrap: wrap; gap: 4px 12px;
+      z-index: 10; position: relative; min-height: 48px; gap: 12px;
     }
-    .builder-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 1 0 100%; }
-    .builder-toolbar-center { display: flex; align-items: center; gap: 4px; order: 1; }
-    .builder-toolbar-right { display: flex; align-items: center; order: 2; margin-left: auto; }
-    @media (min-width: 850px) {
-      .builder-toolbar-left { flex: 0 0 auto; }
-      .builder-toolbar-center { flex: 1; justify-content: center; }
-    }
+    /* Tres grupos en una sola fila: izquierda (ancho natural), centro (crece y centra),
+       derecha (empujada al borde por margin-left:auto del propio grupo via flex). */
+    .builder-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; min-width: 0; }
+    .builder-toolbar-center { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1 1 auto; }
+    .builder-toolbar-right { display: flex; align-items: center; flex: 0 0 auto; }
+    .builder-event-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .builder-back {
       display: flex; align-items: center; justify-content: center;
       width: 32px; height: 32px; border-radius: 8px; color: rgba(255,255,255,0.6);
@@ -295,41 +334,60 @@ interface BuilderSection {
 
     .builder-layout {
       display: grid; grid-template-columns: 220px 1fr;
-      flex: 1; overflow: hidden; position: relative;
+      flex: 1; overflow: hidden; position: relative; min-height: 0;
     }
     .builder-layout.panel-hidden { grid-template-columns: 1fr; }
     .builder-layout.preview-layout { grid-template-columns: 1fr; }
-    .builder-layout.props-open { grid-template-columns: 220px 1fr 280px; }
-    .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr 280px; }
+    /* Panel de propiedades con ancho fluido: minimo 280px (el ancho original, para que al
+       achicar la ventana no ocupe de mas), escala con el viewport, tope 400px. El canvas
+       (1fr) absorbe el resto. */
+    .builder-layout.props-open { grid-template-columns: 220px 1fr clamp(280px, 26vw, 400px); }
+    .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr clamp(280px, 26vw, 400px); }
+
+    /* === MODO AMPLIO (>=1280px): ambos paneles a la vez, propiedades mas ancho === */
+    .builder-layout.wide { grid-template-columns: 240px 1fr; }
+    .builder-layout.wide.panel-hidden { grid-template-columns: 1fr; }
+    .builder-layout.wide.props-open { grid-template-columns: 240px 1fr clamp(280px, 24vw, 480px); }
+    .builder-layout.wide.props-open.panel-hidden { grid-template-columns: 1fr clamp(280px, 24vw, 480px); }
+    .builder-layout.wide.preview-layout { grid-template-columns: 1fr; }
+    /* El ancho lo controla la columna del grid; el panel se estira al 100% de su columna. */
+    .builder-layout.wide .builder-panel-right { width: 100%; }
+
     .builder-preview-area {
-      display: flex; align-items: flex-start; justify-content: center;
-      background: #06060e; padding: 16px; overflow: hidden; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      background: #06060e; padding: 8px; overflow: hidden; flex: 1; min-height: 0;
     }
+    .preview-guest-selector {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-bottom: 8px; width: 100%; max-width: 400px; align-self: center;
+    }
+    .preview-guest-label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+    .preview-guest-selector app-custom-select { flex: 1; }
     .builder-preview-frame {
-      border-radius: 16px; overflow: hidden; height: 100%;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
-      background: #0d1117;
-      &.mobile { width: 375px; }
+      border-radius: 12px; overflow: hidden; flex: 1; width: 100%; min-height: 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      &.mobile { width: 375px; max-width: 100%; }
       &.desktop { width: 100%; max-width: 900px; }
     }
-    .preview-iframe { width: 100%; height: 100%; border: none; }
+    .preview-iframe { width: 100%; height: 100%; border: none; display: block; }
     .builder-panel {
-      background: rgba(10,10,20,0.9); backdrop-filter: blur(12px);
+      background: rgba(10,10,20,0.98);
       border-right: 1px solid rgba(139,92,246,0.1);
       overflow-y: auto;
     }
     .builder-panel-right {
       border-right: none; border-left: 1px solid rgba(139,92,246,0.1);
-      width: 280px; z-index: 20;
-      display: none; flex-direction: column; overflow: hidden;
+      width: 100%; z-index: 20;
+      display: none; flex-direction: column;
+      min-height: 0; height: 100%;
     }
     .builder-panel-right.panel-visible { display: flex; }
-    .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; }
+    .builder-panel-right app-builder-props-panel { flex: 1; overflow-y: auto; display: block; min-height: 0; }
     .builder-panel-header {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; justify-content: center;
       padding: 12px 14px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7);
       border-bottom: 1px solid rgba(139,92,246,0.08);
-      .material-icons { font-size: 16px; color: var(--gold-light); }
+      text-transform: uppercase; letter-spacing: 1px;
     }
     .builder-sections-list { padding: 6px; }
     .builder-section-item {
@@ -362,6 +420,12 @@ interface BuilderSection {
       .material-icons { font-size: 14px; }
       &:hover { color: var(--gold-light); }
     }
+    .section-permanent {
+      font-size: 13px; padding: 2px;
+      color: rgba(139,92,246,0.6);
+      transform: rotate(45deg);
+      cursor: default;
+    }
     .builder-add-elements { padding-bottom: 8px; }
     .add-el-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px; }
     .add-el-btn {
@@ -375,15 +439,22 @@ interface BuilderSection {
 
     .builder-canvas-area {
       display: flex; align-items: flex-start; justify-content: center;
-      background: #06060e; padding: 16px; overflow-y: auto;
+      background: #06060e; padding: 16px; overflow: hidden; min-height: 0;
     }
+    /* El VIEWPORT es ahora el contenedor scrolleable (antes lo era .builder-canvas-area).
+       Esto permite que el fondo (position:sticky) se ancle al viewport y quede fijo mientras
+       las secciones scrollean por encima — replicando el fondo fijo de la landing real. */
     .builder-canvas-viewport {
-      border-radius: 16px; overflow: hidden;
+      border-radius: 16px; overflow-y: auto; overflow-x: hidden;
+      max-height: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
       background: #0d1117;
       &.mobile { width: 375px; }
-      &.desktop { width: 100%; max-width: 680px; }
+      &.desktop { width: 100%; max-width: 900px; }
     }
+    /* Ocultar la barra de scroll del viewport para que el mockup se vea limpio */
+    .builder-canvas-viewport::-webkit-scrollbar { width: 0; height: 0; }
+    .builder-canvas-viewport { scrollbar-width: none; }
     .canvas-section-wrapper {
       position: relative; cursor: default;
       border: 1px solid transparent; transition: border-color 0.15s;
@@ -416,12 +487,57 @@ interface BuilderSection {
       --font-script: 'Great Vibes', cursive;
       --gold: #d4a017; --gold-light: #e6c655;
     }
-    .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
-    .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; background-attachment: fixed; z-index: 0; }
-    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 0; background: rgba(0,0,0,0.2); pointer-events: none; }
-    .preview-mode-canvas > .preview-section-click { position: relative; z-index: 1; }
-    .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-card-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(12px) !important; border-bottom: 1px solid var(--theme-card-border, rgba(212,160,23,0.2)) !important; }
-    .preview-mode-canvas ::ng-deep .hero-section { min-height: 500px !important; padding-top: 60px !important; }
+    /* Contenedor de fondo sticky: se pega al tope del canvas y ocupa solo la altura del
+       viewport visible. Antes el GIF (position:absolute; inset:0 sobre .preview-mode-canvas
+       de altura completa) se estiraba a miles de px de alto y background-size:cover lo
+       escalaba de forma extrema → pixelado. Con sticky + altura acotada, el GIF se dimensiona
+       como en la landing (position:fixed) y se ve nítido. */
+    /* Contenedor del fondo: empieza en la carátula (hero), por eso el fondo no cubre
+       la pantalla de inicio ni la intro (que quedan fuera de este scope). */
+    .canvas-bg-scope { position: relative; }
+    /* Fondo FIJO como en la landing real: sticky al tope del viewport scrolleable, con alto
+       del área visible. Al scrollear las secciones pasan por encima y el fondo permanece
+       estático (no se repite ni se estira). El margin-bottom negativo evita que ocupe espacio
+       en el flujo para que el contenido se pinte sobre él. */
+    .canvas-bg-sticky {
+      position: sticky; top: 0; z-index: 0;
+      /* Altura relativa al alto visible del viewport del canvas (medido por JS en
+         --canvas-vh). Así el fondo cubre exactamente la ventana visible, como el 100vh
+         de la landing, y se adapta al alto del canvas. */
+      width: 100%; height: var(--canvas-vh, 640px);
+      margin-bottom: calc(-1 * var(--canvas-vh, 640px));
+      overflow: hidden;
+      pointer-events: none;
+    }
+    /* Orden de capas igual que la landing real: textura (1) < GIF (2) < overlay (3) < secciones (4). */
+    .canvas-bg-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; pointer-events: none; }
+    .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; pointer-events: none; }
+    .canvas-bg-overlay { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .canvas-bg-texture { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    /* Modo banner en el canvas: la imagen se dibuja a un TAMAÑO FIJO (alto = 100% de la ventana,
+       ancho proporcional -> "auto 100%"). El slider solo cambia el ancho de la ventana/mascara
+       centrada: recorta mas o menos la imagen SIN re-escalarla. */
+    .canvas-bg-media.bg-banner,
+    .canvas-bg-image.bg-banner,
+    .canvas-bg-overlay.bg-banner {
+      left: 50%; right: auto;
+      transform: translateX(-50%);
+      width: var(--banner-w, 70%);
+    }
+    .canvas-bg-image.bg-banner { background-size: auto 100%; background-position: center center; background-repeat: no-repeat; }
+    .canvas-bg-media.bg-banner { object-fit: cover; object-position: center center; }
+    .canvas-bg-texture[data-texture="noise"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .canvas-bg-texture[data-texture="grain"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); }
+    .canvas-bg-texture[data-texture="dots"] { background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 8px 8px; }
+    .canvas-bg-texture[data-texture="lines"] { background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 5px); }
+    .canvas-bg-texture[data-texture="cross"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px), repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px); }
+    .canvas-bg-texture[data-texture="paper"] { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"); }
+    .canvas-bg-texture[data-texture="linen"] { background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px), repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 3px); }
+    .canvas-bg-texture[data-texture="stars"] { background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px); background-size: 24px 24px; }
+    .preview-mode-canvas > .preview-section-click,
+    .canvas-bg-scope > .preview-section-click { position: relative; z-index: 4; }
+    .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(var(--theme-nav-bar-blur, 12px)) !important; border-bottom: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2)) !important; }
+    .preview-mode-canvas ::ng-deep .hero-section { min-height: var(--canvas-vh, 640px) !important; padding-top: 60px !important; }
     .preview-mode-canvas ::ng-deep .countdown { justify-content: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-item { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-value { display: block !important; text-align: center !important; }
@@ -433,7 +549,7 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .timeline-item { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .reveal { animation: none !important; opacity: 1 !important; transform: none !important; }
     .preview-mode-canvas ::ng-deep .scroll-hidden { opacity: 1 !important; transform: none !important; }
-    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
+    .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; height: var(--canvas-vh, 640px); min-height: auto !important; inset: auto !important; overflow: hidden; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="fade"] { animation: builderFade 1s ease forwards !important; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-up"] { animation: builderSlideUp 1s ease forwards !important; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-down"] { animation: builderSlideDown 1s ease forwards !important; }
@@ -447,29 +563,56 @@ interface BuilderSection {
     @keyframes builderZoomIn { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.4); } }
     @keyframes builderZoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.3); } }
     @keyframes builderBlur { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(15px); } }
-    .preview-mode-canvas ::ng-deep .intro-bg-overlay { opacity: 0.4 !important; }
-    .preview-mode-canvas ::ng-deep .intro-bg-overlay { opacity: 0.4 !important; }
+    .preview-mode-canvas ::ng-deep .intro-bg-overlay { /* preserve landing overlay for GIF quality */ }
     .preview-mode-canvas ::ng-deep .intro-bg-video,
     .preview-mode-canvas ::ng-deep .intro-bg { animation: none !important; }
-    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; height: 500px; min-height: auto !important; inset: auto !important; overflow: hidden; }
+    .preview-mode-canvas ::ng-deep .envelope-overlay { position: relative !important; z-index: 1 !important; height: var(--canvas-vh, 640px); min-height: auto !important; inset: auto !important; overflow: hidden; }
+    /* En el canvas, el fondo banner del envelope debe llenar el alto de la seccion (500px) y
+       acotar su ancho al contenedor del canvas (no al viewport). Neutraliza el 96vw heredado
+       y el max-width:100% global para que cover recorte a los lados manteniendo el alto. */
+    .preview-mode-canvas ::ng-deep .envelope-bg-image.bg-banner {
+      width: var(--banner-w, 70%) !important;
+      height: 100% !important; top: 0 !important; bottom: 0 !important;
+      background-size: auto 100% !important; background-position: center center !important; background-repeat: no-repeat !important;
+    }
     /* In canvas mode, prevent envelope from disappearing after being opened */
     .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 1 !important; pointer-events: auto !important; }
     /* In live preview, overlays stay same height but are fully interactive */
-    .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay { height: 500px; cursor: pointer; }
+    .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 0 !important; pointer-events: none !important; }
-    .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: 500px; cursor: pointer; }
+    .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
+    .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
+    .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }
+    .gallery-canvas-title { font-size: 28px; margin-bottom: 20px; }
+    .gallery-canvas-carousel { display: flex; align-items: center; justify-content: center; gap: 8px; height: 180px; overflow: hidden; }
+    .gallery-canvas-card {
+      width: 120px; height: 160px; border-radius: 12px;
+      border: 1px dashed rgba(139,92,246,0.3); background: rgba(139,92,246,0.04);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500;
+      transition: transform 0.5s ease, opacity 0.5s ease, border-color 0.3s;
+      transform: scale(0.85); opacity: 0.5;
+    }
+    .gallery-canvas-card.active {
+      transform: scale(1); opacity: 1;
+      border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.08);
+      box-shadow: 0 4px 20px rgba(139,92,246,0.15);
+    }
+    .gallery-canvas-style { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 12px; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
     .preview-section-click {
-      cursor: pointer; transition: outline 0.2s; position: relative; overflow: hidden;
-      &:hover { outline: 2px dashed rgba(139,92,246,0.3); outline-offset: -2px; }
-      &.section-active { outline: 2px solid rgba(139,92,246,0.6); outline-offset: -2px; }
+      cursor: pointer; position: relative; transition: box-shadow 0.2s;
+      &:hover { box-shadow: inset 3px 0 0 rgba(139,92,246,0.4), inset -3px 0 0 rgba(139,92,246,0.4), inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
+      &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
     .preview-section-click[data-section="hero"] { overflow: visible; }
-    /* Block pointer events on inner content so clicks go to the wrapper */
+    /* Block pointer events on inner content so clicks go to the wrapper.
+       Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
     .preview-section-click > * { pointer-events: none; }
+    .preview-section-click.drag-enabled > * { pointer-events: auto; }
     /* Live preview mode — enable interactions, remove selection UI */
     .live-preview .preview-section-click { cursor: default; }
     .live-preview .preview-section-click > * { pointer-events: all; }
@@ -530,16 +673,14 @@ interface BuilderSection {
       position: absolute; top: 8px; left: 8px; z-index: 25;
       width: 36px; height: 36px; border-radius: 50%; border: none;
       background: rgba(139,92,246,0.9); color: white;
-      cursor: pointer; display: none; align-items: center; justify-content: center;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 12px rgba(139,92,246,0.4);
-      transition: transform 0.3s, background 0.2s;
-      .material-icons { font-size: 18px; }
+      transition: transform 0.3s, background 0.3s;
+      .material-icons { font-size: 18px; transition: transform 0.3s; }
       &:hover { transform: scale(1.1); }
-      &.show-desktop { display: flex; }
+      &.active { background: rgba(239,68,68,0.85); box-shadow: 0 4px 12px rgba(239,68,68,0.4); }
+      &.active .material-icons { transform: rotate(90deg); }
     }
-    .panel-toggle-btn { margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; padding: 2px; border-radius: 4px; transition: all 0.2s; .material-icons { font-size: 18px; } }
-    .panel-toggle-btn:hover { color: white; background: rgba(139,92,246,0.15); }
-
     .builder-props { padding: 14px; }
     .builder-section-badge {
       display: flex; align-items: center; gap: 8px;
@@ -665,20 +806,65 @@ interface BuilderSection {
       .builder-layout, .builder-layout.props-open, .builder-layout.props-open.panel-hidden { grid-template-columns: 1fr; }
       .builder-panel-left {
         display: none;
-        position: fixed; top: 48px; bottom: 0; left: 0; z-index: 100;
+        position: fixed; top: 90px; bottom: 0; left: 0; z-index: 100;
         width: 260px; box-shadow: 4px 0 24px rgba(0,0,0,0.5);
       }
       .builder-panel-left.mobile-open { display: block; }
-      .builder-sections-fab { display: flex; }
+      .builder-sections-fab { display: flex; z-index: 150; top: 92px; left: 8px; position: fixed; }
       .builder-save-text { display: none; }
+      .builder-save-btn { min-width: auto !important; padding: 7px 10px !important; }
+      .builder-toolbar-left { flex: 0 0 auto !important; max-width: none; overflow: visible; order: 0; }
+      .builder-event-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
+      .builder-toolbar {
+        flex-wrap: nowrap !important;
+        padding: 6px 8px !important;
+        gap: 4px !important;
+        min-height: auto !important;
+      }
+      .builder-toolbar-left { flex: 0 0 auto !important; }
+      .builder-toolbar-right { order: 0; margin-left: auto; }
+      .builder-toolbar-center { order: 0; flex: 1; justify-content: center; gap: 2px !important; }
+      .builder-toolbar-center .builder-tb-sep { display: none; }
+      .builder-toolbar-center .builder-device-btn { display: none; }
       .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
+      .builder-panel-right.panel-visible {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: auto;
+        width: 280px;
+        max-width: 80vw;
+        height: 100%;
+        z-index: 150;
+        border-radius: 0;
+        border-left: 1px solid rgba(139,92,246,0.3);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.5);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .builder-panel-right.panel-visible app-builder-props-panel {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+      .builder-canvas-area { padding: 8px; }
+      .builder-props-fab { top: 92px; right: 8px; z-index: 160; position: fixed; }
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
     }
   `]
 })
-export class BuilderComponent implements OnInit, OnDestroy {
+export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   private sanitizer = inject(DomSanitizer);
+  private dialog = inject(DialogService);
   canvasState = inject(CanvasStateService);
   private migration = inject(MigrationService);
 
@@ -686,20 +872,74 @@ export class BuilderComponent implements OnInit, OnDestroy {
   eventName = signal('');
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
+
+  /** Ancho del viewport, reactivo para recalcular el layout de paneles al redimensionar. */
+  viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1280);
+  /** Umbral a partir del cual ambos paneles pueden estar abiertos a la vez (pantalla amplia). */
+  private readonly WIDE_BREAKPOINT = 1280;
+
+  isMobileView(): boolean {
+    return this.viewportWidth() <= 768;
+  }
+  /** True cuando hay ancho suficiente para mostrar ambos paneles simultáneamente. */
+  isWide(): boolean {
+    return this.viewportWidth() >= this.WIDE_BREAKPOINT;
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    const w = window.innerWidth;
+    if (w === this.viewportWidth()) return;
+    const wasWide = this.isWide();
+    this.viewportWidth.set(w);
+    const nowWide = this.isWide();
+    if (this.canvasMode() !== 'canvas') return;
+
+    if (!wasWide && nowWide) {
+      // Paso a pantalla amplia: ambos paneles pueden convivir. Abre secciones y,
+      // si hay una seccion seleccionada, tambien propiedades.
+      this.panelVisible.set(true);
+      if (this.canvasState.selectedSection()) {
+        this.showProps.set(true);
+      }
+    } else if (wasWide && !nowWide) {
+      // Salio de pantalla amplia con ambos paneles abiertos: aplica exclusion mutua
+      // automatica para que los overlays no tapen el canvas. Prioriza propiedades si
+      // hay una seccion seleccionada; si no, deja secciones.
+      if (this.showProps() && this.panelVisible()) {
+        if (this.canvasState.selectedSection()) {
+          this.panelVisible.set(false);
+          this.showLeftPanel.set(false);
+        } else {
+          this.showProps.set(false);
+        }
+      }
+    }
+  }
   canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
   saving = signal(false);
   saveStatus = signal<'idle' | 'saved'>('idle');
   showProps = signal(false);
   showLeftPanel = signal(false);
-  panelVisible = signal(true);
+  panelVisible = signal(false);
   eventData = signal<any>({ name: '', event_date: '', slug: '' });
+  previewGuest: any = {
+    id: 0, event_id: 0, unique_code: 'preview-mock',
+    guest_type: 'family', family_name: 'Familia García',
+    guest_names: 'Carlos García, María López, Sofía García, Diego García',
+    max_companions: 0, confirmed: 0
+  };
+  guests = signal<any[]>([]);
+  previewGuestCode = signal<string>('');
   previewKey = signal(0);
   previewUrl = computed<SafeResourceUrl>(() => {
     const slug = this.eventData()?.slug || '';
     const baseUrl = window.location.origin;
     const key = this.previewKey();
-    return this.sanitizer.bypassSecurityTrustResourceUrl(`${baseUrl}/invitacion/${slug}?preview=1&_=${key}`);
+    const guestCode = this.previewGuestCode();
+    const guestParam = guestCode ? `&t=${guestCode}` : '';
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${baseUrl}/invitacion/${slug}?preview=1${guestParam}&_=${key}`);
   });
   currentSection = signal<string | null>(null);
   currentConfig = signal<any>(null);
@@ -710,8 +950,52 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   hasUnsavedChanges(): boolean { return this.canvasState.isDirty(); }
 
+  /** Open sections panel. En pantalla amplia NO cierra propiedades (ambos abiertos). */
+  openSections() {
+    this.panelVisible.set(true);
+    this.showLeftPanel.set(true);
+    if (!this.isWide()) {
+      this.showProps.set(false);
+    }
+  }
+
+  isSectionsPanelOpen(): boolean {
+    if (this.isMobileView()) {
+      return this.showLeftPanel();
+    }
+    return this.panelVisible();
+  }
+
+  toggleSectionsPanel() {
+    if (this.isSectionsPanelOpen()) {
+      this.panelVisible.set(false);
+      this.showLeftPanel.set(false);
+    } else {
+      this.openSections();
+    }
+  }
+
+  /** Toggle props panel. En pantalla amplia NO cierra secciones (ambos abiertos). */
+  toggleProps() {
+    const opening = !this.showProps();
+    this.showProps.set(opening);
+    // Exclusion mutua solo en pantallas no amplias
+    if (opening && !this.isWide()) {
+      this.panelVisible.set(false);
+      this.showLeftPanel.set(false);
+    }
+  }
+
   ngOnInit() {
     this.eventId = +this.route.snapshot.params['eventId'];
+    // Lock all parent scrolling while builder is open
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    const pageContent = document.querySelector('.page-content') as HTMLElement;
+    if (pageContent) pageContent.style.overflow = 'hidden';
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    if (mainContent) mainContent.style.overflow = 'hidden';
+
     this.api.getEvent(this.eventId).subscribe(e => {
       this.eventName.set(e.name);
       this.eventData.set(e);
@@ -722,14 +1006,93 @@ export class BuilderComponent implements OnInit, OnDestroy {
       this.canvasState.initializeState(v2);
       this.currentConfig.set(v2);
       this.buildSections(v2);
+      // En pantalla amplia, abrir el panel de secciones por defecto para aprovechar el espacio.
+      if (this.isWide()) {
+        this.panelVisible.set(true);
+      }
+      // Precargar medios de fondo (intro + hero) para que estén decodificados en el
+      // primer render del canvas. Sin esto, la intro salía sin fondo hasta reiniciar.
+      this.preloadCanvasMedia(v2?.intro?.background);
+      this.preloadCanvasMedia(v2?.hero?.backgroundGif);
     });
+    // Register auto-save so props-panel changes trigger save
+    this.canvasState.registerAutoSave(() => this.scheduleAutoSave());
     // Load related data
     this.loadItinerary();
     this.loadPhotos();
+    this.loadGuests();
+  }
+
+  private canvasResizeObserver?: ResizeObserver;
+  /** Referencia a la función que re-mide --canvas-vh, para forzarla al volver a modo canvas. */
+  private _applyCanvasHeight?: () => void;
+
+  /** Precarga una imagen/GIF/video de fondo para que esté lista en el primer render del canvas. */
+  private preloadCanvasMedia(url?: string | null) {
+    if (!url) return;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'ogg'].includes(ext)) {
+      const video = document.createElement('video');
+      video.preload = 'auto'; video.muted = true; video.src = url; video.load();
+    } else {
+      const img = new Image();
+      img.src = url;
+    }
+  }
+
+  ngAfterViewInit() {
+    // Medir la altura visible del viewport del canvas y exponerla como --canvas-vh,
+    // para que el fondo fijo (.canvas-bg-sticky) cubra exactamente esa altura y se
+    // adapte al tamaño del canvas (como el 100vh de la landing).
+    this.installCanvasHeightObserver();
+  }
+
+  private installCanvasHeightObserver() {
+    const apply = () => {
+      const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
+      const canvas = document.querySelector('.preview-mode-canvas') as HTMLElement | null;
+      if (viewport && canvas) {
+        const h = viewport.clientHeight;
+        // Ignorar medidas de 0 (p. ej. cuando el canvas está oculto en modo preview):
+        // conservaríamos el último alto válido para no colapsar la altura del hero/intro
+        // al volver al modo canvas.
+        if (h <= 0) return;
+        // Solo actualizar si cambió, para no forzar reflows innecesarios que rompan
+        // el primer render de secciones como la intro (que pinta su fondo absolute).
+        const prev = canvas.style.getPropertyValue('--canvas-vh');
+        if (prev !== h + 'px') {
+          canvas.style.setProperty('--canvas-vh', h + 'px');
+        }
+      }
+    };
+    this._applyCanvasHeight = apply;
+    // Reintentar hasta que el viewport exista (el canvas se renderiza tras cargar config).
+    // Aplicamos en rAF (antes del paint) para evitar setear --canvas-vh DESPUÉS del primer
+    // paint, lo que provocaba un reflow tardío que dejaba la intro sin fondo hasta reiniciar.
+    const trySetup = () => {
+      const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
+      if (!viewport) { requestAnimationFrame(trySetup); return; }
+      apply();
+      // Segundo apply en el siguiente frame por si la altura definitiva del grid
+      // aún no estaba resuelta en el primer frame.
+      requestAnimationFrame(apply);
+      this.canvasResizeObserver?.disconnect();
+      this.canvasResizeObserver = new ResizeObserver(() => apply());
+      this.canvasResizeObserver.observe(viewport);
+    };
+    requestAnimationFrame(trySetup);
   }
 
   ngOnDestroy() {
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+    this.canvasResizeObserver?.disconnect();
+    // Restore scroll when leaving builder
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    const pageContent = document.querySelector('.page-content') as HTMLElement;
+    if (pageContent) pageContent.style.overflow = '';
+    const mainContent = document.querySelector('.main-content') as HTMLElement;
+    if (mainContent) mainContent.style.overflow = '';
   }
 
   private buildSections(cfg: any) {
@@ -749,17 +1112,57 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   selectSection(key: string) {
-    if (this.canvasMode() === 'preview') return; // In preview mode, don't select
+    if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(key);
     this.currentSection.set(key);
-    this.showProps.set(true);
+    // On mobile, don't auto-open props panel (user can tap FAB to open it)
+    if (!this.isMobileView()) {
+      this.showProps.set(true);
+    }
+    // En pantalla amplia se mantiene el panel de secciones abierto (ambos visibles).
+    // En pantallas menores se cierra para dar espacio al canvas.
+    if (!this.isWide()) {
+      this.panelVisible.set(false);
+      this.showLeftPanel.set(false);
+    }
     this.scrollToSection(key);
+    this.updateSectionGlow(key);
+  }
+
+  // Section glow indicators
+  sectionGlowTopValue = signal(0);
+  sectionGlowHeightValue = signal(0);
+  sectionGlowLeftValue = signal(0);
+  sectionGlowRightValue = signal(0);
+  sectionGlowTop(): number { return this.sectionGlowTopValue(); }
+  sectionGlowHeight(): number { return this.sectionGlowHeightValue(); }
+  sectionGlowLeftPos(): number { return this.sectionGlowLeftValue(); }
+  sectionGlowRightPos(): number { return this.sectionGlowRightValue(); }
+
+  private updateSectionGlow(key: string) {
+    setTimeout(() => {
+      const section = document.querySelector(`.preview-section-click[data-section="${key}"]`) as HTMLElement;
+      const area = document.querySelector('.builder-canvas-area') as HTMLElement;
+      const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement;
+      if (section && area && viewport) {
+        const areaRect = area.getBoundingClientRect();
+        const secRect = section.getBoundingClientRect();
+        const vpRect = viewport.getBoundingClientRect();
+        // El scroll ahora vive en el viewport, no en el area.
+        this.sectionGlowTopValue.set(secRect.top - areaRect.top + viewport.scrollTop);
+        this.sectionGlowHeightValue.set(secRect.height);
+        // Position glows at the edges of the viewport
+        this.sectionGlowLeftValue.set(vpRect.left - areaRect.left - 16);
+        this.sectionGlowRightValue.set(vpRect.right - areaRect.left);
+      }
+    }, 100);
   }
 
   private scrollToSection(key: string) {
     setTimeout(() => {
       const el = document.querySelector(`.preview-section-click[data-section="${key}"]`);
-      const container = document.querySelector('.builder-canvas-area');
+      // El scroll ahora ocurre en el viewport del mockup, no en el area.
+      const container = document.querySelector('.builder-canvas-viewport');
       if (el && container) {
         const elRect = el.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
@@ -769,11 +1172,42 @@ export class BuilderComponent implements OnInit, OnDestroy {
     }, 50);
   }
 
-  toggleCanvasMode() {
+  async toggleCanvasMode() {
     if (this.canvasMode() === 'canvas') {
-      // Switching to preview: save first so iframe shows latest
+      // Switching to preview
       if (this.canvasState.isDirty()) {
-        this.save();
+        const result = await this.dialog.unsavedChanges(
+          'Cambios sin guardar',
+          'Tienes cambios pendientes. ¿Deseas guardar antes de previsualizar?',
+          'Continuar'
+        );
+        if (result === 'cancel') return;
+        if (result === 'save') {
+          this.saving.set(true);
+          const cfg = this.canvasState.getConfig();
+          if (!cfg) { this.saving.set(false); return; }
+          const s = this.sections();
+          for (const sec of s) {
+            if ((cfg as any)[sec.key] && typeof (cfg as any)[sec.key] === 'object') {
+              (cfg as any)[sec.key].enabled = sec.enabled;
+            }
+          }
+          this.api.saveConfig(this.eventId, cfg).subscribe({
+            next: () => {
+              this.saving.set(false);
+              this.saveStatus.set('saved');
+              this.canvasState.isDirty.set(false);
+              setTimeout(() => this.saveStatus.set('idle'), 2500);
+              this.canvasMode.set('preview');
+              this.reloadPreview();
+              this.canvasState.selectSection(null);
+              this.currentSection.set(null);
+            },
+            error: () => { this.saving.set(false); }
+          });
+          return;
+        }
+        // result === 'discard' — show preview with BD data, keep canvas changes in memory
       }
       this.canvasMode.set('preview');
       this.reloadPreview();
@@ -781,11 +1215,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
       this.currentSection.set(null);
     } else {
       this.canvasMode.set('canvas');
-      // Reset envelope overlay when back to canvas
       const envelopeEl = document.querySelector('.preview-mode-canvas .envelope-overlay');
       if (envelopeEl) {
         envelopeEl.classList.remove('opened');
       }
+      // Al volver a modo canvas el viewport vuelve a ser visible: re-medir --canvas-vh
+      // para que el hero/intro recuperen el alto de pantalla (antes quedaba colapsado).
+      requestAnimationFrame(() => {
+        this._applyCanvasHeight?.();
+        requestAnimationFrame(() => this._applyCanvasHeight?.());
+      });
     }
   }
 
@@ -797,10 +1236,29 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.canvasState.selectSection('_theme');
     this.currentSection.set('_theme');
     this.showProps.set(true);
+    this.panelVisible.set(false);
+    this.showLeftPanel.set(false);
   }
 
   toggleViewMode() {
     this.viewMode.set(this.viewMode() === 'edit' ? 'preview' : 'edit');
+  }
+
+  getNavBarBg(): string {
+    const theme = this.canvasState.config()?.theme;
+    if (!theme) return 'rgba(13,17,23,0.85)';
+    const c1 = theme.navBarBg1 || '#0d1117';
+    const c2 = theme.navBarBg2 || '';
+    const opacity = (theme.navBarOpacity ?? 85) / 100;
+    const toRgba = (hex: string, a: number): string => {
+      if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
+      const r = parseInt(hex.slice(1, 3), 16) || 0;
+      const g = parseInt(hex.slice(3, 5), 16) || 0;
+      const b = parseInt(hex.slice(5, 7), 16) || 0;
+      return `rgba(${r},${g},${b},${a})`;
+    };
+    if (c2) return `linear-gradient(135deg, ${toRgba(c1, opacity)}, ${toRgba(c2, opacity)})`;
+    return toRgba(c1, opacity);
   }
 
   getCanvasLandingBg(): string {
@@ -811,12 +1269,16 @@ export class BuilderComponent implements OnInit, OnDestroy {
     const c2 = theme.landingBgColor2 || '#1a1a2e';
     const type = theme.landingBgType || 'solid';
     const angle = theme.landingBgAngle || 135;
+    const intensity = theme.landingBgIntensity ?? 50;
 
+    // Replicar EXACTAMENTE la lógica de la landing real (getLandingBg) para que el canvas
+    // muestre el mismo degradado con intensidad.
     let colorBg = c1;
     switch (type) {
       case 'solid': colorBg = c1; break;
-      case 'linear': colorBg = `linear-gradient(${angle}deg, ${c1}, ${c2})`; break;
-      case 'radial': colorBg = `radial-gradient(ellipse at center, ${c2}, ${c1})`; break;
+      case 'linear': colorBg = this.buildLinearGradient(angle, c1, c2, intensity); break;
+      case 'radial': colorBg = `radial-gradient(ellipse at center, ${c1} ${intensity}%, ${c2})`; break;
+      case 'mesh': colorBg = this.buildLinearGradient(angle, c1, c2, intensity); break;
       default: colorBg = c1;
     }
 
@@ -832,15 +1294,100 @@ export class BuilderComponent implements OnInit, OnDestroy {
     return ['mp4', 'webm', 'ogg'].includes(ext);
   }
 
+  /** Degradado lineal de 2 colores con intensidad 0-100:
+      0 = predomina color1, 100 = predomina color2, 50 = mitad. El punto de mezcla se
+      desplaza con la intensidad usando un "color hint" central. */
+  private buildLinearGradient(angle: number, c1: string, c2: string, intensity: number): string {
+    const v = Math.max(0, Math.min(100, intensity ?? 50));
+    // mid = posicion del punto medio del degradado. v=0 -> 100% (todo c1); v=100 -> 0% (todo c2).
+    const mid = 100 - v;
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${Math.max(0, mid - 25)}%, ${c2} ${Math.min(100, mid + 25)}%, ${c2} 100%)`;
+  }
+
   getSectionBgStyle(sectionKey: string): string {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return '';
     const ss = (cfg as any)[sectionKey]?.sectionStyle;
-    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return '';
-    switch (ss.bgType) {
-      case 'solid': return `background: ${ss.bgColor1 || '#1a1a2e'}`;
-      case 'linear': return `background: linear-gradient(${ss.bgAngle || 180}deg, ${ss.bgColor1 || '#1a1a2e'}, ${ss.bgColor2 || '#0d1117'})`;
-      case 'image': return ss.bgImage ? `background: url(${ss.bgImage}) center/cover` : '';
+    if (!ss) return '';
+    let css = '';
+    if (ss.bgType && ss.bgType !== 'inherit') {
+      switch (ss.bgType) {
+        case 'solid': css = `background: ${ss.bgColor1 || '#1a1a2e'}`; break;
+        case 'linear': css = `background: ${this.buildLinearGradient(ss.bgAngle ?? 180, ss.bgColor1 || '#1a1a2e', ss.bgColor2 || '#0d1117', ss.bgIntensity ?? 50)}`; break;
+        case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor1 || '#1a1a2e'} ${(ss.bgIntensity ?? 50)}%, ${ss.bgColor2 || '#0d1117'})`; break;
+        case 'image': {
+          if (!ss.bgImage) { css = ''; break; }
+          // Oscurecido (overlay) replicado como capa de gradiente sobre la imagen, para que
+          // el canvas se vea igual que la landing (que usa un div .section-bg-overlay).
+          const ov = Math.max(0, Math.min(100, ss.bgOverlay ?? 0)) / 100;
+          const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
+          if (ss.bgFit === 'banner') {
+            const isMobile = this.previewDevice() === 'mobile';
+            if (isMobile) {
+              // Mobile (prioridad): la imagen CUBRE el ancho y alto de la sección (cover) y la
+              // sección toma el alto de pantalla, igual que la landing. Sin huecos.
+              css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
+            } else {
+              // Desktop: columna centrada del ancho configurado (--sec-banner-w).
+              css = `background: ${dark}url(${ss.bgImage}) top center / ${ss.bgBannerWidth ?? 70}% auto no-repeat`;
+            }
+          } else {
+            // Pantalla completa: cover (sin cambios).
+            css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat`;
+          }
+          break;
+        }
+      }
+    }
+    // Apply clip-path for section transitions — keep outline visible by using overflow visible
+    if (ss.dividerType && ss.dividerType !== 'none') {
+      const h = ss.dividerHeight || 50;
+      const flip = ss.dividerFlip || false;
+      const clipValue = this.getBuilderClipPath(ss.dividerType, h, flip);
+      if (clipValue) {
+        css += `; margin-top: -${h}px; clip-path: ${clipValue}; padding-top: ${h + 20}px`;
+      }
+    }
+    return css;
+  }
+
+  private getBuilderClipPath(type: string, h: number, flip: boolean): string {
+    switch (type) {
+      case 'slant':
+        return flip ? `polygon(0% 0px, 100% ${h}px, 100% 100%, 0% 100%)` : `polygon(0% ${h}px, 100% 0px, 100% 100%, 0% 100%)`;
+      case 'arrow':
+        return flip ? `polygon(0% 0px, 50% ${h}px, 100% 0px, 100% 100%, 0% 100%)` : `polygon(0% ${h}px, 50% 0px, 100% ${h}px, 100% 100%, 0% 100%)`;
+      case 'zigzag': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 12; i++) {
+          const x = (i / 12) * 100;
+          const y = i % 2 === 0 ? (flip ? 0 : h) : (flip ? h : 0);
+          pts.push(`${x.toFixed(1)}% ${y}px`);
+        }
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'mountains': {
+        const mPts = [[0,1],[12.5,0.3],[25,0.7],[42,0],[58,0.6],[75,0.2],[87.5,0.5],[100,0.15]];
+        const pts = mPts.map(([x, ratio]) => `${x}% ${(flip ? h*(1-ratio) : h*ratio).toFixed(1)}px`);
+        pts.push('100% 100%', '0% 100%');
+        return `polygon(${pts.join(', ')})`;
+      }
+      case 'wave': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 40; i++) { const x = (i/40)*100; let y = (Math.sin((i/40)*Math.PI*2)+1)/2*h; if(flip) y=h-y; pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`); }
+        return `polygon(${pts.join(', ')}, 100% 100%, 0% 100%)`;
+      }
+      case 'curve': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 30; i++) { const x = (i/30)*100; let y = (Math.cos((i/30)*Math.PI)*0.5+0.5)*h; if(flip) y=h-y; pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`); }
+        return `polygon(${pts.join(', ')}, 100% 100%, 0% 100%)`;
+      }
+      case 'drops': {
+        const pts: string[] = [];
+        for (let i = 0; i <= 60; i++) { const x = (i/60)*100; let y = (Math.cos((i/60)*6*Math.PI*2)+1)/2*h; if(flip) y=h-y; pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`); }
+        return `polygon(${pts.join(', ')}, 100% 100%, 0% 100%)`;
+      }
       default: return '';
     }
   }
@@ -899,7 +1446,41 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.canvasState.selectSection(null);
   }
 
+  /** Persiste las posiciones del template Plano tras arrastrar un elemento. */
+  onEnvelopePositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.envelope as any).plainPositions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de la carátula (hero) tras arrastrar un elemento. */
+  onHeroPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.hero as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de la intro tras arrastrar la frase. */
+  onIntroPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.intro as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Secciones permanentes que no se pueden ocultar (siempre visibles en la invitación). */
+  isPermanentSection(key: string): boolean {
+    return key === 'hero' || key === 'invitation';
+  }
+
   toggleSection(key: string) {
+    // La Carátula (y la Invitación) son secciones principales: no se pueden ocultar.
+    if (this.isPermanentSection(key)) return;
     const s = this.sections();
     const idx = s.findIndex(x => x.key === key);
     if (idx >= 0) {
@@ -1202,6 +1783,9 @@ export class BuilderComponent implements OnInit, OnDestroy {
   // ===== Photos =====
 
   photos = signal<any[]>([]);
+  cachedPhotos: any[] = [];
+  galleryPreviewIndex = signal(0);
+  private galleryPreviewTimer: any;
 
   uploadPhotos() {
     const input = document.createElement('input');
@@ -1218,7 +1802,33 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   private loadPhotos() {
-    this.api.getPhotos(this.eventId).subscribe(p => this.photos.set(p));
+    this.api.getPhotos(this.eventId).subscribe(p => { this.photos.set(p); this.cachedPhotos = p; this.startGalleryPreview(); });
+  }
+
+  private startGalleryPreview() {
+    clearInterval(this.galleryPreviewTimer);
+    if (this.cachedPhotos.length > 1) {
+      this.galleryPreviewTimer = setInterval(() => {
+        this.galleryPreviewIndex.set((this.galleryPreviewIndex() + 1) % Math.min(this.cachedPhotos.length, 5));
+      }, 2500);
+    }
+  }
+
+  private loadGuests() {
+    this.api.getGuests(this.eventId).subscribe(g => this.guests.set(g));
+  }
+
+  selectPreviewGuest(code: string) {
+    this.previewGuestCode.set(code);
+    this.previewKey.update(k => k + 1);
+  }
+
+  getPreviewGuestOptions(): SelectOption[] {
+    const opts: SelectOption[] = [{ value: '', label: 'Vista genérica', icon: '👁' }];
+    for (const g of this.guests()) {
+      opts.push({ value: g.unique_code, label: g.family_name || g.guest_names, icon: '👤' });
+    }
+    return opts;
   }
 
   uploadSecProp(sectionKey: string, prop: string, type: 'images' | 'audio' | 'gifs') {
@@ -1317,12 +1927,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   private scheduleAutoSave() {
-    if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
-    this.autoSaveTimer = setTimeout(() => {
-      if (this.canvasState.isDirty() && !this.saving()) {
-        this.save();
-      }
-    }, 4000);
+    // Auto-save disabled — save is manual only (button or before preview)
   }
 }
 

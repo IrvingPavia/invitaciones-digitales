@@ -6,7 +6,7 @@
 function ensureConfigDefaults(cfg) {
   if (!cfg || typeof cfg !== 'object') cfg = {};
 
-  return {
+  const normalized = {
     envelope: {
       enabled: false,
       template: 'envelope',
@@ -23,6 +23,9 @@ function ensureConfigDefaults(cfg) {
       ...(cfg.envelope || {}),
     },
     intro: {
+      // Preservar campos adicionales (phraseHtml, progressBar, positions, showSkip,
+      // transition, useVideoDuration, etc.) que no se listan explícitamente abajo.
+      ...(cfg.intro || {}),
       enabled: cfg.intro?.enabled ?? true,
       background: cfg.intro?.background || '',
       phrase: cfg.intro?.phrase || '',
@@ -51,6 +54,10 @@ function ensureConfigDefaults(cfg) {
       },
     },
     hero: {
+      // Preservar campos adicionales (positions, countdownValueColor, countdownLabelColor,
+      // showCountdown, y cualquier otro) que no se listan explícitamente abajo. Sin este
+      // spread, la landing pública perdía el posicionamiento y los colores del countdown.
+      ...(cfg.hero || {}),
       backgroundGif: cfg.hero?.backgroundGif || '',
       audioUrl: cfg.hero?.audioUrl || '',
       eventDescription: cfg.hero?.eventDescription || '',
@@ -62,6 +69,13 @@ function ensureConfigDefaults(cfg) {
       countdownDate: cfg.hero?.countdownDate || '',
       countdownShowCardBg: cfg.hero?.countdownShowCardBg,
       countdownCardBorderRadius: cfg.hero?.countdownCardBorderRadius,
+      countdownCardBgOpacity: cfg.hero?.countdownCardBgOpacity,
+      countdownCardBorderStyle: cfg.hero?.countdownCardBorderStyle,
+      countdownCardBorderWidth: cfg.hero?.countdownCardBorderWidth,
+      countdownCardGlowColor: cfg.hero?.countdownCardGlowColor,
+      countdownCardBgColor: cfg.hero?.countdownCardBgColor,
+      countdownCardBorderColor: cfg.hero?.countdownCardBorderColor,
+      countdownCardShape: cfg.hero?.countdownCardShape,
       eventDescriptionStyle: {
         fontFamily: 'sans',
         fontSize: 22,
@@ -90,37 +104,70 @@ function ensureConfigDefaults(cfg) {
       },
     },
     invitation: {
+      ...(cfg.invitation || {}),
       title: cfg.invitation?.title || 'Están cordialmente invitados',
       subtitle: cfg.invitation?.subtitle || '',
       showCardBg: cfg.invitation?.showCardBg,
+      cardBgOpacity: cfg.invitation?.cardBgOpacity,
       cardBorderRadius: cfg.invitation?.cardBorderRadius,
+      cardBorderStyle: cfg.invitation?.cardBorderStyle,
+      cardBorderWidth: cfg.invitation?.cardBorderWidth,
+      cardGlowColor: cfg.invitation?.cardGlowColor,
+      cardBgColor: cfg.invitation?.cardBgColor,
+      cardBorderColor: cfg.invitation?.cardBorderColor,
+      cardShape: cfg.invitation?.cardShape,
       sectionStyle: cfg.invitation?.sectionStyle,
     },
     details: {
+      ...(cfg.details || {}),
       enabled: cfg.details?.enabled ?? true,
       title: cfg.details?.title || 'Detalles del Evento',
       showCardBg: cfg.details?.showCardBg,
+      cardBgOpacity: cfg.details?.cardBgOpacity,
       cardBorderRadius: cfg.details?.cardBorderRadius,
+      cardBorderStyle: cfg.details?.cardBorderStyle,
+      cardBorderWidth: cfg.details?.cardBorderWidth,
+      cardGlowColor: cfg.details?.cardGlowColor,
+      cardBgColor: cfg.details?.cardBgColor,
+      cardBorderColor: cfg.details?.cardBorderColor,
+      cardShape: cfg.details?.cardShape,
       cards: cfg.details?.cards || [],
       sectionStyle: cfg.details?.sectionStyle,
     },
     venues: {
+      ...(cfg.venues || {}),
       enabled: cfg.venues?.enabled ?? true,
       iconStyle: cfg.venues?.iconStyle || 'circle',
       showCardBg: cfg.venues?.showCardBg,
+      cardBgOpacity: cfg.venues?.cardBgOpacity,
       cardBorderRadius: cfg.venues?.cardBorderRadius,
+      cardBorderStyle: cfg.venues?.cardBorderStyle,
+      cardBorderWidth: cfg.venues?.cardBorderWidth,
+      cardGlowColor: cfg.venues?.cardGlowColor,
+      cardBgColor: cfg.venues?.cardBgColor,
+      cardBorderColor: cfg.venues?.cardBorderColor,
+      cardShape: cfg.venues?.cardShape,
       items: cfg.venues?.items || [],
       sectionStyle: cfg.venues?.sectionStyle,
     },
     itinerary: {
+      ...(cfg.itinerary || {}),
       enabled: cfg.itinerary?.enabled ?? true,
       title: cfg.itinerary?.title || 'Itinerario',
       showCardBg: cfg.itinerary?.showCardBg,
+      cardBgOpacity: cfg.itinerary?.cardBgOpacity,
       cardBorderRadius: cfg.itinerary?.cardBorderRadius,
+      cardBorderStyle: cfg.itinerary?.cardBorderStyle,
+      cardBorderWidth: cfg.itinerary?.cardBorderWidth,
+      cardGlowColor: cfg.itinerary?.cardGlowColor,
+      cardBgColor: cfg.itinerary?.cardBgColor,
+      cardBorderColor: cfg.itinerary?.cardBorderColor,
+      cardShape: cfg.itinerary?.cardShape,
       items: cfg.itinerary?.items || [],
       sectionStyle: cfg.itinerary?.sectionStyle,
     },
     gallery: {
+      ...(cfg.gallery || {}),
       enabled: cfg.gallery?.enabled ?? true,
       title: cfg.gallery?.title || 'Galería',
       description: cfg.gallery?.description || '',
@@ -128,23 +175,39 @@ function ensureConfigDefaults(cfg) {
       sectionStyle: cfg.gallery?.sectionStyle,
     },
     dresscode: {
+      ...(cfg.dresscode || {}),
       enabled: cfg.dresscode?.enabled ?? true,
       title: cfg.dresscode?.title || 'Código de Vestimenta',
       description: cfg.dresscode?.description || '',
       showCardBg: cfg.dresscode?.showCardBg,
+      cardBgOpacity: cfg.dresscode?.cardBgOpacity,
       cardBorderRadius: cfg.dresscode?.cardBorderRadius,
+      cardBorderStyle: cfg.dresscode?.cardBorderStyle,
+      cardBorderWidth: cfg.dresscode?.cardBorderWidth,
+      cardGlowColor: cfg.dresscode?.cardGlowColor,
+      cardBgColor: cfg.dresscode?.cardBgColor,
+      cardBorderColor: cfg.dresscode?.cardBorderColor,
+      cardShape: cfg.dresscode?.cardShape,
       sectionIcon: cfg.dresscode?.sectionIcon,
       cards: cfg.dresscode?.cards || [],
       sectionStyle: cfg.dresscode?.sectionStyle,
     },
     gifts: {
+      ...(cfg.gifts || {}),
       enabled: cfg.gifts?.enabled ?? true,
       title: cfg.gifts?.title || 'Mesa de Regalos',
       description: cfg.gifts?.description || '',
       link: cfg.gifts?.link || '',
       buttonText: cfg.gifts?.buttonText || 'Ver Lista',
       showCardBg: cfg.gifts?.showCardBg,
+      cardBgOpacity: cfg.gifts?.cardBgOpacity,
       cardBorderRadius: cfg.gifts?.cardBorderRadius,
+      cardBorderStyle: cfg.gifts?.cardBorderStyle,
+      cardBorderWidth: cfg.gifts?.cardBorderWidth,
+      cardGlowColor: cfg.gifts?.cardGlowColor,
+      cardBgColor: cfg.gifts?.cardBgColor,
+      cardBorderColor: cfg.gifts?.cardBorderColor,
+      cardShape: cfg.gifts?.cardShape,
       sectionIcon: cfg.gifts?.sectionIcon,
       sectionStyle: cfg.gifts?.sectionStyle,
       transfer: {
@@ -160,10 +223,18 @@ function ensureConfigDefaults(cfg) {
       },
     },
     rsvp: {
+      ...(cfg.rsvp || {}),
       enabled: cfg.rsvp?.enabled ?? true,
       title: cfg.rsvp?.title || 'Confirmar Asistencia',
       showCardBg: cfg.rsvp?.showCardBg,
+      cardBgOpacity: cfg.rsvp?.cardBgOpacity,
       cardBorderRadius: cfg.rsvp?.cardBorderRadius,
+      cardBorderStyle: cfg.rsvp?.cardBorderStyle,
+      cardBorderWidth: cfg.rsvp?.cardBorderWidth,
+      cardGlowColor: cfg.rsvp?.cardGlowColor,
+      cardBgColor: cfg.rsvp?.cardBgColor,
+      cardBorderColor: cfg.rsvp?.cardBorderColor,
+      cardShape: cfg.rsvp?.cardShape,
       sectionIcon: cfg.rsvp?.sectionIcon,
       registrationFields: cfg.rsvp?.registrationFields,
       sectionStyle: cfg.rsvp?.sectionStyle,
@@ -186,6 +257,8 @@ function ensureConfigDefaults(cfg) {
       buttonText: '#1a1a2e',
       buttonFont: '',
       landingBgTexture: 'none',
+      landingBgFit: 'cover',
+      landingBgBannerWidth: 70,
       scrollAnimation: 'fade-up',
       ...(cfg.theme || {}),
     },
@@ -227,6 +300,17 @@ function ensureConfigDefaults(cfg) {
     // Preserve favicon if set
     favicon: cfg.favicon || undefined,
   };
+
+  // Migracion: el ancho del banner paso de px (360-1000) a % (10-100).
+  // Configs viejas con valores >100 se normalizan al default (70%).
+  if (normalized.theme && typeof normalized.theme.landingBgBannerWidth === 'number' && normalized.theme.landingBgBannerWidth > 100) {
+    normalized.theme.landingBgBannerWidth = 70;
+  }
+  if (normalized.envelope && typeof normalized.envelope.splashBgBannerWidth === 'number' && normalized.envelope.splashBgBannerWidth > 100) {
+    normalized.envelope.splashBgBannerWidth = 70;
+  }
+
+  return normalized;
 }
 
 module.exports = { ensureConfigDefaults };

@@ -37,7 +37,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         }
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal" [class.no-bg]="card.showCardBg === false" [style.border-radius.px]="card.cardBorderRadius ?? 16">
+            <div class="detail-card reveal" [class.no-bg]="(card.showCardBg ?? config.showCardBg) === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
               @if (card.iconType !== 'none') {
                 @if (card.iconType === 'emoji' && card.icon) {
                   <div class="detail-icon emoji-icon">
@@ -80,11 +80,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .details-grid { display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; }
     .detail-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.45)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 32px 24px; text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
-      &:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(212,160,23,0.15); }
-      &.no-bg { background: transparent; border-color: transparent; &:hover { box-shadow: none; } }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &:hover { transform: translateY(-4px); }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } &:hover { box-shadow: none; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
+    }
+    @keyframes neonPulse {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
     }
     .detail-icon {
       width: 72px; height: 72px;
@@ -130,7 +138,7 @@ export class LandingDetailsComponent {
       'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
       'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
       'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
-      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key || 'sans'] || 'var(--font-sans)';
   }
@@ -160,7 +168,59 @@ export class LandingDetailsComponent {
     const c1 = s.color || '#d4a017';
     const c2 = s.color2;
     const angle = s.gradientAngle ?? 135;
-    const intensity = s.gradientIntensity ?? 50;
-    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
+    const v = Math.max(0, Math.min(100, s.gradientIntensity ?? 50));
+    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
+  }
+
+  getCardBgColor(): string {
+    return (this.config as any).cardBgColor || '';
+  }
+
+  getCardBorderColor(): string {
+    return (this.config as any).cardBorderColor || '';
+  }
+
+  getCardBorderStyle(): string {
+    const s = (this.config as any).cardBorderStyle || 'none';
+    if (s === 'glow' || s === 'neon') return 'solid';
+    return s;
+  }
+
+  getIsNeon(): boolean {
+    return (this.config as any).cardBorderStyle === 'neon';
+  }
+
+  getCardBorderWidth(): number {
+    if ((this.config as any).cardBorderStyle === 'none') return 0;
+    return (this.config as any).cardBorderWidth ?? 1;
+  }
+
+  getCardBoxShadow(): string {
+    const style = (this.config as any).cardBorderStyle;
+    const color = (this.config as any).cardGlowColor || '#d4a017';
+    const width = (this.config as any).cardBorderWidth ?? 1;
+    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+    return 'none';
+  }
+
+  getCardFilter(): string {
+    return 'none';
+  }
+
+  getCardClipPath(): string {
+    return 'none';
+  }
+
+  getCardBorderRadius(): string {
+    const shape = (this.config as any).cardShape || 'standard';
+    const base = (this.config as any).cardBorderRadius ?? 16;
+    switch (shape) {
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
+    }
   }
 }

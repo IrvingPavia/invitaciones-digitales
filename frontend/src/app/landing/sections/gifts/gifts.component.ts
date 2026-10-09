@@ -35,7 +35,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
           </div>
         }
-        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+        <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
           @if (getGiftsIcon(); as icon) {
             @if (icon.type === 'material') {
               <span class="material-icons gifts-icon">{{ icon.value }}</span>
@@ -61,7 +61,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         </div>
 
         @if (config.transfer?.enabled) {
-          <div class="transfer-card reveal" [class.no-bg]="config.transfer.showCardBg === false" [style.border-radius.px]="config.transfer.cardBorderRadius ?? 16" style="animation-delay:0.2s">
+          <div class="transfer-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" style="animation-delay:0.2s" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             <!-- Animation overlay -->
             @if (config.transfer.animation !== 'none') {
               <div class="transfer-particles">
@@ -131,11 +131,15 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); white-space: nowrap; }
     .gifts-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.25));
       border-radius: 16px; padding: 40px; margin-bottom: 20px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
     }
-    .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); opacity: 0.7; margin-bottom: 16px; display: block; }
+    .gifts-icon { font-size: 56px; color: var(--theme-text-primary, var(--gold)); margin-bottom: 16px; display: block; }
     .gifts-icon.emoji { font-size: 56px; opacity: 1; font-style: normal; }
     .gifts-icon-img { width: 72px; height: 72px; object-fit: contain; margin: 0 auto 16px; display: block; }
     .gifts-desc { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.7; margin-bottom: 24px; }
@@ -150,10 +154,17 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
 
     .transfer-card {
-      position: relative; overflow: hidden;
-      background: var(--theme-card-bg, rgba(0,0,0,0.5)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 16px; padding: 40px;
-      &.no-bg { background: transparent; border-color: transparent; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; border-style: none !important; &::before { opacity: 0; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
+    }
+    @keyframes neonPulse {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
     }
     .transfer-particles {
       position: absolute; inset: 0; pointer-events: none; overflow: hidden;
@@ -173,7 +184,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
 
     .transfer-content { position: relative; z-index: 1; }
-    .transfer-icon { font-size: 48px; color: var(--theme-text-primary, var(--gold)); opacity: 0.8; margin-bottom: 12px; display: block; }
+    .transfer-icon { font-size: 48px; color: var(--theme-text-primary, var(--gold)); margin-bottom: 12px; display: block; }
     .transfer-icon.emoji { font-size: 48px; opacity: 1; font-style: normal; }
     .transfer-icon-img { width: 60px; height: 60px; object-fit: contain; margin: 0 auto 12px; display: block; }
     .transfer-title { font-family: var(--font-serif); font-size: 22px; color: var(--theme-nav-text, var(--gold)); margin-bottom: 8px; }
@@ -220,7 +231,7 @@ export class LandingGiftsComponent {
   getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   getFontFamily(key?: string): string {
-    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
+    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','aura':'var(--font-aura)','allura':'var(--font-allura)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
     return m[key||'sans']||'var(--font-sans)';
   }
   getSeparatorBg(): string {
@@ -271,5 +282,56 @@ export class LandingGiftsComponent {
       this.copied.set(key);
       setTimeout(() => this.copied.set(null), 2000);
     });
+  }
+
+  getCardBgColor(): string {
+    return (this.config as any).cardBgColor || '';
+  }
+
+  getCardBorderColor(): string {
+    return (this.config as any).cardBorderColor || '';
+  }
+
+  getCardBorderStyle(): string {
+    const s = (this.config as any).cardBorderStyle || 'none';
+    if (s === 'glow' || s === 'neon') return 'solid';
+    return s;
+  }
+
+  getIsNeon(): boolean {
+    return (this.config as any).cardBorderStyle === 'neon';
+  }
+
+  getCardBorderWidth(): number {
+    if ((this.config as any).cardBorderStyle === 'none') return 0;
+    return (this.config as any).cardBorderWidth ?? 1;
+  }
+
+  getCardBoxShadow(): string {
+    const style = (this.config as any).cardBorderStyle;
+    const color = (this.config as any).cardGlowColor || '#d4a017';
+    const width = (this.config as any).cardBorderWidth ?? 1;
+    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+    return 'none';
+  }
+
+  getCardFilter(): string {
+    return 'none';
+  }
+
+  getCardClipPath(): string {
+    return 'none';
+  }
+
+  getCardBorderRadius(): string {
+    const shape = (this.config as any).cardShape || 'standard';
+    const base = (this.config as any).cardBorderRadius ?? 16;
+    switch (shape) {
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
+    }
   }
 }

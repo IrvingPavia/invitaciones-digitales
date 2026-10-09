@@ -1,4 +1,4 @@
-﻿import { Component, inject, OnInit, OnDestroy, signal, HostListener, AfterViewInit, Directive, ElementRef, Input } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, HostListener, AfterViewInit, Directive, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
@@ -112,18 +112,19 @@ import { SectionStyle } from '../core/models/models';
     }
 
     @if (data() && !loading()) {
-      <!-- Fixed background: solid color always, media fades in after intro AND after preload -->
+      <!-- Fixed background: solid color always -->
+      <div class="landing-bg-solid" [style.background]="getLandingBg()"></div>
+      @if (data()!.config.theme.landingBgTexture && data()!.config.theme.landingBgTexture !== 'none') {
+        <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme.landingBgTexture" [style.opacity]="(data()!.config.theme.landingBgTextureOpacity || 5) / 100"></div>
+      }
+      <!-- Hero background media (fades in after intro) -->
       @if (data()!.config.hero.backgroundGif) {
-        <div class="landing-bg-solid" [style.background]="getLandingBg()"></div>
-        @if (data()!.config.theme.landingBgTexture && data()!.config.theme.landingBgTexture !== 'none') {
-          <div class="landing-bg-texture" [attr.data-texture]="data()!.config.theme.landingBgTexture" [style.opacity]="(data()!.config.theme.landingBgTextureOpacity || 5) / 100"></div>
-        }
         @if (isVideoBackground()) {
-          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
+          <video class="landing-bg-video" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [src]="data()!.config.hero.backgroundGif" autoplay loop muted playsinline (canplaythrough)="onBgLoaded()"></video>
         } @else {
-          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
+          <div class="landing-bg" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'" [style.backgroundImage]="'url(' + data()!.config.hero.backgroundGif + ')'"></div>
         }
-        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded"></div>
+        <div class="landing-bg-overlay" [class.visible]="!showEnvelope() && !showIntro() && bgLoaded" [class.bg-banner]="isBgBanner()" [style.--banner-w]="bannerWidth() + 'vw'"></div>
       }
 
       <!-- Envelope -->
@@ -131,13 +132,16 @@ import { SectionStyle } from '../core/models/models';
         <app-landing-envelope [config]="data()!.config.envelope" [globalStyles]="data()!.config.globalStyles" (done)="onEnvelopeOpened()" />
       }
 
-      <!-- Intro -->
-      @if (showIntro() && !showEnvelope() && data()!.config.intro.enabled) {
-        <app-landing-intro [config]="data()!.config.intro" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.cardBg || ''" [themeBorder]="data()!.config.theme.cardBorder || ''" (done)="showIntro.set(false)" />
+      <!-- Intro: se MONTA desde el inicio si está habilitada (incluso mientras el envelope
+           está visible) para precargar el video/gif y evitar el frame en blanco. Queda oculta
+           tras el envelope hasta que éste termina; recién entonces se "activa" (arranca timer
+           y animación de entrada). -->
+      @if (data()!.config.intro.enabled && (showIntro() || showEnvelope())) {
+        <app-landing-intro [config]="data()!.config.intro" [active]="showIntro() && !showEnvelope()" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" [themeTexture]="data()!.config.theme.landingBgTexture || 'none'" [themeTextureOpacity]="data()!.config.theme.landingBgTextureOpacity || 5" (done)="showIntro.set(false)" />
       }
 
       @if (!showIntro() && !showEnvelope()) {
-        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)">
+        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)" [style.--theme-nav-btn-bg]="data()!.config.theme.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="data()!.config.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="data()!.config.theme.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="data()!.config.theme.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="data()!.config.theme.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(data()!.config.theme.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(data()!.config.theme.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="data()!.config.theme.navBarBorder || 'rgba(212,160,23,0.2)'">
         <!-- Sticky nav -->
         <app-landing-hero id="section-hero" [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
@@ -274,13 +278,13 @@ import { SectionStyle } from '../core/models/models';
     }
   `,
   styles: [`
-    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; }
+    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; position: relative; }
     .landing-bg-solid {
-      position: fixed; inset: -10vh -5vw; z-index: -3;
+      position: fixed; inset: -10svh -5vw; z-index: 0;
       background: var(--landing-bg, #0d1117);
     }
     .landing-bg-texture {
-      position: fixed; inset: -10vh -5vw; z-index: -3;
+      position: fixed; inset: -10svh -5vw; z-index: 1;
       pointer-events: none;
     }
     .landing-bg-texture[data-texture="noise"] {
@@ -313,52 +317,87 @@ import { SectionStyle } from '../core/models/models';
       background-position: 0 0, 10px 10px;
     }
     .landing-bg {
-      position: fixed; z-index: -2;
+      position: fixed; z-index: 2;
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
-      /* Extend well beyond viewport to cover rubber-band on all devices */
-      top: -15vh;
+      /* Extiende más allá del viewport para cubrir el rubber-band en todos los dispositivos.
+         Se usa svh (small viewport height): es la altura CON la barra del navegador visible y
+         NO cambia al scrollear (a diferencia de dvh/vh, que al mostrar/ocultar la barra en
+         Chrome Android recalculan la altura y producen un "salto" del fondo fijo). El
+         sobredimensionado (130%) cubre el hueco cuando la barra se oculta. */
+      top: -15svh;
       left: -5vw;
       right: -5vw;
-      bottom: -15vh;
+      bottom: -15svh;
       width: 110vw;
       height: 130vh;
-      height: 130dvh;
+      height: 130svh;
       /* Hidden by default, fades in after intro */
       opacity: 0;
       transition: opacity 1.2s ease;
     }
     .landing-bg.visible { opacity: 1; }
     .landing-bg-video {
-      position: fixed; z-index: -2;
-      top: -15vh; left: -5vw; right: -5vw; bottom: -15vh;
-      width: 110vw; height: 130vh; height: 130dvh;
+      position: fixed; z-index: 2;
+      top: -15svh; left: -5vw; right: -5vw; bottom: -15svh;
+      width: 110vw; height: 130vh; height: 130svh;
       object-fit: cover;
       opacity: 0;
       transition: opacity 1.2s ease;
     }
     .landing-bg-video.visible { opacity: 1; }
     .landing-bg-overlay {
-      position: fixed; z-index: -1;
-      background: rgba(0,0,0,0.55);
-      /* Match bg extension */
-      top: -15vh;
+      position: fixed; z-index: 3;
+      /* Sin velo oscuro: la imagen de fondo global se muestra a plena luz (igual que el
+         canvas). El overlay se mantiene transparente para no alterar z-index/banner. */
+      background: transparent;
+      /* Match bg extension (svh para no saltar al mostrar/ocultar la barra del navegador) */
+      top: -15svh;
       left: -5vw;
       right: -5vw;
-      bottom: -15vh;
+      bottom: -15svh;
       width: 110vw;
       height: 130vh;
-      height: 130dvh;
+      height: 130svh;
       /* Hidden by default, fades in with bg */
       opacity: 0;
       transition: opacity 1.2s ease;
     }
     .landing-bg-overlay.visible { opacity: 1; }
+    /* === MODO BANNER (columna angosta centrada) — solo desktop === */
+    /* Imagenes verticales que se ven mal estiradas a pantalla completa se muestran como una
+       columna centrada del ancho configurado, con la proporcion preservada (contain). */
+    @media (min-width: 768px) {
+      /* En modo banner la imagen se muestra como una TIRA vertical de alto completo, centrada.
+         El slider de ancho controla el ancho de esa tira (recorta la imagen horizontalmente,
+         no la achica): background-size:cover fijado al alto, dentro de la columna elegida. */
+      .landing-bg.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
+      .landing-bg-video.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+        object-fit: cover;
+        object-position: center center;
+      }
+      .landing-bg-overlay.bg-banner {
+        left: 50%; right: auto;
+        transform: translateX(-50%);
+        width: var(--banner-w, 70vw);
+      }
+    }
     .landing-wrapper {
       max-width: clamp(520px, 50vw, 680px);
       margin: 0 auto;
       position: relative;
+      z-index: 4;
     }
     .section-block {
       position: relative;
@@ -388,7 +427,7 @@ import { SectionStyle } from '../core/models/models';
     .section-block[style*="--section-heading-color2"] ::ng-deep h3,
     .section-block[style*="--section-heading-color2"] ::ng-deep .example-title,
     .section-block[style*="--section-heading-color2"] ::ng-deep .venue-title {
-      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color2) var(--section-heading-intensity, 50%)) !important;
+      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color) var(--section-heading-mid-a, 25%), var(--section-heading-color2) var(--section-heading-mid-b, 75%), var(--section-heading-color2) 100%) !important;
       -webkit-background-clip: text !important;
       -webkit-text-fill-color: transparent !important;
       background-clip: text !important;
@@ -405,6 +444,28 @@ import { SectionStyle } from '../core/models/models';
     .section-block[style*="--section-content-color"] ::ng-deep .venue-name,
     .section-block[style*="--section-content-color"] ::ng-deep .venue-address {
       color: var(--section-content-color) !important;
+    }
+    /* Fondo de sección en modo BANNER.
+       Móvil (prioridad): la imagen CUBRE el ancho y el alto de la sección (cover). Para que
+       SIEMPRE abarque el alto de la pantalla por defecto, la sección con imagen de fondo toma
+       min-height del viewport; así no quedan huecos con el fondo de la landing entre secciones.
+       En secciones altas (muchas cards) el usuario ajusta/quita el fondo él mismo.
+       Escritorio (≥768px): columna centrada del ancho --sec-banner-w (se afina después). */
+    .section-block[style*="--sec-bg-image"] {
+      background-image: var(--sec-bg-image);
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      min-height: 100svh;
+    }
+    @media (min-width: 768px) {
+      .section-block[style*="--sec-banner-w"] {
+        /* La imagen se escala al % del ancho del bloque (columna centrada); el slider
+           --sec-banner-w controla ese ancho. */
+        background-size: var(--sec-banner-w, 70%) auto;
+        background-position: top center;
+      }
     }
     .section-bg-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.5); pointer-events: none;
@@ -423,9 +484,10 @@ import { SectionStyle } from '../core/models/models';
     .footer-sub { color: var(--theme-nav-text, rgba(255,255,255,0.3)); opacity: 0.6; font-family: var(--theme-nav-font, inherit); }
     .back-to-top {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-      background: var(--theme-card-bg, rgba(13,17,23,0.85));
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--theme-card-border, rgba(212,160,23,0.2));
+      background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85));
+      backdrop-filter: blur(var(--theme-nav-bar-blur, 12px));
+      -webkit-backdrop-filter: blur(var(--theme-nav-bar-blur, 12px));
+      border-top: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2));
       display: flex; align-items: center; justify-content: center;
       gap: 4px; height: 48px; cursor: pointer;
       transform: translateY(100%);
@@ -435,7 +497,7 @@ import { SectionStyle } from '../core/models/models';
       transform: translateY(0);
       box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
     }
-    .back-to-top:hover { background: var(--theme-card-bg, rgba(13,17,23,0.95)); }
+    .back-to-top:hover { opacity: 0.95; }
     .back-to-top:hover .back-arrow { opacity: 1; }
     .back-to-top:hover .back-text { opacity: 1; }
     .back-arrow {
@@ -508,20 +570,35 @@ export class LandingComponent implements OnInit, OnDestroy {
 
     switch (type) {
       case 'solid': return color1;
-      case 'linear': return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
-      case 'radial': return `radial-gradient(ellipse ${intensity}% ${intensity}% at center, ${color2}, ${color1})`;
-      case 'mesh': {
-        const s1 = Math.max(0, 50 - intensity / 2);
-        const s2 = Math.min(100, 50 + intensity / 2);
-        return `linear-gradient(${angle}deg, ${color1} ${s1}%, ${color2} ${s2}%)`;
-      }
+      case 'linear': return this.buildBlendGradient(angle, color1, color2, intensity);
+      case 'radial': return `radial-gradient(ellipse at center, ${color1} ${intensity}%, ${color2})`;
+      case 'mesh': return this.buildBlendGradient(angle, color1, color2, intensity);
       default: return color1;
     }
+  }
+
+  /** Degradado lineal de 2 colores con intensidad 0-100 que controla la PREDOMINANCIA:
+      0 = predomina color1, 100 = predomina color2, 50 = mitad. Desplaza el punto medio. */
+  private buildBlendGradient(angle: number, c1: string, c2: string, intensity: number): string {
+    const v = Math.max(0, Math.min(100, intensity ?? 50));
+    const mid = 100 - v; // v=0 -> mid 100% (todo c1); v=100 -> mid 0% (todo c2)
+    const a = Math.max(0, mid - 25);
+    const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
   }
 
   /** Returns just the primary solid color for SVG fill (no gradients) */
   getLandingBgColor(): string {
     return this.data()?.config.theme?.landingBgColor1 || '#0d1117';
+  }
+
+  /** Modo banner (columna angosta centrada) del fondo global en desktop */
+  isBgBanner(): boolean {
+    return this.data()?.config.theme?.landingBgFit === 'banner';
+  }
+  /** Ancho del banner como % del ancho de la ventana (10-100). 100% = pantalla completa. */
+  bannerWidth(): number {
+    return this.data()?.config.theme?.landingBgBannerWidth || 70;
   }
 
   onBgLoaded() {
@@ -546,6 +623,10 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   @HostListener('window:scroll')
   onScroll() { this.scrolled = window.scrollY > 300; }
+
+  // Al redimensionar se re-evalua bannerWidth() (depende de window.innerHeight).
+  @HostListener('window:resize')
+  onResize() { /* dispara deteccion de cambios para recalcular el ancho del banner */ }
 
   scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -854,6 +935,26 @@ export class LandingComponent implements OnInit, OnDestroy {
     document.title = eventName || 'Invitación';
   }
 
+  getNavBarBg(): string {
+    const theme = this.data()?.config?.theme;
+    if (!theme) return 'rgba(13,17,23,0.85)';
+    const c1 = theme.navBarBg1 || '#0d1117';
+    const c2 = theme.navBarBg2 || '';
+    const opacity = (theme.navBarOpacity ?? 85) / 100;
+    // Convert hex to rgba with opacity
+    const toRgba = (hex: string, a: number): string => {
+      if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
+      const r = parseInt(hex.slice(1, 3), 16) || 0;
+      const g = parseInt(hex.slice(3, 5), 16) || 0;
+      const b = parseInt(hex.slice(5, 7), 16) || 0;
+      return `rgba(${r},${g},${b},${a})`;
+    };
+    if (c2) {
+      return `linear-gradient(135deg, ${toRgba(c1, opacity)}, ${toRgba(c2, opacity)})`;
+    }
+    return toRgba(c1, opacity);
+  }
+
   getThemeFont(key?: string): string {
     if (!key) return 'inherit';
     const map: Record<string, string> = {
@@ -861,7 +962,7 @@ export class LandingComponent implements OnInit, OnDestroy {
       'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
       'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
       'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
-      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key] || 'inherit';
   }
@@ -874,15 +975,21 @@ export class LandingComponent implements OnInit, OnDestroy {
         css = `background: ${style.bgColor1 || '#ffffff'}`;
         break;
       case 'linear': {
-        const intensity = style.bgIntensity || 50;
-        css = `background: linear-gradient(${style.bgAngle || 180}deg, ${style.bgColor1 || '#ffffff'} ${50 - intensity / 2}%, ${style.bgColor2 || '#f0f0f0'} ${50 + intensity / 2}%)`;
+        css = `background: ${this.buildBlendGradient(style.bgAngle ?? 180, style.bgColor1 || '#ffffff', style.bgColor2 || '#f0f0f0', style.bgIntensity ?? 50)}`;
         break;
       }
       case 'radial':
-        css = `background: radial-gradient(ellipse at center, ${style.bgColor2 || '#f0f0f0'}, ${style.bgColor1 || '#ffffff'})`;
+        css = `background: radial-gradient(ellipse at center, ${style.bgColor1 || '#ffffff'} ${(style.bgIntensity ?? 50)}%, ${style.bgColor2 || '#f0f0f0'})`;
         break;
       case 'image':
-        css = `background: url(${style.bgImage}) center/cover no-repeat`;
+        if (style.bgFit === 'banner') {
+          // Banner: la imagen se centra a su proporción (ajustada al alto). El ancho visible
+          // de la columna lo controla una media query de escritorio con --sec-banner-w.
+          // En móvil cae a cover (ver CSS .section-block con --sec-bg-image).
+          css = `--sec-bg-image: url(${style.bgImage}); --sec-banner-w: ${style.bgBannerWidth ?? 70}%`;
+        } else {
+          css = `background: url(${style.bgImage}) center/cover no-repeat`;
+        }
         break;
     }
     // Section Heading (H2) overrides
@@ -892,7 +999,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (style.headingColor) css += `; --section-heading-color: ${style.headingColor}`;
     if (style.headingColor2) css += `; --section-heading-color2: ${style.headingColor2}`;
     if (style.headingGradientAngle) css += `; --section-heading-angle: ${style.headingGradientAngle}deg`;
-    if (style.headingGradientIntensity) css += `; --section-heading-intensity: ${style.headingGradientIntensity}`;
+    if (style.headingGradientIntensity != null) { const v = Math.max(0, Math.min(100, style.headingGradientIntensity)); const mid = 100 - v; css += `; --section-heading-mid-a: ${Math.max(0, mid - 25)}%; --section-heading-mid-b: ${Math.min(100, mid + 25)}%`; }
     if (style.headingFontWeight) css += `; --section-heading-weight: ${style.headingFontWeight}`;
     if (style.contentColor) css += `; --section-content-color: ${style.contentColor}`;
     if (style.headingFont) css += `; --section-heading-font: ${this.getThemeFont(style.headingFont)}`;

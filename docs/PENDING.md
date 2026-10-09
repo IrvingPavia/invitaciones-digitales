@@ -106,11 +106,75 @@
 - [x] **Guard de cambios sin guardar**: Protegido con `unsavedChangesGuard`
 
 **Pendiente:**
-- [ ] Verificar reflejo en tiempo real de cambios en propiedades → canvas
-- [ ] Light mode del builder
-- [ ] Video trimmer simplificado para intro
 - [ ] Gestión de imágenes en cards de vestimenta
-- [ ] Verificar mobile (FAB secciones + props)
+- [ ] Verificar landing real en dispositivo móvil: Validar que clip-path de transiciones funciona en iOS Safari y Android Chrome
+
+### 🆕 Posicionamiento asistido de elementos (spec `canvas-posicionamiento`)
+
+> **Contexto**: Editor tipo Word/PowerPoint para mover y redimensionar los elementos de texto de las secciones de apertura (Plano, Intro, Carátula) directamente en el canvas del builder. Posiciones independientes mobile/desktop. Aditivo y retrocompatible. Spec completa en `.kiro/specs/canvas-posicionamiento/`.
+
+**Implementado:**
+- [x] **Modelo de posiciones**: `ElementPosition` / `ElementPositions` + campos opcionales `EnvelopeConfig.plainPositions`, `IntroConfig.positions`, `HeroConfig.positions`. Configs viejos sin cambios.
+- [x] **Helper `posStyle`** (`core/utils/element-position.util.ts`): devuelve layout flex por defecto o `position:absolute` centrado en (x,y)%. Fallback mobile↔desktop.
+- [x] **Componente `app-drag-box`** (`core/components/drag-box.component.ts`) + `drag-box-selection.service.ts`: mover y redimensionar (ancho/alto en %), snap a guías, confinamiento, mouse + touch. Reemplazó al enfoque inicial de directiva `appAssistedDrag`.
+- [x] **Integración en Plano, Intro y Carátula**: `editable`, `previewDevice`, `(positionsChange)`; contenedor con `data-drag-bounds`.
+- [x] **Builder**: pasa `editable`/`previewDevice` en canvas, persiste con handlers por sección. Autoguardado deshabilitado (requiere pulsar Guardar).
+- [x] **Landing real**: mapa mobile/desktop por ancho (breakpoint 768px) con fallback.
+- [x] **Reset de tamaño al recargar**: el ancho/alto arrastrado persiste tras refrescar.
+
+**Pendiente:**
+- [ ] **Botón "Restablecer posiciones"** (tareas 18-19 del spec): control en el props-panel para Plano, Intro y Carátula que borre las posiciones personalizadas de la sección (con confirmación vía `DialogService`) y devuelva el layout por defecto.
+
+### 🆕 Configurabilidad de la sección Invitación
+
+**Implementado:**
+- [x] **Estilo de Sección reducido en Invitación**: al activarlo solo aparecen Fondo de Sección, Transición Superior y Animación. Ocultos solo en Invitación: Texto de Sección, Presets Rápidos y Adorno de Título (las demás secciones los conservan).
+- [x] **Colores propios de invitados y asistentes**: acordeón "Invitados y Asistentes" con colores independientes del Tema Global — chips de invitados (fondo/texto/borde) y contador de asistentes (fondo/texto/borde). Fallback a colores del tema si no se definen; no afectan botones globales.
+- [x] **Imagen de fondo con banner / pantalla completa**: homologado con Multimedia de Carátula. "Ajuste en escritorio" (Pantalla completa / Banner centrado) + slider de ancho en banner. Desktop sin deformación, móvil cover.
+
+**Pendiente / nota:**
+- [x] En el canvas del builder la imagen de fondo de sección ya refleja el modo banner por dispositivo (mobile cover + min-height de pantalla; desktop columna) y el oscurecido por sección (`bgOverlay`), igual que la landing. (2026-10-08)
+- [x] Colores propios de chips de invitados / contador de asistentes (`invitation.guestChipBg`, `countBg`, etc.) se perdían en la landing pública por `ensureConfigDefaults` sin spread; corregido. (2026-10-08)
+
+### 🆕 Intro: editor enriquecido, drag de la frase y línea de carga (2026-10-08)
+
+**Implementado:**
+- [x] Frase de la intro con `app-rich-text-editor` (homologado al del template Plano). Campo `IntroConfig.phraseHtml`, retrocompatible con `phrase`+`phraseStyle`. Controles viejos retirados.
+- [x] Drag & drop de la frase en la intro (posicionamiento asistido mobile/desktop, mismo patrón del plano).
+- [x] Configuración de la "Línea de carga" (`IntroConfig.progressBar`): mostrar/ocultar, estilo (sólida/resplandor/degradado/punteada), color, grosor, ancho.
+- [x] En modo canvas la intro ya no desaparece al terminar la animación (no dispara la transición de salida en `editable`); barra de carga estática.
+- [x] La textura del tema global solo se muestra en la intro cuando NO hay multimedia de fondo.
+
+### 🆕 Fidelidad canvas ↔ landing / fixes de la Carátula (2026-10-08)
+
+**Implementado:**
+- [x] **CRÍTICO**: `ensureConfigDefaults` perdía campos del hero en la landing pública (`positions`, `countdownValueColor`, `countdownLabelColor`, `showCountdown`). Añadido spread raíz al hero y a TODAS las secciones de contenido. La carátula ahora respeta posiciones y colores en landing/preview igual que en el canvas.
+- [x] Eliminado el velo oscuro fijo del fondo global de la landing (`.landing-bg-overlay` rgba(0,0,0,0.55) → transparente).
+- [x] Countdown con tamaño en px fijo (antes `clamp(...vw...)` daba tamaños distintos entre canvas y mobile real).
+- [x] Medición de `--canvas-vh` robusta: ignora alturas 0 y re-mide al volver a modo canvas (el hero/intro ya no pierden el alto al alternar preview↔canvas).
+- [x] Pantalla de Inicio (plano): color propio de la instrucción (`EnvelopeConfig.instructionColor`).
+
+**Pendiente / por verificar:**
+- [ ] Flechas del scroll-indicator de la carátula: el usuario las vio ligeramente descentradas; no se halló causa clara en CSS. Reconfirmar en navegador tras los últimos cambios.
+- [x] Toggle "Fondo" por card ahora funciona individualmente en Detalles, Vestimenta y Lugares (antes el render usaba `config.showCardBg` global e ignoraba el per-card). El acordeón "Apariencia de Cards" sigue definiendo el estilo global de las cards de la sección. (commit 53d9c8f)
+- [ ] Modo banner en DESKTOP: afinar los anchos laterales para que todas las secciones queden uniformes (se dejó para otra sesión; el foco de esta fue mobile).
+- [ ] `sanitize.js`: se permitió `font-family`/`line-height`/`<div style>` para el editor enriquecido; validar que no haya efectos colaterales en otros campos de texto enriquecido.
+- [ ] **Título de sección se desborda en landing mobile real** (ej. "Lugares del Evento" en Galaxy A55 360px se sale por los lados). En el canvas se ve bien porque el viewport es ancho. El `<h2>` de sección (fuente script, p. ej. Alex Brush 47px) no se ajusta/parte en pantallas angostas. Falta `word-break`/`overflow-wrap` o reducir tamaño en móvil. Mismo patrón canvas↔landing (el canvas simula mobile con ancho fijo sin viewport angosto).
+
+### 🆕 Mejoras acordadas para subida de imágenes (pendiente, próxima sesión)
+> **Contexto**: El server prod daba 413 (Request Entity Too Large) al subir fondos. Causa: el nginx del HOST (Ubuntu, delante de Docker) tiene `client_max_body_size` por defecto (1 MB). El nginx del contenedor, Express (50mb) y Multer (50MB) ya permiten más. Solución de infra (la aplica el usuario en el server): poner `client_max_body_size 10m;` en el `http{}` de `/etc/nginx/nginx.conf` + `nginx -t && systemctl reload nginx`.
+
+- [ ] Bajar el límite de Multer a ~10 MB (alinear con el nginx del host).
+- [ ] Validación en el FRONTEND del tamaño de imagen antes de subir, con leyenda de error bajo el control (evita el 413 y da feedback claro). Aplica a fondos de sección y uploads de media.
+- [ ] Recomendación de peso de imágenes: 300 KB–2 MB (el backend ya recomprime con sharp a máx 1920px). A futuro: WebP + CDN (ya anotado en Performance).
+
+### 🆕 Despliegue / sincronización de esquema de BD (deuda técnica importante)
+> **Contexto**: El esquema del server prod quedó DESINCRONIZADO del local porque los cambios de estructura (columnas nuevas de `users`: email, full_name, trial_used, verification_status, etc., y tablas plans/transactions/purchases/postponements/email_verifications) nunca se aplicaron al desplegar. `initDB()` (backend) auto-migra en cada arranque con `CREATE TABLE IF NOT EXISTS` y `ALTER TABLE ADD COLUMN` en try/catch, PERO esas columnas/tablas nuevas NO están registradas ahí (se agregaron en local por migraciones sueltas o a mano). Resultado: al migrar filas al server fallaba por columnas inexistentes.
+> **Resuelto temporalmente (2026-10-08)**: se migró al server un dump de ESTRUCTURA completa del local (recrea las 16 tablas con el esquema correcto) + datos de admin, KarlaAzarcoya y la invitación Valeria (evento 17 + event_config). El `root` se OMITIÓ en la migración.
+
+- [ ] **Método duradero**: completar `initDB()` con TODOS los `ALTER TABLE ADD COLUMN` y `CREATE TABLE IF NOT EXISTS` faltantes para que cada deploy del backend auto-sincronice el esquema. Documentar el flujo en `docs/MIGRATIONS.md`.
+- [ ] **OJO en prod**: al recrear la tabla `users` en el server, el usuario `root` de la plataforma NO quedó (la migración lo omitió y `initDB` solo siembra root si la tabla está vacía al arrancar). Para crearlo: `INSERT INTO users (username,password,role,can_manage_users,plain_password,must_change_password) VALUES ('root','<hash bcrypt de Bonie123>','root',1,'Bonie123',0);` (hash del root local). El `admin`/`admin123` sí quedó migrado.
+- [ ] Recordatorio: el login tiene rate limit (5 intentos / 15 min por IP). Para desbloquear en prod: reiniciar el contenedor backend (`docker restart`) resetea el contador en memoria, o esperar 15 min sin intentar, o cambiar de IP.
 
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.

@@ -1,7 +1,8 @@
-import { Component, Input, signal, OnInit, OnDestroy, HostListener } from '@angular/core';
+﻿import { Component, Input, signal, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GalleryConfig, Photo, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
+import { LightboxService } from '../../../core/services/lightbox.service';
 
 @Component({
   selector: 'app-landing-gallery',
@@ -55,7 +56,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="getCardZIndex(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -71,7 +72,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                      [style.z-index]="photos.length - getStackDistance(i)"
                      [style.transition]="isDragging ? 'none' : ''"
                      (click)="onPhotoClick(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -82,10 +83,11 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-flip" (click)="next()">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="flip-card" [class.active]="i === current()" [class.prev]="i === prevIndex()">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
-              <div class="flip-hint">Toca para pasar →</div>
+              <button class="flip-view-btn" (click)="openLightbox(current());$event.stopPropagation()"><span class="material-icons">fullscreen</span></button>
+              <div class="flip-hint"><span class="material-icons" style="font-size:14px;vertical-align:middle">touch_app</span> Toca para pasar</div>
             </div>
           }
 
@@ -94,7 +96,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-polaroid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="polaroid-card" [style.transform]="getPolaroidTransform(i)" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -105,7 +107,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             <div class="gallery-grid">
               @for (photo of photos; track photo.id; let i = $index) {
                 <div class="gallery-grid-item" (click)="openLightbox(i)">
-                  <img [src]="photo.url" [alt]="'Foto ' + (i+1)" loading="lazy">
+                  <img [src]="getDisplayUrl(photo)" [alt]="'Foto ' + (i+1)" loading="lazy" decoding="async">
                 </div>
               }
             </div>
@@ -115,7 +117,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           @if (displayStyle === 'slideshow') {
             <div class="gallery-slideshow">
               @for (photo of photos; track photo.id; let i = $index) {
-                <img class="slideshow-img" [class.active]="i === current()" [src]="photo.url" loading="lazy" (click)="openLightbox(current())">
+                <img class="slideshow-img" [class.active]="i === current()" [src]="getDisplayUrl(photo)" loading="lazy" (click)="openLightbox(current())">
               }
               @if (photos.length > 1) {
                 <button class="slideshow-arrow arrow-left" (click)="prev(); $event.stopPropagation()"><span class="material-icons">chevron_left</span></button>
@@ -126,43 +128,35 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
           <!-- Dots (for carousel/stack/flip/slideshow) -->
           @if (displayStyle !== 'grid' && displayStyle !== 'polaroid') {
-            <div class="carousel-dots">
+            <div class="carousel-dots" [class.vertical-dots]="displayStyle === 'carousel-vertical'">
               @for (photo of photos; track photo.id; let i = $index) {
                 <button class="dot" [class.active]="i === current()" (click)="goTo(i)"></button>
               }
             </div>
-            <p class="carousel-counter">{{ current() + 1 }} / {{ photos.length }}</p>
           }
         } @else {
-          <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Próximamente...</p>
+          <p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px">Sin fotos</p>
         }
       </div>
     </section>
 
-    <!-- Lightbox -->
-    @if (lightboxIndex() !== null) {
-      <div class="lightbox" (click)="closeLightbox()">
-        <div class="lightbox-content" (click)="$event.stopPropagation()">
-          <img [src]="photos[lightboxIndex()!].url" class="lightbox-img">
-          <button class="lightbox-close" (click)="closeLightbox()"><span class="material-icons">close</span> Cerrar</button>
-        </div>
-      </div>
-    }
+    <!-- Lightbox is rendered via portal to document.body (see openLightbox method) -->
   `,
   styles: [`
     .gallery-section { padding: 80px 20px; }
-    .section-container { max-width: 600px; margin: 0 auto; }
-    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; }
+    .section-container { max-width: 600px; margin: 0 auto; position: relative; }
+    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; position: relative; z-index: 2; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; position: relative; z-index: 2; }
     .section-line { flex: 1; height: 1px; }
     .section-heading { text-align: center; }
-    .gallery-desc { text-align: center; margin-bottom: 32px; }
+    .gallery-desc { text-align: center; margin-bottom: 32px; position: relative; z-index: 2; }
 
     /* === 3D CAROUSEL === */
     .gallery-3d {
       position: relative; height: 340px; width: 100%;
       display: flex; align-items: center; justify-content: center;
       perspective: 1000px; user-select: none; cursor: grab;
+      contain: layout style;
     }
     .gallery-3d:active { cursor: grabbing; }
     .gallery-3d-card {
@@ -170,12 +164,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border-radius: 14px; overflow: hidden;
       box-shadow: 0 8px 30px rgba(0,0,0,0.4);
       transition: transform 0.4s ease, opacity 0.4s ease;
-      will-change: transform;
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
       -webkit-box-reflect: below 6px linear-gradient(to bottom, transparent 70%, rgba(255,255,255,0.12) 100%);
     }
-    .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-    .gallery-3d.vertical { height: 360px; }
-    .gallery-3d.vertical .gallery-3d-card { width: 260px; height: 200px; -webkit-box-reflect: none; }
+    .gallery-3d-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
+    .gallery-3d.vertical { height: 380px; margin-top: 24px; overflow: hidden; }
+    .gallery-3d.vertical .gallery-3d-card { width: 220px; height: 280px; -webkit-box-reflect: none; }
     .gallery-3d.coverflow .gallery-3d-card { width: 220px; height: 280px; }
 
     /* === STACK === */
@@ -183,6 +179,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       position: relative; height: 360px; width: 100%;
       display: flex; align-items: center; justify-content: center;
       user-select: none; cursor: grab;
+      contain: layout style;
     }
     .gallery-stack:active { cursor: grabbing; }
     .stack-card {
@@ -190,28 +187,41 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       border-radius: 16px; overflow: hidden;
       box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
-    .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; backface-visibility: hidden; }
 
     /* === FLIP === */
     .gallery-flip {
       position: relative; width: 100%; aspect-ratio: 3/4;
       border-radius: 16px; overflow: hidden; cursor: pointer;
-      perspective: 1200px;
+      perspective: 1200px; contain: layout style;
     }
     .flip-card {
       position: absolute; inset: 0; backface-visibility: hidden;
       transition: transform 0.6s ease, opacity 0.4s ease;
       transform: rotateY(90deg); opacity: 0;
+      will-change: transform, opacity;
     }
     .flip-card.active { transform: rotateY(0deg); opacity: 1; }
     .flip-card.prev { transform: rotateY(-90deg); opacity: 0; }
-    .flip-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
+    .flip-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; backface-visibility: hidden; }
     .flip-hint {
       position: absolute; bottom: 16px; right: 16px;
       background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.7);
       padding: 6px 12px; border-radius: 20px; font-size: 12px;
       backdrop-filter: blur(4px);
+    }
+    .flip-view-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 5;
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.8);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px); transition: background 0.2s;
+      .material-icons { font-size: 20px; }
+      &:hover { background: rgba(0,0,0,0.7); color: white; }
     }
 
     /* === POLAROID === */
@@ -223,13 +233,15 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       width: 140px; padding: 8px 8px 32px; background: white;
       border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;
+      will-change: transform;
+      backface-visibility: hidden;
     }
     .polaroid-card:hover { transform: scale(1.05) rotate(0deg) !important; box-shadow: 0 8px 30px rgba(0,0,0,0.4); z-index: 10; }
     .polaroid-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 2px; }
 
     /* === GRID === */
     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; }
+    .gallery-grid-item { border-radius: 10px; overflow: hidden; cursor: pointer; aspect-ratio: 1; transition: transform 0.2s; backface-visibility: hidden; transform: translateZ(0); }
     .gallery-grid-item:hover { transform: scale(1.03); }
     .gallery-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -237,8 +249,9 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .gallery-slideshow {
       position: relative; width: 100%; aspect-ratio: 3/4;
       border-radius: 16px; overflow: hidden; cursor: pointer;
+      contain: layout style;
     }
-    .slideshow-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; }
+    .slideshow-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; backface-visibility: hidden; transform: translateZ(0); }
     .slideshow-img.active { opacity: 1; }
     .slideshow-arrow {
       position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
@@ -255,17 +268,21 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; border: none; padding: 0; background: rgba(255,255,255,0.3); cursor: pointer; transition: all 0.3s; }
     .dot.active { background: var(--theme-text-primary, var(--gold)); transform: scale(1.3); }
-    .carousel-counter { text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 8px; }
+    .carousel-dots.vertical-dots { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); flex-direction: column; margin-top: 0; gap: 6px; }
 
-    .lightbox { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); padding: 16px; }
-    .lightbox-content { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-height: 100%; justify-content: center; }
-    .lightbox-img { max-width: 95vw; max-height: 75vh; object-fit: contain; border-radius: 8px; touch-action: pinch-zoom; }
-    .lightbox-close { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; padding: 10px 24px; color: white; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; .material-icons { font-size: 18px; } &:hover { background: rgba(255,255,255,0.25); } }
-
+    @media (max-width: 768px) {
+      .gallery-3d-card, .stack-card, .flip-card, .polaroid-card, .gallery-grid-item, .slideshow-img {
+        will-change: auto;
+      }
+      .gallery-3d { perspective: none; }
+      .gallery-3d-card { -webkit-box-reflect: none; }
+      .polaroid-card { transition: none; backface-visibility: unset; will-change: auto; }
+      .gallery-grid-item { transition: none; backface-visibility: unset; transform: none; }
+    }
     @media (max-width: 520px) {
       .gallery-3d-card { width: 200px; height: 260px; }
       .gallery-3d { height: 300px; }
-      .gallery-3d.vertical .gallery-3d-card { width: 220px; height: 160px; }
+      .gallery-3d.vertical .gallery-3d-card { width: 190px; height: 240px; }
       .stack-card { width: 220px; height: 280px; }
       .polaroid-card { width: 120px; padding: 6px 6px 24px; }
     }
@@ -276,6 +293,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   @Input() photos: Photo[] = [];
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+  @Input() staticMode = false;
 
   hasOrnament(): boolean {
     return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
@@ -297,8 +315,18 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
 
   get displayStyle(): string { return this.config.displayStyle || 'carousel-3d'; }
 
+  /** Returns optimized image URL based on context:
+   *  - staticMode (canvas): thumb_url (100px) for lightweight preview
+   *  - gallery cards (landing/preview): gallery_url (600px) to reduce GPU memory
+   *  - lightbox: uses photo.url directly (1920px, only 1 image at a time)
+   */
+  getDisplayUrl(photo: Photo): string {
+    if (this.staticMode) return photo.gallery_url || photo.thumb_url || photo.url;
+    return photo.gallery_url || photo.url;
+  }
+
   ngOnInit() {
-    if (this.displayStyle === 'slideshow') this.startAuto();
+    if (this.displayStyle === 'slideshow' && !this.staticMode) this.startAuto();
     this.polaroidRotations = this.photos.map(() => (Math.random() - 0.5) * 12);
   }
   ngOnDestroy() { clearInterval(this.autoTimer); }
@@ -318,7 +346,7 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
     const norm = offset / this.CARD_SPACING;
     const scale = Math.max(0.65, 1.05 - Math.abs(norm) * 0.15);
     if (this.displayStyle === 'carousel-vertical') {
-      return `translateY(${offset * 0.6}px) scale(${scale}) rotateX(${norm * 8}deg)`;
+      return `translateY(${offset * 0.45}px) scale(${scale}) rotateX(${norm * 6}deg)`;
     }
     if (this.displayStyle === 'coverflow') {
       const tx = offset * 0.7;
@@ -328,6 +356,9 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
   getCardOpacity(i: number): number {
     const norm = Math.abs(this.getOffset(i)) / this.CARD_SPACING;
+    if (this.displayStyle === 'carousel-vertical') {
+      return norm > 1.5 ? 0 : Math.max(0, 1 - norm * 0.4);
+    }
     return norm > 2.5 ? 0 : Math.max(0, 1 - norm * 0.3);
   }
   getCardZIndex(i: number): number { return 100 - Math.round(Math.abs(this.getOffset(i)) / 10); }
@@ -394,12 +425,18 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   }
 
   onPhotoClick(i: number) { if (!this.isDragging && Math.abs(this.dragOffset) < 5) { if (i === this.current()) this.openLightbox(i); else this.goTo(i); } }
-  openLightbox(i: number) { this.lightboxIndex.set(i); }
-  closeLightbox() { this.lightboxIndex.set(null); }
-  @HostListener('window:scroll') onScroll() { if (this.lightboxIndex() !== null) this.closeLightbox(); }
 
+  private lightbox = inject(LightboxService);
+
+  openLightbox(i: number) {
+    this.lightboxIndex.set(i);
+    const urls = this.photos.map(p => p.url);
+    this.lightbox.open(urls, i);
+  }
+  closeLightbox() { this.lightboxIndex.set(null); this.lightbox.close(); }
+  @HostListener('window:scroll') onScroll() { /* lightbox handles its own scroll blocking */ }
   getFontFamily(key?: string): string {
-    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
+    const m: Record<string,string> = {'sans':'var(--font-sans)','serif':'var(--font-serif)','script':'var(--font-script)','cormorant':'var(--font-cormorant)','spumoni':'var(--font-spumoni)','dancing':'var(--font-dancing)','montserrat':'var(--font-montserrat)','raleway':'var(--font-raleway)','cinzel':'var(--font-cinzel)','sacramento':'var(--font-sacramento)','tangerine':'var(--font-tangerine)','alexbrush':'var(--font-alexbrush)','pinyon':'var(--font-pinyon)','aura':'var(--font-aura)','allura':'var(--font-allura)','josefin':'var(--font-josefin)','baskerville':'var(--font-baskerville)'};
     return m[key||'sans']||'var(--font-sans)';
   }
   getSeparatorBg(): string {
@@ -411,3 +448,4 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
     switch(t){case 'executive':return '4px';case 'festive':return '3px';case 'ornamental':return '2px';default:return '1px';}
   }
 }
+

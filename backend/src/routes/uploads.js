@@ -42,10 +42,23 @@ router.post('/:type', auth, upload.single('file'), async (req, res) => {
   if (type === 'images' && /\.(jpg|jpeg|png|webp)$/.test(ext)) {
     try {
       const filePath = req.file.path;
-      const buffer = await sharp(filePath)
-        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toBuffer();
+      // Redimensiona respetando el formato original para PRESERVAR TRANSPARENCIA.
+      // JPEG no soporta canal alfa: forzar JPEG rellenaba de negro los PNG/WebP
+      // transparentes (típico en iconos). Por eso solo re-encodeamos a JPEG los
+      // formatos opacos (jpg/jpeg) y mantenemos PNG/WebP en su formato con alfa.
+      const pipeline = sharp(filePath)
+        .rotate()
+        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true });
+
+      if (/\.png$/.test(ext)) {
+        pipeline.png({ compressionLevel: 9, palette: true });
+      } else if (/\.webp$/.test(ext)) {
+        pipeline.webp({ quality: 80 });
+      } else {
+        pipeline.jpeg({ quality: 80 });
+      }
+
+      const buffer = await pipeline.toBuffer();
       await fs.promises.writeFile(filePath, buffer);
     } catch (e) { /* If compression fails, keep original */ }
   }
@@ -62,16 +75,35 @@ router.post('/photos/:eventId', auth, upload.array('files', 20), async (req, res
     const photos = [];
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
-
-      // Gallery photos: NO compression (preserve original quality for professional photos)
-      // Only general uploads (/uploads/:type) get compressed
-
+      const baseName = file.filename.replace(path.extname(file.filename), '.jpg');
+      const thumbFilename = 'thumb_' + baseName;
+      const galleryFilename = 'gallery_' + baseName;
       const url = `/uploads/images/${file.filename}`;
+      const thumbUrl = `/uploads/images/${thumbFilename}`;
+      const galleryUrl = `/uploads/images/${galleryFilename}`;
       const [r] = await conn.query(
-        'INSERT INTO photos (event_id, filename, url, sort_order) VALUES (?, ?, ?, ?)',
-        [req.params.eventId, `images/${file.filename}`, url, i]
+        'INSERT INTO photos (event_id, filename, url, thumb_url, gallery_url, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+        [req.params.eventId, `images/${file.filename}`, url, thumbUrl, galleryUrl, i]
       );
-      photos.push({ id: r.insertId, url });
+      photos.push({ id: r.insertId, url, thumb_url: thumbUrl, gallery_url: galleryUrl });
+
+      // Generate thumbnail (100x100) — for props panel grid
+      const thumbPath = path.join(file.destination, thumbFilename);
+      await sharp(file.path)
+        .rotate()
+        .resize(100, 100, { fit: 'cover' })
+        .jpeg({ quality: 60 })
+        .toFile(thumbPath)
+        .catch(() => {});
+
+      // Generate gallery variant (600px) — for gallery cards on mobile
+      const galleryPath = path.join(file.destination, galleryFilename);
+      await sharp(file.path)
+        .rotate()
+        .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 75 })
+        .toFile(galleryPath)
+        .catch(() => {});
     }
     await conn.commit();
     res.json({ uploaded: photos.length, photos });

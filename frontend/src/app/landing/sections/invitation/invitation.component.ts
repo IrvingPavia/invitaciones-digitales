@@ -27,7 +27,7 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
         }
 
         @if (guest) {
-          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño invitamos a</p>
               <h3 class="invitation-name"
@@ -38,18 +38,24 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
               @if (guest.guest_type === 'family') {
                 <div class="invitation-names-list">
                   @for (name of guestNames(); track name) {
-                    <span class="guest-name-chip">{{ name.trim() }}</span>
+                    <span class="guest-name-chip"
+                          [style.background]="config.guestChipBg || null"
+                          [style.color]="config.guestChipText || null"
+                          [style.border-color]="config.guestChipBorder || null">{{ name.trim() }}</span>
                   }
                 </div>
               }
-              <div class="invitation-count">
+              <div class="invitation-count"
+                   [style.background]="config.countBg || null"
+                   [style.color]="config.countText || null"
+                   [style.border-color]="config.countBorder || null">
                 <span class="material-icons">people</span>
                 <span>{{ guestCount() }} {{ guestCount() === 1 ? 'asistente' : 'asistentes' }}</span>
               </div>
             </div>
           </div>
         } @else {
-          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius.px]="config.cardBorderRadius ?? 16">
+          <div class="invitation-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño los invitamos a celebrar</p>
               <p style="color:rgba(255,255,255,0.5);font-size:14px;margin-top:8px">Escanea el código QR de tu invitación para ver tu nombre</p>
@@ -81,11 +87,18 @@ import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/
     }
     .invitation-subtitle { color: rgba(255,255,255,0.7); font-size: 16px; margin-bottom: 40px; }
     .invitation-card {
-      background: var(--theme-card-bg, rgba(0,0,0,0.4)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
+      position: relative; overflow: visible;
+      border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       border-radius: 16px; padding: 40px; margin: 32px auto;
       max-width: 500px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.3);
-      &.no-bg { background: transparent; border-color: transparent; box-shadow: none; }
+      &::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--card-bg, var(--theme-card-bg, rgba(0,0,0,0.85))); opacity:var(--card-bg-opacity, 1); z-index:0; pointer-events:none; }
+      & > * { position:relative; z-index:1; }
+      &.no-bg { border-color: transparent; border-style: none !important; box-shadow: none; &::before { opacity: 0; } }
+      &.neon-border { animation: neonPulse 2s ease-in-out infinite alternate; }
+    }
+    @keyframes neonPulse {
+      from { filter: brightness(1); }
+      to { filter: brightness(1.3); }
     }
     .invitation-for { color: var(--theme-text-secondary, rgba(255,255,255,0.8)); font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
     .invitation-name {
@@ -127,7 +140,7 @@ export class LandingInvitationComponent {
       'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
       'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
       'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
-      'pinyon': 'var(--font-pinyon)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
     };
     return map[key || 'sans'] || 'var(--font-sans)';
   }
@@ -138,7 +151,59 @@ export class LandingInvitationComponent {
     const c1 = s.color || '#d4a017';
     const c2 = s.color2;
     const angle = s.gradientAngle ?? 135;
-    const intensity = s.gradientIntensity ?? 50;
-    return `linear-gradient(${angle}deg, ${c1} 0%, ${c2} ${intensity}%, ${c2} 100%)`;
+    const v = Math.max(0, Math.min(100, s.gradientIntensity ?? 50));
+    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
+  }
+
+  getCardBgColor(): string {
+    return (this.config as any).cardBgColor || '';
+  }
+
+  getCardBorderColor(): string {
+    return (this.config as any).cardBorderColor || '';
+  }
+
+  getCardBorderStyle(): string {
+    const s = (this.config as any).cardBorderStyle || 'none';
+    if (s === 'glow' || s === 'neon') return 'solid';
+    return s;
+  }
+
+  getIsNeon(): boolean {
+    return (this.config as any).cardBorderStyle === 'neon';
+  }
+
+  getCardBorderWidth(): number {
+    if ((this.config as any).cardBorderStyle === 'none') return 0;
+    return (this.config as any).cardBorderWidth ?? 1;
+  }
+
+  getCardBoxShadow(): string {
+    const style = (this.config as any).cardBorderStyle;
+    const color = (this.config as any).cardGlowColor || '#d4a017';
+    const width = (this.config as any).cardBorderWidth ?? 1;
+    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+    return 'none';
+  }
+
+  getCardFilter(): string {
+    return 'none';
+  }
+
+  getCardClipPath(): string {
+    return 'none';
+  }
+
+  getCardBorderRadius(): string {
+    const shape = (this.config as any).cardShape || 'standard';
+    const base = (this.config as any).cardBorderRadius ?? 16;
+    switch (shape) {
+      case 'rounded': return '50px';
+      case 'ticket': return `${base}px`;
+      case 'cut': return `${base}px 0 ${base}px 0`;
+      default: return `${base}px`;
+    }
   }
 }
