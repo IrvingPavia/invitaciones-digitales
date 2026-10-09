@@ -72,13 +72,31 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
        ¿segundo venue o itinerario?
      - Seguir la revisión visual sección por sección.
 
-3. **Pendientes abiertos de la sesión 2026-10-08 (ver `docs/PENDING.md`):**
+3. **Pendientes abiertos (ver `docs/PENDING.md` para el detalle completo):**
    - ⏳ Flechas del scroll-indicator de la carátula: usuario las vio descentradas; sin causa clara
      en CSS. Reconfirmar en navegador.
-   - ⏳ Cards de Detalles: ¿agregar control de fondo (color/opacidad) POR card? Hoy el toggle
-     "Fondo" per-card solo controla visibilidad.
    - ⏳ Modo banner en DESKTOP: afinar anchos laterales uniformes por sección (esta sesión se
      enfocó en mobile).
+   - ⏳ **Título de sección se desborda en landing mobile real** (ej. "Lugares del Evento" en
+     Galaxy A55 se sale por los lados; en canvas se ve bien). El `<h2>` script no se ajusta en
+     pantallas angostas. Falta `word-break`/`overflow-wrap` o reducir tamaño en móvil.
+   - ⏳ Subida de imágenes: bajar Multer a ~10 MB + validación en frontend con leyenda de error.
+   - ✅ Toggle "Fondo" por card arreglado en Detalles/Vestimenta/Lugares (commit 53d9c8f).
+
+4. **DEUDA TÉCNICA — sincronización de esquema BD en deploys (importante):**
+   El esquema del server prod se desincroniza del local porque `initDB()` no registra todas las
+   columnas/tablas nuevas. Se homologó el server el 2026-10-08 migrando estructura completa +
+   datos de admin/Karla/Valeria (root OMITIDO). Pendiente: completar `initDB()` con los
+   ALTER/CREATE faltantes para que cada deploy auto-sincronice. Ver `docs/PENDING.md`.
+   - ⚠️ En prod el `root` de la plataforma NO quedó al recrear `users`; crear con INSERT (hash de
+     Bonie123). `admin`/`admin123` sí quedó. Login tiene rate limit 5/15min por IP (reiniciar
+     backend lo resetea).
+
+### Estado del server prod (2026-10-08)
+- Esquema homologado con el local (16 tablas recreadas). Datos: admin, KarlaAzarcoya, invitación
+  Valeria (evento 17 + config). Faltan: crear usuario root, subir las 7 imágenes de Valeria a
+  `/uploads/images/` con sus nombres exactos, y poner `client_max_body_size 10m` en el nginx del
+  host (da 413 al subir imágenes hasta que se ajuste).
 
 ### Datos útiles del entorno
 

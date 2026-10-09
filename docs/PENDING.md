@@ -156,9 +156,25 @@
 
 **Pendiente / por verificar:**
 - [ ] Flechas del scroll-indicator de la carátula: el usuario las vio ligeramente descentradas; no se halló causa clara en CSS. Reconfirmar en navegador tras los últimos cambios.
-- [ ] Cards de Detalles: evaluar si se agrega control de fondo (color/opacidad) POR card (hoy el toggle "Fondo" per-card solo controla visibilidad; el color viene del acordeón global "Apariencia de Cards").
+- [x] Toggle "Fondo" por card ahora funciona individualmente en Detalles, Vestimenta y Lugares (antes el render usaba `config.showCardBg` global e ignoraba el per-card). El acordeón "Apariencia de Cards" sigue definiendo el estilo global de las cards de la sección. (commit 53d9c8f)
 - [ ] Modo banner en DESKTOP: afinar los anchos laterales para que todas las secciones queden uniformes (se dejó para otra sesión; el foco de esta fue mobile).
 - [ ] `sanitize.js`: se permitió `font-family`/`line-height`/`<div style>` para el editor enriquecido; validar que no haya efectos colaterales en otros campos de texto enriquecido.
+- [ ] **Título de sección se desborda en landing mobile real** (ej. "Lugares del Evento" en Galaxy A55 360px se sale por los lados). En el canvas se ve bien porque el viewport es ancho. El `<h2>` de sección (fuente script, p. ej. Alex Brush 47px) no se ajusta/parte en pantallas angostas. Falta `word-break`/`overflow-wrap` o reducir tamaño en móvil. Mismo patrón canvas↔landing (el canvas simula mobile con ancho fijo sin viewport angosto).
+
+### 🆕 Mejoras acordadas para subida de imágenes (pendiente, próxima sesión)
+> **Contexto**: El server prod daba 413 (Request Entity Too Large) al subir fondos. Causa: el nginx del HOST (Ubuntu, delante de Docker) tiene `client_max_body_size` por defecto (1 MB). El nginx del contenedor, Express (50mb) y Multer (50MB) ya permiten más. Solución de infra (la aplica el usuario en el server): poner `client_max_body_size 10m;` en el `http{}` de `/etc/nginx/nginx.conf` + `nginx -t && systemctl reload nginx`.
+
+- [ ] Bajar el límite de Multer a ~10 MB (alinear con el nginx del host).
+- [ ] Validación en el FRONTEND del tamaño de imagen antes de subir, con leyenda de error bajo el control (evita el 413 y da feedback claro). Aplica a fondos de sección y uploads de media.
+- [ ] Recomendación de peso de imágenes: 300 KB–2 MB (el backend ya recomprime con sharp a máx 1920px). A futuro: WebP + CDN (ya anotado en Performance).
+
+### 🆕 Despliegue / sincronización de esquema de BD (deuda técnica importante)
+> **Contexto**: El esquema del server prod quedó DESINCRONIZADO del local porque los cambios de estructura (columnas nuevas de `users`: email, full_name, trial_used, verification_status, etc., y tablas plans/transactions/purchases/postponements/email_verifications) nunca se aplicaron al desplegar. `initDB()` (backend) auto-migra en cada arranque con `CREATE TABLE IF NOT EXISTS` y `ALTER TABLE ADD COLUMN` en try/catch, PERO esas columnas/tablas nuevas NO están registradas ahí (se agregaron en local por migraciones sueltas o a mano). Resultado: al migrar filas al server fallaba por columnas inexistentes.
+> **Resuelto temporalmente (2026-10-08)**: se migró al server un dump de ESTRUCTURA completa del local (recrea las 16 tablas con el esquema correcto) + datos de admin, KarlaAzarcoya y la invitación Valeria (evento 17 + event_config). El `root` se OMITIÓ en la migración.
+
+- [ ] **Método duradero**: completar `initDB()` con TODOS los `ALTER TABLE ADD COLUMN` y `CREATE TABLE IF NOT EXISTS` faltantes para que cada deploy del backend auto-sincronice el esquema. Documentar el flujo en `docs/MIGRATIONS.md`.
+- [ ] **OJO en prod**: al recrear la tabla `users` en el server, el usuario `root` de la plataforma NO quedó (la migración lo omitió y `initDB` solo siembra root si la tabla está vacía al arrancar). Para crearlo: `INSERT INTO users (username,password,role,can_manage_users,plain_password,must_change_password) VALUES ('root','<hash bcrypt de Bonie123>','root',1,'Bonie123',0);` (hash del root local). El `admin`/`admin123` sí quedó migrado.
+- [ ] Recordatorio: el login tiene rate limit (5 intentos / 15 min por IP). Para desbloquear en prod: reiniciar el contenedor backend (`docker restart`) resetea el contador en memoria, o esperar 15 min sin intentar, o cambiar de IP.
 
 ### Media prioridad
 - [x] **Fondo de tarjetas individual**: Toggle "Fondo" en todas las secciones con cards. Per-item en: Detalles, Venues. Global en: Invitación, Itinerario, Vestimenta, Regalos (mesa + transferencia), Confirmación, Countdown.
