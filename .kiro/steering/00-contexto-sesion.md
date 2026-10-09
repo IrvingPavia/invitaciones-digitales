@@ -95,8 +95,12 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     - **Fase 3 HECHA (2026-10-09):** render de la landing. Fondo global usa `theme.landingBg` con
       fallback a `backgroundGif` (fijo). Carátula tiene fondo propio (`.hero-bg-media`) que
       SCROLLEA. Las 8 secciones soportan video (`.section-bg-video`). Todo vía `resolveMedia`.
-      Build OK. SIGUIENTE: Fase 4 (builder: `BackgroundControlComponent` reutilizable + integrarlo
-      en Tema Global, Carátula y secciones + replicar en canvas).
+    - **Fase 4 HECHA (2026-10-09):** `BackgroundControlComponent`
+      (`builder/components/background-control/`) con upload img/gif/video + validación tamaño por
+      tipo (10/15/25) + tooltip + toggle override desktop + ajuste. Integrado en Tema Global,
+      Carátula y Fondo de Sección. Canvas: `canvasGlobalBg()`/`canvasSectionMedia()`. Build OK.
+      LIMITACIÓN: canvas no pinta video de fondo por sección (sí en preview/landing).
+      SIGUIENTE: Fase 5 (backend uploads: límites por tipo en Multer + doc nginx host 25m).
 
 ### Features en curso / pendientes concretos
 

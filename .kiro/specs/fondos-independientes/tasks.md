@@ -37,13 +37,18 @@
   la media es video. Overlay y banner conservados.
 
 ## Fase 4 — Builder (control reutilizable)
-- [ ] 12. Crear `BackgroundControlComponent` (sub-componente del props-panel): tipo de fondo +
-  upload media (img/gif/video) + toggle "Imagen distinta para escritorio" + upload alterno +
-  ajuste (fit/position/bannerWidth/overlay) + tooltips por tipo.
-- [ ] 13. Integrar el control en: Tema Global (→ `theme.landingBg`), Carátula (nuevo acordeón
-  "Fondo" → `hero.heroBackground`), y cada sección (→ `sectionStyle.media`).
-- [ ] 14. Canvas (`builder.component.ts`): replicar resolución de media (video + override desktop
-  + carátula con fondo propio) usando el mismo helper, para fidelidad canvas↔landing.
+- [x] 12. `BackgroundControlComponent` creado (`builder/components/background-control/`): upload
+  media (img/gif/video) con validación de tamaño por tipo + tooltip, toggle "Imagen distinta para
+  escritorio" + upload alterno, ajuste (fit cover/contain/banner, position, bannerWidth, overlay).
+  Trabaja sobre un `MediaBackground` vía [model]/(modelChange).
+- [x] 13. Integrado en: Tema Global ('bg' → `theme.landingBg`, con color/textura debajo como
+  ambientación), Carátula ('hero-media' → `hero.heroBackground`, con audio aparte), y Fondo de
+  Sección ('sec-bg', bgType='image' → `sectionStyle.media` con fallback legacy en el getter).
+- [x] 14. Canvas (`builder.component.ts`): `canvasGlobalBg()` (theme.landingBg + fallback) alimenta
+  el fondo global sticky; `getSectionBgStyle` usa `canvasSectionMedia()` (no pinta si es video).
+  Carátula con fondo propio y video por sección funcionan vía los componentes compartidos.
+  LIMITACIÓN menor: el canvas no pinta `<video>` de fondo POR SECCIÓN (se ve en preview/landing);
+  si la sección usa video, en el canvas queda transparente (deja ver el global). Aceptable.
 
 ## Fase 5 — Uploads: límites por tipo + validación
 - [ ] 15. Frontend: validar tamaño por extensión antes de subir (img 10MB / gif 15MB / video

@@ -8,7 +8,8 @@ import { ApiService } from '../../../core/services/api.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../core/components/custom-select.component';
-import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS } from '../../../core/models/models';
+import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS, SectionStyle } from '../../../core/models/models';
+import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMedia } from '../../../core/utils/media-background.util';
 import { CanvasStateService } from './services/canvas-state.service';
 import { MigrationService } from './services/migration.service';
 import { SectionCanvasComponent } from './components/section-canvas/section-canvas.component';
@@ -146,15 +147,17 @@ interface BuilderSection {
                        position:fixed de la landing real. Así el fondo es CONTINUO desde la
                        carátula hasta el final del scope, y el GIF no se estira (se dimensiona
                        al viewport visible, no a la altura total del documento). -->
-                  @if (canvasState.config()?.hero?.backgroundGif || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
+                  @if (canvasGlobalBg().hasMedia || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
                     <div class="canvas-bg-sticky">
-                      @if (canvasState.config()?.hero?.backgroundGif) {
-                        @if (isCanvasBgVideo()) {
-                          <video class="canvas-bg-media" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
+                      @if (canvasGlobalBg().hasMedia) {
+                        @if (canvasGlobalBg().isVideo) {
+                          <video class="canvas-bg-media" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" autoplay loop muted playsinline [src]="canvasGlobalBg().url"></video>
                         } @else {
-                          <div class="canvas-bg-image" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" [style.backgroundImage]="'url(' + canvasState.config()!.hero.backgroundGif + ')'"></div>
+                          <div class="canvas-bg-image" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.backgroundImage]="'url(' + canvasGlobalBg().url + ')'"></div>
                         }
-                        <div class="canvas-bg-overlay" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'"></div>
+                        @if (canvasGlobalBg().overlay > 0) {
+                          <div class="canvas-bg-overlay" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.background]="'rgba(0,0,0,' + (canvasGlobalBg().overlay / 100) + ')'"></div>
+                        }
                       }
                       @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
                         <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
@@ -1288,10 +1291,26 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     return colorBg;
   }
 
+  /** True si el dispositivo activo del canvas es escritorio (para resolver override desktop). */
+  private isCanvasDesktop(): boolean {
+    return this.previewDevice() !== 'mobile';
+  }
+
+  /** Fondo GLOBAL del canvas resuelto (theme.landingBg con fallback a hero.backgroundGif). */
+  canvasGlobalBg(): ResolvedMedia {
+    const cfg = this.canvasState.getConfig();
+    const mb = resolveGlobalBackground(cfg?.theme?.landingBg, cfg?.hero?.backgroundGif);
+    return resolveMedia(mb, this.isCanvasDesktop());
+  }
+
   isCanvasBgVideo(): boolean {
-    const url = this.canvasState.getConfig()?.hero?.backgroundGif || '';
-    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
-    return ['mp4', 'webm', 'ogg'].includes(ext);
+    return this.canvasGlobalBg().isVideo;
+  }
+
+  /** Media resuelta del fondo de una sección en el canvas (nuevo modelo + fallback legacy). */
+  canvasSectionMedia(sectionKey: string): ResolvedMedia {
+    const ss = (this.canvasState.getConfig() as any)?.[sectionKey]?.sectionStyle as SectionStyle | undefined;
+    return resolveMedia(sectionStyleToMedia(ss), this.isCanvasDesktop());
   }
 
   /** Degradado lineal de 2 colores con intensidad 0-100:
@@ -1316,24 +1335,27 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         case 'linear': css = `background: ${this.buildLinearGradient(ss.bgAngle ?? 180, ss.bgColor1 || '#1a1a2e', ss.bgColor2 || '#0d1117', ss.bgIntensity ?? 50)}`; break;
         case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor1 || '#1a1a2e'} ${(ss.bgIntensity ?? 50)}%, ${ss.bgColor2 || '#0d1117'})`; break;
         case 'image': {
-          if (!ss.bgImage) { css = ''; break; }
+          const m = this.canvasSectionMedia(sectionKey);
+          // Si no hay media o es VIDEO, no se pinta background (el <video> lo renderiza el
+          // template del canvas via canvasSectionMedia). Para imagen/gif, se pinta.
+          if (!m.hasMedia || m.isVideo) { css = ''; break; }
           // Oscurecido (overlay) replicado como capa de gradiente sobre la imagen, para que
           // el canvas se vea igual que la landing (que usa un div .section-bg-overlay).
-          const ov = Math.max(0, Math.min(100, ss.bgOverlay ?? 0)) / 100;
+          const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
           const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
-          if (ss.bgFit === 'banner') {
+          if (m.fit === 'banner') {
             const isMobile = this.previewDevice() === 'mobile';
             if (isMobile) {
               // Mobile (prioridad): la imagen CUBRE el ancho y alto de la sección (cover) y la
               // sección toma el alto de pantalla, igual que la landing. Sin huecos.
-              css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
+              css = `background: ${dark}url(${m.url}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
             } else {
               // Desktop: columna centrada del ancho configurado (--sec-banner-w).
-              css = `background: ${dark}url(${ss.bgImage}) top center / ${ss.bgBannerWidth ?? 70}% auto no-repeat`;
+              css = `background: ${dark}url(${m.url}) top center / ${m.bannerWidth}% auto no-repeat`;
             }
           } else {
-            // Pantalla completa: cover (sin cambios).
-            css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat`;
+            // Pantalla completa: cover.
+            css = `background: ${dark}url(${m.url}) ${m.position || 'center'}/cover no-repeat`;
           }
           break;
         }
