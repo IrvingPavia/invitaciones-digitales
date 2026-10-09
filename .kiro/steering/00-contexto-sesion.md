@@ -49,9 +49,15 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
-- **Rama activa:** `feature/canvas-posicionamiento`
-- **Último commit tras la sesión del 2026-10-08:** ver `git log` (se commiteó la tanda de
-  revisión sección por sección de Valeria + fixes de fidelidad canvas↔landing).
+- **Rama activa:** `feature/fondos-independientes` (desde 2026-10-09).
+- **Estructura de ramas (2026-10-09):**
+  - `feature/canvas-posicionamiento` — tenía todo el trabajo acumulado hasta el commit `cce56be`.
+  - `int-008` — CORTE de integración con todo lo último (desde `cce56be`). Reemplaza
+    funcionalmente a la vieja `int-007` (que quedó muy desactualizada). Es el snapshot del estado
+    actual del proyecto. El proyecto está publicado pero aún NO expuesto como producto.
+  - `feature/fondos-independientes` — RAMA DE TRABAJO ACTUAL para el spec del mismo nombre.
+    Nace de `cce56be`. Aquí se implementa el Tema 2 (fondos independientes).
+- **Último commit base de las 3 ramas:** `cce56be` (spec fondos-independientes + steering).
 - **Trabajo de la sesión 2026-10-08:** editor enriquecido + drag + línea de carga en la Intro;
   color de instrucción en el Plano; fix CRÍTICO de `ensureConfigDefaults` (hero y todas las
   secciones perdían campos en la landing pública → posiciones/colores de carátula ahora sí se
