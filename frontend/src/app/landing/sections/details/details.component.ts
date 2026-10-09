@@ -37,7 +37,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
         }
         <div class="details-grid">
           @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+            <div class="detail-card reveal" [class.no-bg]="(card.showCardBg ?? config.showCardBg) === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
               @if (card.iconType !== 'none') {
                 @if (card.iconType === 'emoji' && card.icon) {
                   <div class="detail-icon emoji-icon">

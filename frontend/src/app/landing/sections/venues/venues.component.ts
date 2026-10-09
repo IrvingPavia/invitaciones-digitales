@@ -166,9 +166,10 @@ export class LandingVenuesComponent {
   getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
   getItemNoBg(venue: any): boolean {
-    // Section-level control
-    if ((this.config as any).showCardBg === false) return true;
-    return false;
+    // Prioridad al toggle por card individual; si no está definido, hereda el de la sección.
+    const perItem = venue?.showCardBg;
+    const effective = perItem ?? (this.config as any).showCardBg;
+    return effective === false;
   }
 
   getCardBgOpacity(): number {
