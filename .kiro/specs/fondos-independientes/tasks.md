@@ -18,10 +18,12 @@
   bgBannerWidth/bgOverlay como fallback).
 
 ## Fase 2 — Helper de resolución (compartido landing + canvas)
-- [ ] 7. Crear `core/utils/media-background.util.ts` con `resolveMedia(mb, isDesktop)` →
-  `{ url, isVideo, fit, position, overlay, bannerWidth }`. `isVideo` por extensión (mp4/webm/ogg).
-- [ ] 8. Helper para construir un `MediaBackground` de fallback desde los campos legacy de
-  `SectionStyle` (bgImage/bgFit/bgBannerWidth/bgOverlay) y desde `hero.backgroundGif` (global).
+- [x] 7. Crear `core/utils/media-background.util.ts` con `resolveMedia(mb, isDesktop)` →
+  `{ url, isVideo, fit, position, overlay, bannerWidth, hasMedia }`. `isVideo` por extensión
+  (mp4/webm/ogg) vía `isVideoUrl`.
+- [x] 8. Helpers de fallback: `sectionStyleToMedia(ss)` (desde bgImage/bgFit/bgBannerWidth/
+  bgOverlay legacy) y `resolveGlobalBackground(landingBg, heroBackgroundGif)` (fondo global con
+  fallback a hero.backgroundGif).
 
 ## Fase 3 — Render landing
 - [ ] 9. Fondo global: alimentar `.landing-bg`/`.landing-bg-video` desde `theme.landingBg` vía

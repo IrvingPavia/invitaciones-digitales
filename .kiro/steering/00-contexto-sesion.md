@@ -89,7 +89,10 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
       reutilizable) → Fase 5 uploads límites+validación → Fase 6 retrocompat+verificación.
     - **Fase 1 HECHA (2026-10-09):** en `models.ts` se añadió `MediaBackground` + `theme.landingBg`
       + `hero.heroBackground` + `sectionStyle.media` (todos opcionales/retrocompatibles). Build OK.
-      SIGUIENTE: Fase 2 (helper `resolveMedia` en `core/utils/media-background.util.ts`).
+    - **Fase 2 HECHA (2026-10-09):** `core/utils/media-background.util.ts` con `resolveMedia`,
+      `isVideoUrl`, `sectionStyleToMedia` (fallback legacy) y `resolveGlobalBackground` (fallback a
+      hero.backgroundGif). Build OK. SIGUIENTE: Fase 3 (render landing: fondo global desde
+      theme.landingBg; carátula con fondo propio que scrollea; secciones con soporte video).
 
 ### Features en curso / pendientes concretos
 
