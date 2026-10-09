@@ -65,6 +65,29 @@ export interface EventConfig {
   favicon?: string;
 }
 
+/**
+ * Fondo de media reutilizable (imagen/gif/video) con modelo híbrido mobile/desktop.
+ * Se usa en el fondo global de la landing (theme.landingBg), en la carátula
+ * (hero.heroBackground) y en las secciones (sectionStyle.media), para homologar el manejo
+ * de fondos. Todos los campos son opcionales y aditivos (retrocompatible).
+ */
+export interface MediaBackground {
+  /** URL de la media base (imagen/gif/video). Aplica a mobile y desktop. */
+  url?: string;
+  /** Si true, usa `urlDesktop` en escritorio en lugar de `url`. */
+  desktopOverride?: boolean;
+  /** URL alterna solo para escritorio (cuando desktopOverride = true). */
+  urlDesktop?: string;
+  /** Encuadre: 'cover' (llena), 'contain' (completa), 'banner' (columna centrada, solo desktop). */
+  fit?: 'cover' | 'contain' | 'banner';
+  /** Ancho de la columna banner en % del contenedor (solo desktop, cuando fit='banner'). */
+  bannerWidth?: number;
+  /** Posición del encuadre (p. ej. 'center center', 'top center'). */
+  position?: string;
+  /** Oscurecer la media (0-100): capa negra encima para legibilidad del texto. */
+  overlay?: number;
+}
+
 export interface ThemeConfig {
   cardBg: string;
   cardBorder: string;
@@ -78,6 +101,9 @@ export interface ThemeConfig {
   buttonText: string;
   buttonFont?: string;
   // Landing background
+  /** Media del fondo GLOBAL fijo de la landing (ambientación). Separada de hero.backgroundGif.
+      Si no se define, el render cae a hero.backgroundGif por retrocompatibilidad. */
+  landingBg?: MediaBackground;
   landingBgColor1?: string;
   landingBgColor2?: string;
   landingBgType?: 'solid' | 'linear' | 'radial' | 'mesh';
@@ -118,6 +144,9 @@ export interface SectionStyle {
   bgFit?: 'cover' | 'banner';
   /** Ancho de la columna banner en % del ancho (solo escritorio). */
   bgBannerWidth?: number;
+  /** Fondo de media homologado (imagen/gif/video + override desktop). Si se define, manda sobre
+      los campos legacy bgImage/bgFit/bgBannerWidth/bgOverlay (que quedan como fallback). */
+  media?: MediaBackground;
   // Divider
   dividerType: 'none' | 'wave' | 'curve' | 'slant' | 'zigzag' | 'mountains' | 'drops' | 'arrow';
   dividerColor?: string;
@@ -296,6 +325,10 @@ export interface HeroGradientStyle {
 }
 
 export interface HeroConfig {
+  /** Fondo propio de la carátula (imagen/gif/video) que SCROLLEA con la sección.
+      Separado del fondo global. Si no se define, la carátula deja ver el fondo global.
+      `backgroundGif` se conserva por retrocompatibilidad (actuaba como fondo global). */
+  heroBackground?: MediaBackground;
   backgroundGif: string;
   audioUrl: string;
   eventDescription: string;

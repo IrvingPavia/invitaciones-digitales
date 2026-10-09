@@ -84,10 +84,12 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     - Validación en frontend antes de subir + tooltips con formatos/dimensiones/peso.
     - Retrocompatible: campos nuevos opcionales; si no hay `theme.landingBg`, usar
       `hero.backgroundGif` como global (como hoy). No romper Valeria ni prod.
-    - Plan en `tasks.md`: Fase 0 (Tema1 ✅) → Fase 1 modelo (MediaBackground, theme.landingBg,
-      hero.heroBackground, sectionStyle.media) → Fase 2 helper resolveMedia → Fase 3 render
-      (global/carátula/secciones) → Fase 4 builder (BackgroundControlComponent reutilizable) →
-      Fase 5 uploads límites+validación → Fase 6 retrocompat+verificación.
+    - Plan en `tasks.md`: Fase 0 (Tema1 ✅) → Fase 1 modelo ✅ → Fase 2 helper resolveMedia →
+      Fase 3 render (global/carátula/secciones) → Fase 4 builder (BackgroundControlComponent
+      reutilizable) → Fase 5 uploads límites+validación → Fase 6 retrocompat+verificación.
+    - **Fase 1 HECHA (2026-10-09):** en `models.ts` se añadió `MediaBackground` + `theme.landingBg`
+      + `hero.heroBackground` + `sectionStyle.media` (todos opcionales/retrocompatibles). Build OK.
+      SIGUIENTE: Fase 2 (helper `resolveMedia` en `core/utils/media-background.util.ts`).
 
 ### Features en curso / pendientes concretos
 

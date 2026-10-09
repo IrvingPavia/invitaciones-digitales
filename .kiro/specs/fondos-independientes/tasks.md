@@ -10,11 +10,11 @@
 - [x] 2. Homologar `.hero-section` a `min-height: 100svh` (con fallback 100vh). (hero.component.ts)
 
 ## Fase 1 — Modelo
-- [ ] 3. Crear interfaz `MediaBackground` en `models.ts` (url, desktopOverride, urlDesktop, fit,
+- [x] 3. Crear interfaz `MediaBackground` en `models.ts` (url, desktopOverride, urlDesktop, fit,
   bannerWidth, position, overlay).
-- [ ] 4. Añadir `theme.landingBg?: MediaBackground` a `ThemeConfig`.
-- [ ] 5. Añadir `hero.heroBackground?: MediaBackground` a `HeroConfig`.
-- [ ] 6. Añadir `sectionStyle.media?: MediaBackground` a `SectionStyle` (conservar bgImage/bgFit/
+- [x] 4. Añadir `theme.landingBg?: MediaBackground` a `ThemeConfig`.
+- [x] 5. Añadir `hero.heroBackground?: MediaBackground` a `HeroConfig`.
+- [x] 6. Añadir `sectionStyle.media?: MediaBackground` a `SectionStyle` (conservar bgImage/bgFit/
   bgBannerWidth/bgOverlay como fallback).
 
 ## Fase 2 — Helper de resolución (compartido landing + canvas)
