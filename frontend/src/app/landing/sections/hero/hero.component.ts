@@ -191,7 +191,11 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       &:hover { color: var(--theme-nav-text, var(--gold)); background: rgba(212,160,23,0.05); padding-left: 36px; }
     }
     .hero-section {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      /* svh: altura con la barra del navegador visible, estable al scrollear en móvil
+         (evita el salto/descuadre que produce 100vh cuando la barra aparece/desaparece). */
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex; align-items: center; justify-content: center;
       text-align: center; padding: 80px 20px 40px;
       position: relative;
     }

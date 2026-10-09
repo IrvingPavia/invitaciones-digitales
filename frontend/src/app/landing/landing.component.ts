@@ -280,11 +280,11 @@ import { SectionStyle } from '../core/models/models';
   styles: [`
     :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; position: relative; }
     .landing-bg-solid {
-      position: fixed; inset: -10vh -5vw; z-index: 0;
+      position: fixed; inset: -10svh -5vw; z-index: 0;
       background: var(--landing-bg, #0d1117);
     }
     .landing-bg-texture {
-      position: fixed; inset: -10vh -5vw; z-index: 1;
+      position: fixed; inset: -10svh -5vw; z-index: 1;
       pointer-events: none;
     }
     .landing-bg-texture[data-texture="noise"] {
@@ -321,14 +321,18 @@ import { SectionStyle } from '../core/models/models';
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
-      /* Extend well beyond viewport to cover rubber-band on all devices */
-      top: -15vh;
+      /* Extiende más allá del viewport para cubrir el rubber-band en todos los dispositivos.
+         Se usa svh (small viewport height): es la altura CON la barra del navegador visible y
+         NO cambia al scrollear (a diferencia de dvh/vh, que al mostrar/ocultar la barra en
+         Chrome Android recalculan la altura y producen un "salto" del fondo fijo). El
+         sobredimensionado (130%) cubre el hueco cuando la barra se oculta. */
+      top: -15svh;
       left: -5vw;
       right: -5vw;
-      bottom: -15vh;
+      bottom: -15svh;
       width: 110vw;
       height: 130vh;
-      height: 130dvh;
+      height: 130svh;
       /* Hidden by default, fades in after intro */
       opacity: 0;
       transition: opacity 1.2s ease;
@@ -336,8 +340,8 @@ import { SectionStyle } from '../core/models/models';
     .landing-bg.visible { opacity: 1; }
     .landing-bg-video {
       position: fixed; z-index: 2;
-      top: -15vh; left: -5vw; right: -5vw; bottom: -15vh;
-      width: 110vw; height: 130vh; height: 130dvh;
+      top: -15svh; left: -5vw; right: -5vw; bottom: -15svh;
+      width: 110vw; height: 130vh; height: 130svh;
       object-fit: cover;
       opacity: 0;
       transition: opacity 1.2s ease;
@@ -348,14 +352,14 @@ import { SectionStyle } from '../core/models/models';
       /* Sin velo oscuro: la imagen de fondo global se muestra a plena luz (igual que el
          canvas). El overlay se mantiene transparente para no alterar z-index/banner. */
       background: transparent;
-      /* Match bg extension */
-      top: -15vh;
+      /* Match bg extension (svh para no saltar al mostrar/ocultar la barra del navegador) */
+      top: -15svh;
       left: -5vw;
       right: -5vw;
-      bottom: -15vh;
+      bottom: -15svh;
       width: 110vw;
       height: 130vh;
-      height: 130dvh;
+      height: 130svh;
       /* Hidden by default, fades in with bg */
       opacity: 0;
       transition: opacity 1.2s ease;
