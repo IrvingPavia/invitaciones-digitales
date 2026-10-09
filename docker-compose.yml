@@ -1,8 +1,7 @@
-
 services:
   mysql:
     image: mysql:8.0
-    container_name: invitaciones-mysql
+    container_name: invitaciones-mysql-dev
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
@@ -10,7 +9,7 @@ services:
       MYSQL_USER: ${DB_USER:-invitaciones_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-invitaciones_pass}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -26,7 +25,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: invitaciones-backend
+    container_name: invitaciones-backend-dev
     restart: unless-stopped
     environment:
       PORT: 3000
@@ -57,10 +56,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: invitaciones-frontend
+    container_name: invitaciones-frontend-dev
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8081:80"
     depends_on:
       backend:
         condition: service_healthy
@@ -69,9 +68,9 @@ services:
 
 volumes:
   mysql_data:
-    name: invitaciones_mysql_data
+    name: invitaciones_dev_mysql_data
   backend_uploads:
-    name: invitaciones_backend_uploads
+    name: invitaciones_dev_backend_uploads
 
 networks:
   invitaciones-net:

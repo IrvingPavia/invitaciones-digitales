@@ -1,0 +1,26 @@
+name: Deploy PAVI DEV
+on:
+  push:
+    branches: [deploy_dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy DEV por SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            exec >> /opt/pavi-dev/deploy.log 2>&1
+            echo "==> Deploy DEV iniciado: $(date '+%Y-%m-%d %H:%M:%S')"
+            cd /opt/pavi-dev
+            git fetch origin deploy_dev
+            git reset --hard origin/deploy_dev
+            echo "==> Commit: $(git log -1 --oneline)"
+            docker compose -p pavi-dev up -d --build
+            docker image prune -f
+            echo "==> Deploy DEV OK: $(date '+%Y-%m-%d %H:%M:%S')"
