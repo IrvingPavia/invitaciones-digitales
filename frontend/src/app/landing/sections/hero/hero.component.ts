@@ -48,9 +48,10 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     }
 
     <!-- Hero Section -->
-    <section id="hero" class="hero-section" data-drag-bounds>
-      <!-- Fondo propio de la carátula (scrollea con la sección). Si no hay media propia, la
-           sección queda transparente y deja ver el fondo global de la landing (retrocompatible). -->
+    <section id="hero" class="hero-section">
+      <!-- Fondo propio de la carátula (scrollea con la sección). Capa en z-index 0; el contenido
+           va en .hero-fg (z-index 1). El navbar (hermano, fixed/relative con z-index alto) queda
+           siempre por encima del fondo. Si no hay media propia, deja ver el fondo global. -->
       @if (heroBg().hasMedia) {
         @if (heroBg().isVideo) {
           <video class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.object-position]="heroBg().position" [src]="heroBg().url" autoplay loop muted playsinline></video>
@@ -61,6 +62,9 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
           <div class="hero-bg-overlay" [style.opacity]="heroBg().overlay / 100"></div>
         }
       }
+      <!-- Capa de primer plano (contenido). Es el contenedor de posicionamiento de los drag-box
+           (data-drag-bounds), ocupa toda la sección, y va sobre el fondo (z-index 1). -->
+      <div class="hero-fg" data-drag-bounds>
       <div class="hero-content">
         @if (config.eventDescription) {
         <app-drag-box [editable]="editable" [position]="heroPosData('eventType')" [ngStyle]="heroPos('eventType')" (positionChange)="onPosChange('eventType', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
@@ -138,6 +142,7 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
           <span class="material-icons scroll-arrow" style="animation-delay:0.2s">expand_more</span>
         </div>
       </div>
+      </div><!-- /.hero-fg -->
     </section>
   `,
   styles: [`
@@ -213,13 +218,20 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       position: relative;
       overflow: hidden; /* confina el fondo propio de la carátula */
     }
-    /* Fondo propio de la carátula: capa dentro de la sección (scrollea con ella). */
+    /* Fondo propio de la carátula: capa dentro de la sección (scrollea con ella), en z-index 0.
+       El contenido va en .hero-fg (z-index 1), que es el nuevo data-drag-bounds. */
     .hero-bg-media {
       position: absolute; inset: 0; z-index: 0;
       width: 100%; height: 100%;
       background-size: cover; background-position: center center; background-repeat: no-repeat;
       object-fit: cover;
       pointer-events: none;
+    }
+    /* Capa de primer plano: cubre toda la sección, centra el contenido y es el contenedor de
+       posicionamiento de los drag-box (reemplaza a .hero-section como data-drag-bounds). */
+    .hero-fg {
+      position: absolute; inset: 0; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
     }
     @media (min-width: 768px) {
       /* Modo banner (desktop): columna centrada del ancho configurado. */
@@ -233,8 +245,9 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       position: absolute; inset: 0; z-index: 0;
       background: #000; pointer-events: none;
     }
-    /* El contenido de la carátula va por encima del fondo propio. */
-    .hero-content { max-width: 800px; position: relative; z-index: 1; }
+    /* .hero-content SIN position/z-index: así los drag-box absolutos referencian a .hero-fg
+       (el contenedor posicionado que ocupa toda la sección), no a este contenedor centrado. */
+    .hero-content { max-width: 800px; }
     .hero-event-type {
       letter-spacing: 6px; text-transform: uppercase;
       margin-bottom: 32px;
