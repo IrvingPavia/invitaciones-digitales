@@ -106,9 +106,26 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     - **Fase 6 HECHA (2026-10-09):** verificado que ensureConfigDefaults preserva los nuevos
       campos y que Valeria no tiene regresión (usa backgroundGif como fondo global fallback).
       Contenedores reconstruidos, landing HTTP 200.
-    - **SPEC fondos-independientes COMPLETO (todas las fases 0-6).** Pendiente: verificación visual
-      del usuario en navegador/móvil + ajustar `client_max_body_size 25m` en el nginx del server
-      prod cuando se despliegue.
+    - **SPEC fondos-independientes COMPLETO (todas las fases 0-6).**
+    - **Fixes posteriores (2026-10-09, commit c952d55):**
+      - REGRESIÓN de la carátula corregida: el fondo propio rompía el posicionamiento (los
+        drag-box pasaban a referenciar `.hero-content`). Se envolvió el contenido en `.hero-fg`
+        (`position:absolute; inset:0; z-index:1`, NUEVO `data-drag-bounds`) y el fondo quedó en
+        `z-index:0`. Así textos/countdown/flechas mantienen su posición y el navbar queda sobre
+        el fondo. (hero.component.ts)
+      - MIGRACIÓN de fondo global legacy (migration.service.ts > ensureDefaults): si hay
+        `hero.backgroundGif` y no `theme.landingBg`, se promueve a `theme.landingBg` y se limpia
+        `backgroundGif`. Evita el "fallback fantasma" (antes, al quitar la imagen del fondo global,
+        reaparecía backgroundGif). Se aplica al abrir el builder y guardar.
+      - Valeria: se limpió su fondo global (vacío backgroundGif + landingBg) vía API; quedó solo
+        color #caf0f0 + textura paper. (cambio de datos en BD, no en git)
+    - **PENDIENTE ABIERTO — Tema 2 (imagen de carátula vs navbar):** el usuario reporta que la
+      imagen de fondo de la carátula "empieza debajo del navbar" y quiere que la imagen vaya DETRÁS
+      del navbar (navbar por encima, imagen de borde a borde arriba). Falta confirmar si lo ve en
+      el canvas (navbar relative) o en la landing real (navbar fixed) y aplicar el ajuste. NO
+      resuelto aún.
+    - Pendiente general: verificación visual del usuario en navegador/móvil + `client_max_body_size
+      25m` en el nginx del server prod al desplegar.
 
 ### Features en curso / pendientes concretos
 
