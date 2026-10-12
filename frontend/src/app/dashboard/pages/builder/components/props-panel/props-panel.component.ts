@@ -7,13 +7,16 @@ import { CustomSelectComponent, SelectOption } from '../../../../../core/compone
 import { WheelTimePickerComponent } from '../../../../../core/components/wheel-time-picker.component';
 import { WheelDatePickerComponent } from '../../../../../core/components/wheel-date-picker.component';
 import { RichTextEditorComponent } from '../../../../../core/components/rich-text-editor.component';
+import { BackgroundControlComponent } from '../background-control/background-control.component';
+import { AudioControlComponent } from '../audio-control/audio-control.component';
+import { MediaBackground } from '../../../../../core/models/models';
 import { CanvasStateService } from '../../services/canvas-state.service';
 import { ApiService } from '../../../../../core/services/api.service';
 
 @Component({
   selector: 'app-builder-props-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent, WheelDatePickerComponent, RichTextEditorComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ColorPickerComponent, CustomSelectComponent, WheelTimePickerComponent, WheelDatePickerComponent, RichTextEditorComponent, BackgroundControlComponent, AudioControlComponent],
   template: `
     <div class="props-panel-content">
       <!-- Section badge -->
@@ -94,6 +97,9 @@ import { ApiService } from '../../../../../core/services/api.service';
         </div>
         @if (expanded['bg']) {
           <div class="accordion-body">
+            <span class="pf-section-title">Imagen de fondo (fija)</span>
+            <app-background-control [model]="themeLandingBg()" (modelChange)="setThemeLandingBg($event)"></app-background-control>
+            <span class="pf-section-title" style="margin-top:12px">Color / Textura de ambientación</span>
             <div class="pf"><label>Color 1</label><app-color-picker [value]="cfg()!.theme.landingBgColor1 || '#0d1117'" (valueChange)="setTheme('landingBgColor1', $event)"></app-color-picker></div>
             <div class="pf"><label>Color 2</label><app-color-picker [value]="cfg()!.theme.landingBgColor2 || '#1a1a2e'" (valueChange)="setTheme('landingBgColor2', $event)"></app-color-picker></div>
             <div class="pf"><label>Tipo</label>
@@ -293,10 +299,13 @@ import { ApiService } from '../../../../../core/services/api.service';
               }
               @if (getSealType() === 'icon') {
                 <div class="pf"><label>Imagen del sello</label>
-                  <div class="upload-row">
-                    @if(sec('envelope')?.sealImage){<span class="file-name">{{getFileName(sec('envelope')?.sealImage)}}</span><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','sealImage','');$event.stopPropagation()">X</button>}
-                    @else{<button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Subir</button>}
-                  </div>
+                  @if(sec('envelope')?.sealImage){
+                    <div class="media-preview-row">
+                      <div class="media-thumb"><img [src]="sec('envelope')?.sealImage" alt="sello"></div>
+                      <div class="media-meta"><span class="media-badge">{{thumbKind(sec('envelope')?.sealImage)}}</span><span class="file-name">{{getFileName(sec('envelope')?.sealImage)}}</span></div>
+                      <div class="media-actions"><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','sealImage','');$event.stopPropagation()">X</button></div>
+                    </div>
+                  } @else {<div class="upload-row"><button class="sm-btn" (click)="upload('envelope','sealImage','images');$event.stopPropagation()">Subir</button></div>}
                 </div>
               }
             </div>
@@ -339,10 +348,16 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['env-bg']) {
             <div class="accordion-body">
               <div class="pf"><label>Imagen/GIF de fondo</label>
-                <div class="upload-row">
-                  @if(sec('envelope')?.splashImage){<span class="file-name">{{getFileName(sec('envelope')?.splashImage)}}</span><button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','splashImage','');$event.stopPropagation()">X</button>}
-                  @else{<button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Subir</button>}
-                </div>
+                @if(sec('envelope')?.splashImage){
+                  <div class="media-preview-row">
+                    <div class="media-thumb">
+                      @if(thumbIsVideo(sec('envelope')?.splashImage)){<span class="material-icons media-type-icon">movie</span>}
+                      @else{<img [src]="sec('envelope')?.splashImage" alt="fondo">}
+                    </div>
+                    <div class="media-meta"><span class="media-badge">{{thumbKind(sec('envelope')?.splashImage)}}</span><span class="file-name">{{getFileName(sec('envelope')?.splashImage)}}</span></div>
+                    <div class="media-actions"><button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('envelope','splashImage','');$event.stopPropagation()">X</button></div>
+                  </div>
+                } @else {<div class="upload-row"><button class="sm-btn" (click)="upload('envelope','splashImage','gifs');$event.stopPropagation()">Subir</button></div>}
               </div>
               @if (sec('envelope')?.splashImage) {
                 <div class="pf"><label>Ajuste en escritorio</label>
@@ -426,10 +441,16 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['intro-bg']) {
             <div class="accordion-body">
               <div class="pf"><label>Fondo (imagen/video/gif)</label>
-                <div class="upload-row">
-                  @if(sec('intro')?.background){<span class="file-name">{{getFileName(sec('intro')?.background)}}</span><button class="sm-btn" (click)="uploadIntroMedia();$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('intro','background','');clearMediaDuration();$event.stopPropagation()">X</button>}
-                  @else{<button class="sm-btn" (click)="uploadIntroMedia();$event.stopPropagation()">Subir</button>}
-                </div>
+                @if(sec('intro')?.background){
+                  <div class="media-preview-row">
+                    <div class="media-thumb">
+                      @if(thumbIsVideo(sec('intro')?.background)){<span class="material-icons media-type-icon">movie</span>}
+                      @else{<img [src]="sec('intro')?.background" alt="fondo">}
+                    </div>
+                    <div class="media-meta"><span class="media-badge">{{thumbKind(sec('intro')?.background)}}</span><span class="file-name">{{getFileName(sec('intro')?.background)}}</span></div>
+                    <div class="media-actions"><button class="sm-btn" (click)="uploadIntroMedia();$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('intro','background','');clearMediaDuration();$event.stopPropagation()">X</button></div>
+                  </div>
+                } @else {<div class="upload-row"><button class="sm-btn" (click)="uploadIntroMedia();$event.stopPropagation()">Subir</button></div>}
               </div>
               @if (sec('intro')?.background) {
                 <div class="media-info">
@@ -683,26 +704,12 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['hero-media']) {
             <div class="accordion-body">
-              <div class="pf"><label>Fondo (imagen/video/gif)</label>
-                <div class="upload-row">
-                  @if(sec('hero')?.backgroundGif){<span class="file-name">{{getFileName(sec('hero')?.backgroundGif)}}</span><button class="sm-btn" (click)="upload('hero','backgroundGif','gifs');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('hero','backgroundGif','');$event.stopPropagation()">X</button>}
-                  @else{<button class="sm-btn" (click)="upload('hero','backgroundGif','gifs');$event.stopPropagation()">Subir</button>}
-                </div>
-              </div>
-              @if (sec('hero')?.backgroundGif) {
-                <div class="pf"><label>Ajuste en escritorio</label>
-                  <app-custom-select [options]="bgFitOptions" [value]="cfg()!.theme.landingBgFit || 'cover'" (valueChange)="setTheme('landingBgFit', $event)"></app-custom-select>
-                </div>
-                @if (cfg()!.theme.landingBgFit === 'banner') {
-                  <div class="pf"><label>Ancho del banner ({{cfg()!.theme.landingBgBannerWidth || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="cfg()!.theme.landingBgBannerWidth || 70" (ngModelChange)="setTheme('landingBgBannerWidth', +$event)"></div>
-                }
-                <p class="pf-hint">En "banner centrado" la imagen mantiene su tamaño (ajustado al alto de la ventana); el slider solo define el ancho visible del banner, recortando mas o menos los lados. Solo aplica en escritorio; en movil ocupa toda la pantalla.</p>
-              }
-              <div class="pf"><label>Audio</label>
-                <div class="upload-row">
-                  @if(sec('hero')?.audioUrl){<span class="file-name">{{getFileName(sec('hero')?.audioUrl)}}</span><button class="sm-btn" (click)="upload('hero','audioUrl','audio');$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('hero','audioUrl','');$event.stopPropagation()">X</button>}
-                  @else{<button class="sm-btn" (click)="upload('hero','audioUrl','audio');$event.stopPropagation()">Subir</button>}
-                </div>
+              <span class="pf-section-title">Fondo propio de la carátula</span>
+              <p class="pf-hint">Esta imagen/video es exclusiva de la carátula y SCROLLEA con ella. Si la dejas vacía, la carátula muestra el fondo global de la landing (Tema Global → Fondo de la Landing).</p>
+              <app-background-control [model]="heroBgModel()" (modelChange)="setHeroBgModel($event)"></app-background-control>
+              <span class="pf-section-title" style="margin-top:12px">Audio</span>
+              <div class="pf"><label>Música de fondo</label>
+                <app-audio-control [url]="sec('hero')?.audioUrl || ''" (urlChange)="setSec('hero','audioUrl',$event)"></app-audio-control>
               </div>
             </div>
           }
@@ -1394,22 +1401,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Intensidad ({{ss('bgIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgIntensity') ?? 50" (ngModelChange)="setSS('bgIntensity',+$event)"></div>
                 }
                 @if(ss('bgType')==='image'){
-                  <div class="pf"><label>Imagen de fondo</label>
-                    <div class="upload-row">
-                      @if(ss('bgImage')){<span class="file-name">{{getFileName(ss('bgImage'))}}</span><button class="sm-btn" (click)="uploadSectionBg();$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSS('bgImage','');$event.stopPropagation()">X</button>}
-                      @else{<button class="sm-btn" (click)="uploadSectionBg();$event.stopPropagation()">Subir imagen</button>}
-                    </div>
-                  </div>
-                  @if(ss('bgImage')){
-                    <div class="pf"><label>Oscurecer fondo ({{ss('bgOverlay') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('bgOverlay') ?? 50" (ngModelChange)="setSS('bgOverlay',+$event)"></div>
-                    <div class="pf"><label>Ajuste en escritorio</label>
-                      <app-custom-select [options]="bgFitOptions" [value]="ss('bgFit') || 'cover'" (valueChange)="setSS('bgFit',$event)"></app-custom-select>
-                    </div>
-                    @if(ss('bgFit') === 'banner'){
-                      <div class="pf"><label>Ancho del banner ({{ss('bgBannerWidth') || 70}}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="ss('bgBannerWidth') || 70" (ngModelChange)="setSS('bgBannerWidth',+$event)"></div>
-                    }
-                    <p class="pf-hint">En "banner centrado" la imagen mantiene su proporción (ajustada al alto) en una columna centrada; el slider define su ancho. Solo aplica en escritorio; en móvil ocupa todo el ancho.</p>
-                  }
+                  <app-background-control [model]="sectionMediaModel()" (modelChange)="setSectionMediaModel($event)"></app-background-control>
                 }
               </div>
             }
@@ -1444,7 +1436,6 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
-            @if (canvasState.selectedSection() !== 'invitation') {
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>
@@ -1477,7 +1468,6 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar todo</button>
               </div>
             }
-            }
 
             <div class="accordion" [class.open]="expanded['sec-anim']" (click)="toggle('sec-anim')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-anim'] ? 'expand_more' : 'chevron_right' }}</span><span>Animacion</span></div>
@@ -1496,7 +1486,6 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
-            @if (canvasState.selectedSection() !== 'invitation') {
             <div class="accordion" [class.open]="expanded['sec-presets']" (click)="toggle('sec-presets')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-presets'] ? 'expand_more' : 'chevron_right' }}</span><span>Presets Rapidos</span></div>
             </div>
@@ -1536,7 +1525,6 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Tamano ({{getOrnamentProp('size') || 1}}x)</label><input type="range" class="pinput-range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp('size') || 1" (ngModelChange)="setOrnament('size',+$event)"></div>
                 }
               </div>
-            }
             }
           }
         }
@@ -1605,6 +1593,14 @@ import { ApiService } from '../../../../../core/services/api.service';
       .material-icons { font-size:13px;color:rgba(139,92,246,0.7);flex-shrink:0;margin-top:1px; }
     }
     .file-name { font-size:10px;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    /* Preview homologado de media (imagen/gif/video) en uploads sueltos. */
+    .media-preview-row { display:flex;align-items:center;gap:8px; }
+    .media-thumb { width:44px;height:44px;border-radius:8px;flex-shrink:0;overflow:hidden;background:rgba(255,255,255,0.06);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center; }
+    .media-thumb img { width:100%;height:100%;object-fit:cover; }
+    .media-type-icon { font-size:24px;color:rgba(255,255,255,0.6); }
+    .media-meta { display:flex;flex-direction:column;gap:2px;min-width:0;flex:1; }
+    .media-badge { align-self:flex-start;font-size:9px;font-weight:700;letter-spacing:0.5px;color:#c084fc;background:rgba(139,92,246,0.15);border-radius:4px;padding:1px 6px; }
+    .media-actions { display:flex;gap:6px;flex-shrink:0; }
     .sm-btn { padding:4px 10px;border-radius:5px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.06);color:rgba(255,255,255,0.7);font-size:10px;cursor:pointer;transition:all 0.15s; &:hover{background:rgba(139,92,246,0.12)} &.danger{border-color:rgba(239,68,68,0.2);color:#ef4444} }
     .tpl-grid-2x2 { display:grid;grid-template-columns:1fr 1fr;gap:4px; }
     .tpl-card { padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.7);font-size:11px;cursor:pointer;transition:all 0.15s;text-align:center; &:hover{background:rgba(139,92,246,0.08);border-color:rgba(139,92,246,0.2)} &.active{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c084fc;font-weight:600} }
@@ -1802,6 +1798,60 @@ export class BuilderPropsPanelComponent {
   setTheme(prop: string, value: any) {
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
     (cfg.theme as any)[prop] = value;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  // ===== Fondos homologados (MediaBackground) — spec fondos-independientes =====
+
+  /** Media del fondo GLOBAL de la landing (theme.landingBg). */
+  themeLandingBg(): MediaBackground | null {
+    return (this.cfg() as any)?.theme?.landingBg ?? null;
+  }
+  setThemeLandingBg(media: MediaBackground) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    (cfg.theme as any).landingBg = media;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  /** Media del fondo propio de la CARÁTULA (hero.heroBackground). */
+  heroBgModel(): MediaBackground | null {
+    return (this.cfg() as any)?.hero?.heroBackground ?? null;
+  }
+  setHeroBgModel(media: MediaBackground) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!(cfg as any).hero) (cfg as any).hero = {};
+    (cfg as any).hero.heroBackground = media;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  /** Media del fondo de la SECCIÓN activa (sectionStyle.media). Con fallback retrocompatible:
+      si no hay `media` pero sí campos legacy (bgImage/bgFit/bgBannerWidth/bgOverlay), los expone
+      como MediaBackground para que el control los muestre y el usuario pueda editarlos. */
+  sectionMediaModel(): MediaBackground | null {
+    const key = this.canvasState.selectedSection(); if (!key) return null;
+    const ss = (this.cfg() as any)?.[key]?.sectionStyle;
+    if (!ss) return null;
+    if (ss.media && ss.media.url) return ss.media;
+    if (ss.bgImage) {
+      return {
+        url: ss.bgImage,
+        fit: ss.bgFit || 'cover',
+        bannerWidth: ss.bgBannerWidth ?? 70,
+        overlay: ss.bgOverlay ?? 0,
+        position: 'center center',
+      };
+    }
+    return ss.media ?? null;
+  }
+  setSectionMediaModel(media: MediaBackground) {
+    const key = this.canvasState.selectedSection(); if (!key) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const s = (cfg as any)[key];
+    if (!s.sectionStyle) s.sectionStyle = { bgType: 'image', dividerType: 'none' };
+    s.sectionStyle.media = media;
     this.canvasState.notifyChange();
     this.canvasState.triggerAutoSave();
   }
@@ -2650,5 +2700,21 @@ export class BuilderPropsPanelComponent {
     const parts = url.split('/');
     const name = parts[parts.length - 1].split('?')[0];
     return name.length > 20 ? name.substring(0, 17) + '...' : name;
+  }
+
+  /** True si la url apunta a un video (para mostrar ícono en vez de miniatura en los previews). */
+  thumbIsVideo(url?: string | null): boolean {
+    if (!url) return false;
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg'].includes(ext);
+  }
+
+  /** Etiqueta de tipo (IMG / GIF / VIDEO) para el badge de los previews de media. */
+  thumbKind(url?: string | null): string {
+    if (!url) return '';
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'ogg'].includes(ext)) return 'VIDEO';
+    if (ext === 'gif') return 'GIF';
+    return 'IMG';
   }
 }

@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InvitationConfig, Guest, GlobalTextStyles } from '../../../core/models/models';
+import { InvitationConfig, Guest, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
 
 @Component({
   selector: 'app-landing-invitation',
@@ -125,6 +125,7 @@ export class LandingInvitationComponent {
   @Input() config!: InvitationConfig;
   @Input() guest: Guest | null = null;
   @Input() styles?: GlobalTextStyles;
+  @Input() sectionStyle?: SectionStyle;
 
   guestNames() { return this.guest?.guest_names.split(',') || []; }
   guestCount() {

@@ -31,10 +31,34 @@ const fileFilter = (req, file, cb) => {
   cb(null, regex.test(ext));
 };
 
-const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } });
+// Límites de tamaño por TIPO de archivo (MB). El tope de multer es el mayor (video 25MB);
+// luego se valida el límite específico por extensión en el handler.
+const SIZE_LIMITS_MB = { image: 10, gif: 15, video: 25, audio: 15 };
+const MAX_UPLOAD_MB = Math.max(...Object.values(SIZE_LIMITS_MB));
+
+/** Clasifica un archivo (por extensión) para elegir su límite de tamaño. */
+function classifyUpload(filename) {
+  const ext = path.extname(filename).toLowerCase().replace('.', '');
+  if (['mp4', 'webm', 'ogg'].includes(ext)) return { kind: 'video', limitMb: SIZE_LIMITS_MB.video };
+  if (ext === 'gif') return { kind: 'gif', limitMb: SIZE_LIMITS_MB.gif };
+  if (['mp3', 'wav', 'm4a'].includes(ext)) return { kind: 'audio', limitMb: SIZE_LIMITS_MB.audio };
+  return { kind: 'image', limitMb: SIZE_LIMITS_MB.image };
+}
+
+const upload = multer({ storage, fileFilter, limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 } });
 
 router.post('/:type', auth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Archivo no válido o no proporcionado' });
+
+  // Validar el límite de tamaño ESPECÍFICO por tipo de archivo. Si excede, borrar y rechazar.
+  const { kind, limitMb } = classifyUpload(req.file.filename);
+  if (req.file.size > limitMb * 1024 * 1024) {
+    fs.promises.unlink(req.file.path).catch(() => {});
+    const label = kind === 'video' ? 'video' : kind === 'gif' ? 'GIF' : kind === 'audio' ? 'audio' : 'imagen';
+    return res.status(413).json({
+      error: `El ${label} pesa ${(req.file.size / 1024 / 1024).toFixed(1)}MB y supera el límite de ${limitMb}MB.`,
+    });
+  }
 
   // Compress images (not gifs, audio, or video)
   const type = req.params.type;

@@ -47,7 +47,19 @@ Debe tener:
 - `location /` → proxy a `127.0.0.1:4200`
 - `location /api/` → proxy a `127.0.0.1:3001`
 - `location /uploads/` → proxy a `127.0.0.1:3001/uploads/`
-- `client_max_body_size 50m;`
+- `client_max_body_size 25m;` (debe ser ≥ al mayor límite de subida). Si falta o es muy bajo
+  (p.ej. 1m por defecto), los uploads fallan con **413 Request Entity Too Large** desde
+  `nginx/x (Ubuntu)` — es el nginx del HOST, no el del contenedor. Tras editarlo:
+  `sudo nginx -t && sudo systemctl reload nginx`.
+
+### Límites de subida por tipo de archivo (spec fondos-independientes)
+Aplicados en el backend (`backend/src/routes/uploads.js`, `SIZE_LIMITS_MB`) y validados también en
+el frontend (`BackgroundControlComponent`) antes de subir:
+- Imagen (jpg/png/webp): **10 MB** (recomendado 300 KB–2 MB; el backend recomprime a máx 1920px).
+- GIF: **15 MB** (recomendado < 5 MB).
+- Video (mp4/webm): **25 MB** (recomendado < 10 MB, corto y en loop).
+- Audio: **15 MB**.
+El `client_max_body_size` del nginx del host debe ser ≥ 25m para no cortar los videos.
 
 ## docker-compose.yml del server (diferencias vs repo)
 

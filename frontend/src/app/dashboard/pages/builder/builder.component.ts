@@ -8,7 +8,8 @@ import { ApiService } from '../../../core/services/api.service';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ColorPickerComponent } from '../../../core/components/color-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../core/components/custom-select.component';
-import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS } from '../../../core/models/models';
+import { EventConfig, CanvasElementType, ELEMENT_DEFAULTS, SectionStyle } from '../../../core/models/models';
+import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMedia } from '../../../core/utils/media-background.util';
 import { CanvasStateService } from './services/canvas-state.service';
 import { MigrationService } from './services/migration.service';
 import { SectionCanvasComponent } from './components/section-canvas/section-canvas.component';
@@ -146,15 +147,17 @@ interface BuilderSection {
                        position:fixed de la landing real. Así el fondo es CONTINUO desde la
                        carátula hasta el final del scope, y el GIF no se estira (se dimensiona
                        al viewport visible, no a la altura total del documento). -->
-                  @if (canvasState.config()?.hero?.backgroundGif || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
+                  @if (canvasGlobalBg().hasMedia || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
                     <div class="canvas-bg-sticky">
-                      @if (canvasState.config()?.hero?.backgroundGif) {
-                        @if (isCanvasBgVideo()) {
-                          <video class="canvas-bg-media" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" autoplay loop muted playsinline [src]="canvasState.config()!.hero.backgroundGif"></video>
+                      @if (canvasGlobalBg().hasMedia) {
+                        @if (canvasGlobalBg().isVideo) {
+                          <video class="canvas-bg-media" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" autoplay loop muted playsinline [src]="canvasGlobalBg().url"></video>
                         } @else {
-                          <div class="canvas-bg-image" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'" [style.backgroundImage]="'url(' + canvasState.config()!.hero.backgroundGif + ')'"></div>
+                          <div class="canvas-bg-image" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.backgroundImage]="'url(' + canvasGlobalBg().url + ')'"></div>
                         }
-                        <div class="canvas-bg-overlay" [class.bg-banner]="canvasState.config()?.theme?.landingBgFit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="(canvasState.config()?.theme?.landingBgBannerWidth || 70) + '%'"></div>
+                        @if (canvasGlobalBg().overlay > 0) {
+                          <div class="canvas-bg-overlay" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.background]="'rgba(0,0,0,' + (canvasGlobalBg().overlay / 100) + ')'"></div>
+                        }
                       }
                       @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
                         <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
@@ -173,7 +176,7 @@ interface BuilderSection {
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
                   <div class="preview-section-click" data-section="details" [class.section-active]="canvasState.selectedSection() === 'details'" [attr.style]="getSectionBgStyle('details')" (click)="selectSection('details'); $event.stopPropagation()">
-                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.details.sectionStyle" />
                   </div>
                 }
                 @if (canvasState.config()?.venues?.enabled) {
@@ -537,7 +540,11 @@ interface BuilderSection {
     .preview-mode-canvas > .preview-section-click,
     .canvas-bg-scope > .preview-section-click { position: relative; z-index: 4; }
     .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(var(--theme-nav-bar-blur, 12px)) !important; border-bottom: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2)) !important; }
-    .preview-mode-canvas ::ng-deep .hero-section { min-height: var(--canvas-vh, 640px) !important; padding-top: 60px !important; }
+    /* En el canvas el navbar es position:relative (ocupa espacio), por lo que la carátula
+       empezaba DEBAJO de él y su fondo también. Con margin-top negativo = alto del navbar (72px),
+       la sección (y su fondo) suben para quedar DETRÁS del navbar; el padding-top mantiene el
+       contenido por debajo del navbar. El navbar (z-index:10) queda por encima del fondo. */
+    .preview-mode-canvas ::ng-deep .hero-section { min-height: var(--canvas-vh, 640px) !important; margin-top: -72px !important; padding-top: 132px !important; }
     .preview-mode-canvas ::ng-deep .countdown { justify-content: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-item { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-value { display: block !important; text-align: center !important; }
@@ -603,6 +610,114 @@ interface BuilderSection {
     .gallery-canvas-style { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 12px; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
+
+    /* ===== Override de texto por sección en el CANVAS (paridad con la landing) =====
+       getSectionBgStyle() inyecta las variables --section-* en .preview-section-click;
+       estas reglas las aplican a los h2/h3/p internos de los componentes de sección.
+       Selectores espejo de los de landing.component.ts, pero scopeados a .preview-section-click. */
+    .preview-section-click[style*="--section-h2-color"] ::ng-deep .section-heading,
+    .preview-section-click[style*="--section-h2-color"] ::ng-deep h2,
+    .preview-section-click[style*="--section-h2-color"] ::ng-deep .invitation-title {
+      color: var(--section-h2-color) !important;
+      -webkit-text-fill-color: var(--section-h2-color) !important;
+      background-image: none !important;
+    }
+    .preview-section-click[style*="--section-h2-font"] ::ng-deep .section-heading,
+    .preview-section-click[style*="--section-h2-font"] ::ng-deep h2,
+    .preview-section-click[style*="--section-h2-font"] ::ng-deep .invitation-title {
+      font-family: var(--section-h2-font) !important;
+    }
+    .preview-section-click[style*="--section-h2-size"] ::ng-deep .section-heading,
+    .preview-section-click[style*="--section-h2-size"] ::ng-deep h2,
+    .preview-section-click[style*="--section-h2-size"] ::ng-deep .invitation-title {
+      font-size: var(--section-h2-size) !important;
+    }
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .invitation-subtitle,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .gallery-desc,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .gifts-desc {
+      color: var(--section-heading-color) !important;
+      -webkit-text-fill-color: var(--section-heading-color) !important;
+      background-image: none !important;
+    }
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .invitation-subtitle {
+      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color) var(--section-heading-mid-a, 25%), var(--section-heading-color2) var(--section-heading-mid-b, 75%), var(--section-heading-color2) 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+    }
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .invitation-subtitle {
+      font-weight: var(--section-heading-weight) !important;
+    }
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .invitation-subtitle,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .gallery-desc,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .gifts-desc {
+      font-family: var(--section-heading-font) !important;
+    }
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .invitation-subtitle {
+      font-size: var(--section-heading-size) !important;
+    }
+    .preview-section-click[style*="--section-content-color"] ::ng-deep p,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .detail-content,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .dresscode-desc,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .example-desc,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .venue-name,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .venue-address,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .timeline-desc {
+      color: var(--section-content-color) !important;
+    }
+    .preview-section-click[style*="--section-content-font"] ::ng-deep p,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .detail-content,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .dresscode-desc,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .example-desc,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .venue-name,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .venue-address,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .timeline-desc {
+      font-family: var(--section-content-font) !important;
+    }
+    .preview-section-click[style*="--section-content-size"] ::ng-deep p,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .detail-content,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .dresscode-desc,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .example-desc,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .venue-name,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .venue-address,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .timeline-desc {
+      font-size: var(--section-content-size) !important;
+    }
     .preview-section-click {
       cursor: pointer; position: relative; transition: box-shadow 0.2s;
       &:hover { box-shadow: inset 3px 0 0 rgba(139,92,246,0.4), inset -3px 0 0 rgba(139,92,246,0.4), inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
@@ -1288,10 +1403,26 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     return colorBg;
   }
 
+  /** True si el dispositivo activo del canvas es escritorio (para resolver override desktop). */
+  private isCanvasDesktop(): boolean {
+    return this.previewDevice() !== 'mobile';
+  }
+
+  /** Fondo GLOBAL del canvas resuelto (theme.landingBg con fallback a hero.backgroundGif). */
+  canvasGlobalBg(): ResolvedMedia {
+    const cfg = this.canvasState.getConfig();
+    const mb = resolveGlobalBackground(cfg?.theme?.landingBg, cfg?.hero?.backgroundGif);
+    return resolveMedia(mb, this.isCanvasDesktop());
+  }
+
   isCanvasBgVideo(): boolean {
-    const url = this.canvasState.getConfig()?.hero?.backgroundGif || '';
-    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
-    return ['mp4', 'webm', 'ogg'].includes(ext);
+    return this.canvasGlobalBg().isVideo;
+  }
+
+  /** Media resuelta del fondo de una sección en el canvas (nuevo modelo + fallback legacy). */
+  canvasSectionMedia(sectionKey: string): ResolvedMedia {
+    const ss = (this.canvasState.getConfig() as any)?.[sectionKey]?.sectionStyle as SectionStyle | undefined;
+    return resolveMedia(sectionStyleToMedia(ss), this.isCanvasDesktop());
   }
 
   /** Degradado lineal de 2 colores con intensidad 0-100:
@@ -1316,29 +1447,50 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         case 'linear': css = `background: ${this.buildLinearGradient(ss.bgAngle ?? 180, ss.bgColor1 || '#1a1a2e', ss.bgColor2 || '#0d1117', ss.bgIntensity ?? 50)}`; break;
         case 'radial': css = `background: radial-gradient(ellipse at center, ${ss.bgColor1 || '#1a1a2e'} ${(ss.bgIntensity ?? 50)}%, ${ss.bgColor2 || '#0d1117'})`; break;
         case 'image': {
-          if (!ss.bgImage) { css = ''; break; }
+          const m = this.canvasSectionMedia(sectionKey);
+          // Si no hay media o es VIDEO, no se pinta background (el <video> lo renderiza el
+          // template del canvas via canvasSectionMedia). Para imagen/gif, se pinta.
+          if (!m.hasMedia || m.isVideo) { css = ''; break; }
           // Oscurecido (overlay) replicado como capa de gradiente sobre la imagen, para que
           // el canvas se vea igual que la landing (que usa un div .section-bg-overlay).
-          const ov = Math.max(0, Math.min(100, ss.bgOverlay ?? 0)) / 100;
+          const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
           const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
-          if (ss.bgFit === 'banner') {
+          if (m.fit === 'banner') {
             const isMobile = this.previewDevice() === 'mobile';
             if (isMobile) {
               // Mobile (prioridad): la imagen CUBRE el ancho y alto de la sección (cover) y la
               // sección toma el alto de pantalla, igual que la landing. Sin huecos.
-              css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
+              css = `background: ${dark}url(${m.url}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
             } else {
               // Desktop: columna centrada del ancho configurado (--sec-banner-w).
-              css = `background: ${dark}url(${ss.bgImage}) top center / ${ss.bgBannerWidth ?? 70}% auto no-repeat`;
+              css = `background: ${dark}url(${m.url}) top center / ${m.bannerWidth}% auto no-repeat`;
             }
           } else {
-            // Pantalla completa: cover (sin cambios).
-            css = `background: ${dark}url(${ss.bgImage}) center/cover no-repeat`;
+            // Pantalla completa: cover.
+            css = `background: ${dark}url(${m.url}) ${m.position || 'center'}/cover no-repeat`;
           }
           break;
         }
       }
     }
+    // Overrides de texto por sección (paridad con la landing getSectionBg). Se inyectan las
+    // mismas variables CSS --section-* para que el canvas refleje el estilo de texto editado.
+    // Las reglas ::ng-deep que las consumen están en los styles de este componente,
+    // scopeadas a .preview-section-click[style*="--section-..."].
+    if (ss.sectionHeadingColor) css += `; --section-h2-color: ${ss.sectionHeadingColor}`;
+    if (ss.sectionHeadingFont) css += `; --section-h2-font: ${this.getCanvasFont(ss.sectionHeadingFont)}`;
+    if (ss.sectionHeadingSize) css += `; --section-h2-size: ${ss.sectionHeadingSize}px`;
+    if (ss.headingColor) css += `; --section-heading-color: ${ss.headingColor}`;
+    if (ss.headingColor2) css += `; --section-heading-color2: ${ss.headingColor2}`;
+    if (ss.headingGradientAngle) css += `; --section-heading-angle: ${ss.headingGradientAngle}deg`;
+    if (ss.headingGradientIntensity != null) { const v = Math.max(0, Math.min(100, ss.headingGradientIntensity)); const mid = 100 - v; css += `; --section-heading-mid-a: ${Math.max(0, mid - 25)}%; --section-heading-mid-b: ${Math.min(100, mid + 25)}%`; }
+    if (ss.headingFontWeight) css += `; --section-heading-weight: ${ss.headingFontWeight}`;
+    if (ss.headingFontSize) css += `; --section-heading-size: ${ss.headingFontSize}px`;
+    if (ss.headingFont) css += `; --section-heading-font: ${this.getCanvasFont(ss.headingFont)}`;
+    if (ss.contentColor) css += `; --section-content-color: ${ss.contentColor}`;
+    if (ss.contentFontSize) css += `; --section-content-size: ${ss.contentFontSize}px`;
+    if (ss.contentFont) css += `; --section-content-font: ${this.getCanvasFont(ss.contentFont)}`;
+
     // Apply clip-path for section transitions — keep outline visible by using overflow visible
     if (ss.dividerType && ss.dividerType !== 'none') {
       const h = ss.dividerHeight || 50;
@@ -1349,6 +1501,20 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     return css;
+  }
+
+  /** Mapea la clave de fuente del tema a su variable CSS (paridad con landing.getThemeFont).
+      Devuelve 'inherit' si no hay clave o no está mapeada. */
+  private getCanvasFont(key?: string): string {
+    if (!key) return 'inherit';
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key] || 'inherit';
   }
 
   private getBuilderClipPath(type: string, h: number, flip: boolean): string {

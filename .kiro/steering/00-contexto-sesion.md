@@ -49,9 +49,15 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
-- **Rama activa:** `feature/canvas-posicionamiento`
-- **Último commit tras la sesión del 2026-10-08:** ver `git log` (se commiteó la tanda de
-  revisión sección por sección de Valeria + fixes de fidelidad canvas↔landing).
+- **Rama activa:** `feature/fondos-independientes` (desde 2026-10-09).
+- **Estructura de ramas (2026-10-09):**
+  - `feature/canvas-posicionamiento` — tenía todo el trabajo acumulado hasta el commit `cce56be`.
+  - `int-008` — CORTE de integración con todo lo último (desde `cce56be`). Reemplaza
+    funcionalmente a la vieja `int-007` (que quedó muy desactualizada). Es el snapshot del estado
+    actual del proyecto. El proyecto está publicado pero aún NO expuesto como producto.
+  - `feature/fondos-independientes` — RAMA DE TRABAJO ACTUAL para el spec del mismo nombre.
+    Nace de `cce56be`. Aquí se implementa el Tema 2 (fondos independientes).
+- **Último commit base de las 3 ramas:** `cce56be` (spec fondos-independientes + steering).
 - **Trabajo de la sesión 2026-10-08:** editor enriquecido + drag + línea de carga en la Intro;
   color de instrucción en el Plano; fix CRÍTICO de `ensureConfigDefaults` (hero y todas las
   secciones perdían campos en la landing pública → posiciones/colores de carátula ahora sí se
@@ -78,10 +84,132 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     - Validación en frontend antes de subir + tooltips con formatos/dimensiones/peso.
     - Retrocompatible: campos nuevos opcionales; si no hay `theme.landingBg`, usar
       `hero.backgroundGif` como global (como hoy). No romper Valeria ni prod.
-    - Plan en `tasks.md`: Fase 0 (Tema1 ✅) → Fase 1 modelo (MediaBackground, theme.landingBg,
-      hero.heroBackground, sectionStyle.media) → Fase 2 helper resolveMedia → Fase 3 render
-      (global/carátula/secciones) → Fase 4 builder (BackgroundControlComponent reutilizable) →
-      Fase 5 uploads límites+validación → Fase 6 retrocompat+verificación.
+    - Plan en `tasks.md`: Fase 0 (Tema1 ✅) → Fase 1 modelo ✅ → Fase 2 helper resolveMedia →
+      Fase 3 render (global/carátula/secciones) → Fase 4 builder (BackgroundControlComponent
+      reutilizable) → Fase 5 uploads límites+validación → Fase 6 retrocompat+verificación.
+    - **Fase 1 HECHA (2026-10-09):** en `models.ts` se añadió `MediaBackground` + `theme.landingBg`
+      + `hero.heroBackground` + `sectionStyle.media` (todos opcionales/retrocompatibles). Build OK.
+    - **Fase 2 HECHA (2026-10-09):** `core/utils/media-background.util.ts` con `resolveMedia`,
+      `isVideoUrl`, `sectionStyleToMedia` (fallback legacy) y `resolveGlobalBackground` (fallback a
+      hero.backgroundGif). Build OK.
+    - **Fase 3 HECHA (2026-10-09):** render de la landing. Fondo global usa `theme.landingBg` con
+      fallback a `backgroundGif` (fijo). Carátula tiene fondo propio (`.hero-bg-media`) que
+      SCROLLEA. Las 8 secciones soportan video (`.section-bg-video`). Todo vía `resolveMedia`.
+    - **Fase 4 HECHA (2026-10-09):** `BackgroundControlComponent`
+      (`builder/components/background-control/`) con upload img/gif/video + validación tamaño por
+      tipo (10/15/25) + tooltip + toggle override desktop + ajuste. Integrado en Tema Global,
+      Carátula y Fondo de Sección. Canvas: `canvasGlobalBg()`/`canvasSectionMedia()`.
+      LIMITACIÓN: canvas no pinta video de fondo por sección (sí en preview/landing).
+    - **Fase 5 HECHA (2026-10-09):** backend `uploads.js` con límites por tipo (SIZE_LIMITS_MB:
+      image 10/gif 15/video 25/audio 15), valida y devuelve 413 si excede. Frontend ya validaba.
+      `docs/DEPLOY.md` actualizado: nginx host `client_max_body_size 25m` + tabla de límites.
+    - **Fase 6 HECHA (2026-10-09):** verificado que ensureConfigDefaults preserva los nuevos
+      campos y que Valeria no tiene regresión (usa backgroundGif como fondo global fallback).
+      Contenedores reconstruidos, landing HTTP 200.
+    - **SPEC fondos-independientes COMPLETO (todas las fases 0-6).**
+    - **Fixes posteriores (2026-10-09, commit c952d55):**
+      - REGRESIÓN de la carátula corregida: el fondo propio rompía el posicionamiento (los
+        drag-box pasaban a referenciar `.hero-content`). Se envolvió el contenido en `.hero-fg`
+        (`position:absolute; inset:0; z-index:1`, NUEVO `data-drag-bounds`) y el fondo quedó en
+        `z-index:0`. Así textos/countdown/flechas mantienen su posición y el navbar queda sobre
+        el fondo. (hero.component.ts)
+      - MIGRACIÓN de fondo global legacy (migration.service.ts > ensureDefaults): si hay
+        `hero.backgroundGif` y no `theme.landingBg`, se promueve a `theme.landingBg` y se limpia
+        `backgroundGif`. Evita el "fallback fantasma" (antes, al quitar la imagen del fondo global,
+        reaparecía backgroundGif). Se aplica al abrir el builder y guardar.
+      - Valeria: se limpió su fondo global (vacío backgroundGif + landingBg) vía API; quedó solo
+        color #caf0f0 + textura paper. (cambio de datos en BD, no en git)
+    - **PENDIENTE ABIERTO — Tema 2 (imagen de carátula vs navbar):** el usuario reporta que la
+      imagen de fondo de la carátula "empieza debajo del navbar" y quiere que la imagen vaya DETRÁS
+      del navbar (navbar por encima, imagen de borde a borde arriba). Falta confirmar si lo ve en
+      el canvas (navbar relative) o en la landing real (navbar fixed) y aplicar el ajuste. NO
+      resuelto aún.
+    - Pendiente general: verificación visual del usuario en navegador/móvil + `client_max_body_size
+      25m` en el nginx del server prod al desplegar.
+
+- **Trabajo de la sesión 2026-10-09 (continuación — Temas C y A, misma rama `feature/fondos-independientes`):**
+  - **Tema C (uploads homologados + control de audio) — HECHO, compila y desplegado:**
+    - `BackgroundControlComponent`: preview con miniatura (imagen/gif) o ícono `movie` (video) +
+      badge de tipo (IMG/GIF/VIDEO) + nombre. Métodos `isVideo()`, `mediaKindLabel()`.
+    - NUEVO `AudioControlComponent` (`builder/components/audio-control/`): ícono audiotrack, badge
+      AUDIO, botón play/pausa (`togglePlay`), se pausa al hacer clic FUERA del control
+      (`@HostListener('document:click')`) y al destruirse. Límite 15MB. API `[url]`/`(urlChange)`.
+      Integrado en el audio del hero del props-panel (reemplazó el upload de solo texto).
+    - props-panel: 3 uploads sueltos homologados con miniatura/ícono + badge: `envelope.sealImage`,
+      `envelope.splashImage`, `intro.background`. Helpers nuevos `thumbIsVideo()`, `thumbKind()` +
+      clases CSS `.media-preview-row/.media-thumb/.media-type-icon/.media-meta/.media-badge/.media-actions`.
+      (Los uploads de venue/detail/itinerary icon y dresscode YA mostraban miniatura, sin cambios.)
+  - **Tema A (override de texto por sección, de Invitación hacia abajo) — HECHO, compila y desplegado:**
+    - `landing.component.ts > getSectionBg`: ahora inyecta también los TAMAÑOS que faltaban:
+      `--section-h2-size` (sectionHeadingSize), `--section-heading-size` (headingFontSize),
+      `--section-content-size` (contentFontSize).
+    - Reglas `::ng-deep` ampliadas: se añadieron reglas para `--section-heading-font`,
+      `--section-content-font` y los 3 tamaños (antes faltaban). Selectores de título ampliados a
+      `.timeline-title`, `.transfer-title`, `.rsvp-name`, `.invitation-name`, `.invitation-subtitle`,
+      `.gallery-desc`, `.gifts-desc`; contenido ampliado a `.timeline-desc`; H2 incluye
+      `.invitation-title`.
+    - Invitation cableada: `landing.component.ts` pasa `[sectionStyle]="...invitation.sectionStyle"`;
+      `invitation.component.ts` declara `@Input() sectionStyle?: SectionStyle`. Se quitó la
+      exclusión de `invitation` en los acordeones 'sec-txt' y 'sec-presets' del props-panel (ahora
+      Invitación también configura texto/presets por sección).
+    - NOTA: se usaron los 3 niveles de texto que YA existían (Encabezado / Títulos / Contenido).
+      NO se añadió un 4º nivel "Subtítulo" independiente (los subtítulos tipo `.invitation-subtitle`
+      y `.gallery-desc` se controlan con el nivel "Títulos").
+  - **Tema B (drag de títulos de sección) — DESCARTADO en esta rama** (riesgo de romper el flujo de
+    cards con position:absolute). Va a otra rama futura si se retoma.
+  - Build frontend OK (solo warnings NG8107 preexistentes). Docker frontend reconstruido; landing
+    `invitacion-valeria` HTTP 200; bundle del contenedor contiene `section-content-font`,
+    `section-heading-size` y `audio-control`.
+  - ⏳ FALTA: verificación visual del usuario en el builder (previews de audio/uploads) y en la
+    landing (herencia de estilos por sección desde Invitación). Commit pendiente de esta tanda.
+  - **FIX paridad canvas↔landing del override de texto por sección — HECHO, compila y desplegado:**
+    - DIAGNÓSTICO (context-gatherer): el override de "Texto de Sección" NO se aplicaba en el CANVAS
+      por 2 fallos: (1) `getSectionBgStyle()` en `builder.component.ts` solo inyectaba fondo+clip-path,
+      nunca las variables `--section-*` de texto; (2) aunque las inyectara, el canvas envuelve las
+      secciones en `.preview-section-click` (no `.section-block`) y no tenía reglas `::ng-deep` que
+      las consumieran. La persistencia (`setSS`/`ss`) sí funcionaba; la landing sí aplicaba (Tema A).
+    - FIX en `builder.component.ts`: (A) `getSectionBgStyle()` ahora inyecta las mismas variables de
+      texto que la landing (`--section-h2-color/font/size`, `--section-heading-color/color2/angle/
+      mid-a/mid-b/weight/size/font`, `--section-content-color/size/font`) con nuevo helper
+      `getCanvasFont()` (espejo de `getThemeFont`). (B) Se añadieron reglas `::ng-deep` scopeadas a
+      `.preview-section-click[style*="--section-..."]` que aplican esas variables a h2/.section-heading/
+      .invitation-title/h3/.venue-title/.timeline-title/.transfer-title/.rsvp-name/.invitation-name/
+      .invitation-subtitle/.gallery-desc/.gifts-desc/p/.detail-content/.venue-name/.timeline-desc, etc.
+    - Las fuentes `--font-*` ya están en `styles.scss :root`, así que el canvas las resuelve igual.
+    - NOTA: el canvas sigue sin pasar `[sectionStyle]` a los componentes de sección (igual que antes);
+      no hace falta para el override de texto (va por las variables CSS del wrapper). Build OK,
+      contenedor reconstruido, landing HTTP 200, bundle contiene las reglas de `.preview-section-click`.
+    - ⏳ FALTA: verificación visual del usuario (editar texto de una sección y ver el cambio en vivo
+      en el canvas, no solo en Preview/landing).
+  - **FIX REAL override de texto por sección (2º intento, el que SÍ funciona) — HECHO y VERIFICADO
+    por el usuario en Detalles:**
+    - El enfoque anterior (inyectar variables `--section-*` + reglas `::ng-deep` en el wrapper) NO
+      aplicaba en el canvas de forma fiable. CAUSA DE FONDO: los componentes de sección pintan el
+      texto con estilos inline (`[style.color]` etc.) leídos SOLO del tema global (`styles`
+      GlobalTextStyles), NUNCA de `sectionStyle`. Las variables CSS externas + `::ng-deep` eran
+      frágiles (dependían de re-render del método `getSectionBgStyle`, del guard `[style*=...]` y de
+      la cascada). ADEMÁS un primer parche quedó mal: usé comillas en vez de backticks y el template
+      `var(--x, ${...})` se emitió literal (sin interpolar).
+    - ENFOQUE NUEVO (determinista, piloto en Detalles): el PROPIO componente resuelve el estilo con
+      prioridad `sectionStyle` > `styles` (tema global) > default, en helpers TS que devuelven el
+      valor final, y el binding inline usa ese valor directo. Sin depender de variables CSS externas
+      ni de reglas `::ng-deep`. Funciona igual en canvas y landing.
+      - `details.component.ts`: helpers `headingColor/Font/Size` (lee `sectionStyle.sectionHeading*`),
+        `titleColor/Font/Size/Weight` (lee `sectionStyle.heading*`), `contentColor/Font/Size`
+        (lee `sectionStyle.content*`), `useTitleGradient()` (desactiva el gradiente del tema si la
+        sección define color de título propio). Los `<h2>/<h3>/.detail-content` usan esos helpers.
+      - `builder.component.ts` (canvas): ahora pasa `[sectionStyle]="...details.sectionStyle"` a
+        `app-landing-details` (antes no lo pasaba).
+    - ⚠️ SOLO DETALLES ESTÁ MIGRADO. Las otras 7 secciones (venues, itinerary, gallery, dresscode,
+      gifts, rsvp, invitation) SIGUEN con el mecanismo viejo de variables CSS `--section-*` +
+      `::ng-deep` (que puede fallar igual). PENDIENTE: replicar el patrón de Detalles en las 7 y
+      luego RETIRAR la capa redundante de variables/`::ng-deep` para dejar una sola fuente de verdad.
+    - ⚠️ DESCUBRIMIENTO sobre Docker: `docker-compose up --build frontend` REUTILIZÓ una capa de
+      build cacheada y dejó el contenedor con una build ANTERIOR al último cambio (verificado por
+      timestamp de `index.html` vs del fuente). Si un cambio "no se ve", comparar
+      `docker exec invitaciones-frontend ls -l --full-time /usr/share/nginx/html/index.html` contra
+      el `LastWriteTimeUtc` del fuente, y reconstruir con `docker-compose build --no-cache frontend`
+      seguido de `docker-compose up -d frontend`. Hacer Ctrl+F5 en el navegador (cambia el hash JS).
 
 ### Features en curso / pendientes concretos
 

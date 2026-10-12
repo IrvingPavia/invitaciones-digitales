@@ -98,6 +98,25 @@ export class MigrationService {
       }
     }
 
+    // Migración de fondo GLOBAL (spec fondos-independientes): el valor legacy hero.backgroundGif
+    // actuaba como fondo global de la landing. Al introducir theme.landingBg, lo promovemos UNA
+    // vez: si hay backgroundGif y no hay theme.landingBg, se mueve a theme.landingBg y se limpia
+    // backgroundGif. Así el usuario lo ve/edita/quita en "Fondo de la Landing" y no queda un
+    // fallback fantasma (antes, al quitar la imagen del fondo global, reaparecía el backgroundGif).
+    if (config.theme) {
+      const legacyBg = (config.hero as any)?.backgroundGif;
+      if (legacyBg && !(config.theme as any).landingBg) {
+        (config.theme as any).landingBg = {
+          url: legacyBg,
+          fit: (config.theme as any).landingBgFit || 'cover',
+          bannerWidth: (config.theme as any).landingBgBannerWidth ?? 70,
+          position: 'center center',
+          overlay: 0,
+        };
+        (config.hero as any).backgroundGif = '';
+      }
+    }
+
     // Invitation: ensure exists
     if (!config.invitation) {
       config.invitation = { title: '', subtitle: '' } as any;
