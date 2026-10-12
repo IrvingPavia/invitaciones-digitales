@@ -16,9 +16,9 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
               <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
             }
             <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+                [style.font-family]="headingFont()"
+                [style.font-size]="headingSize()"
+                [style.color]="headingColor()"
             >{{ config.title || 'Detalles del Evento' }}</h2>
             @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
               <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
@@ -28,9 +28,9 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           <div class="section-header">
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
             <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+                [style.font-family]="headingFont()"
+                [style.font-size]="headingSize()"
+                [style.color]="headingColor()"
             >{{ config.title || 'Detalles del Evento' }}</h2>
             <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
           </div>
@@ -50,19 +50,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                 }
               }
               @if (card.title) {
-                <h3 [style.font-family]="getFontFamily(styles?.titleStyle?.fontFamily)"
-                    [style.font-size.px]="styles?.titleStyle?.fontSize || 18"
-                    [style.font-weight]="styles?.titleStyle?.fontWeight || 400"
+                <h3 [style.font-family]="titleFont()"
+                    [style.font-size]="titleSize()"
+                    [style.font-weight]="titleWeight()"
                     [style.background-image]="getTitleGradient()"
-                    [class.gradient-text]="!!styles?.titleStyle?.color2"
-                    [style.color]="!styles?.titleStyle?.color2 ? (styles?.titleStyle?.color || '#d4a017') : null"
+                    [class.gradient-text]="useTitleGradient()"
+                    [style.color]="!useTitleGradient() ? titleColor() : null"
                 >{{ card.title }}</h3>
               }
               <div [style.text-align]="card.textAlign"
                  class="detail-content"
-                 [style.font-family]="getFontFamily(styles?.contentStyle?.fontFamily)"
-                 [style.font-size.px]="styles?.contentStyle?.fontSize || 14"
-                 [style.color]="styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'"
+                 [style.font-family]="contentFont()"
+                 [style.font-size]="contentSize()"
+                 [style.color]="contentColor()"
                  [innerHTML]="card.content"
               ></div>
             </div>
@@ -142,6 +142,29 @@ export class LandingDetailsComponent {
     };
     return map[key || 'sans'] || 'var(--font-sans)';
   }
+
+  /* ===== Resolución de estilos de texto con override por sección =====
+     Prioridad: sectionStyle (override por sección) > styles (tema global) > default.
+     Se resuelve 100% en el componente (no depende de variables CSS externas ni reglas
+     ::ng-deep), por lo que funciona idéntico en canvas y landing. */
+
+  // Encabezado de sección (h2) -> sectionStyle.sectionHeading* > styles.sectionHeadingStyle
+  headingColor(): string { return this.sectionStyle?.sectionHeadingColor || this.styles?.sectionHeadingStyle?.color || '#d4a017'; }
+  headingFont(): string { return this.getFontFamily(this.sectionStyle?.sectionHeadingFont || this.styles?.sectionHeadingStyle?.fontFamily); }
+  headingSize(): string { return `${this.sectionStyle?.sectionHeadingSize || this.styles?.sectionHeadingStyle?.fontSize || 36}px`; }
+
+  // Títulos internos (h3) -> sectionStyle.heading* > styles.titleStyle
+  titleColor(): string { return this.sectionStyle?.headingColor || this.styles?.titleStyle?.color || '#d4a017'; }
+  titleFont(): string { return this.getFontFamily(this.sectionStyle?.headingFont || this.styles?.titleStyle?.fontFamily); }
+  titleSize(): string { return `${this.sectionStyle?.headingFontSize || this.styles?.titleStyle?.fontSize || 18}px`; }
+  titleWeight(): string { return `${this.sectionStyle?.headingFontWeight || this.styles?.titleStyle?.fontWeight || 400}`; }
+  /** Gradiente del título: aplica si hay color2 global y la sección NO define un color de título propio. */
+  useTitleGradient(): boolean { return !this.sectionStyle?.headingColor && !!this.styles?.titleStyle?.color2; }
+
+  // Contenido (.detail-content) -> sectionStyle.content* > styles.contentStyle
+  contentColor(): string { return this.sectionStyle?.contentColor || this.styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'; }
+  contentFont(): string { return this.getFontFamily(this.sectionStyle?.contentFont || this.styles?.contentStyle?.fontFamily); }
+  contentSize(): string { return `${this.sectionStyle?.contentFontSize || this.styles?.contentStyle?.fontSize || 14}px`; }
 
   getSeparatorBg(): string {
     const c = this.styles?.separatorStyle?.color || '#d4a017';

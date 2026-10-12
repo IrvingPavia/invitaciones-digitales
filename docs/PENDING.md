@@ -49,6 +49,19 @@
 - [x] **Stroke/borde opcional en la transición**: Controles de grosor (0-5px), color y opacidad del borde visible en la forma de la transición entre secciones. SVG overlay sincronizado con el clip-path. Disponible en todas las tabs.
 - [x] **Preview del iframe se actualiza automáticamente**: Auto-refresh del iframe al guardar config exitosamente (sin necesidad de click en "Recargar").
 - [ ] **Verificar landing real en dispositivo móvil**: Validar que clip-path de transiciones funciona en iOS Safari y Android Chrome
+- [x] **Override de texto por sección NO aplicaba (encabezado/títulos/contenido)**: El mecanismo original (variables CSS `--section-*` + reglas `::ng-deep` en el wrapper) no era fiable, sobre todo en el canvas. Causa: los componentes de sección pintaban el texto con estilos inline leídos solo del tema global (`styles`), nunca de `sectionStyle`.
+    > Fix (piloto Detalles): el componente resuelve el estilo con prioridad `sectionStyle` > tema global > default en helpers TS, y el binding inline usa ese valor. El canvas ahora pasa `[sectionStyle]` a `app-landing-details`. Verificado por el usuario. ⚠️ SOLO Detalles migrado.
+- [ ] **Replicar el fix de override de texto en las 7 secciones restantes** (venues, itinerary, gallery, dresscode, gifts, rsvp, invitation) con el mismo patrón de Detalles, y luego RETIRAR la capa redundante de variables `--section-*` + reglas `::ng-deep` (canvas y landing) para dejar una sola fuente de verdad.
+
+### 🆕 Drag & Drop selectivo de elementos por sección (nueva rama, parte de int-008)
+
+> **Contexto / motivación (del usuario)**: Los textos de cada sección (encabezado, títulos, contenido) junto con el color/estilo de letra del tema NO siempre quedan legibles cuando la imagen de fondo de la sección tiene dibujos u ornamentos. Lo ideal es poder posicionar los textos en zonas del fondo donde se alineen/lean bien.
+>
+> **Idea**: Extender el drag & drop (que hoy existe en Carátula/Intro/Plano) a TODAS las secciones, pero de forma SELECTIVA: definir qué elementos de cada sección se pueden mover libremente y cuáles mantienen su posición en el flujo. Objetivo: que el cliente reubique textos sobre el fondo configurado para máxima legibilidad.
+> **Riesgo conocido (de análisis previo)**: usar `position:absolute` saca el elemento del flujo y puede reflowar/romper las cards (venues, details). Por eso debe ser selectivo y por elemento, no global.
+- [ ] Diseñar el modelo de "elementos movibles por sección" (qué es arrastrable, límites/bounds, persistencia de posición).
+- [ ] Implementar sección por sección, empezando por las de menor riesgo.
+- [ ] Rama a crear DESDE `int-008` (tras mergear `feature/fondos-independientes`).
 
 ### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
 

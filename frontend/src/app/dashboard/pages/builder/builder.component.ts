@@ -176,7 +176,7 @@ interface BuilderSection {
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
                   <div class="preview-section-click" data-section="details" [class.section-active]="canvasState.selectedSection() === 'details'" [attr.style]="getSectionBgStyle('details')" (click)="selectSection('details'); $event.stopPropagation()">
-                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.details.sectionStyle" />
                   </div>
                 }
                 @if (canvasState.config()?.venues?.enabled) {

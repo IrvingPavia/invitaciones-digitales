@@ -11,9 +11,43 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-08
+## Estado actual del proyecto: 2026-10-12
 
-### Rama activa: `feature/canvas-posicionamiento`
+### Rama activa: `feature/fondos-independientes`
+
+### Sesión: Temas C/A + fix override de texto por sección (canvas↔landing) + PR a int-008
+
+**Tema C (uploads con preview + control de audio):** `BackgroundControlComponent` muestra
+miniatura/ícono + badge de tipo; nuevo `AudioControlComponent` (play/pausa, se detiene al clic
+fuera, límite 15MB) integrado en el audio del hero; 3 uploads sueltos homologados con miniatura
+(sealImage, splashImage, intro.background). Commit `a7d37a5`.
+
+**Tema A (override de texto por sección, de Invitación hacia abajo):** se inyectaron las variables
+de tamaño que faltaban en `getSectionBg`, se ampliaron reglas `::ng-deep` (fuente/tamaño + más
+selectores de título), e Invitación recibe `[sectionStyle]`. Commit `a7d37a5`.
+
+**Fix paridad canvas (1er intento):** `getSectionBgStyle` del canvas no inyectaba las variables
+`--section-*` de texto ni tenía reglas `::ng-deep`. Se añadieron. Commit `4d88109`. PERO seguía
+sin aplicar de forma fiable.
+
+**Fix REAL del override de texto (el que funciona, verificado por el usuario) — piloto Detalles:**
+el mecanismo de variables CSS + `::ng-deep` era frágil (dependía de re-render, guards de
+atributo y la cascada; un parche intermedio además quedó mal escrito con comillas en vez de
+backticks). ENFOQUE NUEVO: el propio componente resuelve el estilo con prioridad
+`sectionStyle` > tema global > default en helpers TS, y el binding inline usa ese valor directo.
+`details.component.ts` migrado; el canvas ahora pasa `[sectionStyle]` a `app-landing-details`.
+⚠️ SOLO Detalles está migrado; las otras 7 secciones siguen con el mecanismo viejo (pendiente
+replicar + retirar la capa redundante de variables/`::ng-deep`).
+
+**Nota Docker:** `docker-compose up --build` reutilizó una capa cacheada y dejó el contenedor con
+una build vieja (detectado por timestamp de `index.html` vs fuente). Se forzó
+`docker-compose build --no-cache frontend` + `up -d`. Verificar siempre la fecha del build.
+
+**Siguiente:** PR de `feature/fondos-independientes` → `int-008`. Desde `int-008` saldrá una rama
+nueva para el drag & drop SELECTIVO de elementos por sección (mover textos sobre el fondo para
+legibilidad; ver `docs/PENDING.md`).
+
+### Rama activa previa: `feature/canvas-posicionamiento`
 
 ### Sesión: Revisión sección por sección de la Invitación Valeria + fixes de fidelidad canvas↔landing
 

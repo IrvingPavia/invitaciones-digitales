@@ -181,6 +181,35 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
       contenedor reconstruido, landing HTTP 200, bundle contiene las reglas de `.preview-section-click`.
     - ⏳ FALTA: verificación visual del usuario (editar texto de una sección y ver el cambio en vivo
       en el canvas, no solo en Preview/landing).
+  - **FIX REAL override de texto por sección (2º intento, el que SÍ funciona) — HECHO y VERIFICADO
+    por el usuario en Detalles:**
+    - El enfoque anterior (inyectar variables `--section-*` + reglas `::ng-deep` en el wrapper) NO
+      aplicaba en el canvas de forma fiable. CAUSA DE FONDO: los componentes de sección pintan el
+      texto con estilos inline (`[style.color]` etc.) leídos SOLO del tema global (`styles`
+      GlobalTextStyles), NUNCA de `sectionStyle`. Las variables CSS externas + `::ng-deep` eran
+      frágiles (dependían de re-render del método `getSectionBgStyle`, del guard `[style*=...]` y de
+      la cascada). ADEMÁS un primer parche quedó mal: usé comillas en vez de backticks y el template
+      `var(--x, ${...})` se emitió literal (sin interpolar).
+    - ENFOQUE NUEVO (determinista, piloto en Detalles): el PROPIO componente resuelve el estilo con
+      prioridad `sectionStyle` > `styles` (tema global) > default, en helpers TS que devuelven el
+      valor final, y el binding inline usa ese valor directo. Sin depender de variables CSS externas
+      ni de reglas `::ng-deep`. Funciona igual en canvas y landing.
+      - `details.component.ts`: helpers `headingColor/Font/Size` (lee `sectionStyle.sectionHeading*`),
+        `titleColor/Font/Size/Weight` (lee `sectionStyle.heading*`), `contentColor/Font/Size`
+        (lee `sectionStyle.content*`), `useTitleGradient()` (desactiva el gradiente del tema si la
+        sección define color de título propio). Los `<h2>/<h3>/.detail-content` usan esos helpers.
+      - `builder.component.ts` (canvas): ahora pasa `[sectionStyle]="...details.sectionStyle"` a
+        `app-landing-details` (antes no lo pasaba).
+    - ⚠️ SOLO DETALLES ESTÁ MIGRADO. Las otras 7 secciones (venues, itinerary, gallery, dresscode,
+      gifts, rsvp, invitation) SIGUEN con el mecanismo viejo de variables CSS `--section-*` +
+      `::ng-deep` (que puede fallar igual). PENDIENTE: replicar el patrón de Detalles en las 7 y
+      luego RETIRAR la capa redundante de variables/`::ng-deep` para dejar una sola fuente de verdad.
+    - ⚠️ DESCUBRIMIENTO sobre Docker: `docker-compose up --build frontend` REUTILIZÓ una capa de
+      build cacheada y dejó el contenedor con una build ANTERIOR al último cambio (verificado por
+      timestamp de `index.html` vs del fuente). Si un cambio "no se ve", comparar
+      `docker exec invitaciones-frontend ls -l --full-time /usr/share/nginx/html/index.html` contra
+      el `LastWriteTimeUtc` del fuente, y reconstruir con `docker-compose build --no-cache frontend`
+      seguido de `docker-compose up -d frontend`. Hacer Ctrl+F5 en el navegador (cambia el hash JS).
 
 ### Features en curso / pendientes concretos
 
