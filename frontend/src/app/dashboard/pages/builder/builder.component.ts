@@ -610,6 +610,114 @@ interface BuilderSection {
     .gallery-canvas-style { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 12px; }
     .preview-mode-canvas ::ng-deep [style*="position: fixed"],
     .preview-mode-canvas ::ng-deep [style*="position:fixed"] { position: relative !important; }
+
+    /* ===== Override de texto por sección en el CANVAS (paridad con la landing) =====
+       getSectionBgStyle() inyecta las variables --section-* en .preview-section-click;
+       estas reglas las aplican a los h2/h3/p internos de los componentes de sección.
+       Selectores espejo de los de landing.component.ts, pero scopeados a .preview-section-click. */
+    .preview-section-click[style*="--section-h2-color"] ::ng-deep .section-heading,
+    .preview-section-click[style*="--section-h2-color"] ::ng-deep h2,
+    .preview-section-click[style*="--section-h2-color"] ::ng-deep .invitation-title {
+      color: var(--section-h2-color) !important;
+      -webkit-text-fill-color: var(--section-h2-color) !important;
+      background-image: none !important;
+    }
+    .preview-section-click[style*="--section-h2-font"] ::ng-deep .section-heading,
+    .preview-section-click[style*="--section-h2-font"] ::ng-deep h2,
+    .preview-section-click[style*="--section-h2-font"] ::ng-deep .invitation-title {
+      font-family: var(--section-h2-font) !important;
+    }
+    .preview-section-click[style*="--section-h2-size"] ::ng-deep .section-heading,
+    .preview-section-click[style*="--section-h2-size"] ::ng-deep h2,
+    .preview-section-click[style*="--section-h2-size"] ::ng-deep .invitation-title {
+      font-size: var(--section-h2-size) !important;
+    }
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .invitation-subtitle,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .gallery-desc,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep .gifts-desc {
+      color: var(--section-heading-color) !important;
+      -webkit-text-fill-color: var(--section-heading-color) !important;
+      background-image: none !important;
+    }
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep .invitation-subtitle {
+      background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color) var(--section-heading-mid-a, 25%), var(--section-heading-color2) var(--section-heading-mid-b, 75%), var(--section-heading-color2) 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+    }
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep .invitation-subtitle {
+      font-weight: var(--section-heading-weight) !important;
+    }
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .invitation-subtitle,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .gallery-desc,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep .gifts-desc {
+      font-family: var(--section-heading-font) !important;
+    }
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .example-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .venue-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .timeline-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .transfer-title,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .rsvp-name,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .invitation-name,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep .invitation-subtitle {
+      font-size: var(--section-heading-size) !important;
+    }
+    .preview-section-click[style*="--section-content-color"] ::ng-deep p,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .detail-content,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .dresscode-desc,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .example-desc,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .venue-name,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .venue-address,
+    .preview-section-click[style*="--section-content-color"] ::ng-deep .timeline-desc {
+      color: var(--section-content-color) !important;
+    }
+    .preview-section-click[style*="--section-content-font"] ::ng-deep p,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .detail-content,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .dresscode-desc,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .example-desc,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .venue-name,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .venue-address,
+    .preview-section-click[style*="--section-content-font"] ::ng-deep .timeline-desc {
+      font-family: var(--section-content-font) !important;
+    }
+    .preview-section-click[style*="--section-content-size"] ::ng-deep p,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .detail-content,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .dresscode-desc,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .example-desc,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .venue-name,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .venue-address,
+    .preview-section-click[style*="--section-content-size"] ::ng-deep .timeline-desc {
+      font-size: var(--section-content-size) !important;
+    }
     .preview-section-click {
       cursor: pointer; position: relative; transition: box-shadow 0.2s;
       &:hover { box-shadow: inset 3px 0 0 rgba(139,92,246,0.4), inset -3px 0 0 rgba(139,92,246,0.4), inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
@@ -1365,6 +1473,24 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     }
+    // Overrides de texto por sección (paridad con la landing getSectionBg). Se inyectan las
+    // mismas variables CSS --section-* para que el canvas refleje el estilo de texto editado.
+    // Las reglas ::ng-deep que las consumen están en los styles de este componente,
+    // scopeadas a .preview-section-click[style*="--section-..."].
+    if (ss.sectionHeadingColor) css += `; --section-h2-color: ${ss.sectionHeadingColor}`;
+    if (ss.sectionHeadingFont) css += `; --section-h2-font: ${this.getCanvasFont(ss.sectionHeadingFont)}`;
+    if (ss.sectionHeadingSize) css += `; --section-h2-size: ${ss.sectionHeadingSize}px`;
+    if (ss.headingColor) css += `; --section-heading-color: ${ss.headingColor}`;
+    if (ss.headingColor2) css += `; --section-heading-color2: ${ss.headingColor2}`;
+    if (ss.headingGradientAngle) css += `; --section-heading-angle: ${ss.headingGradientAngle}deg`;
+    if (ss.headingGradientIntensity != null) { const v = Math.max(0, Math.min(100, ss.headingGradientIntensity)); const mid = 100 - v; css += `; --section-heading-mid-a: ${Math.max(0, mid - 25)}%; --section-heading-mid-b: ${Math.min(100, mid + 25)}%`; }
+    if (ss.headingFontWeight) css += `; --section-heading-weight: ${ss.headingFontWeight}`;
+    if (ss.headingFontSize) css += `; --section-heading-size: ${ss.headingFontSize}px`;
+    if (ss.headingFont) css += `; --section-heading-font: ${this.getCanvasFont(ss.headingFont)}`;
+    if (ss.contentColor) css += `; --section-content-color: ${ss.contentColor}`;
+    if (ss.contentFontSize) css += `; --section-content-size: ${ss.contentFontSize}px`;
+    if (ss.contentFont) css += `; --section-content-font: ${this.getCanvasFont(ss.contentFont)}`;
+
     // Apply clip-path for section transitions — keep outline visible by using overflow visible
     if (ss.dividerType && ss.dividerType !== 'none') {
       const h = ss.dividerHeight || 50;
@@ -1375,6 +1501,20 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     return css;
+  }
+
+  /** Mapea la clave de fuente del tema a su variable CSS (paridad con landing.getThemeFont).
+      Devuelve 'inherit' si no hay clave o no está mapeada. */
+  private getCanvasFont(key?: string): string {
+    if (!key) return 'inherit';
+    const map: Record<string, string> = {
+      'sans': 'var(--font-sans)', 'serif': 'var(--font-serif)', 'script': 'var(--font-script)',
+      'cormorant': 'var(--font-cormorant)', 'spumoni': 'var(--font-spumoni)', 'dancing': 'var(--font-dancing)',
+      'montserrat': 'var(--font-montserrat)', 'raleway': 'var(--font-raleway)', 'cinzel': 'var(--font-cinzel)',
+      'sacramento': 'var(--font-sacramento)', 'tangerine': 'var(--font-tangerine)', 'alexbrush': 'var(--font-alexbrush)',
+      'pinyon': 'var(--font-pinyon)', 'aura': 'var(--font-aura)', 'allura': 'var(--font-allura)', 'josefin': 'var(--font-josefin)', 'baskerville': 'var(--font-baskerville)'
+    };
+    return map[key] || 'inherit';
   }
 
   private getBuilderClipPath(type: string, h: number, flip: boolean): string {

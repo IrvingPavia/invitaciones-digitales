@@ -162,6 +162,25 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     `section-heading-size` y `audio-control`.
   - ⏳ FALTA: verificación visual del usuario en el builder (previews de audio/uploads) y en la
     landing (herencia de estilos por sección desde Invitación). Commit pendiente de esta tanda.
+  - **FIX paridad canvas↔landing del override de texto por sección — HECHO, compila y desplegado:**
+    - DIAGNÓSTICO (context-gatherer): el override de "Texto de Sección" NO se aplicaba en el CANVAS
+      por 2 fallos: (1) `getSectionBgStyle()` en `builder.component.ts` solo inyectaba fondo+clip-path,
+      nunca las variables `--section-*` de texto; (2) aunque las inyectara, el canvas envuelve las
+      secciones en `.preview-section-click` (no `.section-block`) y no tenía reglas `::ng-deep` que
+      las consumieran. La persistencia (`setSS`/`ss`) sí funcionaba; la landing sí aplicaba (Tema A).
+    - FIX en `builder.component.ts`: (A) `getSectionBgStyle()` ahora inyecta las mismas variables de
+      texto que la landing (`--section-h2-color/font/size`, `--section-heading-color/color2/angle/
+      mid-a/mid-b/weight/size/font`, `--section-content-color/size/font`) con nuevo helper
+      `getCanvasFont()` (espejo de `getThemeFont`). (B) Se añadieron reglas `::ng-deep` scopeadas a
+      `.preview-section-click[style*="--section-..."]` que aplican esas variables a h2/.section-heading/
+      .invitation-title/h3/.venue-title/.timeline-title/.transfer-title/.rsvp-name/.invitation-name/
+      .invitation-subtitle/.gallery-desc/.gifts-desc/p/.detail-content/.venue-name/.timeline-desc, etc.
+    - Las fuentes `--font-*` ya están en `styles.scss :root`, así que el canvas las resuelve igual.
+    - NOTA: el canvas sigue sin pasar `[sectionStyle]` a los componentes de sección (igual que antes);
+      no hace falta para el override de texto (va por las variables CSS del wrapper). Build OK,
+      contenedor reconstruido, landing HTTP 200, bundle contiene las reglas de `.preview-section-click`.
+    - ⏳ FALTA: verificación visual del usuario (editar texto de una sección y ver el cambio en vivo
+      en el canvas, no solo en Preview/landing).
 
 ### Features en curso / pendientes concretos
 
