@@ -161,7 +161,7 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
             <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.invitation.sectionStyle).overlay / 100"></div>
           }
           <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
-            <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" />
+            <app-landing-invitation [config]="data()!.config.invitation" [guest]="guest()" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.invitation.sectionStyle" />
           </div>
         </div>
         @if (data()!.config.details.enabled && data()!.config.details.cards.length > 0) {
@@ -437,26 +437,51 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       padding-right: max(20px, calc(50vw - clamp(260px, 25vw, 340px)));
       margin-top: -1px;
     }
+    /* ===== Override de texto por sección =====
+       Encabezado (H2): .section-heading / h2 / .invitation-title
+       Títulos internos (H3/H4): h3, .venue-title, .example-title, .timeline-title,
+         .transfer-title, .rsvp-name, .invitation-name, .invitation-subtitle, .gallery-desc, .gifts-desc
+       Contenido: p, .detail-content, .dresscode-desc, .example-desc, .venue-name, .venue-address,
+         .timeline-desc */
     .section-block[style*="--section-h2-color"] ::ng-deep .section-heading,
-    .section-block[style*="--section-h2-color"] ::ng-deep h2 {
+    .section-block[style*="--section-h2-color"] ::ng-deep h2,
+    .section-block[style*="--section-h2-color"] ::ng-deep .invitation-title {
       color: var(--section-h2-color) !important;
       -webkit-text-fill-color: var(--section-h2-color) !important;
       background-image: none !important;
     }
     .section-block[style*="--section-h2-font"] ::ng-deep .section-heading,
-    .section-block[style*="--section-h2-font"] ::ng-deep h2 {
+    .section-block[style*="--section-h2-font"] ::ng-deep h2,
+    .section-block[style*="--section-h2-font"] ::ng-deep .invitation-title {
       font-family: var(--section-h2-font) !important;
+    }
+    .section-block[style*="--section-h2-size"] ::ng-deep .section-heading,
+    .section-block[style*="--section-h2-size"] ::ng-deep h2,
+    .section-block[style*="--section-h2-size"] ::ng-deep .invitation-title {
+      font-size: var(--section-h2-size) !important;
     }
     .section-block[style*="--section-heading-color"] ::ng-deep h3,
     .section-block[style*="--section-heading-color"] ::ng-deep .example-title,
-    .section-block[style*="--section-heading-color"] ::ng-deep .venue-title {
+    .section-block[style*="--section-heading-color"] ::ng-deep .venue-title,
+    .section-block[style*="--section-heading-color"] ::ng-deep .timeline-title,
+    .section-block[style*="--section-heading-color"] ::ng-deep .transfer-title,
+    .section-block[style*="--section-heading-color"] ::ng-deep .rsvp-name,
+    .section-block[style*="--section-heading-color"] ::ng-deep .invitation-name,
+    .section-block[style*="--section-heading-color"] ::ng-deep .invitation-subtitle,
+    .section-block[style*="--section-heading-color"] ::ng-deep .gallery-desc,
+    .section-block[style*="--section-heading-color"] ::ng-deep .gifts-desc {
       color: var(--section-heading-color) !important;
       -webkit-text-fill-color: var(--section-heading-color) !important;
       background-image: none !important;
     }
     .section-block[style*="--section-heading-color2"] ::ng-deep h3,
     .section-block[style*="--section-heading-color2"] ::ng-deep .example-title,
-    .section-block[style*="--section-heading-color2"] ::ng-deep .venue-title {
+    .section-block[style*="--section-heading-color2"] ::ng-deep .venue-title,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .timeline-title,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .transfer-title,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .rsvp-name,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .invitation-name,
+    .section-block[style*="--section-heading-color2"] ::ng-deep .invitation-subtitle {
       background: linear-gradient(var(--section-heading-angle, 135deg), var(--section-heading-color) 0%, var(--section-heading-color) var(--section-heading-mid-a, 25%), var(--section-heading-color2) var(--section-heading-mid-b, 75%), var(--section-heading-color2) 100%) !important;
       -webkit-background-clip: text !important;
       -webkit-text-fill-color: transparent !important;
@@ -464,16 +489,62 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
     }
     .section-block[style*="--section-heading-weight"] ::ng-deep h3,
     .section-block[style*="--section-heading-weight"] ::ng-deep .example-title,
-    .section-block[style*="--section-heading-weight"] ::ng-deep .venue-title {
+    .section-block[style*="--section-heading-weight"] ::ng-deep .venue-title,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .timeline-title,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .transfer-title,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .rsvp-name,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .invitation-name,
+    .section-block[style*="--section-heading-weight"] ::ng-deep .invitation-subtitle {
       font-weight: var(--section-heading-weight) !important;
+    }
+    .section-block[style*="--section-heading-font"] ::ng-deep h3,
+    .section-block[style*="--section-heading-font"] ::ng-deep .example-title,
+    .section-block[style*="--section-heading-font"] ::ng-deep .venue-title,
+    .section-block[style*="--section-heading-font"] ::ng-deep .timeline-title,
+    .section-block[style*="--section-heading-font"] ::ng-deep .transfer-title,
+    .section-block[style*="--section-heading-font"] ::ng-deep .rsvp-name,
+    .section-block[style*="--section-heading-font"] ::ng-deep .invitation-name,
+    .section-block[style*="--section-heading-font"] ::ng-deep .invitation-subtitle,
+    .section-block[style*="--section-heading-font"] ::ng-deep .gallery-desc,
+    .section-block[style*="--section-heading-font"] ::ng-deep .gifts-desc {
+      font-family: var(--section-heading-font) !important;
+    }
+    .section-block[style*="--section-heading-size"] ::ng-deep h3,
+    .section-block[style*="--section-heading-size"] ::ng-deep .example-title,
+    .section-block[style*="--section-heading-size"] ::ng-deep .venue-title,
+    .section-block[style*="--section-heading-size"] ::ng-deep .timeline-title,
+    .section-block[style*="--section-heading-size"] ::ng-deep .transfer-title,
+    .section-block[style*="--section-heading-size"] ::ng-deep .rsvp-name,
+    .section-block[style*="--section-heading-size"] ::ng-deep .invitation-name,
+    .section-block[style*="--section-heading-size"] ::ng-deep .invitation-subtitle {
+      font-size: var(--section-heading-size) !important;
     }
     .section-block[style*="--section-content-color"] ::ng-deep p,
     .section-block[style*="--section-content-color"] ::ng-deep .detail-content,
     .section-block[style*="--section-content-color"] ::ng-deep .dresscode-desc,
     .section-block[style*="--section-content-color"] ::ng-deep .example-desc,
     .section-block[style*="--section-content-color"] ::ng-deep .venue-name,
-    .section-block[style*="--section-content-color"] ::ng-deep .venue-address {
+    .section-block[style*="--section-content-color"] ::ng-deep .venue-address,
+    .section-block[style*="--section-content-color"] ::ng-deep .timeline-desc {
       color: var(--section-content-color) !important;
+    }
+    .section-block[style*="--section-content-font"] ::ng-deep p,
+    .section-block[style*="--section-content-font"] ::ng-deep .detail-content,
+    .section-block[style*="--section-content-font"] ::ng-deep .dresscode-desc,
+    .section-block[style*="--section-content-font"] ::ng-deep .example-desc,
+    .section-block[style*="--section-content-font"] ::ng-deep .venue-name,
+    .section-block[style*="--section-content-font"] ::ng-deep .venue-address,
+    .section-block[style*="--section-content-font"] ::ng-deep .timeline-desc {
+      font-family: var(--section-content-font) !important;
+    }
+    .section-block[style*="--section-content-size"] ::ng-deep p,
+    .section-block[style*="--section-content-size"] ::ng-deep .detail-content,
+    .section-block[style*="--section-content-size"] ::ng-deep .dresscode-desc,
+    .section-block[style*="--section-content-size"] ::ng-deep .example-desc,
+    .section-block[style*="--section-content-size"] ::ng-deep .venue-name,
+    .section-block[style*="--section-content-size"] ::ng-deep .venue-address,
+    .section-block[style*="--section-content-size"] ::ng-deep .timeline-desc {
+      font-size: var(--section-content-size) !important;
     }
     /* Fondo de sección en modo BANNER.
        Móvil (prioridad): la imagen CUBRE el ancho y el alto de la sección (cover). Para que
@@ -1071,13 +1142,16 @@ export class LandingComponent implements OnInit, OnDestroy {
     // Section Heading (H2) overrides
     if (style.sectionHeadingColor) css += `; --section-h2-color: ${style.sectionHeadingColor}`;
     if (style.sectionHeadingFont) css += `; --section-h2-font: ${this.getThemeFont(style.sectionHeadingFont)}`;
+    if (style.sectionHeadingSize) css += `; --section-h2-size: ${style.sectionHeadingSize}px`;
     // Titles (h3) overrides
     if (style.headingColor) css += `; --section-heading-color: ${style.headingColor}`;
     if (style.headingColor2) css += `; --section-heading-color2: ${style.headingColor2}`;
     if (style.headingGradientAngle) css += `; --section-heading-angle: ${style.headingGradientAngle}deg`;
     if (style.headingGradientIntensity != null) { const v = Math.max(0, Math.min(100, style.headingGradientIntensity)); const mid = 100 - v; css += `; --section-heading-mid-a: ${Math.max(0, mid - 25)}%; --section-heading-mid-b: ${Math.min(100, mid + 25)}%`; }
     if (style.headingFontWeight) css += `; --section-heading-weight: ${style.headingFontWeight}`;
+    if (style.headingFontSize) css += `; --section-heading-size: ${style.headingFontSize}px`;
     if (style.contentColor) css += `; --section-content-color: ${style.contentColor}`;
+    if (style.contentFontSize) css += `; --section-content-size: ${style.contentFontSize}px`;
     if (style.headingFont) css += `; --section-heading-font: ${this.getThemeFont(style.headingFont)}`;
     if (style.contentFont) css += `; --section-content-font: ${this.getThemeFont(style.contentFont)}`;
     // Organic section transition via clip-path

@@ -23,15 +23,27 @@ import { isVideoUrl } from '../../../../../core/utils/media-background.util';
     <!-- Media BASE -->
     <div class="pf">
       <label>Fondo (imagen / GIF / video)</label>
-      <div class="upload-row">
-        @if (model?.url) {
-          <span class="file-name">{{ fileName(model?.url || '') }}</span>
-          <button class="sm-btn" (click)="pickFile(false); $event.stopPropagation()">Cambiar</button>
-          <button class="sm-btn danger" (click)="setProp('url', ''); $event.stopPropagation()">X</button>
-        } @else {
-          <button class="sm-btn" (click)="pickFile(false); $event.stopPropagation()">Subir</button>
-        }
-      </div>
+      @if (model?.url) {
+        <div class="media-preview-row">
+          <div class="media-thumb">
+            @if (isVideo(model?.url)) {
+              <span class="material-icons media-type-icon">movie</span>
+            } @else {
+              <img [src]="model?.url" alt="fondo" />
+            }
+          </div>
+          <div class="media-meta">
+            <span class="media-badge">{{ mediaKindLabel(model?.url) }}</span>
+            <span class="file-name">{{ fileName(model?.url || '') }}</span>
+          </div>
+          <div class="media-actions">
+            <button class="sm-btn" (click)="pickFile(false); $event.stopPropagation()">Cambiar</button>
+            <button class="sm-btn danger" (click)="setProp('url', ''); $event.stopPropagation()">X</button>
+          </div>
+        </div>
+      } @else {
+        <button class="sm-btn" (click)="pickFile(false); $event.stopPropagation()">Subir</button>
+      }
       <p class="pf-hint"><span class="material-icons">info</span> {{ hintText }}</p>
       @if (errorMsg) { <p class="pf-error">{{ errorMsg }}</p> }
     </div>
@@ -45,15 +57,27 @@ import { isVideoUrl } from '../../../../../core/utils/media-background.util';
       @if (model?.desktopOverride) {
         <div class="pf">
           <label>Fondo escritorio (imagen / GIF / video)</label>
-          <div class="upload-row">
-            @if (model?.urlDesktop) {
-              <span class="file-name">{{ fileName(model?.urlDesktop || '') }}</span>
-              <button class="sm-btn" (click)="pickFile(true); $event.stopPropagation()">Cambiar</button>
-              <button class="sm-btn danger" (click)="setProp('urlDesktop', ''); $event.stopPropagation()">X</button>
-            } @else {
-              <button class="sm-btn" (click)="pickFile(true); $event.stopPropagation()">Subir</button>
-            }
-          </div>
+          @if (model?.urlDesktop) {
+            <div class="media-preview-row">
+              <div class="media-thumb">
+                @if (isVideo(model?.urlDesktop)) {
+                  <span class="material-icons media-type-icon">movie</span>
+                } @else {
+                  <img [src]="model?.urlDesktop" alt="fondo escritorio" />
+                }
+              </div>
+              <div class="media-meta">
+                <span class="media-badge">{{ mediaKindLabel(model?.urlDesktop) }}</span>
+                <span class="file-name">{{ fileName(model?.urlDesktop || '') }}</span>
+              </div>
+              <div class="media-actions">
+                <button class="sm-btn" (click)="pickFile(true); $event.stopPropagation()">Cambiar</button>
+                <button class="sm-btn danger" (click)="setProp('urlDesktop', ''); $event.stopPropagation()">X</button>
+              </div>
+            </div>
+          } @else {
+            <button class="sm-btn" (click)="pickFile(true); $event.stopPropagation()">Subir</button>
+          }
           <p class="pf-hint">Se usa solo en escritorio; en móvil se mantiene la imagen base.</p>
         </div>
       }
@@ -77,6 +101,21 @@ import { isVideoUrl } from '../../../../../core/utils/media-background.util';
     .pf label { display:block; font-size:10px; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
     .upload-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
     .file-name { font-size:11px; color:rgba(255,255,255,0.6); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    /* Preview de media subida: miniatura (imagen/gif) o ícono (video) + badge de tipo. */
+    .media-preview-row { display:flex; align-items:center; gap:8px; }
+    .media-thumb {
+      width:44px; height:44px; border-radius:8px; flex-shrink:0; overflow:hidden;
+      background:rgba(255,255,255,0.06); border:1px solid rgba(139,92,246,0.3);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .media-thumb img { width:100%; height:100%; object-fit:cover; }
+    .media-type-icon { font-size:24px; color:rgba(255,255,255,0.6); }
+    .media-meta { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+    .media-badge {
+      align-self:flex-start; font-size:9px; font-weight:700; letter-spacing:0.5px;
+      color:#c084fc; background:rgba(139,92,246,0.15); border-radius:4px; padding:1px 6px;
+    }
+    .media-actions { display:flex; gap:6px; flex-shrink:0; }
     .sm-btn { background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); color:#fff; border-radius:6px; padding:5px 10px; font-size:11px; cursor:pointer; }
     .sm-btn:hover { background:rgba(139,92,246,0.28); }
     .sm-btn.danger { background:rgba(239,68,68,0.15); border-color:rgba(239,68,68,0.35); }
@@ -176,6 +215,15 @@ export class BackgroundControlComponent {
     this.modelChange.emit(next);
   }
 
-  /** Expuesto por si el padre quiere saber si la base es video (no usado internamente aún). */
-  isVideo(url?: string): boolean { return isVideoUrl(url); }
+  /** True si la url es video (para mostrar ícono en vez de miniatura). */
+  isVideo(url?: string | null): boolean { return isVideoUrl(url); }
+
+  /** Etiqueta del tipo de media para el badge (IMG / GIF / VIDEO). */
+  mediaKindLabel(url?: string | null): string {
+    if (!url) return '';
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'ogg'].includes(ext)) return 'VIDEO';
+    if (ext === 'gif') return 'GIF';
+    return 'IMG';
+  }
 }

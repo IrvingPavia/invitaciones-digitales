@@ -127,6 +127,42 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
     - Pendiente general: verificación visual del usuario en navegador/móvil + `client_max_body_size
       25m` en el nginx del server prod al desplegar.
 
+- **Trabajo de la sesión 2026-10-09 (continuación — Temas C y A, misma rama `feature/fondos-independientes`):**
+  - **Tema C (uploads homologados + control de audio) — HECHO, compila y desplegado:**
+    - `BackgroundControlComponent`: preview con miniatura (imagen/gif) o ícono `movie` (video) +
+      badge de tipo (IMG/GIF/VIDEO) + nombre. Métodos `isVideo()`, `mediaKindLabel()`.
+    - NUEVO `AudioControlComponent` (`builder/components/audio-control/`): ícono audiotrack, badge
+      AUDIO, botón play/pausa (`togglePlay`), se pausa al hacer clic FUERA del control
+      (`@HostListener('document:click')`) y al destruirse. Límite 15MB. API `[url]`/`(urlChange)`.
+      Integrado en el audio del hero del props-panel (reemplazó el upload de solo texto).
+    - props-panel: 3 uploads sueltos homologados con miniatura/ícono + badge: `envelope.sealImage`,
+      `envelope.splashImage`, `intro.background`. Helpers nuevos `thumbIsVideo()`, `thumbKind()` +
+      clases CSS `.media-preview-row/.media-thumb/.media-type-icon/.media-meta/.media-badge/.media-actions`.
+      (Los uploads de venue/detail/itinerary icon y dresscode YA mostraban miniatura, sin cambios.)
+  - **Tema A (override de texto por sección, de Invitación hacia abajo) — HECHO, compila y desplegado:**
+    - `landing.component.ts > getSectionBg`: ahora inyecta también los TAMAÑOS que faltaban:
+      `--section-h2-size` (sectionHeadingSize), `--section-heading-size` (headingFontSize),
+      `--section-content-size` (contentFontSize).
+    - Reglas `::ng-deep` ampliadas: se añadieron reglas para `--section-heading-font`,
+      `--section-content-font` y los 3 tamaños (antes faltaban). Selectores de título ampliados a
+      `.timeline-title`, `.transfer-title`, `.rsvp-name`, `.invitation-name`, `.invitation-subtitle`,
+      `.gallery-desc`, `.gifts-desc`; contenido ampliado a `.timeline-desc`; H2 incluye
+      `.invitation-title`.
+    - Invitation cableada: `landing.component.ts` pasa `[sectionStyle]="...invitation.sectionStyle"`;
+      `invitation.component.ts` declara `@Input() sectionStyle?: SectionStyle`. Se quitó la
+      exclusión de `invitation` en los acordeones 'sec-txt' y 'sec-presets' del props-panel (ahora
+      Invitación también configura texto/presets por sección).
+    - NOTA: se usaron los 3 niveles de texto que YA existían (Encabezado / Títulos / Contenido).
+      NO se añadió un 4º nivel "Subtítulo" independiente (los subtítulos tipo `.invitation-subtitle`
+      y `.gallery-desc` se controlan con el nivel "Títulos").
+  - **Tema B (drag de títulos de sección) — DESCARTADO en esta rama** (riesgo de romper el flujo de
+    cards con position:absolute). Va a otra rama futura si se retoma.
+  - Build frontend OK (solo warnings NG8107 preexistentes). Docker frontend reconstruido; landing
+    `invitacion-valeria` HTTP 200; bundle del contenedor contiene `section-content-font`,
+    `section-heading-size` y `audio-control`.
+  - ⏳ FALTA: verificación visual del usuario en el builder (previews de audio/uploads) y en la
+    landing (herencia de estilos por sección desde Invitación). Commit pendiente de esta tanda.
+
 ### Features en curso / pendientes concretos
 
 1. **Spec `canvas-posicionamiento`**: drag en Plano/Intro/Carátula ✅, reset de tamaño ✅.

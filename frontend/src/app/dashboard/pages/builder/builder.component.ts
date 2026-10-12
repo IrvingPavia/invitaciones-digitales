@@ -540,7 +540,11 @@ interface BuilderSection {
     .preview-mode-canvas > .preview-section-click,
     .canvas-bg-scope > .preview-section-click { position: relative; z-index: 4; }
     .preview-mode-canvas ::ng-deep .landing-nav { position: relative !important; z-index: 10 !important; background: var(--theme-nav-bar-bg, rgba(13,17,23,0.85)) !important; backdrop-filter: blur(var(--theme-nav-bar-blur, 12px)) !important; border-bottom: 1px solid var(--theme-nav-bar-border, rgba(212,160,23,0.2)) !important; }
-    .preview-mode-canvas ::ng-deep .hero-section { min-height: var(--canvas-vh, 640px) !important; padding-top: 60px !important; }
+    /* En el canvas el navbar es position:relative (ocupa espacio), por lo que la carátula
+       empezaba DEBAJO de él y su fondo también. Con margin-top negativo = alto del navbar (72px),
+       la sección (y su fondo) suben para quedar DETRÁS del navbar; el padding-top mantiene el
+       contenido por debajo del navbar. El navbar (z-index:10) queda por encima del fondo. */
+    .preview-mode-canvas ::ng-deep .hero-section { min-height: var(--canvas-vh, 640px) !important; margin-top: -72px !important; padding-top: 132px !important; }
     .preview-mode-canvas ::ng-deep .countdown { justify-content: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-item { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; }
     .preview-mode-canvas ::ng-deep .countdown-value { display: block !important; text-align: center !important; }
