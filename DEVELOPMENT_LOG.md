@@ -11,9 +11,39 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-12
+## Estado actual del proyecto: 2026-10-13
 
-### Rama activa: `feature/fondos-independientes`
+### Rama activa: `feature/drag-elementos-secciones` (nace de int-008)
+
+### Sesión: Drag & drop selectivo por sección — piloto Invitación TERMINADO
+
+Nueva rama desde `int-008` (que ya incluye el merge de fondos-independientes, PR #4). Objetivo:
+poder reubicar los elementos de cada sección sobre el fondo (legibilidad), tratando partes como
+"objetos" (algunos individuales, otros como conjunto). Se trabaja sección por sección.
+
+**Invitación (validada por el usuario):**
+- 5 objetos arrastrables: ornamento superior, título, subtítulo, card (conjunto), ornamento
+  inferior. Reutiliza `app-drag-box` + `ElementPositions` (`invitation.positions`), patrón hero.
+- Modo posicionado: al mover el primer objeto, todos pasan a absolute (sembrados) para no
+  desacomodarse. `.inv-fg` = `data-drag-bounds`; posicionado = `absolute; inset:0` y la sección
+  quita padding lateral → lienzo de borde a borde.
+- DragBox extendido (inputs opt-in, defaults = comportamiento previo): `maxSize`, `posMargin`,
+  `centerContent`.
+- Decoradores configurables (Opción A): los `✦✦✦` ahora usan `app-heading-ornament`
+  (`sectionStyle.headingOrnament`). Nuevos tipos de símbolo: stars/hearts/diamonds/leaves.
+  Tipo `none` oculta. Default invitation = stars.
+
+**Pendiente menor:** resize de ALTO en objetos de texto (los dots inferiores estiran la caja pero
+el texto no crece). Se decidirá luego (propuesta: ocultar handles de alto en adornos/títulos).
+
+**Próximo:** replicar en las demás secciones. En varias no hay decorador o no se ve por el tamaño
+del texto; ofrecer configurarlo por sección.
+
+---
+
+## Estado del proyecto: 2026-10-12
+
+### Rama: `feature/fondos-independientes`
 
 ### Sesión: Temas C/A + fix override de texto por sección (canvas↔landing) + PR a int-008
 

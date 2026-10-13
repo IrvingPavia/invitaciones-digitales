@@ -22,7 +22,7 @@ import { DragBoxSelectionService } from './drag-box-selection.service';
          y deje vacío el otro, lo que ocultaba el texto en la landing). -->
     <div class="db-frame" [class.db-interactive]="editable" [class.db-selected]="editable && selected" [class.db-dragging]="editable && dragging"
          (mousedown)="onBodyDown($event)" (touchstart)="onBodyTouchDown($event)">
-      <div class="db-content" [class.db-content-locked]="editable"><ng-content></ng-content></div>
+      <div class="db-content" [class.db-content-locked]="editable" [class.db-content-center]="centerContent"><ng-content></ng-content></div>
       @if (editable && selected && showHandles) {
         <div class="db-handle db-h-tl" (mousedown)="onHandleDown($event,'tl')" (touchstart)="onHandleTouchDown($event,'tl')"></div>
         <div class="db-handle db-h-tc" (mousedown)="onHandleDown($event,'tc')" (touchstart)="onHandleTouchDown($event,'tc')"></div>
@@ -45,6 +45,9 @@ import { DragBoxSelectionService } from './drag-box-selection.service';
     .db-dragging { outline: 2px solid rgba(157,110,231,1) !important; outline-offset: 2px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4); opacity: 0.92; }
     /* El contenido solo bloquea punteros durante la edición (evita selección nativa). */
     .db-content-locked { pointer-events: none; }
+    /* Centra el contenido dentro de la caja (para ornamentos/elementos inline-block cuyo
+       ancho es menor al de la caja). Opt-in vía [centerContent]. */
+    .db-content-center { display: flex; align-items: center; justify-content: center; height: 100%; }
     .db-handle {
       position: absolute; width: 10px; height: 10px; background: rgba(157,110,231,0.95);
       border: 1.5px solid #fff; border-radius: 2px; z-index: 10;
@@ -77,6 +80,14 @@ export class DragBoxComponent {
   @Input() showHandles = true;
   /** Posicion actual guardada (para preservar el ancho `w` al mover). */
   @Input() position: ElementPosition | null = null;
+  /** Tamaño máximo (ancho/alto) permitido en % de la sección al redimensionar. Default 96.
+      Secciones de contenido (ej. Invitación) pueden subirlo a 100 para llenar el ancho. */
+  @Input() maxSize = 96;
+  /** Límite de posición del centro en % (min y 100-min). Default 2 → confina a 2–98%.
+      Poner 0 permite llegar al borde exacto (0–100%). */
+  @Input() posMargin = 2;
+  /** Centra el contenido dentro de la caja (útil para ornamentos/elementos más estrechos que la caja). */
+  @Input() centerContent = false;
 
   /** Emite la nueva posicion (centro, en %) al soltar tras mover. */
   @Output() positionChange = new EventEmitter<ElementPosition>();
@@ -99,8 +110,9 @@ export class DragBoxComponent {
   private startClientY = 0;
 
   private readonly SNAP = 3;
-  private readonly MIN = 2;
-  private readonly MAX = 98;
+  /** Límite inferior/superior del centro, derivado de posMargin (default 2 → 2 y 98). */
+  private get MIN() { return this.posMargin; }
+  private get MAX() { return 100 - this.posMargin; }
   private readonly SNAP_X = [10, 25, 50, 75, 90];
   private readonly SNAP_Y = [10, 25, 50, 75, 90];
 
@@ -287,8 +299,8 @@ export class DragBoxComponent {
     let yPct = ((centerYPx - this.bounds.top) / this.bounds.height) * 100;
 
     // Confinar
-    wPct = Math.max(6, Math.min(96, wPct));
-    hPct = Math.max(4, Math.min(96, hPct));
+    wPct = Math.max(6, Math.min(this.maxSize, wPct));
+    hPct = Math.max(4, Math.min(this.maxSize, hPct));
     xPct = Math.max(this.MIN, Math.min(this.MAX, xPct));
     yPct = Math.max(this.MIN, Math.min(this.MAX, yPct));
 

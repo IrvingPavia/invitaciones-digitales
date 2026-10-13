@@ -1515,12 +1515,18 @@ import { ApiService } from '../../../../../core/services/api.service';
                     <button class="chip" [class.active]="getOrnamentType()==='dash'" (click)="setOrnament('type','dash');$event.stopPropagation()">Guion</button>
                     <button class="chip" [class.active]="getOrnamentType()==='arrows'" (click)="setOrnament('type','arrows');$event.stopPropagation()">Flechas</button>
                     <button class="chip" [class.active]="getOrnamentType()==='wave'" (click)="setOrnament('type','wave');$event.stopPropagation()">Onda</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='stars'" (click)="setOrnament('type','stars');$event.stopPropagation()">Estrellas ✦</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='hearts'" (click)="setOrnament('type','hearts');$event.stopPropagation()">Corazones ♥</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='diamonds'" (click)="setOrnament('type','diamonds');$event.stopPropagation()">Diamantes ◆</button>
+                    <button class="chip" [class.active]="getOrnamentType()==='leaves'" (click)="setOrnament('type','leaves');$event.stopPropagation()">Hojas ❧</button>
                   </div>
                 </div>
                 @if (getOrnamentType() !== 'none') {
-                  <div class="pf"><label>Posicion</label>
-                    <app-custom-select [options]="ornamentPositionOptions" [value]="getOrnamentProp('position')||'below'" (valueChange)="setOrnament('position',$event)"></app-custom-select>
-                  </div>
+                  @if (canvasState.selectedSection() !== 'invitation') {
+                    <div class="pf"><label>Posicion</label>
+                      <app-custom-select [options]="ornamentPositionOptions" [value]="getOrnamentProp('position')||'below'" (valueChange)="setOrnament('position',$event)"></app-custom-select>
+                    </div>
+                  }
                   <div class="pf"><label>Color</label><app-color-picker [value]="getOrnamentProp('color')||'#d4a017'" (valueChange)="setOrnament('color',$event)"></app-color-picker></div>
                   <div class="pf"><label>Tamano ({{getOrnamentProp('size') || 1}}x)</label><input type="range" class="pinput-range" min="0.5" max="2" step="0.1" [ngModel]="getOrnamentProp('size') || 1" (ngModelChange)="setOrnament('size',+$event)"></div>
                 }
@@ -1906,7 +1912,9 @@ export class BuilderPropsPanelComponent {
     const sec = this.canvasState.selectedSection();
     if (!sec) return 'none';
     const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
-    return s?.type || 'none';
+    // Invitación trae 'stars' (✦ ✦ ✦) por defecto; las demás 'none'.
+    const fallback = sec === 'invitation' ? 'stars' : 'none';
+    return s?.type || fallback;
   }
 
   getOrnamentProp(prop: string): any {

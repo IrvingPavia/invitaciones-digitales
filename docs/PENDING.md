@@ -59,9 +59,19 @@
 >
 > **Idea**: Extender el drag & drop (que hoy existe en Carátula/Intro/Plano) a TODAS las secciones, pero de forma SELECTIVA: definir qué elementos de cada sección se pueden mover libremente y cuáles mantienen su posición en el flujo. Objetivo: que el cliente reubique textos sobre el fondo configurado para máxima legibilidad.
 > **Riesgo conocido (de análisis previo)**: usar `position:absolute` saca el elemento del flujo y puede reflowar/romper las cards (venues, details). Por eso debe ser selectivo y por elemento, no global.
-- [ ] Diseñar el modelo de "elementos movibles por sección" (qué es arrastrable, límites/bounds, persistencia de posición).
-- [ ] Implementar sección por sección, empezando por las de menor riesgo.
-- [ ] Rama a crear DESDE `int-008` (tras mergear `feature/fondos-independientes`).
+- [x] Diseñar el modelo de "elementos movibles por sección": reutiliza `app-drag-box` +
+  `ElementPositions` (`<seccion>.positions`), modo posicionado (todos a absolute al mover el 1ro),
+  lienzo `data-drag-bounds` por sección. DragBox extendido con inputs `maxSize`/`posMargin`/`centerContent`.
+- [x] Rama creada DESDE `int-008`: `feature/drag-elementos-secciones`.
+- [x] **Invitación** — drag selectivo (ornamento sup/título/subtítulo/card/ornamento inf) +
+  decoradores configurables (Opción A: `app-heading-ornament` con tipos stars/hearts/diamonds/leaves,
+  ocultar con `none`). Validado por el usuario.
+- [ ] Replicar drag selectivo + decoradores en las 7 secciones restantes (details, venues,
+  itinerary, gallery, dresscode, gifts, rsvp), una por una, definiendo con el usuario qué objetos
+  son individuales y cuáles conjunto. En las que no tengan decorador o no se vea por el tamaño del
+  texto, ofrecer configurarlo/añadirlo.
+- [ ] Afinar resize de ALTO en objetos de texto/adorno (los dots inferiores estiran la caja pero
+  el texto no crece). Propuesta: ocultar handles de alto en adornos/títulos. Sin decidir.
 
 ### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
 

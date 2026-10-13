@@ -181,7 +181,7 @@ export interface SectionStyle {
 }
 
 export interface HeadingOrnament {
-  type: 'none' | 'line' | 'dots' | 'sparkles' | 'flourish' | 'dash' | 'arrows' | 'wave';
+  type: 'none' | 'line' | 'dots' | 'sparkles' | 'flourish' | 'dash' | 'arrows' | 'wave' | 'stars' | 'hearts' | 'diamonds' | 'leaves';
   position: 'above' | 'below' | 'both' | 'sides';
   color?: string;
   size?: number; // scale 0.5–2, default 1
@@ -373,6 +373,9 @@ export interface InvitationConfig {
   countBg?: string;
   countText?: string;
   countBorder?: string;
+  /** Posiciones personalizadas (drag) de los objetos de la sección:
+      ornamentTop, title, subtitle, card, ornamentBottom. */
+  positions?: ElementPositions;
 }
 
 export interface DetailsConfig {

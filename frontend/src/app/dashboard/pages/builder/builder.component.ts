@@ -169,9 +169,9 @@ interface BuilderSection {
                     <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onHeroPositionsChange($event)" />
                   }
                 </div>
-                <div class="preview-section-click" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
+                <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
                   @if (canvasState.config()!.invitation) {
-                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="previewGuest" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="previewGuest" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.invitation.sectionStyle" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onInvitationPositionsChange($event)" />
                   }
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
@@ -1635,6 +1635,15 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return;
     (cfg.intro as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de la invitación tras arrastrar un objeto. */
+  onInvitationPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.invitation as any).positions = positions;
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();
   }

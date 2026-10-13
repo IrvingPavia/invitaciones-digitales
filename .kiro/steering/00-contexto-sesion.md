@@ -49,7 +49,46 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
-- **Rama activa:** `feature/fondos-independientes` (desde 2026-10-09).
+### 🔽 ACTUALIZACIÓN 2026-10-13 — rama `feature/drag-elementos-secciones`
+
+- **Rama activa:** `feature/drag-elementos-secciones` (nace de `int-008` tras mergear
+  `feature/fondos-independientes` vía PR #4). `int-008` remoto = `21296d0`.
+- **Feature en curso:** drag & drop SELECTIVO de elementos por sección (reubicar objetos sobre el
+  fondo para legibilidad). Se va SECCIÓN POR SECCIÓN; el usuario define qué objetos son
+  individuales y cuáles van como conjunto.
+- **Sección INVITACIÓN — TERMINADA (validada por el usuario):**
+  - Objetos arrastrables: ornamento superior, título, subtítulo, card (conjunto completo),
+    ornamento inferior. Keys en `invitation.positions`: ornamentTop/title/subtitle/card/ornamentBottom.
+  - Reutiliza `app-drag-box` + `ElementPositions` + patrón de hero. El canvas pasa `[editable]`,
+    `[previewDevice]`, `(positionsChange)` y marca `drag-enabled`; handler
+    `onInvitationPositionsChange` en builder.
+  - **Modo posicionado:** en cuanto se mueve el 1er objeto, TODOS pasan a position:absolute
+    (sembrados con su posición efectiva) para que mover uno no desacomode a los demás. `.inv-fg`
+    es el `data-drag-bounds`; cuando está posicionado se vuelve `position:absolute; inset:0` y la
+    sección quita su padding lateral para que el lienzo llegue de borde a borde del canvas.
+  - **DragBox extendido con inputs nuevos** (defaults = comportamiento previo, no afecta
+    hero/intro/plano): `maxSize` (máx ancho/alto %, default 96 → invitation usa 100),
+    `posMargin` (margen de confinamiento, default 2 → invitation usa 0), `centerContent`
+    (centra el contenido en la caja, default false → invitation lo usa en los ornamentos).
+  - **Decoradores configurables (Opción A):** los `✦ ✦ ✦` hardcodeados ahora usan
+    `app-heading-ornament` vía `sectionStyle.headingOrnament` (acordeón "Adorno de Título").
+    Se añadieron 4 tipos de símbolo al componente: `stars`(✦), `hearts`(♥), `diamonds`(◆),
+    `leaves`(❧). Default de invitation = `stars`. Tipo `none` oculta ambos adornos. En invitation
+    se oculta el control de "Posición" del adorno (no aplica). Centrado del símbolo: 3 spans con
+    gap uniforme (sin letter-spacing) + ancho de caja fijo (ornamentos w:40) + centerContent.
+  - ⏳ Pendiente menor (lo retomamos luego si molesta): afinar resize de ALTO en objetos de texto
+    (hoy los dots inferiores estiran la caja pero el texto/símbolo no crece; se propuso ocultar
+    handles de alto en adornos/títulos — sin decidir).
+- **Próximas secciones:** replicar el drag selectivo + decoradores en las demás. NOTA del usuario:
+  no todas las secciones tienen decorador y en algunas no se ve por el tamaño del texto; al
+  pasar por cada una, ofrecer configurar/añadir decorador si el cliente quiere.
+- **Build/Docker:** `docker-compose build --no-cache frontend` SIEMPRE termina antes de recrear;
+  luego `docker rm -f invitaciones-frontend` + `docker compose up -d --no-deps frontend` (el
+  `up --build`/`up` solo reusa la imagen vieja). Verificar timestamp de `index.html` vs fuente.
+
+---
+
+- **Rama activa (histórico):** `feature/fondos-independientes` (desde 2026-10-09).
 - **Estructura de ramas (2026-10-09):**
   - `feature/canvas-posicionamiento` — tenía todo el trabajo acumulado hasta el commit `cce56be`.
   - `int-008` — CORTE de integración con todo lo último (desde `cce56be`). Reemplaza
