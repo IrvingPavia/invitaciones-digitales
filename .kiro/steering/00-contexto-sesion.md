@@ -85,6 +85,23 @@ Rama `feature/drag-elementos-secciones`. Tanda posterior al drag de Invitación:
   estaba al límite y las reglas nuevas de banner/texto lo excedían por bytes).
 - ⏳ Pendiente observado por el usuario: el scroll del canvas no permite posicionar con precisión
   el inicio de cada sección (el alto sí es correcto). Mejora de navegación para otra tanda.
+- **Banner por sección: `cover` → `auto 100%`** (landing + canvas + hero): el banner ahora ajusta
+  la imagen al ALTO y su ancho va a proporción (antes `cover` recortaba distinto según el alto de
+  cada sección). El slider define el ancho de la columna.
+- **FIX Carátula banner recortado (causa raíz encontrada por el usuario vía DevTools):** la
+  Carátula (`app-landing-hero`) vive dentro de `.landing-wrapper` (max-width ~680px), mientras que
+  las secciones (`.section-block`) rompen ese límite con `margin: calc(-50vw + 50%)` para ocupar
+  100vw. El hero NO lo hacía → su banner (45%) se calculaba sobre ~680px y la imagen vertical
+  recortaba los lados, distinto a las secciones (que lo calculan sobre 100vw). FIX: en los STYLES
+  DE LA LANDING (no del componente hero) se añadió `.landing-wrapper > app-landing-hero { margin:
+  calc(-50vw+50%) }`. OJO: ponerlo DENTRO del componente hero rompe el canvas (ahí `vw` = ancho de
+  la ventana, no del canvas, y empuja el hero fuera). Como el canvas NO usa `.landing-wrapper`, el
+  selector solo afecta la landing real. Verificado: canvas OK + landing con Carátula consistente.
+- ⏳ PENDIENTE abierto (Problema 2): fidelidad canvas↔landing de TAMAÑOS. El canvas desktop usa
+  ancho ~900px y la landing una columna ~520–680px (`.landing-wrapper`); los font-size son px
+  fijos, así que el texto ocupa distinta proporción y el wrapping difiere entre canvas y landing.
+  Estrategia propuesta: dar al canvas la MISMA columna de contenido que la landing (~680px). Sin
+  empezar.
 
 ### 🔽 ACTUALIZACIÓN 2026-10-13 — rama `feature/drag-elementos-secciones`
 

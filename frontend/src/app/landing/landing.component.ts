@@ -429,6 +429,16 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       position: relative;
       z-index: 4;
     }
+    /* La Carátula (hero) está dentro de .landing-wrapper (max-width ~680px). Para que ocupe TODO
+       el ancho de la ventana —igual que las secciones (.section-block)— se expande con margin
+       negativo a 100vw. Se hace AQUÍ (styles de la landing) y no en el componente hero, porque
+       el 'vw' solo es válido en la landing real; en el canvas el hero NO lleva este margin (el
+       canvas no usa .landing-wrapper), evitando romper el preview. */
+    .landing-wrapper > app-landing-hero {
+      display: block;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+    }
     .section-block {
       position: relative;
       margin-left: calc(-50vw + 50%);
@@ -580,11 +590,12 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
         width: var(--sec-banner-w, 70%);
         transform: translateX(-50%);
         background-image: var(--sec-bg-image);
-        /* cover: la imagen llena la COLUMNA (ancho --sec-banner-w × alto de la sección)
-           manteniendo su proporción, recortando lo que sobre (sin deformar). El slider define el
-           ANCHO de la franja; el alto lo da la sección. Para imágenes horizontales en escritorio
-           se recomienda usar "imagen distinta para escritorio"; en móvil, formatos verticales. */
-        background-size: cover;
+        /* auto 100%: la imagen se ajusta al ALTO de la sección y su ancho va a PROPORCIÓN, sin
+           recortar los lados por el alto (a diferencia de cover, que al variar el alto entre
+           secciones recortaba distinto). El slider define el ancho de la COLUMNA (franja); la
+           imagen se centra dentro. Así dos secciones con distinto alto muestran la imagen con el
+           mismo criterio. Para horizontales en escritorio usar "imagen distinta para escritorio". */
+        background-size: auto 100%;
         background-position: center center;
         background-repeat: no-repeat;
         z-index: 0; pointer-events: none;

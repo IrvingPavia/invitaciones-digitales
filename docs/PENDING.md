@@ -82,6 +82,14 @@
   gifts) una por una cuando haga falta (contenido largo vs imagen de fondo).
 - [ ] Mejorar la PRECISIÓN del scroll del canvas para posicionar el inicio de cada sección (el
   alto ya es correcto; es un tema de navegación).
+- [x] Banner por sección pasa de cover a auto 100% (consistente entre secciones).
+- [x] FIX Carátula banner recortado: el hero se expande a 100vw como las secciones (vía
+  `.landing-wrapper > app-landing-hero` en los styles de la landing; NO en el componente hero
+  para no romper el canvas).
+- [ ] **Problema 2 — fidelidad canvas↔landing de tamaños/anchos:** el canvas desktop (~900px) y la
+  landing (columna ~520–680px) tienen distinto ancho de contenido; con font-size en px fijos el
+  texto se ve de distinto tamaño relativo y el wrapping difiere. Propuesta: dar al canvas la misma
+  columna de contenido (~680px) que la landing.
 
 ### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
 

@@ -617,7 +617,7 @@ interface BuilderSection {
        Selectores espejo de los de landing.component.ts, pero scopeados a .preview-section-click. */
     /* BANNER imagen (canvas): columna centrada cover de ancho --sec-banner-w + overlay --sec-ov. */
     .preview-section-click[style*="--sec-banner-w"]{position:relative}
-    .preview-section-click[style*="--sec-banner-w"]::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:var(--sec-bg-image) center/cover no-repeat;z-index:0;pointer-events:none}
+    .preview-section-click[style*="--sec-banner-w"]::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:var(--sec-bg-image) center/auto 100% no-repeat;z-index:0;pointer-events:none}
     .preview-section-click[style*="--sec-banner-w"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:rgba(0,0,0,var(--sec-ov,0));z-index:0;pointer-events:none}
     .preview-section-click[style*="--section-h2-color"] ::ng-deep .section-heading,
     .preview-section-click[style*="--section-h2-color"] ::ng-deep h2,

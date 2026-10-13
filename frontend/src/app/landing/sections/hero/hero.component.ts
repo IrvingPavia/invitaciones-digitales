@@ -234,12 +234,19 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       display: flex; align-items: center; justify-content: center;
     }
     @media (min-width: 768px) {
-      /* Modo banner (desktop): columna centrada del ancho configurado. */
+      /* Modo banner (desktop): columna centrada del ancho configurado. Igual que las secciones,
+         la imagen se ajusta al ALTO (auto 100%) y su ancho va a proporción, sin recortar los
+         lados por el alto. El slider define el ancho de la columna. */
       .hero-bg-media.bg-banner {
         left: 50%; right: auto; transform: translateX(-50%);
         width: var(--banner-w, 70%);
-        background-size: cover;
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
       }
+      /* El video no soporta "auto 100%"; usa contain para verse completo en vertical dentro
+         de la columna (sin recorte lateral agresivo). */
+      video.hero-bg-media.bg-banner { object-fit: contain; }
     }
     .hero-bg-overlay {
       position: absolute; inset: 0; z-index: 0;
