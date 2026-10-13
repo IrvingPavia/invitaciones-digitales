@@ -72,6 +72,16 @@
   texto, ofrecer configurarlo/añadirlo.
 - [ ] Afinar resize de ALTO en objetos de texto/adorno (los dots inferiores estiran la caja pero
   el texto no crece). Propuesta: ocultar handles de alto en adornos/títulos. Sin decidir.
+- [x] Dashboard: fondo de card del carrusel con cascada landing-media → hero-media → color+textura.
+- [x] Dashboard: textos de card (título+tipo centrados, fecha+modo abajo).
+- [x] Banner de sección: el slider define el ancho de la franja (columna cover centrada), no escala
+  la imagen; banner solo en escritorio (en móvil la media cubre todo el ancho).
+- [x] Alto mínimo de secciones = alto de ventana (responsivo) en canvas y landing; excluye hero/
+  envelope/intro; las extensibles crecen con el contenido.
+- [ ] Afinar el alto de las secciones EXTENSIBLES (details, venues, itinerary, dresscode, gallery,
+  gifts) una por una cuando haga falta (contenido largo vs imagen de fondo).
+- [ ] Mejorar la PRECISIÓN del scroll del canvas para posicionar el inicio de cada sección (el
+  alto ya es correcto; es un tema de navegación).
 
 ### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
 

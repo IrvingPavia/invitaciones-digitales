@@ -52,14 +52,18 @@ router.get('/themes', auth, async (req, res) => {
           const config = JSON.parse(row.config_json);
           themes[row.event_id] = {
             theme: config.theme || null,
+            // Legacy: gif de fondo global antiguo (fallback para landingBg).
             heroBackground: config.hero?.backgroundGif || null,
+            // Modelo nuevo: fondo global de la landing y media propia de la carátula.
+            landingBg: config.theme?.landingBg || null,
+            heroMedia: config.hero?.heroBackground || null,
             globalStyles: config.globalStyles || null
           };
         } catch (e) {
-          themes[row.event_id] = { theme: null, heroBackground: null, globalStyles: null };
+          themes[row.event_id] = { theme: null, heroBackground: null, landingBg: null, heroMedia: null, globalStyles: null };
         }
       } else {
-        themes[row.event_id] = { theme: null, heroBackground: null, globalStyles: null };
+        themes[row.event_id] = { theme: null, heroBackground: null, landingBg: null, heroMedia: null, globalStyles: null };
       }
     }
     res.json(themes);

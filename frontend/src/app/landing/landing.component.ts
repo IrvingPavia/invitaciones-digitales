@@ -436,6 +436,11 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       padding-left: max(20px, calc(50vw - clamp(260px, 25vw, 340px)));
       padding-right: max(20px, calc(50vw - clamp(260px, 25vw, 340px)));
       margin-top: -1px;
+      /* Alto mínimo = alto de la ventana (responsivo: svh recalcula al redimensionar en desktop
+         y es estable en móvil). Las secciones cortas se estiran a la pantalla y centran su
+         contenido; las extensibles (muchas cards) crecen más allá del mínimo. */
+      min-height: 100svh;
+      display: flex; flex-direction: column; justify-content: center;
     }
     /* ===== Override de texto por sección =====
        Encabezado (H2): .section-heading / h2 / .invitation-title
@@ -561,11 +566,28 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       min-height: 100svh;
     }
     @media (min-width: 768px) {
+      /* BANNER en escritorio: la imagen CUBRE (cover) una COLUMNA CENTRADA cuyo ancho es
+         --sec-banner-w. Se pinta en un ::before absoluto (no en el fondo del bloque) para que
+         el slider defina el ANCHO de la franja —con franjas laterales del fondo de la landing—
+         en vez de escalar la imagen. La imagen siempre llena su columna sin deformarse. */
       .section-block[style*="--sec-banner-w"] {
-        /* La imagen se escala al % del ancho del bloque (columna centrada); el slider
-           --sec-banner-w controla ese ancho. */
-        background-size: var(--sec-banner-w, 70%) auto;
-        background-position: top center;
+        background-image: none;
+        position: relative;
+      }
+      .section-block[style*="--sec-banner-w"]::before {
+        content: '';
+        position: absolute; top: 0; bottom: 0; left: 50%;
+        width: var(--sec-banner-w, 70%);
+        transform: translateX(-50%);
+        background-image: var(--sec-bg-image);
+        /* cover: la imagen llena la COLUMNA (ancho --sec-banner-w × alto de la sección)
+           manteniendo su proporción, recortando lo que sobre (sin deformar). El slider define el
+           ANCHO de la franja; el alto lo da la sección. Para imágenes horizontales en escritorio
+           se recomienda usar "imagen distinta para escritorio"; en móvil, formatos verticales. */
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+        z-index: 0; pointer-events: none;
       }
     }
     .section-bg-overlay {

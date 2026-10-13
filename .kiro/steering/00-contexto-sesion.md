@@ -49,6 +49,43 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-13 (tarde) — ajustes de dashboard, banner y alto de secciones
+
+Rama `feature/drag-elementos-secciones`. Tanda posterior al drag de Invitación:
+
+- **Dashboard — fondo de card del carrusel con CASCADA** (home.component.ts + backend events.js
+  `/themes` + api.service): la card usa, en orden: 1) fondo global de la landing
+  (`theme.landingBg`, fallback legacy `hero.backgroundGif`), 2) si no hay, media de la CARÁTULA
+  (`hero.heroBackground`), 3) si ninguna, color+textura del tema. El endpoint `/themes` ahora
+  expone `landingBg` y `heroMedia` además del `heroBackground` legacy. Reutiliza
+  `resolveMedia`/`resolveGlobalBackground`/`isVideoUrl`.
+- **Dashboard — textos de la card** reorganizados: título + tipo de evento CENTRADOS
+  verticalmente (`.card-center`); fecha + modo (Privado/Abierto) ANCLADOS abajo (`.card-bottom`
+  con margin-top:auto). `.card-body` pasó a `justify-content:center`.
+- **Banner de sección (fit=banner) CORREGIDO** (landing.component.ts + builder.component.ts): el
+  slider "Ancho del banner" dejó de ESCALAR la imagen; ahora pinta una COLUMNA CENTRADA de ancho
+  `--sec-banner-w` con `background-size: cover` en un `::before` (landing) / `::before`+`::after`
+  (canvas, el ::after es el overlay `--sec-ov`). La imagen se adapta al alto de la sección y el
+  slider define el ancho de la franja (recorta lados). Para imágenes horizontales en escritorio
+  usar "imagen distinta para escritorio"; en móvil, verticales.
+- **Banner SOLO en escritorio (fix mobile)** (hero.component.ts): el banner del hero se activaba
+  por `@media(min-width:768px)`, que en el canvas evalúa el ancho de la VENTANA (desktop), no el
+  del preview mobile → mostraba franjas en móvil. Ahora `[class.bg-banner]="heroBannerActive"`
+  depende de `previewDevice`/`isDesktopMedia` (ambos públicos). En móvil la media cubre todo el
+  ancho. (Las secciones ya decidían por previewDevice en getSectionBgStyle; en landing real el
+  media query es correcto porque ahí la ventana sí es móvil.)
+- **Alto mínimo de secciones = alto de ventana (Opción B, responsivo):** `.section-block`
+  (landing) con `min-height:100svh` + flex column centrado; `.preview-section-click` (canvas) con
+  `min-height:var(--canvas-vh)` + centrado (el ResizeObserver ya recalcula --canvas-vh en
+  desktop). Se EXCLUYEN hero/envelope/intro (manejan su propio alto). Secciones cortas se estiran
+  a la ventana con contenido centrado; las extensibles (details/venues/itinerary/dresscode/
+  gallery/gifts) crecen más allá del mínimo. Pendiente: trabajar el alto de esas extensibles una
+  por una si hace falta afinar.
+- **angular.json:** budget de `anyComponentStyle` subido a 40kb/48kb (el builder.component ya
+  estaba al límite y las reglas nuevas de banner/texto lo excedían por bytes).
+- ⏳ Pendiente observado por el usuario: el scroll del canvas no permite posicionar con precisión
+  el inicio de cada sección (el alto sí es correcto). Mejora de navegación para otra tanda.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-13 — rama `feature/drag-elementos-secciones`
 
 - **Rama activa:** `feature/drag-elementos-secciones` (nace de `int-008` tras mergear

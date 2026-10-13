@@ -54,9 +54,9 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
            siempre por encima del fondo. Si no hay media propia, deja ver el fondo global. -->
       @if (heroBg().hasMedia) {
         @if (heroBg().isVideo) {
-          <video class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.object-position]="heroBg().position" [src]="heroBg().url" autoplay loop muted playsinline></video>
+          <video class="hero-bg-media" [class.bg-banner]="heroBannerActive" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.object-position]="heroBg().position" [src]="heroBg().url" autoplay loop muted playsinline></video>
         } @else {
-          <div class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.background-image]="'url(' + heroBg().url + ')'" [style.background-position]="heroBg().position"></div>
+          <div class="hero-bg-media" [class.bg-banner]="heroBannerActive" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.background-image]="'url(' + heroBg().url + ')'" [style.background-position]="heroBg().position"></div>
         }
         @if (heroBg().overlay > 0) {
           <div class="hero-bg-overlay" [style.opacity]="heroBg().overlay / 100"></div>
@@ -353,9 +353,16 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   }
 
   /** True si el ancho actual (o previewDevice) es escritorio, para elegir override de media. */
-  private get isDesktopMedia(): boolean {
+  get isDesktopMedia(): boolean {
     if (this.previewDevice) return this.previewDevice === 'desktop';
     return typeof window !== 'undefined' && window.innerWidth >= 768;
+  }
+
+  /** El banner (columna centrada) solo aplica en escritorio. En móvil la media cubre todo el
+      ancho. Depende de previewDevice (no del media query) para que el canvas mobile no muestre
+      el banner aunque la ventana del navegador sea ancha. */
+  get heroBannerActive(): boolean {
+    return this.heroBg().fit === 'banner' && this.isDesktopMedia;
   }
 
   /** Fondo propio de la carátula resuelto para el dispositivo activo (override desktop incluido). */

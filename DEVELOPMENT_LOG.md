@@ -11,9 +11,30 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13
+## Estado actual del proyecto: 2026-10-13 (tarde)
 
-### Rama activa: `feature/drag-elementos-secciones` (nace de int-008)
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Ajustes dashboard + banner de sección + alto mínimo de secciones
+
+- **Dashboard carrusel:** fondo de card con cascada landing-media → hero-media → color+textura
+  (home.component.ts, backend /themes, api.service). Textos de card: título+tipo centrados,
+  fecha+modo abajo.
+- **Banner de sección:** el slider "Ancho del banner" ya NO escala la imagen; pinta una columna
+  centrada (::before) de ancho --sec-banner-w con cover. Imagen se adapta al alto de la sección;
+  el slider define el ancho de la franja (recorta lados). Fix adicional: banner solo en desktop
+  (hero usaba media query que en el canvas evaluaba la ventana; ahora depende de previewDevice).
+- **Alto mínimo de secciones = alto de ventana (responsivo):** landing `.section-block`
+  min-height:100svh; canvas `.preview-section-click` min-height:var(--canvas-vh); ambos con
+  contenido centrado. Excluye hero/envelope/intro. Secciones cortas se estiran; extensibles crecen.
+- **angular.json:** budget anyComponentStyle 40/48kb.
+- Pendiente: afinar alto de secciones extensibles una por una; mejorar precisión del scroll del canvas.
+
+---
+
+## Estado del proyecto: 2026-10-13 (mañana)
+
+### Rama: `feature/drag-elementos-secciones` (nace de int-008)
 
 ### Sesión: Drag & drop selectivo por sección — piloto Invitación TERMINADO
 

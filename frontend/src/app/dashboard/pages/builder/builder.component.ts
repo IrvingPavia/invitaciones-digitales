@@ -615,6 +615,10 @@ interface BuilderSection {
        getSectionBgStyle() inyecta las variables --section-* en .preview-section-click;
        estas reglas las aplican a los h2/h3/p internos de los componentes de sección.
        Selectores espejo de los de landing.component.ts, pero scopeados a .preview-section-click. */
+    /* BANNER imagen (canvas): columna centrada cover de ancho --sec-banner-w + overlay --sec-ov. */
+    .preview-section-click[style*="--sec-banner-w"]{position:relative}
+    .preview-section-click[style*="--sec-banner-w"]::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:var(--sec-bg-image) center/cover no-repeat;z-index:0;pointer-events:none}
+    .preview-section-click[style*="--sec-banner-w"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:rgba(0,0,0,var(--sec-ov,0));z-index:0;pointer-events:none}
     .preview-section-click[style*="--section-h2-color"] ::ng-deep .section-heading,
     .preview-section-click[style*="--section-h2-color"] ::ng-deep h2,
     .preview-section-click[style*="--section-h2-color"] ::ng-deep .invitation-title {
@@ -720,14 +724,25 @@ interface BuilderSection {
     }
     .preview-section-click {
       cursor: pointer; position: relative; transition: box-shadow 0.2s;
+      /* Alto mínimo = alto visible del canvas (--canvas-vh, recalculado por el ResizeObserver
+         al redimensionar). Replica el 100svh de la landing: secciones cortas se estiran a la
+         ventana del canvas y centran su contenido; las extensibles crecen más allá del mínimo. */
+      min-height: var(--canvas-vh, 640px);
+      display: flex; flex-direction: column; justify-content: center;
       &:hover { box-shadow: inset 3px 0 0 rgba(139,92,246,0.4), inset -3px 0 0 rgba(139,92,246,0.4), inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
       &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
+    /* Hero/envelope/intro manejan su propio alto (margin negativo / overlays); no imponer el
+       min-height genérico ni el centrado flex. */
+    .preview-section-click[data-section="hero"],
+    .preview-section-click[data-section="envelope"],
+    .preview-section-click[data-section="intro"] { min-height: 0; display: block; }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper.
        Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
     .preview-section-click > * { pointer-events: none; }
     .preview-section-click.drag-enabled > * { pointer-events: auto; }
+    .preview-section-click[style*="--sec-banner-w"]>*{position:relative;z-index:1}
     /* Live preview mode — enable interactions, remove selection UI */
     .live-preview .preview-section-click { cursor: default; }
     .live-preview .preview-section-click > * { pointer-events: all; }
@@ -1462,8 +1477,11 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
               // sección toma el alto de pantalla, igual que la landing. Sin huecos.
               css = `background: ${dark}url(${m.url}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
             } else {
-              // Desktop: columna centrada del ancho configurado (--sec-banner-w).
-              css = `background: ${dark}url(${m.url}) top center / ${m.bannerWidth}% auto no-repeat`;
+              // Desktop: COLUMNA CENTRADA (cover) del ancho --sec-banner-w. Se emiten variables
+              // que consume la regla ::before de .preview-section-click (ver styles), para que el
+              // slider defina el ANCHO de la franja (no el tamaño de la imagen). El overlay va en
+              // la capa ::after via --sec-ov.
+              css = `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
             }
           } else {
             // Pantalla completa: cover.
