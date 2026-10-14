@@ -90,6 +90,53 @@
     > Fix (2026-10-13 noche 2): se homologó el ancho del lienzo de drag a **680px fijo en desktop** en los 3 contextos. `invitation.component.ts`: `.inv-fg` con `[class.canvas-desktop]="previewDevice==='desktop'"` → 680px centrado (cubre canvas y preview). `landing.component.ts`: `@media (min-width:768px)` estabiliza la columna de `.section-block` a 680px (padding `max(20px, calc(50vw - 340px))`) en vez de depender de `50vw` → el iframe de preview (900px) y la landing a pantalla completa dan ambos 680px. Mobile intacto. Verificado por el usuario. ⚠️ Reajustar una vez las posiciones de Valeria (guardadas contra 900px).
 - [ ] **Replicar el fix del Problema 2 en las otras secciones con drag** (hero/carátula, intro, envelope/plano): aplicarles el mismo acotado `canvas-desktop` a 680px en desktop. El `@media` de `.section-block` ya cubre el lado landing/preview para todas; falta el lado canvas por sección.
 
+### 🆕 Campos "Mesa/Asiento" y "Recuerdo" por invitado (feature — DOCUMENTADO, NO implementado)
+
+> **Contexto / motivación (del usuario):** varios clientes ya traen en su lista de invitados la
+> asignación de MESA y si lleva RECUERDO. Hoy el modelo de `guests` no tiene esos campos; lo más
+> cercano es `notes`. Se quiere llevarlos a campos propios para mostrarlos en la IMPRESIÓN de las
+> tarjetas (que el invitado sepa su mesa) y, en eventos tipo conferencia, marcar el obsequio
+> entregado al registrarse.
+>
+> **Alcance del campo "Mesa/Asiento":** debe ser TEXTO libre (opcional), porque puede ser:
+> - un número de mesa ("1", "4"),
+> - un nombre de mesa ("Mesa Familia Gómez Prado"),
+> - un asiento o rango con letra/número para otros eventos ("Fila B, asientos 4-6").
+>
+> **Alcance del campo "Recuerdo":** opcional. Puede ser un booleano (lleva/no lleva) o texto/cantidad
+> ("1", "2", "Kit de bienvenida"). En conferencias sirve como check de obsequio entregado.
+>
+> **Estado actual (workaround):** al importar listas que traen Mesa/Recuerdo, esos datos se anotan
+> en `notes` con el formato `"Mesa: X | Recuerdos: Y"` (ver import de Valeria). No salen como campo
+> propio en las tarjetas todavía.
+
+**Pendiente de implementar (feature completo):**
+- [ ] Modelo: añadir `guests.table_assignment` (TEXTO, opcional) y `guests.souvenir` (TEXTO/boolean,
+  opcional). Interface `Guest` en `models.ts`. `initDB()` con los `ALTER TABLE ADD COLUMN` (ver
+  deuda técnica de sincronización de esquema).
+- [ ] Backend: incluir ambos campos en POST/PUT `/guests`, en export (`/export`), en la plantilla
+  (`/template/download`) y en el import (`/import`) con alias ES (mesa/asiento, recuerdo/obsequio).
+- [ ] Frontend: campos en el modal de alta/edición de invitado (guests.component) + columnas en el
+  AG Grid; migrar lo que hoy va en `notes` si aplica.
+- [ ] Tarjetas: variables de impresión nuevas (ej. `{mesa}`, `{recuerdo}`) en el editor de tarjetas
+  (cards.component) para colocarlas en el diseño.
+- [ ] Landing (opcional): mostrar la mesa en la sección de confirmación/invitación si el cliente
+  lo desea.
+
+### 🆕 Importación de lista de invitados Valeria (hecho puntual — 2026-10-13)
+
+- [x] Lista del cliente (`C:\Portafolio\Datos Invitacion Clientes\Valeria\Lista de invitados
+  Valeria.xlsx`, hoja "Invitados": Familia/varones/mujeres/Adultos/Menores/Total/Mesa/Recuerdos)
+  convertida al formato de importación en `Import Lista Invitados Valeria.xlsx` (56 filas: 22
+  familias + 34 individuales, 104 asistentes). Reglas (Opción B): nombre con "famil*" →
+  `guest_type=family`, `family_name`=nombre, `guest_names` VACÍO, `max_companions`=Total; si no →
+  `individual`, `guest_names`=nombre, `max_companions`=Total−1. Mesa/Recuerdos anotados en `notes`
+  (`"Mesa: X | Recuerdos: Y"`).
+- [x] Landing — familias SIN nombres: `invitation.component.ts` ahora oculta los chips de nombres
+  cuando `guest_type=family` y `guest_names` está vacío (nuevo `hasGuestNames()`), y `guestCount()`
+  usa `max_companions` como total cuando no hay nombres (antes `"".split(',')` daba 1). `guestNames()`
+  filtra vacíos. Muestra solo nombre de familia + "N asistentes".
+
 ### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
 
 > **Contexto**: Permitir a los administradores compartir las invitaciones directamente por WhatsApp (mobile) o copiar links (desktop). Para eventos privados con lista de invitados, cada invitado tiene su link personalizado. Para eventos abiertos, se comparte un link genérico.

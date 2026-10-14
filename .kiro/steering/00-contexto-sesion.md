@@ -49,6 +49,29 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 3) — import lista Valeria + familias sin nombres + feature Mesa/Recuerdo
+
+Tema aparte del drag (módulo de Invitados). Rama `feature/drag-elementos-secciones`.
+
+- **Import lista Valeria (Opción B):** generado `C:\Portafolio\Datos Invitacion Clientes\Valeria\
+  Import Lista Invitados Valeria.xlsx` (56 filas: 22 familias + 34 individuales, 104 asistentes)
+  desde la lista original (hoja "Invitados": Familia/varones/mujeres/Adultos/Menores/Total/Mesa/
+  Recuerdos). Reglas: nombre con "famil*" → `guest_type=family`, `family_name`=nombre, `guest_names`
+  VACÍO, `max_companions`=Total; si no → `individual`, `guest_names`=nombre, `max_companions`=Total−1.
+  Mesa/Recuerdos → `notes` ("Mesa: X | Recuerdos: Y"). Formato de import del backend (guests.js):
+  columnas guest_type/family_name/guest_names(o nombre)/max_companions(o acompanantes)/phone(o
+  telefono/celular)/notes(o notas). El script generador fue puntual y se borró.
+- **Landing — familias SIN nombres (`invitation.component.ts`):** `guestNames()` filtra vacíos;
+  nuevo `hasGuestNames()`; chips solo si `family && hasGuestNames()`; `guestCount()` usa
+  `max_companions` como total cuando la familia no tiene nombres. Antes mostraba chip vacío + "1
+  asistente". Ahora muestra solo "Familia X" + "N asistentes". Build OK, frontend reconstruido.
+- **Feature DOCUMENTADO (sin implementar) — Mesa/Asiento + Recuerdo por invitado:** campos propios
+  `guests.table_assignment` (TEXTO libre) y `guests.souvenir` (opcional) para mostrar en la
+  IMPRESIÓN de tarjetas (`{mesa}`/`{recuerdo}`) y check de obsequio en conferencias. Plan completo
+  en `docs/PENDING.md`. Por ahora el dato va en `notes`.
+- Pendiente para el usuario: importar el Excel al evento 17 (Valeria) desde el dashboard (Invitados
+  → importar) y validar en la landing que las familias sin nombres se ven bien.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 2) — Problema 2: fidelidad canvas↔preview↔landing (piloto Invitación)
 
 Rama `feature/drag-elementos-secciones`. Se atacó el Problema 2 (lo configurado con drag en la

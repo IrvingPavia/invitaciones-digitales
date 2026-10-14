@@ -50,7 +50,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
                   [style.font-size.px]="styles?.contentStyle?.fontSize ? styles!.contentStyle.fontSize + 10 : 30"
                   [style.color]="styles?.contentStyle?.color || '#ffffff'"
               >{{ guest.family_name || guest.guest_names }}</h3>
-              @if (guest.guest_type === 'family') {
+              @if (guest.guest_type === 'family' && hasGuestNames()) {
                 <div class="invitation-names-list">
                   @for (name of guestNames(); track name) {
                     <span class="guest-name-chip"
@@ -299,12 +299,25 @@ export class LandingInvitationComponent {
   ornamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.titleStyle?.color || '#d4a017'; }
   ornamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
 
-  guestNames() { return this.guest?.guest_names.split(',') || []; }
+  /** Nombres individuales de los invitados (familia). Filtra vacíos para soportar familias
+      SIN lista de nombres (solo nombre de familia + cantidad), donde guest_names llega vacío. */
+  guestNames() {
+    return (this.guest?.guest_names || '')
+      .split(',')
+      .map(n => n.trim())
+      .filter(n => n.length > 0);
+  }
+  /** True si la familia NO tiene nombres individuales (solo se muestra nombre + total). */
+  hasGuestNames(): boolean { return this.guestNames().length > 0; }
   guestCount() {
     if (!this.guest) return 0;
-    return this.guest.guest_type === 'family'
-      ? this.guest.guest_names.split(',').length
-      : this.guest.max_companions + 1;
+    if (this.guest.guest_type === 'family') {
+      // Con nombres: contar nombres. Sin nombres (familia solo con total): usar max_companions
+      // como total de asistentes (ahí se almacena el total cuando no hay lista de nombres).
+      const names = this.guestNames();
+      return names.length > 0 ? names.length : (this.guest.max_companions || 0);
+    }
+    return this.guest.max_companions + 1;
   }
 
   getFontFamily(key?: string): string {

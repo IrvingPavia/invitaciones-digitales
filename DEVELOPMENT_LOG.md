@@ -11,9 +11,52 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13 (noche 2)
+## Estado actual del proyecto: 2026-10-13 (noche 3)
 
 ### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Importación lista Valeria (Opción B) + familias sin nombres en landing + feature Mesa/Recuerdo documentado
+
+**Petición:** convertir la lista del cliente Valeria (hombres/mujeres/menores/total/mesa/recuerdos)
+al formato de importación de invitados de la plataforma.
+
+**Formato de importación (backend `routes/guests.js` → `/import/:eventId`):** columnas reconocidas
+`guest_type` (family|individual), `family_name`, `guest_names` (o `nombre`), `max_companions` (o
+`acompanantes`), `phone` (o `telefono`/`celular`), `notes` (o `notas`). El conteo de asistentes en
+la landing: family = contar nombres en `guest_names`; individual = `max_companions + 1`.
+
+**Generado (Opción B elegida por el usuario):** `C:\Portafolio\Datos Invitacion Clientes\Valeria\
+Import Lista Invitados Valeria.xlsx`, 56 filas (22 familias + 34 individuales, 104 asistentes).
+Reglas: nombre con "famil*" (cubre "Familia", "y familia", "famila") → `guest_type=family`,
+`family_name`=nombre, `guest_names` VACÍO, `max_companions`=Total; si no → `individual`,
+`guest_names`=nombre, `max_companions`=Total−1. Mesa/Recuerdos → `notes` ("Mesa: X | Recuerdos: Y").
+El script generador fue puntual y se eliminó tras usarlo.
+
+**Cambio en landing (`invitation.component.ts`) — familias SIN lista de nombres:** antes, una
+familia con `guest_names` vacío mostraba un chip vacío y "1 asistente" (`"".split(',')`=['']→len 1).
+Ahora:
+- `guestNames()` filtra vacíos (trim + length>0).
+- nuevo `hasGuestNames()`; el template solo pinta los chips si `guest_type=family && hasGuestNames()`.
+- `guestCount()`: para family sin nombres usa `max_companions` como total (ahí se guarda el total);
+  con nombres sigue contando nombres; individual = `max_companions+1`.
+Resultado: familia sin nombres muestra solo "Familia X" + "N asistentes" (sin chips). Build OK.
+
+**Feature DOCUMENTADO (NO implementado) — campos "Mesa/Asiento" y "Recuerdo" por invitado:** el
+usuario pidió a futuro campos propios `guests.table_assignment` (TEXTO libre: nº de mesa, nombre de
+mesa como "Mesa Familia Gómez Prado", o asiento con letra/numeración) y `guests.souvenir` (opcional,
+boolean o texto/cantidad; en conferencias = check de obsequio). Deben salir en la IMPRESIÓN de
+tarjetas (variables `{mesa}`/`{recuerdo}`). Plan completo en `docs/PENDING.md` (modelo+initDB,
+backend POST/PUT/export/template/import, modal+grid en guests.component, variables en cards.component,
+opcional landing). Por ahora el dato vive en `notes`.
+
+**Nota:** el frontend se reconstruyó para reflejar el cambio de landing. El Excel está listo para
+importar al evento 17 (Valeria) desde el dashboard (Invitados → importar).
+
+---
+
+## Estado del proyecto: 2026-10-13 (noche 2)
+
+### Rama: `feature/drag-elementos-secciones`
 
 ### Sesión: Problema 2 — fidelidad canvas↔preview↔landing del drag (piloto Invitación, desktop)
 
