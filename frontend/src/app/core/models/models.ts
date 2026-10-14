@@ -253,6 +253,9 @@ export interface EnvelopeConfig {
   plainContent?: string;
   /** Posiciones personalizadas de los elementos del template Plano (title, subtitle, content, instruction). */
   plainPositions?: ElementPositions;
+  /** Animacion de SALIDA del template Plano al tocar para continuar. Exclusiva del template 'plain'.
+      Si no se define, usa 'fade' (desvanecer, sin desplazamiento lateral). */
+  plainExitAnimation?: 'fade' | 'zoom-out' | 'zoom-in' | 'slide-up' | 'blur' | 'none';
 }
 
 export interface IntroParticlesConfig {

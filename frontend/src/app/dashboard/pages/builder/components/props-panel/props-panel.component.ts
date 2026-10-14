@@ -416,6 +416,9 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Contenido</label>
                   <app-rich-text-editor [ngModel]="sec('envelope')?.plainContent" (ngModelChange)="setSec('envelope','plainContent',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
                 </div>
+                <div class="pf"><label>Animacion de salida</label>
+                  <app-custom-select [options]="plainExitAnimOptions" [value]="sec('envelope')?.plainExitAnimation||'fade'" (valueChange)="setSec('envelope','plainExitAnimation',$event)"></app-custom-select>
+                </div>
               </div>
             }
           }
@@ -2412,6 +2415,13 @@ export class BuilderPropsPanelComponent {
   instructionAnimOptions: SelectOption[] = [
     {value:'pulse',label:'Pulso'},{value:'bounce',label:'Rebote'},{value:'fade',label:'Aparecer/Desaparecer'},
     {value:'slide-up',label:'Deslizar arriba'},{value:'glow',label:'Brillar'},{value:'none',label:'Sin animacion'}
+  ];
+
+  /** Opciones de animacion de SALIDA del template Plano (al tocar para continuar). */
+  plainExitAnimOptions: SelectOption[] = [
+    {value:'fade',label:'Desvanecer'},{value:'zoom-out',label:'Alejar (zoom out)'},
+    {value:'zoom-in',label:'Acercar (zoom in)'},{value:'slide-up',label:'Deslizar arriba'},
+    {value:'blur',label:'Desenfocar'},{value:'none',label:'Instantaneo'}
   ];
 
   envBgTypeOptions: SelectOption[] = [

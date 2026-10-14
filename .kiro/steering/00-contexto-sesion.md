@@ -49,6 +49,37 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-13 (noche) — animación de SALIDA configurable del template Plano
+
+Rama `feature/drag-elementos-secciones`. Tanda enfocada en la Pantalla de Inicio:
+
+- **Problema:** al tocar "Toca para iniciar" en la Pantalla de Inicio (template PLANO), el texto
+  se deslizaba a la derecha antes de desaparecer; esa animación de SALIDA no era configurable
+  (solo existía la de la instrucción al cargar).
+- **Causa raíz:** salida hardcodeada en `envelope.component.ts`:
+  `.opened .plain-container { animation: splashOut }` con `splashOut = scale(1.1)`. El `scale`
+  desde el centro del contenedor, con los textos del plano posicionados vía `app-drag-box`
+  (`position:absolute; left:X%`), los corría lateralmente → "deslizamiento a la derecha".
+- **Fix (Opción C — configurable, EXCLUSIVO del template `plain`):**
+  - `models.ts`: nuevo `EnvelopeConfig.plainExitAnimation`
+    (`fade`/`zoom-out`/`zoom-in`/`slide-up`/`blur`/`none`), opcional, default `fade`.
+  - `envelope.component.ts`: `.plain-container` con `[attr.data-exit]` + `transform-origin:center`.
+    Se quitó `splashOut` del plano; nuevos keyframes `plainExitFade/ZoomOut/ZoomIn/SlideUp/Blur`.
+    `fade` desvanece sin desplazamiento lateral. ⚠️ `splashOut` SIGUE usándose en ticket y
+    minimal-splash (no se tocó ahí).
+  - `props-panel.component.ts`: control "Animación de salida" en acordeón "Opciones Plano" (solo
+    template `plain`) + array `plainExitAnimOptions`.
+  - Backend SIN cambios: `ensureConfigDefaults` hace `...(cfg.envelope || {})` → preserva el campo.
+- **NO se tocó el fix del banner** (pedido expreso de cuidar): reglas `.envelope-bg-image.bg-banner`
+  / `.plain-container.bg-banner` / `--banner-w` / `background-size:auto 100%` intactas.
+- Verificado por el usuario (control visible + salida sin deslizamiento). Build OK; contenedor
+  reconstruido con `--no-cache` + `rm -f` + `up -d --no-deps`; bundle contiene los campos nuevos.
+  Ctrl+F5 obligatorio para cargar el bundle (cambia el hash JS).
+- ⏳ EN CURSO (pruebas del usuario, sin código esta tanda): Problema 2 = fidelidad
+  canvas↔preview↔landing del TAMAÑO y POSICIÓN de los objetos. Como se ven en el canvas no coincide
+  con preview/landing. Estrategia propuesta: dar al canvas la misma columna de contenido (~680px)
+  que la landing. Sin empezar.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-13 (tarde) — ajustes de dashboard, banner y alto de secciones
 
 Rama `feature/drag-elementos-secciones`. Tanda posterior al drag de Invitación:

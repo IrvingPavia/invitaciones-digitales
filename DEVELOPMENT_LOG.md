@@ -11,9 +11,56 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13 (tarde)
+## Estado actual del proyecto: 2026-10-13 (noche)
 
 ### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Animación de SALIDA configurable del template Plano (Pantalla de Inicio)
+
+**Problema reportado:** al tocar "Toca para iniciar" en la Pantalla de Inicio (template PLANO),
+el texto se "deslizaba a la derecha" antes de desaparecer, y esa animación de SALIDA no era
+configurable (solo existía la animación de la instrucción al cargar).
+
+**Causa raíz:** la salida estaba hardcodeada en `envelope.component.ts` como
+`.opened .plain-container { animation: splashOut ... }` con `splashOut = scale(1.1)`. El
+`scale` se aplicaba desde el centro del contenedor, y como los textos del plano están
+posicionados con `app-drag-box` (`position:absolute; left:X%`), al escalar se corrían
+lateralmente → se percibía como "deslizamiento a la derecha".
+
+**Fix (Opción C — configurable, EXCLUSIVO del template `plain`):**
+- `models.ts`: nuevo campo opcional `EnvelopeConfig.plainExitAnimation`
+  (`'fade' | 'zoom-out' | 'zoom-in' | 'slide-up' | 'blur' | 'none'`). Default = `fade`.
+- `envelope.component.ts`: `.plain-container` ahora lleva
+  `[attr.data-exit]="config.plainExitAnimation || 'fade'"` + `transform-origin: center center`.
+  Se eliminó el `splashOut` del plano y se añadieron keyframes por `data-exit`
+  (`plainExitFade/ZoomOut/ZoomIn/SlideUp/Blur`). `fade` desvanece sin desplazamiento lateral.
+  OJO: `splashOut` SIGUE usándose en los templates ticket/minimal-splash (no se tocó ahí).
+- `props-panel.component.ts`: nuevo control "Animación de salida" en el acordeón "Opciones Plano"
+  (solo visible con template `plain`) + array `plainExitAnimOptions`.
+- Backend: SIN cambios. `ensureConfigDefaults` usa `...(cfg.envelope || {})` → el campo nuevo se
+  preserva solo en la landing pública.
+
+**Verificación:** `npm run build` OK (solo warnings NG8107 preexistentes del hero). Imagen
+reconstruida con `docker-compose build --no-cache frontend` + `docker rm -f` + `docker compose up
+-d --no-deps frontend`. Bundle del contenedor contiene `plainExitAnimation` y
+`plainExitAnimOptions`. Verificado por el usuario en el builder (control visible, salida sin
+deslizamiento lateral). Ctrl+F5 necesario para cargar el bundle nuevo (cambia el hash JS).
+
+**NO SE TOCÓ el fix del banner** (lo que el usuario pidió cuidar): las reglas
+`.envelope-bg-image.bg-banner` / `.plain-container.bg-banner` / `--banner-w` /
+`background-size: auto 100%` quedaron intactas. El cambio solo añadió un atributo al div y
+keyframes de salida al final de los estilos.
+
+**En curso / pruebas (sin cambios de código esta tanda):** el usuario sigue probando la
+fidelidad canvas↔preview↔landing del TAMAÑO y POSICIÓN de los objetos (Problema 2): como se ven
+en el canvas no coincide del todo con preview/landing. Pendiente de definir estrategia (dar al
+canvas la misma columna de contenido ~680px que la landing).
+
+---
+
+## Estado del proyecto: 2026-10-13 (tarde)
+
+### Rama: `feature/drag-elementos-secciones`
 
 ### Sesión: Ajustes dashboard + banner de sección + alto mínimo de secciones
 

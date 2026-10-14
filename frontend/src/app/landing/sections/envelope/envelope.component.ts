@@ -112,7 +112,7 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
       <!-- ============ TEMPLATE: PLAIN ============ -->
       @if (getTemplate() === 'plain') {
-        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
+        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
           @if (config.plainTitle) {
             <app-drag-box [editable]="editable" [position]="plainPosData('title')" [ngStyle]="plainPos('title')" (positionChange)="onPosChange('title', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
               <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
@@ -411,7 +411,22 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
     .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
     .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
-    .opened .plain-container { animation: splashOut 0.8s ease forwards; }
+
+    /* === SALIDA DEL TEMPLATE PLANO (configurable via data-exit) ===
+       Default 'fade' = desvanecer sin desplazamiento lateral. transform-origin centrado
+       para que ningun elemento posicionado fuera del centro se corra al escalar. */
+    .opened .plain-container { transform-origin: center center; }
+    .opened .plain-container[data-exit="fade"]     { animation: plainExitFade 0.8s ease forwards; }
+    .opened .plain-container[data-exit="zoom-out"]  { animation: plainExitZoomOut 0.8s ease forwards; }
+    .opened .plain-container[data-exit="zoom-in"]   { animation: plainExitZoomIn 0.8s ease forwards; }
+    .opened .plain-container[data-exit="slide-up"]  { animation: plainExitSlideUp 0.8s ease forwards; }
+    .opened .plain-container[data-exit="blur"]      { animation: plainExitBlur 0.8s ease forwards; }
+    .opened .plain-container[data-exit="none"]      { animation: plainExitFade 0.4s ease forwards; }
+    @keyframes plainExitFade    { 0% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes plainExitZoomOut { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.85); } }
+    @keyframes plainExitZoomIn  { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.12); } }
+    @keyframes plainExitSlideUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+    @keyframes plainExitBlur    { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(12px); } }
   `]
 })
 export class LandingEnvelopeComponent {
