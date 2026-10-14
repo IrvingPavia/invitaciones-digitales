@@ -49,6 +49,35 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 2) — Problema 2: fidelidad canvas↔preview↔landing (piloto Invitación)
+
+Rama `feature/drag-elementos-secciones`. Se atacó el Problema 2 (lo configurado con drag en la
+sección Invitación no se veía igual en canvas vs preview vs landing).
+
+- **Causa raíz (context-gatherer):** el drag guarda posición y ancho `w` en % relativos al
+  contenedor de la sección (`.inv-fg` = data-drag-bounds), pero ese contenedor mide distinto en
+  cada contexto y los font-size son px FIJOS:
+  - Canvas desktop: viewport hasta 900px (`.builder-canvas-viewport.desktop { max-width:900px }`).
+  - Preview: IFRAME que carga la landing real (`/invitacion/:slug?preview=1`) en marco ~900px
+    (`.builder-preview-frame.desktop { max-width:900px }`). NO es el `.preview-mode-canvas`.
+  - Landing real: columna `clamp(520px, 50vw, 680px)` vía padding de `.section-block`. El `50vw`
+    colapsaba a 520px en viewports estrechos (iframe de 900px) y daba 680px en monitor completo.
+  → mismo % = ancho físico distinto = wrapping distinto. (520 preview vs 680 landing vs 900 canvas.)
+- **Fix (piloto Invitación, SOLO desktop, mobile intacto):** homologar el lienzo a 680px FIJO.
+  - `invitation.component.ts`: `.inv-fg` con `[class.canvas-desktop]="previewDevice==='desktop'"`.
+    `.inv-fg.canvas-desktop { max-width:680px; margin:0 auto }` +
+    `.inv-fg.canvas-desktop.positioned { left:50%; width:680px; max-width:680px; transform:translateX(-50%) }`.
+    Cubre canvas y preview (ambos pasan previewDevice). Landing real = previewDevice null → sin clase.
+  - `landing.component.ts`: `@media (min-width:768px) { .section-block { padding-left/right:
+    max(20px, calc(50vw - 340px)) } }` → columna de contenido = 2×340 = 680px fijo en cualquier
+    viewport desktop (iframe de preview incluido). Mobile (<768px) conserva el padding fluido.
+  - Resultado: canvas = preview = landing en desktop. Verificado por el usuario.
+- ⚠️ **Reajustar UNA vez** las posiciones de la Invitación de Valeria (guardadas contra 900px).
+- **Pendiente:** replicar el acotado `canvas-desktop` a hero/intro/envelope (el `@media` de
+  `.section-block` ya cubre landing/preview para todas; falta el lado canvas por sección).
+- OJO build: un backtick dentro de un comentario CSS en los `styles[]` de un componente rompe el
+  build (el template usa backticks). Pasó esta sesión; evitar backticks en esos comentarios.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-13 (noche) — animación de SALIDA configurable del template Plano
 
 Rama `feature/drag-elementos-secciones`. Tanda enfocada en la Pantalla de Inicio:

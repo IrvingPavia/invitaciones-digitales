@@ -452,6 +452,19 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       min-height: 100svh;
       display: flex; flex-direction: column; justify-content: center;
     }
+    /* En DESKTOP la columna de contenido se ESTABILIZA en 680px (térm. central fijo en 340px)
+       en vez de depender de 50vw. Antes, en viewports desktop estrechos —p. ej. el iframe de
+       Preview del builder (~900px)— el 25vw colapsaba al mínimo y la columna caía a ~520px, por
+       lo que el Preview NO coincidía con la landing a pantalla completa (680px) ni con el canvas.
+       Con 340px fijo, el contenido = 2×340 = 680px en cualquier viewport ≥768px, igualando los 3
+       contextos. El max(20px, …) sigue protegiendo viewports desktop muy angostos. En MÓVIL
+       (<768px) no aplica: se conserva el padding fluido original. */
+    @media (min-width: 768px) {
+      .section-block {
+        padding-left: max(20px, calc(50vw - 340px));
+        padding-right: max(20px, calc(50vw - 340px));
+      }
+    }
     /* ===== Override de texto por sección =====
        Encabezado (H2): .section-heading / h2 / .invitation-title
        Títulos internos (H3/H4): h3, .venue-title, .example-title, .timeline-title,

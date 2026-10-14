@@ -13,7 +13,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       <!-- Lienzo de posicionamiento (data-drag-bounds): ocupa toda la sección y confina
            los objetos arrastrables. Si no hay posiciones guardadas, los objetos conservan
            el flujo centrado normal (posStyle devuelve {}). -->
-      <div class="inv-fg" data-drag-bounds [class.positioned]="hasAnyPosition">
+      <div class="inv-fg" data-drag-bounds [class.positioned]="hasAnyPosition" [class.canvas-desktop]="previewDevice === 'desktop'">
       <div class="section-container">
         @if (ornamentType() !== 'none') {
           <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [centerContent]="true" [position]="posData('ornamentTop')" [ngStyle]="pos('ornamentTop')" (positionChange)="onPosChange('ornamentTop', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
@@ -165,6 +165,19 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
       min-height: 0;
     }
     .inv-fg.positioned .section-container { max-width: none; width: 100%; height: 100%; }
+    /* ===== PARIDAD canvas↔preview↔landing (modo DESKTOP del builder) =====
+       En el builder (canvas y preview-iframe) el ancho del contenedor varía (viewport ~900px,
+       iframe ~900px), así que la columna de la landing (clamp(520px,50vw,680px)) se evaluaba a
+       un ancho distinto en cada contexto → los % de posición/ancho daban medidas físicas
+       distintas y el texto (font-size px fijo) hacía otro wrapping. Fijamos el LIENZO de drag
+       a 680px CENTRADO cuando previewDevice='desktop' (clase canvas-desktop), que es el ancho
+       de la columna de la landing en un monitor completo. Así los 3 contextos del builder
+       coinciden. La landing REAL (previewDevice=null) NO lleva esta clase → conserva su columna
+       responsiva. MOBILE del builder tampoco (solo aplica con canvas-desktop). */
+    .inv-fg.canvas-desktop { max-width: 680px; margin-left: auto; margin-right: auto; }
+    .inv-fg.canvas-desktop.positioned {
+      left: 50%; right: auto; width: 680px; max-width: 680px; transform: translateX(-50%);
+    }
     /* Guías de alineación del drag asistido */
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
     .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }

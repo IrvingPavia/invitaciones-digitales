@@ -86,10 +86,9 @@
 - [x] FIX Carátula banner recortado: el hero se expande a 100vw como las secciones (vía
   `.landing-wrapper > app-landing-hero` en los styles de la landing; NO en el componente hero
   para no romper el canvas).
-- [ ] **Problema 2 — fidelidad canvas↔landing de tamaños/anchos:** el canvas desktop (~900px) y la
-  landing (columna ~520–680px) tienen distinto ancho de contenido; con font-size en px fijos el
-  texto se ve de distinto tamaño relativo y el wrapping difiere. Propuesta: dar al canvas la misma
-  columna de contenido (~680px) que la landing.
+- [~] **Problema 2 — fidelidad canvas↔preview↔landing de tamaños/anchos (PILOTO Invitación, desktop):** el canvas desktop (~900px), el preview (iframe ~900px) y la landing (columna que colapsaba a ~520px por el `50vw` en viewports estrechos) tenían distinto ancho de contenido; con font-size px fijos el texto hacía wrapping distinto y la card cambiaba de tamaño.
+    > Fix (2026-10-13 noche 2): se homologó el ancho del lienzo de drag a **680px fijo en desktop** en los 3 contextos. `invitation.component.ts`: `.inv-fg` con `[class.canvas-desktop]="previewDevice==='desktop'"` → 680px centrado (cubre canvas y preview). `landing.component.ts`: `@media (min-width:768px)` estabiliza la columna de `.section-block` a 680px (padding `max(20px, calc(50vw - 340px))`) en vez de depender de `50vw` → el iframe de preview (900px) y la landing a pantalla completa dan ambos 680px. Mobile intacto. Verificado por el usuario. ⚠️ Reajustar una vez las posiciones de Valeria (guardadas contra 900px).
+- [ ] **Replicar el fix del Problema 2 en las otras secciones con drag** (hero/carátula, intro, envelope/plano): aplicarles el mismo acotado `canvas-desktop` a 680px en desktop. El `@media` de `.section-block` ya cubre el lado landing/preview para todas; falta el lado canvas por sección.
 
 ### 🆕 Sistema de Compartir Invitaciones (feature — int-006)
 

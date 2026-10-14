@@ -11,9 +11,61 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13 (noche)
+## Estado actual del proyecto: 2026-10-13 (noche 2)
 
 ### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Problema 2 — fidelidad canvas↔preview↔landing del drag (piloto Invitación, desktop)
+
+**Problema:** lo configurado con drag & drop en la sección Invitación NO se veía igual en los 3
+contextos. En el CANVAS el encabezado "Están cordialmente invitados" cabía en 2 líneas y la card
+tenía su ancho; en PREVIEW y LANDING el texto se cortaba (3 líneas) y la card se veía más chica.
+
+**Causa raíz (confirmada con context-gatherer):** el drag guarda posiciones y ancho `w` en %
+relativos al contenedor de la sección (`.inv-fg` = data-drag-bounds), pero ese contenedor mide
+distinto ancho físico en cada contexto, y los font-size de los textos son px FIJOS (no escalan):
+- Canvas desktop: viewport hasta 900px (`.builder-canvas-viewport.desktop { max-width:900px }`).
+- Preview: es un IFRAME que carga la landing real (`/invitacion/:slug?preview=1`) en un marco de
+  ~900px (`.builder-preview-frame.desktop { max-width:900px }`).
+- Landing real: columna de contenido `clamp(520px, 50vw, 680px)` vía el padding de `.section-block`.
+El `50vw` colapsaba al MÍNIMO (520px) en viewports desktop estrechos (iframe de 900px → 25vw=225px
+→ min 260px → contenido 520px), mientras que en monitor completo daba 680px. Por eso Preview (520)
+≠ landing a pantalla completa (680) ≠ canvas (900). Mismo % ⇒ ancho físico distinto ⇒ wrapping
+distinto.
+
+**Fix (piloto Invitación, SOLO desktop; mobile intacto):** homologar el ancho del lienzo a 680px
+FIJO en desktop en los 3 contextos.
+- `invitation.component.ts`: el `.inv-fg` recibe `[class.canvas-desktop]="previewDevice==='desktop'"`.
+  Reglas nuevas: `.inv-fg.canvas-desktop { max-width:680px; margin:0 auto }` y
+  `.inv-fg.canvas-desktop.positioned { left:50%; width:680px; max-width:680px; transform:translateX(-50%) }`.
+  Esto cubre el CANVAS y el PREVIEW (ambos pasan previewDevice). La LANDING real tiene
+  previewDevice=null → NO lleva la clase (conserva su columna responsiva).
+- `landing.component.ts`: se ESTABILIZA la columna de `.section-block` en DESKTOP a 680px fijo
+  (en vez de depender de 50vw) con `@media (min-width:768px) { .section-block { padding-left/right:
+  max(20px, calc(50vw - 340px)) } }` → contenido = 2×340 = 680px en cualquier viewport ≥768px
+  (iframe de preview incluido). Esto hace que PREVIEW (iframe 900px) y LANDING (monitor) den ambos
+  680px. En MÓVIL (<768px) no aplica: se conserva el padding fluido original.
+- Resultado: canvas = preview = landing en desktop. Verificado por el usuario.
+
+**IMPORTANTE — reajuste de posiciones:** las posiciones de la Invitación de Valeria se habían
+guardado contra ~900px (ancho viejo del canvas). Tras acotar a 680px es esperable tener que
+reajustarlas UNA vez en desktop. No es bug.
+
+**Notas de alcance / próximos pasos:**
+- Esto es PILOTO solo de Invitación. Las otras secciones con drag (hero/carátula, intro, envelope/
+  plano) siguen SIN el acotado `canvas-desktop`; replicar el patrón cuando se trabajen.
+- El `@media` de `.section-block` aplica a TODAS las secciones (no solo Invitación), pero es seguro:
+  en monitores normales la columna ya daba 680px; solo cambia los viewports desktop estrechos.
+- Build OK (warnings NG8107 preexistentes). Imagen reconstruida `--no-cache` + `rm -f` + `up -d
+  --no-deps`. Bundle contiene `canvas-desktop`. Ctrl+F5 para refrescar el hash JS.
+- OJO con los backticks en comentarios DENTRO de los styles[] de componentes: el template string
+  usa backticks, así que un backtick en un comentario CSS rompe el build (pasó esta sesión).
+
+---
+
+## Estado del proyecto: 2026-10-13 (noche)
+
+### Rama: `feature/drag-elementos-secciones`
 
 ### Sesión: Animación de SALIDA configurable del template Plano (Pantalla de Inicio)
 
