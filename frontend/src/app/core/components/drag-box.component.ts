@@ -109,12 +109,20 @@ export class DragBoxComponent {
   private startClientX = 0;
   private startClientY = 0;
 
-  private readonly SNAP = 3;
+  /** Umbral de "imán" para alinear a una guía, en % de la sección. Separado por eje:
+      - X (horizontal): 3% está bien para alinear al centro/tercios (lo validó el usuario).
+      - Y (vertical): 1.2% (más chico) porque el eje vertical tiene menos espacio —sobre todo en
+        mobile— y un umbral grande hacía que el objeto "brincara" entre guías sin dejar ajustar fino. */
+  private readonly SNAP_X_THRESHOLD = 3;
+  private readonly SNAP_Y_THRESHOLD = 1.2;
   /** Límite inferior/superior del centro, derivado de posMargin (default 2 → 2 y 98). */
   private get MIN() { return this.posMargin; }
   private get MAX() { return 100 - this.posMargin; }
+  /** Guías X (horizontal): centro + tercios + bordes, útiles para centrar. */
   private readonly SNAP_X = [10, 25, 50, 75, 90];
-  private readonly SNAP_Y = [10, 25, 50, 75, 90];
+  /** Guías Y (vertical): SOLO el centro. Antes había 5 guías que, con poco espacio vertical
+      (mobile), hacían saltar el objeto entre ellas e impedían el ajuste fino. */
+  private readonly SNAP_Y = [50];
 
   // Deseleccionar al clickear fuera
   @HostListener('document:mousedown', ['$event'])
@@ -182,10 +190,11 @@ export class DragBoxComponent {
     let x = ((cx - this.bounds.left) / this.bounds.width) * 100 - this.clickOffsetX;
     let y = ((cy - this.bounds.top) / this.bounds.height) * 100 - this.clickOffsetY;
 
-    // Snap
+    // Snap (imán a guías). Umbral por eje: X más tolerante, Y más estricto para permitir ajuste
+    // fino vertical (sobre todo en mobile, donde hay poco espacio).
     const guides: { x?: number; y?: number } = {};
-    for (const gx of this.SNAP_X) { if (Math.abs(x - gx) <= this.SNAP) { x = gx; guides.x = gx; break; } }
-    for (const gy of this.SNAP_Y) { if (Math.abs(y - gy) <= this.SNAP) { y = gy; guides.y = gy; break; } }
+    for (const gx of this.SNAP_X) { if (Math.abs(x - gx) <= this.SNAP_X_THRESHOLD) { x = gx; guides.x = gx; break; } }
+    for (const gy of this.SNAP_Y) { if (Math.abs(y - gy) <= this.SNAP_Y_THRESHOLD) { y = gy; guides.y = gy; break; } }
 
     // Confinar (sin cambiar tamaño, solo frena)
     x = Math.max(this.MIN, Math.min(this.MAX, x));
@@ -262,6 +271,12 @@ export class DragBoxComponent {
     const frame = this.el.nativeElement.querySelector('.db-frame') as HTMLElement;
     const r = frame.getBoundingClientRect();
     this.rLeft = r.left; this.rRight = r.right; this.rTop = r.top; this.rBottom = r.bottom;
+    // Sembrar lastX/lastY con el CENTRO ACTUAL real del objeto (en % de la sección). Sin esto,
+    // al redimensionar en un solo eje (p. ej. solo ancho), el eje no tocado conservaba el default
+    // 50 y el objeto saltaba al centro de la sección al soltar. Ahora el eje no tocado mantiene
+    // su posición real.
+    this.lastX = Math.round(((r.left + r.width / 2 - this.bounds.left) / this.bounds.width) * 1000) / 10;
+    this.lastY = Math.round(((r.top + r.height / 2 - this.bounds.top) / this.bounds.height) * 1000) / 10;
   }
 
   private processResize(cx: number, cy: number) {

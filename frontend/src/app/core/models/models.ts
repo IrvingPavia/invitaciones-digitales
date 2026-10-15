@@ -285,7 +285,12 @@ export interface IntroProgressBarConfig {
 
 export interface IntroConfig {
   enabled: boolean;
+  /** Fondo legacy (string URL, cover). Se conserva por retrocompatibilidad y como fuente del
+      recorte de video (trimmer). Si existe `media`, éste manda sobre `background` para el render. */
   background: string;
+  /** Fondo homologado (imagen/gif/video) con modo banner/cover + override desktop, igual que las
+      secciones. Opcional/retrocompatible. Para video, la URL efectiva alimenta el trimmer. */
+  media?: MediaBackground;
   phrase: string;
   /** Contenido de la frase como HTML enriquecido (editor homologado). Si existe, manda
       sobre `phrase` + `phraseStyle`. Retrocompatible: configs viejos siguen usando `phrase`. */

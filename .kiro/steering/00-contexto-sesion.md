@@ -49,6 +49,41 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 4) — Pantalla Inicio + Intro completas + fixes drag-box + decisión selector dispositivos
+
+Rama `feature/drag-elementos-secciones`. Tanda grande (todo commiteado junto). Resumen:
+
+- **Pantalla de Inicio (Plano):** lienzo de texto a 680px centrado en desktop (`plain-desktop`),
+  incluso en banner (el banner solo afecta la imagen; el texto va a 680px fijo). Verificado.
+- **Intro — paridad:** nuevo `.intro-fg` (data-drag-bounds) a 680px centrado en desktop
+  (`intro-fg-desktop`).
+- **Intro — fondo homologado:** `IntroConfig.media?` (MediaBackground) + `resolveMedia` +
+  `<app-background-control>` → banner/cover + override desktop + overlay, igual que las secciones.
+  Banner centrado (fix: `animation:none` en `.bg-banner`, el zoom pisaba el translateX). Overlay
+  oscuro fijo eliminado.
+- **Intro — salida + relevo a carátula:** salida por `@keyframes introOut*` (NO transition: la
+  animación de entrada con fill-mode both la pisaba → parpadeo). Crossfade: `fadingStart` monta la
+  carátula detrás antes de que la intro termine (evita el hueco de 1-2s). Fade-out 300ms antes del
+  fin. Carátula entra con `hero-entering` + `heroBgFadeIn`. Verificado (quedó perfecto).
+- **DragBox:** snap Y menos agresivo (umbral 1.2% y guías Y solo el centro; X intacto) + resize ya
+  no recentra (siembra lastX/lastY con el centro real en initResize).
+- **Invitación — MOBILE:** faltaba la paridad mobile; acotado a 375px centrado (`canvas-mobile`).
+  ⚠️ PENDIENTE cambiarlo a 360px (ver abajo).
+- **Import invitados (fix):** ya no salta familias sin guest_names; dedup por family_name o
+  guest_names (reimportar no duplica). Backend reconstruido.
+
+**DECISIÓN para la próxima tanda — Selector de dispositivos (canvas mobile):**
+- Lienzo de drag mobile = **360px fijo** (cambiar el 375 actual). Mínimo seguro del mercado
+  (Android gama baja = 360 CSS px). Hacerlo REUTILIZABLE para todas las secciones.
+- Selector tipo DevTools (solo mobile): el MARCO del canvas toma ancho×ALTO proporcional del
+  dispositivo; el lienzo de drag se queda en 360px (área segura). Filosofía A: lo que se configura
+  dentro de 360px se ve consistente en cualquier teléfono; el cliente es responsable por gama.
+- Catálogo: 360×800, 375×667, 384×854, 390×844, 412×915, 414×896, 440×956.
+- Ubicación responsive: escritorio → toolbar del canvas; móvil → dropdown en panel de Secciones
+  ARRIBA de "Tema Global". Un control reposicionado por `isWide()`.
+- OJO build recurrente: backtick en comentario dentro de `styles[]` de un componente ROMPE el
+  build (el template usa backticks). Evitarlos.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 3) — import lista Valeria + familias sin nombres + feature Mesa/Recuerdo
 
 Tema aparte del drag (módulo de Invitados). Rama `feature/drag-elementos-secciones`.

@@ -226,7 +226,12 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       background-size: cover; background-position: center center; background-repeat: no-repeat;
       object-fit: cover;
       pointer-events: none;
+      /* Fade-in propio al aparecer: evita el "parpadeo" cuando la carátula se monta tras la
+         intro y el bitmap del fondo se decodifica un instante después. La capa entra con un
+         desvanecido suave en lugar de aparecer de golpe. */
+      animation: heroBgFadeIn 1s ease both;
     }
+    @keyframes heroBgFadeIn { from { opacity: 0; } to { opacity: 1; } }
     /* Capa de primer plano: cubre toda la sección, centra el contenido y es el contenedor de
        posicionamiento de los drag-box (reemplaza a .hero-section como data-drag-bounds). */
     .hero-fg {

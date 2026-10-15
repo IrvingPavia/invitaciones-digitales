@@ -443,27 +443,14 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
           @if (expanded['intro-bg']) {
             <div class="accordion-body">
-              <div class="pf"><label>Fondo (imagen/video/gif)</label>
-                @if(sec('intro')?.background){
-                  <div class="media-preview-row">
-                    <div class="media-thumb">
-                      @if(thumbIsVideo(sec('intro')?.background)){<span class="material-icons media-type-icon">movie</span>}
-                      @else{<img [src]="sec('intro')?.background" alt="fondo">}
-                    </div>
-                    <div class="media-meta"><span class="media-badge">{{thumbKind(sec('intro')?.background)}}</span><span class="file-name">{{getFileName(sec('intro')?.background)}}</span></div>
-                    <div class="media-actions"><button class="sm-btn" (click)="uploadIntroMedia();$event.stopPropagation()">Cambiar</button><button class="sm-btn danger" (click)="setSec('intro','background','');clearMediaDuration();$event.stopPropagation()">X</button></div>
-                  </div>
-                } @else {<div class="upload-row"><button class="sm-btn" (click)="uploadIntroMedia();$event.stopPropagation()">Subir</button></div>}
-              </div>
-              @if (sec('intro')?.background) {
-                <div class="media-info">
-                  @if (isVideoFile(sec('intro')?.background)) {
-                    <span class="media-badge">Video</span>
-                    @if (sec('intro')?.videoDuration) {
-                      <span class="media-duration">{{sec('intro')?.videoDuration}}s</span>
-                    }
-                  } @else {
-                    <span class="media-badge">GIF / Imagen (loop)</span>
+              <!-- Fondo homologado con las secciones: imagen/gif/video + banner/cover en
+                   escritorio + override desktop + overlay. Mismo control reutilizable. -->
+              <app-background-control [model]="introMediaModel()" (modelChange)="setIntroMediaModel($event)"></app-background-control>
+              @if (sec('intro')?.background && isVideoFile(sec('intro')?.background)) {
+                <div class="media-info" style="margin-top:8px">
+                  <span class="media-badge">Video</span>
+                  @if (sec('intro')?.videoDuration) {
+                    <span class="media-duration">{{sec('intro')?.videoDuration}}s</span>
                   }
                 </div>
               }
@@ -1861,6 +1848,35 @@ export class BuilderPropsPanelComponent {
     const s = (cfg as any)[key];
     if (!s.sectionStyle) s.sectionStyle = { bgType: 'image', dividerType: 'none' };
     s.sectionStyle.media = media;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  /** Media del fondo de la INTRO (intro.media). Fallback retrocompatible al legacy
+      intro.background (string) para que el control muestre lo ya configurado. */
+  introMediaModel(): MediaBackground | null {
+    const intro = (this.cfg() as any)?.intro;
+    if (!intro) return null;
+    if (intro.media && intro.media.url) return intro.media;
+    if (intro.background) {
+      return { url: intro.background, fit: 'cover', overlay: 0, position: 'center center' };
+    }
+    return intro.media ?? null;
+  }
+  setIntroMediaModel(media: MediaBackground) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!(cfg as any).intro) (cfg as any).intro = {};
+    (cfg as any).intro.media = media;
+    // Sincronizar el legacy `background` con la URL BASE para que el trimmer de video y la
+    // detección de duración (que leen intro.background) sigan funcionando. En override desktop,
+    // el trimmer usa la base; el desktop alterno se recorta con el mismo segmento.
+    const baseUrl = media?.url || '';
+    (cfg as any).intro.background = baseUrl;
+    if (baseUrl && this.isVideoFile(baseUrl)) {
+      this.detectVideoDuration(baseUrl);
+    } else {
+      this.clearMediaDuration();
+    }
     this.canvasState.notifyChange();
     this.canvasState.triggerAutoSave();
   }

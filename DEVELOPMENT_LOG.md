@@ -11,7 +11,94 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13 (noche 3)
+## Estado actual del proyecto: 2026-10-13 (noche 4)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Pantalla de Inicio + Intro (paridad + fondo banner + transición) + fixes drag-box + paridad mobile Invitación
+
+Tanda grande, continuación del Problema 2 (fidelidad canvas↔preview↔landing) aplicado a más
+secciones, más mejoras del drag-box. TODO en esta entrada se commitea junto.
+
+**1. Pantalla de Inicio (template Plano) — paridad del lienzo de texto (680px desktop):**
+- El `.plain-container` (data-drag-bounds) se acota a 680px CENTRADO en desktop (getter
+  `plainDesktopFixed = !isMobilePos`, clase `plain-desktop`), INCLUSO en modo banner (el banner
+  define el ancho de la IMAGEN de fondo vía --banner-w, pero el lienzo de TEXTO va a 680px fijo;
+  antes en banner usaba --banner-w que era '%' en canvas pero 'vw' en landing → divergía).
+  Excepción al `*{max-width:100%}` del canvas para no recortarlo. Verificado por el usuario.
+
+**2. Intro — Parte A (paridad del lienzo de texto):** nuevo `.intro-fg` (data-drag-bounds)
+  envuelve la frase; en desktop se acota a 680px centrado (`intro-fg-desktop`). Excepción al
+  max-width del canvas. El overlay de la intro es fixed, por eso en landing el lienzo medía el
+  ancho de la ventana.
+
+**3. Intro — Parte B (fondo homologado con MediaBackground):** nuevo `IntroConfig.media?`
+  (MediaBackground). La intro usa `resolveMedia` → cover (mobile/default) o BANNER (desktop,
+  columna centrada) + overlay configurable, igual que las secciones. El builder usa
+  `<app-background-control>` (helpers `introMediaModel`/`setIntroMediaModel`, que sincronizan el
+  legacy `background` para el trimmer de video). Backend sin cambios (spread de intro preserva
+  media). Fixes: banner descentrado (el keyframe introBgZoom pisaba el translateX(-50%) de
+  centrado → `animation:none` en `.bg-banner`); overlay oscuro FIJO eliminado (ahora solo pinta
+  si overlay>0).
+
+**4. Intro — transición de SALIDA + relevo a la Carátula (sin parpadeo ni hueco):**
+- CAUSA del parpadeo de salida: la animación de ENTRADA `introFadeIn` con fill-mode `both`
+  retenía la opacity y le ganaba a la `transition` de salida → la intro desaparecía de golpe.
+  FIX: la salida ahora usa ANIMACIONES dedicadas (`@keyframes introOutFade/SlideUp/.../Blur`),
+  no transition (igual que el canvas con builderFade). Una animation de salida sí sustituye a la
+  de entrada sin conflicto.
+- CAUSA del hueco (fondo vacío 1-2s entre intro y carátula): la carátula no se montaba hasta que
+  la intro se desmontaba (`showIntro=false`). FIX (crossfade): la intro emite `fadingStart` al
+  INICIAR el fade-out → la landing monta la carátula DETRÁS ya mismo (`heroEntering`), con la
+  intro (z-index 9999) tapándola; al terminar el fade la carátula ya está lista. El fade-out
+  arranca 300ms ANTES del fin de la duración (`dur-300`) para solapar.
+- Carátula entra suave: `.landing-wrapper.hero-entering` (fade 1.2s) + `.hero-bg-media` con
+  `heroBgFadeIn` (1s). Verificado por el usuario (quedó perfecto).
+
+**5. DragBox — 2 fixes de usabilidad:**
+- Snap: umbral separado por eje (SNAP_X_THRESHOLD=3, SNAP_Y_THRESHOLD=1.2) y guías Y reducidas a
+  SOLO el centro (50) — antes 5 guías Y hacían "brincar" el objeto en mobile. X sin cambios.
+- Resize ya no recentra: `lastX/lastY` se SIEMBRAN en `initResize` con el centro real actual del
+  objeto. Antes quedaban en el default 50 para el eje no tocado → el objeto saltaba al centro al
+  soltar (y a veces quedaba detrás de otro objeto, inseleccionable).
+
+**6. Invitación — paridad en MOBILE (faltaba):** el fix previo era solo desktop (680px). En
+  modo posicionado `.landing-section.positioned` quita el padding lateral → el `.inv-fg` cubría
+  TODO el ancho del dispositivo (variable 360-440px) mientras el canvas mobile es 375px fijo →
+  el texto hacía otro wrapping. FIX: clase `canvas-mobile` (getter `fgMobile`) acota el lienzo a
+  375px centrado en canvas/preview/landing móvil. (⚠️ Ver decisión 360px abajo — PENDIENTE de
+  cambiar 375→360 y de crear el selector de dispositivos.)
+
+**Build/deploy:** cada cambio con `npm run build` + `docker-compose build --no-cache frontend` +
+`rm -f` + `up -d --no-deps`. Backend reconstruido para el fix del import. OJO recurrente: un
+backtick dentro de un comentario en los `styles[]` de un componente ROMPE el build (el template
+usa backticks). Pasó varias veces esta sesión.
+
+**Importación de invitados (fix):** el import de `routes/guests.js` saltaba filas sin
+`guest_names` (`if (!guestNames) continue`) → descartaba las familias de la Opción B (sin
+nombres). FIX: salta solo si no hay NI family_name NI guest_names; detecta `family` por
+family_name si no viene guest_type; dedup por `family_name` o `guest_names` (reimportar NO
+duplica). Backend reconstruido.
+
+**PENDIENTE acordado (feature próximo) — Selector de dispositivos en el canvas mobile:**
+- Cambiar el ancho de referencia del lienzo mobile de 375 → **360px** (mínimo seguro del mercado;
+  gama baja Android = 360 CSS px; 375 no cabe en 360). Aplica a Invitación y, al replicar, a las
+  demás secciones (hacerlo REUTILIZABLE).
+- Selector tipo DevTools (solo modo mobile): el MARCO del canvas adopta ancho×ALTO del dispositivo
+  elegido (proporción real), pero el LIENZO de drag se mantiene limitado a 360px centrado (área
+  segura). Catálogo: 360×800 (Android baja/media), 375×667 (iPhone SE), 384×854 (Android media-alta),
+  390×844 (iPhone 14-16), 412×915 (Android alta S24/Pixel9), 414×896 (iPhone XR/11), 440×956
+  (iPhone 16 Pro Max). Responsabilidad del cliente: asegurar su diseño por gama (si configura en
+  alta/media y descuadra en baja, lo acepta).
+- UBICACIÓN responsive del selector: escritorio → toolbar del canvas; MÓVIL (configurando desde
+  un celular, sin espacio en toolbar) → dropdown dentro del panel de Secciones, ARRIBA de
+  "Tema Global". Un solo control reposicionado por `isWide()`.
+- Detalle del ALTO: hoy el canvas usa `--canvas-vh` (área disponible). Con el selector, el marco
+  debe tomar el alto proporcional del dispositivo para no verse desproporcionado.
+
+---
+
+## Estado del proyecto: 2026-10-13 (noche 3)
 
 ### Rama activa: `feature/drag-elementos-secciones`
 

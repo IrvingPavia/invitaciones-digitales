@@ -112,7 +112,7 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
       <!-- ============ TEMPLATE: PLAIN ============ -->
       @if (getTemplate() === 'plain') {
-        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
+        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [class.plain-desktop]="plainDesktopFixed" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
           @if (config.plainTitle) {
             <app-drag-box [editable]="editable" [position]="plainPosData('title')" [ngStyle]="plainPos('title')" (positionChange)="onPosChange('title', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
               <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
@@ -377,6 +377,22 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
         transform: translateX(-50%);
       }
     }
+    /* PARIDAD canvas↔preview↔landing (desktop): el LIENZO DE TEXTO del template Plano
+       (.plain-container = data-drag-bounds) se acota a 680px CENTRADO en desktop. Como el envelope
+       es un overlay fixed a pantalla completa, en la landing el lienzo medía todo el ancho de la
+       ventana (~1024px+) mientras que en el canvas medía ~500px → mismo % daba ancho físico
+       distinto y el texto (font-size px fijo) hacía otro wrapping. En modo banner el problema era
+       aún peor: el texto usaba var(--banner-w) = '%' en canvas pero 'vw' en landing (divergente).
+       Con 680px fijo los 3 contextos coinciden. Esta regla GANA sobre .bg-banner (va después y usa
+       doble clase .plain-container.plain-desktop) para que el ancho del TEXTO sea estable; la
+       IMAGEN de fondo (.envelope-bg-image) conserva su propio --banner-w aparte. */
+    .plain-container.plain-desktop,
+    .plain-container.plain-desktop.bg-banner {
+      top: 0; bottom: 0;
+      left: 50%; right: auto;
+      width: 680px; max-width: 680px;
+      transform: translateX(-50%);
+    }
     .plain-title {
       animation: splashTextIn 1s ease 0.2s both;
     }
@@ -519,6 +535,16 @@ export class LandingEnvelopeComponent {
   /** True si debe aplicarse el modo banner (banner configurado y no forzado a cover). */
   get bannerActive(): boolean {
     return this.config.splashBgFit === 'banner' && !this.forceCover;
+  }
+  /** True si el LIENZO DE TEXTO del template Plano debe acotarse a la columna fija de desktop
+      (680px). Aplica en DESKTOP (canvas con previewDevice='desktop' o landing en ventana ancha),
+      INCLUSO en modo banner: el banner define el ancho de la IMAGEN de fondo (.envelope-bg-image),
+      pero el lienzo de TEXTO debe tener un ancho de referencia estable para que el drag coincida
+      entre canvas, preview y landing. Antes, en banner, el texto usaba var(--banner-w) que es '%'
+      del viewport en el canvas pero 'vw' de la ventana en la landing → divergía. Con 680px fijo
+      los 3 contextos coinciden. En mobile no aplica (cada dispositivo mantiene su ancho). */
+  get plainDesktopFixed(): boolean {
+    return !this.isMobilePos;
   }
   @Output() done = new EventEmitter<void>();
   opened = false;

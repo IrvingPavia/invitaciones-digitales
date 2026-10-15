@@ -88,7 +88,38 @@
   para no romper el canvas).
 - [~] **Problema 2 — fidelidad canvas↔preview↔landing de tamaños/anchos (PILOTO Invitación, desktop):** el canvas desktop (~900px), el preview (iframe ~900px) y la landing (columna que colapsaba a ~520px por el `50vw` en viewports estrechos) tenían distinto ancho de contenido; con font-size px fijos el texto hacía wrapping distinto y la card cambiaba de tamaño.
     > Fix (2026-10-13 noche 2): se homologó el ancho del lienzo de drag a **680px fijo en desktop** en los 3 contextos. `invitation.component.ts`: `.inv-fg` con `[class.canvas-desktop]="previewDevice==='desktop'"` → 680px centrado (cubre canvas y preview). `landing.component.ts`: `@media (min-width:768px)` estabiliza la columna de `.section-block` a 680px (padding `max(20px, calc(50vw - 340px))`) en vez de depender de `50vw` → el iframe de preview (900px) y la landing a pantalla completa dan ambos 680px. Mobile intacto. Verificado por el usuario. ⚠️ Reajustar una vez las posiciones de Valeria (guardadas contra 900px).
-- [ ] **Replicar el fix del Problema 2 en las otras secciones con drag** (hero/carátula, intro, envelope/plano): aplicarles el mismo acotado `canvas-desktop` a 680px en desktop. El `@media` de `.section-block` ya cubre el lado landing/preview para todas; falta el lado canvas por sección.
+- [~] **Replicar el fix del Problema 2 en las otras secciones con drag:**
+    - [x] **Pantalla de Inicio (template Plano)**: `.plain-container` a 680px centrado en desktop (clase `plain-desktop`), incluso en banner (el texto va a 680px fijo; el banner solo afecta la imagen de fondo). Verificado.
+    - [x] **Intro**: `.intro-fg` (nuevo lienzo) a 680px centrado en desktop (`intro-fg-desktop`). Verificado.
+    - [x] **Invitación — MOBILE**: faltaba; en modo posicionado la sección quita el padding y el `.inv-fg` cubría todo el ancho del dispositivo. Acotado a 375px centrado (clase `canvas-mobile`). ⚠️ Cambiar a 360px (ver feature selector de dispositivos).
+    - [ ] **Carátula (hero)**: pendiente aplicar el mismo acotado por dispositivo.
+- [x] **Intro — fondo homologado con MediaBackground** (banner/cover + override desktop + overlay), reutilizando `app-background-control` y `resolveMedia`. Antes solo tenía `background` string a cover; la imagen vertical se deformaba en desktop. `IntroConfig.media?`. Fixes: banner centrado (el keyframe de zoom pisaba el translateX), overlay oscuro fijo eliminado.
+- [x] **Intro — transición de salida sin parpadeo + relevo a carátula sin hueco**: salida por `@keyframes` (no transition, que la pisaba la animación de entrada con fill-mode both); crossfade (la intro avisa `fadingStart` al iniciar el fade-out y la landing monta la carátula detrás); carátula con fade-in (`hero-entering` + `heroBgFadeIn`). El fade-out arranca 300ms antes del fin de la duración. Verificado.
+- [x] **DragBox — snap vertical menos agresivo** (umbral Y 1.2% vs X 3%, guías Y solo el centro) y **resize que ya no recentra** (siembra `lastX/lastY` con el centro real en `initResize`). Verificado.
+
+### 🆕 Selector de dispositivos en el canvas mobile (feature — por implementar)
+
+> **Contexto / decisión (del usuario):** el cliente es responsable de que su landing mobile se
+> vea bien en diversas gamas. El canvas mobile debe permitir elegir dispositivo (tipo DevTools de
+> Chrome) y adaptar el MARCO (ancho×alto, proporción real) a ese dispositivo, PERO el LIENZO donde
+> se arrastran los objetos se mantiene limitado a **360px centrado** (área segura que cabe en gama
+> baja). Si el cliente configura para gama alta/media y en gama baja descuadra, lo acepta.
+> **Filosofía A**: contenido con drag a ancho fijo (360px) = lo que configura se ve consistente en
+> cualquier teléfono; el selector es ayuda visual del marco.
+
+- [ ] Cambiar el ancho de referencia del lienzo mobile de **375 → 360px** (mínimo seguro: Android
+  gama baja = 360 CSS px). Aplica a Invitación (ya hecho a 375, cambiar a 360) y hacerlo
+  REUTILIZABLE (constante/variable compartida) para las demás secciones.
+- [ ] Catálogo de dispositivos (ancho×alto CSS): 360×800 (Android baja/media), 375×667 (iPhone SE),
+  384×854 (Android media-alta), 390×844 (iPhone 14-16), 412×915 (Android alta: Galaxy S24/S25,
+  Pixel 9/10), 414×896 (iPhone XR/11), 440×956 (iPhone 16 Pro Max).
+- [ ] Selector en el canvas (solo modo mobile): el `.builder-canvas-viewport.mobile` toma el
+  ancho Y el alto proporcional del dispositivo elegido (hoy el alto usa `--canvas-vh`; debe tomar
+  el alto del dispositivo para no verse desproporcionado). El lienzo de drag se mantiene a 360px.
+- [ ] UBICACIÓN responsive del selector: escritorio → toolbar del canvas (junto a mobile/desktop);
+  móvil (configurando desde celular, sin espacio en toolbar) → dropdown dentro del panel de
+  Secciones, ARRIBA de "Tema Global". Un solo control reposicionado por `isWide()`.
+- [ ] Al cambiar a 360px, reajustar una vez las posiciones mobile ya guardadas (Valeria).
 
 ### 🆕 Campos "Mesa/Asiento" y "Recuerdo" por invitado (feature — DOCUMENTADO, NO implementado)
 

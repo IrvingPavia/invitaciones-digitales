@@ -589,6 +589,21 @@ interface BuilderSection {
     .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 0 !important; pointer-events: none !important; }
     .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
+    /* EXCEPCIÓN al max-width:100% universal: el lienzo de texto del template Plano en DESKTOP
+       debe conservar su ancho fijo de 680px (paridad canvas-preview-landing). La regla universal
+       de arriba lo recortaba al ancho del canvas (menor a 680px cuando hay poco espacio), dejando
+       el texto más angosto que en preview/landing. Restablecemos 680px con mayor especificidad. */
+    .preview-mode-canvas ::ng-deep .plain-container.plain-desktop {
+      width: 680px !important; max-width: 680px !important;
+    }
+    /* Misma excepcion para el lienzo de la INTRO en desktop (ver .plain-container.plain-desktop). */
+    .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-desktop {
+      width: 680px !important; max-width: 680px !important;
+    }
+    /* Lienzo de INVITACION: ancho fijo por dispositivo (680px desktop / 375px mobile), exento del
+       max-width:100% universal para que el drag coincida canvas/preview/landing. */
+    .preview-mode-canvas ::ng-deep .inv-fg.canvas-desktop { width: 680px !important; max-width: 680px !important; }
+    .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: 375px !important; max-width: 375px !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
     .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }

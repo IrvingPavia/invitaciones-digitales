@@ -141,11 +141,11 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
            tras el envelope hasta que éste termina; recién entonces se "activa" (arranca timer
            y animación de entrada). -->
       @if (data()!.config.intro.enabled && (showIntro() || showEnvelope())) {
-        <app-landing-intro [config]="data()!.config.intro" [active]="showIntro() && !showEnvelope()" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" [themeTexture]="data()!.config.theme.landingBgTexture || 'none'" [themeTextureOpacity]="data()!.config.theme.landingBgTextureOpacity || 5" (done)="showIntro.set(false)" />
+        <app-landing-intro [config]="data()!.config.intro" [active]="showIntro() && !showEnvelope()" [themeColor]="data()!.config.theme.navFooterText || '#d4a017'" [themeBg]="data()!.config.theme.landingBgColor1 || '#0d1117'" [themeBorder]="data()!.config.theme.landingBgColor2 || '#1a1a2e'" [themeBgType]="data()!.config.theme.landingBgType || 'radial'" [themeTexture]="data()!.config.theme.landingBgTexture || 'none'" [themeTextureOpacity]="data()!.config.theme.landingBgTextureOpacity || 5" (fadingStart)="heroEntering.set(true)" (done)="onIntroDone()" />
       }
 
-      @if (!showIntro() && !showEnvelope()) {
-        <div class="landing-wrapper" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)" [style.--theme-nav-btn-bg]="data()!.config.theme.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="data()!.config.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="data()!.config.theme.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="data()!.config.theme.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="data()!.config.theme.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(data()!.config.theme.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(data()!.config.theme.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="data()!.config.theme.navBarBorder || 'rgba(212,160,23,0.2)'">
+      @if ((!showIntro() && !showEnvelope()) || heroEntering()) {
+        <div class="landing-wrapper" [class.hero-entering]="heroEntering()" [style.--theme-card-bg]="data()!.config.theme.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="data()!.config.theme.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="data()!.config.theme.textPrimary || '#ffffff'" [style.--theme-text-secondary]="data()!.config.theme.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="data()!.config.theme.navFooterText || '#d4a017'" [style.--theme-btn-bg]="data()!.config.theme.buttonBg || '#d4a017'" [style.--theme-btn-text]="data()!.config.theme.buttonText || '#1a1a2e'" [style.--theme-text-primary-font]="getThemeFont(data()!.config.theme.textPrimaryFont)" [style.--theme-text-secondary-font]="getThemeFont(data()!.config.theme.textSecondaryFont)" [style.--theme-nav-font]="getThemeFont(data()!.config.theme.navFooterFont)" [style.--theme-btn-font]="getThemeFont(data()!.config.theme.buttonFont)" [style.--theme-nav-btn-bg]="data()!.config.theme.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="data()!.config.theme.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="data()!.config.theme.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="data()!.config.theme.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="data()!.config.theme.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(data()!.config.theme.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(data()!.config.theme.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="data()!.config.theme.navBarBorder || 'rgba(212,160,23,0.2)'">
         <!-- Sticky nav -->
         <app-landing-hero id="section-hero" [config]="data()!.config.hero" [event]="data()!.event" [enabledSections]="getEnabledSections()" />
 
@@ -429,6 +429,13 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       position: relative;
       z-index: 4;
     }
+    /* Fade-in suave de la CARÁTULA (navbar + hero) cuando aparece tras el envelope/intro, para
+       evitar el "parpadeo" del relevo. El fondo global ya hace su propio fade (.landing-bg.visible,
+       1.2s); aquí desvanecemos el wrapper (navbar + contenido del hero) en paralelo. Los elementos
+       internos del hero conservan su animación del tema global encima de este fade. Solo aplica
+       cuando venimos de una secuencia (clase hero-entering); en carga directa no anima. */
+    .landing-wrapper.hero-entering { animation: heroWrapperIn 1.2s ease both; }
+    @keyframes heroWrapperIn { from { opacity: 0; } to { opacity: 1; } }
     /* La Carátula (hero) está dentro de .landing-wrapper (max-width ~680px). Para que ocupe TODO
        el ancho de la ventana —igual que las secciones (.section-block)— se expande con margin
        negativo a 100vw. Se hace AQUÍ (styles de la landing) y no en el componente hero, porque
@@ -705,6 +712,10 @@ export class LandingComponent implements OnInit, OnDestroy {
   error = signal(false);
   showIntro = signal(false);
   showEnvelope = signal(false);
+  /** True cuando la carátula aparece TRAS una secuencia (envelope/intro). Dispara el fade-in
+      suave del .landing-wrapper (fondo + navbar + hero) para evitar el "parpadeo" del relevo
+      intro→carátula. En carga directa a la landing (sin envelope/intro) queda false y no anima. */
+  heroEntering = signal(false);
   scrolled = false;
   bgLoaded = false;
   slug = '';
@@ -825,10 +836,18 @@ export class LandingComponent implements OnInit, OnDestroy {
       // Store reference so hero component can control it
       (window as any).__landingAudio = audio;
     }
-    // Show intro if enabled, otherwise go straight to landing
+    // Show intro if enabled, otherwise go straight to landing (con fade-in de la carátula).
     if (this.data()?.config.intro.enabled) {
       this.showIntro.set(true);
+    } else {
+      this.heroEntering.set(true);
     }
+  }
+
+  /** La intro terminó su fade-out (ya invisible): se desmonta. La carátula ya está montada y
+      visible detrás (se montó en fadingStart), así que no queda hueco de fondo vacío. */
+  onIntroDone() {
+    this.showIntro.set(false);
   }
 
   ngOnInit() {
