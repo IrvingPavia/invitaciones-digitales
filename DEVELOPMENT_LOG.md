@@ -11,7 +11,45 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13 (noche 4)
+## Estado actual del proyecto: 2026-10-13 (noche 5)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Selector de dispositivos en el canvas mobile (feature) + ancho de referencia 360px
+
+Implementado el feature acordado del selector de dispositivos. Dos entregas:
+
+**Entrega 1 — ancho de referencia mobile 375 → 360px (reutilizable):**
+- Nueva variable CSS GLOBAL `--canvas-mobile-w: 360px` en `styles.scss :root` (fuente de verdad
+  única; vive en :root → la heredan canvas, iframe de preview y landing real).
+- Invitación (`.inv-fg.canvas-mobile`), la excepción del canvas y el marco mobile del builder
+  (`.builder-canvas-viewport.mobile`, `.builder-preview-frame.mobile`, media query) usan
+  `var(--canvas-mobile-w, 360px)` en vez de 375px. 360 = mínimo seguro del mercado (Android gama
+  baja = 360 CSS px), para que lo configurado quepa en cualquier teléfono.
+
+**Entrega 2 — selector de dispositivos (canvas mobile):**
+- Catálogo `canvasDevices` (builder.component): 360×800 Android baja/media, 375×667 iPhone SE,
+  384×854 Android media-alta, 390×844 iPhone 14-16, 412×915 Android alta, 414×896 iPhone XR/11,
+  440×956 iPhone 16 Pro Max. Signal `canvasDevice` (default android-360) + helpers
+  `canvasDeviceWidth/Height`, `canvasDeviceOptions`, `setCanvasDevice`.
+- El MARCO del canvas mobile y el iframe de preview toman ancho×ALTO CSS del dispositivo elegido
+  (`[style.width.px]`/`[style.height.px]`). El fondo y las secciones ocupan todo el marco
+  (responsivo). El LIENZO de drag se mantiene a `--canvas-mobile-w` (360px) CENTRADO → los objetos
+  NO se salen del área segura aunque el marco sea más ancho (Filosofía A acordada con el usuario).
+- Alto fijo del marco = alto del dispositivo (con `max-height:100%` → scroll interno si no cabe),
+  así se ve el "corte" de la pantalla del dispositivo. El área se centra con `.center-frame`
+  (align-items:center + overflow:auto) solo en mobile; desktop sigue flex-start (scrollea).
+- UBICACIÓN responsive del selector: escritorio → toolbar del canvas (`.builder-device-select`,
+  junto a los botones mobile/desktop); móvil (angosto, `!isWide()`) → dropdown en el panel de
+  Secciones ARRIBA de "Tema Global" (`.builder-device-select-panel`). La versión toolbar se oculta
+  en el media query móvil. Reutiliza `app-custom-select`. Todo verificado por el usuario.
+
+**PENDIENTE:** reajustar una vez las posiciones mobile ya guardadas (Valeria) al nuevo ancho 360px.
+Replicar la paridad (desktop 680 / mobile 360) a la CARÁTULA (hero), que aún no la tiene.
+
+---
+
+## Estado del proyecto: 2026-10-13 (noche 4)
 
 ### Rama activa: `feature/drag-elementos-secciones`
 

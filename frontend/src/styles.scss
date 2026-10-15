@@ -57,6 +57,13 @@
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.25);
   --radius: 12px;
   --transition: all 0.3s ease;
+  /* Ancho de referencia del LIENZO de drag en MOBILE (área segura donde el cliente posiciona los
+     objetos). 360px = mínimo común del mercado actual (Android gama baja = 360 CSS px), para que
+     lo que se configura dentro de este ancho quepa y se vea consistente en cualquier teléfono.
+     Fuente de verdad ÚNICA: las secciones con drag (invitation/intro/plano/hero) la consumen para
+     acotar su lienzo mobile. El futuro selector de dispositivos del canvas podrá sobrescribirla
+     para mostrar distintos marcos, manteniendo el lienzo acotado a este valor. */
+  --canvas-mobile-w: 360px;
 }
 
 /* ===== LIGHT MODE ===== */

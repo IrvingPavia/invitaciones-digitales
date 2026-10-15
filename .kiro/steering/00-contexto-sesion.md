@@ -49,6 +49,25 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 5) — selector de dispositivos en canvas mobile + ancho 360px
+
+Rama `feature/drag-elementos-secciones`. Implementado el feature del selector de dispositivos.
+
+- **Ancho de referencia mobile 375 → 360px** vía variable CSS GLOBAL `--canvas-mobile-w: 360px`
+  (styles.scss :root; fuente de verdad única, la heredan canvas/iframe/landing). Invitación y el
+  marco del builder la consumen. 360 = mínimo seguro (Android gama baja).
+- **Selector de dispositivos (solo canvas mobile):** catálogo `canvasDevices` en builder.component
+  (360×800, 375×667, 384×854, 390×844, 412×915, 414×896, 440×956). Signal `canvasDevice`
+  (default android-360). El MARCO (viewport canvas + iframe preview) toma ancho×ALTO del dispositivo
+  (`[style.width/height.px]`); el fondo/secciones ocupan todo el marco; el LIENZO de drag se queda
+  a 360px centrado (los objetos no se salen). Marco con alto fijo (max-height:100% → scroll si no
+  cabe) muestra el corte de pantalla; se centra en el área con `.center-frame` (solo mobile).
+- **Ubicación responsive del selector:** escritorio → toolbar (`.builder-device-select`); móvil
+  `!isWide()` → dropdown en panel de Secciones sobre "Tema Global" (`.builder-device-select-panel`).
+  Reutiliza `app-custom-select`. Verificado por el usuario.
+- **PENDIENTE:** reajustar posiciones mobile de Valeria al nuevo 360px; replicar la paridad
+  (desktop 680 / mobile 360 vía clases `canvas-desktop`/`canvas-mobile`) a la CARÁTULA (hero).
+
 ### 🔽 ACTUALIZACIÓN 2026-10-13 (noche 4) — Pantalla Inicio + Intro completas + fixes drag-box + decisión selector dispositivos
 
 Rama `feature/drag-elementos-secciones`. Tanda grande (todo commiteado junto). Resumen:

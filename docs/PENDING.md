@@ -107,19 +107,18 @@
 > **Filosofía A**: contenido con drag a ancho fijo (360px) = lo que configura se ve consistente en
 > cualquier teléfono; el selector es ayuda visual del marco.
 
-- [ ] Cambiar el ancho de referencia del lienzo mobile de **375 → 360px** (mínimo seguro: Android
-  gama baja = 360 CSS px). Aplica a Invitación (ya hecho a 375, cambiar a 360) y hacerlo
-  REUTILIZABLE (constante/variable compartida) para las demás secciones.
-- [ ] Catálogo de dispositivos (ancho×alto CSS): 360×800 (Android baja/media), 375×667 (iPhone SE),
-  384×854 (Android media-alta), 390×844 (iPhone 14-16), 412×915 (Android alta: Galaxy S24/S25,
-  Pixel 9/10), 414×896 (iPhone XR/11), 440×956 (iPhone 16 Pro Max).
-- [ ] Selector en el canvas (solo modo mobile): el `.builder-canvas-viewport.mobile` toma el
-  ancho Y el alto proporcional del dispositivo elegido (hoy el alto usa `--canvas-vh`; debe tomar
-  el alto del dispositivo para no verse desproporcionado). El lienzo de drag se mantiene a 360px.
-- [ ] UBICACIÓN responsive del selector: escritorio → toolbar del canvas (junto a mobile/desktop);
-  móvil (configurando desde celular, sin espacio en toolbar) → dropdown dentro del panel de
-  Secciones, ARRIBA de "Tema Global". Un solo control reposicionado por `isWide()`.
-- [ ] Al cambiar a 360px, reajustar una vez las posiciones mobile ya guardadas (Valeria).
+- [x] Ancho de referencia del lienzo mobile 375 → **360px**, vía variable CSS global reutilizable
+  `--canvas-mobile-w` (styles.scss :root). Aplicado a Invitación + marco del builder.
+- [x] Catálogo de dispositivos (360×800, 375×667, 384×854, 390×844, 412×915, 414×896, 440×956) en
+  `canvasDevices` del builder.
+- [x] Selector en el canvas (solo mobile): el marco (`.builder-canvas-viewport.mobile` + iframe de
+  preview) toma ancho×ALTO del dispositivo elegido; el lienzo de drag se mantiene a 360px centrado;
+  el marco se centra en el área (`.center-frame`) y muestra el corte de la pantalla del dispositivo.
+- [x] UBICACIÓN responsive: escritorio → toolbar; móvil (`!isWide()`) → dropdown en panel de
+  Secciones sobre "Tema Global". Verificado por el usuario.
+- [ ] Reajustar una vez las posiciones mobile ya guardadas (Valeria) al nuevo ancho 360px.
+- [ ] Replicar la paridad (desktop 680 / mobile 360px vía `canvas-desktop`/`canvas-mobile`) a la
+  CARÁTULA (hero), que aún no la tiene.
 
 ### 🆕 Campos "Mesa/Asiento" y "Recuerdo" por invitado (feature — DOCUMENTADO, NO implementado)
 

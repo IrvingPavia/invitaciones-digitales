@@ -180,15 +180,14 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     }
     /* ===== PARIDAD en MOBILE =====
        En modo posicionado, .landing-section.positioned quita el padding lateral, así que el
-       .inv-fg cubre TODO el ancho del dispositivo (variable: 375/390/414/440px...). El canvas
-       mobile es 375px fijo → el mismo % daba ancho físico distinto y el texto hacía otro wrapping.
-       Fijamos el lienzo a 375px CENTRADO (ancho del canvas mobile) en los 3 contextos para que
-       coincidan. En móviles más anchos quedan franjas laterales (precio de la fidelidad exacta,
-       igual que 680px en desktop). canvas-mobile se activa en canvas/preview mobile y en la
-       landing real angosta. */
-    .inv-fg.canvas-mobile { max-width: 375px; margin-left: auto; margin-right: auto; }
+       .inv-fg cubre TODO el ancho del dispositivo (variable: 360/390/414/440px...). Fijamos el
+       lienzo al ancho de referencia mobile (--canvas-mobile-w = 360px, mínimo seguro del mercado)
+       CENTRADO en los 3 contextos (canvas/preview/landing) para que el drag coincida. En móviles
+       más anchos quedan franjas laterales (precio de la fidelidad exacta, igual que 680px en
+       desktop). canvas-mobile se activa en canvas/preview mobile y en la landing real angosta. */
+    .inv-fg.canvas-mobile { max-width: var(--canvas-mobile-w, 360px); margin-left: auto; margin-right: auto; }
     .inv-fg.canvas-mobile.positioned {
-      left: 50%; right: auto; width: 375px; max-width: 375px; transform: translateX(-50%);
+      left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px); transform: translateX(-50%);
     }
     /* Guías de alineación del drag asistido */
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
@@ -220,10 +219,10 @@ export class LandingInvitationComponent {
   /** True cuando el lienzo debe acotarse al ancho fijo DESKTOP (680px): canvas/preview con
       previewDevice='desktop'. (La landing desktop real ya hereda 680px por .section-block.) */
   get fgDesktop(): boolean { return this.previewDevice === 'desktop'; }
-  /** True cuando el lienzo debe acotarse al ancho fijo MOBILE (375px): canvas/preview con
-      previewDevice='mobile' O landing real en pantalla angosta (previewDevice=null, ≤768px).
-      Necesario porque en modo posicionado la sección quita su padding lateral y el .inv-fg cubre
-      TODO el ancho del dispositivo (variable), rompiendo la paridad con el canvas mobile (375px). */
+  /** True cuando el lienzo debe acotarse al ancho fijo MOBILE (--canvas-mobile-w = 360px):
+      canvas/preview con previewDevice='mobile' O landing real en pantalla angosta
+      (previewDevice=null, ≤768px). Necesario porque en modo posicionado la sección quita su padding
+      lateral y el .inv-fg cubre TODO el ancho del dispositivo (variable), rompiendo la paridad. */
   get fgMobile(): boolean {
     if (this.previewDevice) return this.previewDevice === 'mobile';
     return typeof window !== 'undefined' && window.innerWidth <= 768;

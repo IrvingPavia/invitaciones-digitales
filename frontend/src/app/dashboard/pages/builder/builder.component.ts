@@ -63,6 +63,13 @@ interface BuilderSection {
         <button class="builder-device-btn" [class.active]="previewDevice() === 'desktop'" (click)="previewDevice.set('desktop')">
           <span class="material-icons">monitor</span>
         </button>
+        <!-- Selector de dispositivo (solo modo mobile). En escritorio va aquí en la toolbar;
+             en pantallas angostas se oculta y aparece en el panel de Secciones (ver abajo). -->
+        @if (previewDevice() === 'mobile') {
+          <div class="builder-device-select">
+            <app-custom-select [options]="canvasDeviceOptions" [value]="canvasDevice()" [compact]="true" (valueChange)="setCanvasDevice($event)"></app-custom-select>
+          </div>
+        }
         <div class="builder-tb-sep"></div>
         <button class="builder-mode-toggle" [class.preview]="canvasMode() === 'preview'" (click)="toggleCanvasMode()">
           <span class="material-icons">{{ canvasMode() === 'canvas' ? 'edit' : 'visibility' }}</span>
@@ -89,6 +96,14 @@ interface BuilderSection {
         <div class="builder-panel-header">
           <span>Secciones</span>
         </div>
+        <!-- Selector de dispositivo para móvil: aparece aquí (sobre "Tema Global") cuando NO cabe
+             en la toolbar (pantalla angosta), solo en modo mobile. En escritorio va en la toolbar. -->
+        @if (previewDevice() === 'mobile' && !isWide()) {
+          <div class="builder-device-select-panel">
+            <span class="device-select-label"><span class="material-icons">smartphone</span> Dispositivo</span>
+            <app-custom-select [options]="canvasDeviceOptions" [value]="canvasDevice()" (valueChange)="setCanvasDevice($event)"></app-custom-select>
+          </div>
+        }
         <!-- Theme Global button -->
         <div class="builder-theme-btn" [class.active]="canvasState.selectedSection() === '_theme'" (click)="selectTheme()">
           <span class="material-icons">palette</span>
@@ -121,8 +136,8 @@ interface BuilderSection {
 
       <!-- Center: Canvas or Preview iframe -->
       @if (canvasMode() === 'canvas') {
-      <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
-        <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'">          @if (canvasState.config()) {
+      <div class="builder-canvas-area" [class.center-frame]="previewDevice() === 'mobile'" (click)="onCanvasAreaClick()">
+        <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'" [style.width.px]="previewDevice() === 'mobile' ? canvasDeviceWidth() : null" [style.height.px]="previewDevice() === 'mobile' ? canvasDeviceHeight() : null">          @if (canvasState.config()) {
               <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.--theme-nav-btn-bg]="canvasState.config()?.theme?.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="canvasState.config()?.theme?.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="canvasState.config()?.theme?.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="canvasState.config()?.theme?.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="canvasState.config()?.theme?.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(canvasState.config()?.theme?.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(canvasState.config()?.theme?.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="canvasState.config()?.theme?.navBarBorder || 'rgba(212,160,23,0.2)'" [style.background]="getCanvasLandingBg()">
                 <!-- Pantalla de inicio (envelope) e Intro van ANTES del fondo: el fondo
                      configurado (GIF/imagen/video) solo aplica desde la carátula hacia abajo,
@@ -224,7 +239,7 @@ interface BuilderSection {
           <span class="preview-guest-label">Previsualizar invitación:</span>
           <app-custom-select [options]="getPreviewGuestOptions()" [value]="previewGuestCode()" [compact]="true" placeholder="Selecciona una invitación" (valueChange)="selectPreviewGuest($event)"></app-custom-select>
         </div>
-        <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
+        <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [style.width.px]="previewDevice() === 'mobile' ? canvasDeviceWidth() : null" [style.height.px]="previewDevice() === 'mobile' ? canvasDeviceHeight() : null">
           <iframe [src]="previewUrl()" class="preview-iframe" allow="autoplay"></iframe>
         </div>
       </div>
@@ -323,6 +338,19 @@ interface BuilderSection {
       &.active { background: rgba(139,92,246,0.2); color: #c084fc; border: 1px solid rgba(139,92,246,0.4); }
       &:hover:not(.active) { background: rgba(255,255,255,0.1); color: white; }
     }
+    /* Selector de dispositivo en la toolbar (escritorio). Compacto para no robar espacio. */
+    .builder-device-select { min-width: 180px; max-width: 220px; }
+    /* Selector de dispositivo en el panel de Secciones (móvil, sobre "Tema Global"). */
+    .builder-device-select-panel {
+      margin: 8px 6px 4px; padding: 8px 10px; border-radius: 10px;
+      background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.18);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .builder-device-select-panel .device-select-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px;
+      .material-icons { font-size: 15px; color: var(--gold-light); }
+    }
     .builder-save-btn {
       display: flex; align-items: center; justify-content: center; gap: 6px;
       padding: 7px 14px; min-width: 120px; border-radius: 8px; border: none;
@@ -369,7 +397,7 @@ interface BuilderSection {
     .builder-preview-frame {
       border-radius: 12px; overflow: hidden; flex: 1; width: 100%; min-height: 0;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      &.mobile { width: 375px; max-width: 100%; }
+      &.mobile { width: var(--canvas-mobile-w, 360px); max-width: 100%; }
       &.desktop { width: 100%; max-width: 900px; }
     }
     .preview-iframe { width: 100%; height: 100%; border: none; display: block; }
@@ -444,6 +472,10 @@ interface BuilderSection {
       display: flex; align-items: flex-start; justify-content: center;
       background: #06060e; padding: 16px; overflow: hidden; min-height: 0;
     }
+    /* En modo mobile el marco del canvas tiene alto fijo (del dispositivo) y suele ser más corto
+       que el área: lo centramos vertical y horizontalmente. En desktop el canvas es alto y
+       scrollea, por eso ahí se mantiene flex-start (no se centra). */
+    .builder-canvas-area.center-frame { align-items: center; overflow: auto; }
     /* El VIEWPORT es ahora el contenedor scrolleable (antes lo era .builder-canvas-area).
        Esto permite que el fondo (position:sticky) se ancle al viewport y quede fijo mientras
        las secciones scrollean por encima — replicando el fondo fijo de la landing real. */
@@ -452,7 +484,7 @@ interface BuilderSection {
       max-height: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
       background: #0d1117;
-      &.mobile { width: 375px; }
+      &.mobile { width: var(--canvas-mobile-w, 360px); }
       &.desktop { width: 100%; max-width: 900px; }
     }
     /* Ocultar la barra de scroll del viewport para que el mockup se vea limpio */
@@ -600,10 +632,10 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-desktop {
       width: 680px !important; max-width: 680px !important;
     }
-    /* Lienzo de INVITACION: ancho fijo por dispositivo (680px desktop / 375px mobile), exento del
-       max-width:100% universal para que el drag coincida canvas/preview/landing. */
+    /* Lienzo de INVITACION: ancho fijo por dispositivo (680px desktop / --canvas-mobile-w=360px
+       mobile), exento del max-width:100% universal para que el drag coincida canvas/preview/landing. */
     .preview-mode-canvas ::ng-deep .inv-fg.canvas-desktop { width: 680px !important; max-width: 680px !important; }
-    .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: 375px !important; max-width: 375px !important; }
+    .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
     .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }
@@ -971,7 +1003,8 @@ interface BuilderSection {
       .builder-toolbar-center { order: 0; flex: 1; justify-content: center; gap: 2px !important; }
       .builder-toolbar-center .builder-tb-sep { display: none; }
       .builder-toolbar-center .builder-device-btn { display: none; }
-      .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
+      .builder-toolbar-center .builder-device-select { display: none; }
+      .builder-canvas-viewport.mobile { width: var(--canvas-mobile-w, 360px); max-width: 100%; border-radius: 8px; }
       .builder-panel-right.panel-visible {
         position: absolute;
         top: 0;
@@ -1017,6 +1050,35 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   eventName = signal('');
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
+
+  /** Catálogo de dispositivos MOBILE para simular el marco del canvas (ancho×alto CSS reales).
+      El MARCO (fondo + secciones) adopta estas dimensiones; el LIENZO de drag se mantiene a
+      --canvas-mobile-w (360px) centrado, así los objetos no se salen del área segura aunque el
+      dispositivo sea más ancho. Rango: gama baja (360) a gama alta (440). */
+  readonly canvasDevices: { id: string; label: string; w: number; h: number }[] = [
+    { id: 'android-360', label: 'Android (gama baja/media) · 360', w: 360, h: 800 },
+    { id: 'iphone-se', label: 'iPhone SE · 375', w: 375, h: 667 },
+    { id: 'android-384', label: 'Android (gama media-alta) · 384', w: 384, h: 854 },
+    { id: 'iphone-390', label: 'iPhone 14/15/16 · 390', w: 390, h: 844 },
+    { id: 'android-412', label: 'Android (gama alta) · 412', w: 412, h: 915 },
+    { id: 'iphone-414', label: 'iPhone XR/11 · 414', w: 414, h: 896 },
+    { id: 'iphone-max', label: 'iPhone 16 Pro Max · 440', w: 440, h: 956 },
+  ];
+  /** Dispositivo mobile seleccionado para el marco del canvas. Default = Android 360 (base). */
+  canvasDevice = signal<string>('android-360');
+  /** Opciones del selector (app-custom-select). */
+  get canvasDeviceOptions(): SelectOption[] {
+    return this.canvasDevices.map(d => ({ value: d.id, label: d.label }));
+  }
+  /** Dispositivo activo resuelto. */
+  private get activeDevice() {
+    return this.canvasDevices.find(d => d.id === this.canvasDevice()) || this.canvasDevices[0];
+  }
+  /** Ancho/alto CSS del marco del canvas mobile según el dispositivo elegido. */
+  canvasDeviceWidth(): number { return this.activeDevice.w; }
+  canvasDeviceHeight(): number { return this.activeDevice.h; }
+  /** Cambia el dispositivo del marco mobile. */
+  setCanvasDevice(id: string) { this.canvasDevice.set(id); }
 
   /** Ancho del viewport, reactivo para recalcular el layout de paneles al redimensionar. */
   viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1280);
