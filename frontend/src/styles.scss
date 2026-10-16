@@ -64,6 +64,13 @@
      acotar su lienzo mobile. El futuro selector de dispositivos del canvas podrá sobrescribirla
      para mostrar distintos marcos, manteniendo el lienzo acotado a este valor. */
   --canvas-mobile-w: 360px;
+  /* Ancho de referencia del LIENZO de drag en DESKTOP. Hermana de --canvas-mobile-w: fuente de
+     verdad ÚNICA del ancho de la columna de contenido en escritorio, consumida por las secciones
+     con drag (invitation/intro/plano/hero) y por la columna de la landing (.section-block). Fijarla
+     garantiza que un objeto posicionado en % mida igual en los 5 contextos (canvas mobile/desktop,
+     preview mobile/desktop en iframe, y landing real), ya que el % se calcula sobre un ancho
+     constante. Antes estaba hard-codeada como 680px en varios sitios. */
+  --canvas-desktop-w: 600px;
 }
 
 /* ===== LIGHT MODE ===== */

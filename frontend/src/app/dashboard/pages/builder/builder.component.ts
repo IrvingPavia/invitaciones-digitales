@@ -234,7 +234,7 @@ interface BuilderSection {
 
       <!-- Preview mode: iframe with real landing -->
       @if (canvasMode() === 'preview') {
-      <div class="builder-preview-area">
+      <div class="builder-preview-area" [class.center-frame]="previewDevice() === 'mobile'">
         <div class="preview-guest-selector">
           <span class="preview-guest-label">Previsualizar invitación:</span>
           <app-custom-select [options]="getPreviewGuestOptions()" [value]="previewGuestCode()" [compact]="true" placeholder="Selecciona una invitación" (valueChange)="selectPreviewGuest($event)"></app-custom-select>
@@ -388,6 +388,10 @@ interface BuilderSection {
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       background: #06060e; padding: 8px; overflow: hidden; flex: 1; min-height: 0;
     }
+    /* MOBILE: el marco del preview tiene alto fijo del dispositivo; si no cabe en el área, se
+       permite scroll (overflow:auto) y se centra, igual que el canvas con .center-frame. En desktop
+       el iframe ocupa el área (flex) y no scrollea aquí. */
+    .builder-preview-area.center-frame { justify-content: center; overflow: auto; }
     .preview-guest-selector {
       display: flex; align-items: center; justify-content: center; gap: 10px;
       margin-bottom: 8px; width: 100%; max-width: 400px; align-self: center;
@@ -397,7 +401,11 @@ interface BuilderSection {
     .builder-preview-frame {
       border-radius: 12px; overflow: hidden; flex: 1; width: 100%; min-height: 0;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      &.mobile { width: var(--canvas-mobile-w, 360px); max-width: 100%; }
+      /* MOBILE: el marco toma el ancho×ALTO EXACTO del dispositivo seleccionado (vía [style.width/
+         height.px] inline). NO debe estirarse por flex ni forzar width:100% —eso ignoraba el tamaño
+         del dispositivo y hacía que el preview no respetara el selector—. flex:0 + margin:auto lo
+         deja al tamaño del dispositivo y centrado, igual que el canvas mobile. */
+      &.mobile { flex: 0 0 auto; width: auto; max-width: 100%; margin: 0 auto; align-self: center; }
       &.desktop { width: 100%; max-width: 900px; }
     }
     .preview-iframe { width: 100%; height: 100%; border: none; display: block; }
@@ -621,20 +629,20 @@ interface BuilderSection {
     .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 0 !important; pointer-events: none !important; }
     .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
-    /* EXCEPCIÓN al max-width:100% universal: el lienzo de texto del template Plano en DESKTOP
-       debe conservar su ancho fijo de 680px (paridad canvas-preview-landing). La regla universal
-       de arriba lo recortaba al ancho del canvas (menor a 680px cuando hay poco espacio), dejando
-       el texto más angosto que en preview/landing. Restablecemos 680px con mayor especificidad. */
-    .preview-mode-canvas ::ng-deep .plain-container.plain-desktop {
-      width: 680px !important; max-width: 680px !important;
-    }
-    /* Misma excepcion para el lienzo de la INTRO en desktop (ver .plain-container.plain-desktop). */
-    .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-desktop {
-      width: 680px !important; max-width: 680px !important;
-    }
-    /* Lienzo de INVITACION: ancho fijo por dispositivo (680px desktop / --canvas-mobile-w=360px
-       mobile), exento del max-width:100% universal para que el drag coincida canvas/preview/landing. */
-    .preview-mode-canvas ::ng-deep .inv-fg.canvas-desktop { width: 680px !important; max-width: 680px !important; }
+    /* EXCEPCIONES al max-width:100% universal: los LIENZOS de drag (data-drag-bounds) de las
+       secciones de apertura deben conservar su ancho de referencia FIJO por dispositivo
+       (--canvas-desktop-w / --canvas-mobile-w), para que un objeto en % mida igual en canvas,
+       preview (iframe) y landing, y NO se reescale al cambiar el dispositivo del selector (que solo
+       agranda el MARCO). La regla universal de arriba los recortaba al ancho del viewport del
+       canvas; las restablecemos con mayor especificidad.
+       Pines MOBILE + DESKTOP para plano/intro/hero/invitación. */
+    .preview-mode-canvas ::ng-deep .plain-container.plain-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .plain-container.plain-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .hero-fg.hero-fg-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .hero-fg.hero-fg-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .inv-fg.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
     .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
@@ -1550,18 +1558,19 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
           if (m.fit === 'banner') {
             const isMobile = this.previewDevice() === 'mobile';
             if (isMobile) {
-              // Mobile (prioridad): la imagen CUBRE el ancho y alto de la sección (cover) y la
-              // sección toma el alto de pantalla, igual que la landing. Sin huecos.
-              css = `background: ${dark}url(${m.url}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
+              // Mobile (REGLA R3 del steering): la imagen se dimensiona por el ALTO (auto 100%) y su
+              // ancho va a PROPORCIÓN, CENTRADA, SIN deformar. Verticales llenan; horizontales se ven
+              // como banner con franjas laterales. Es responsivo al cambiar de dispositivo (el alto
+              // sigue el marco y el ancho recalcula). Se pinta en el wrapper (que llena el marco).
+              css = `background: ${dark}url(${m.url}) center / auto 100% no-repeat; min-height: var(--canvas-vh, 640px)`;
             } else {
-              // Desktop: COLUMNA CENTRADA (cover) del ancho --sec-banner-w. Se emiten variables
-              // que consume la regla ::before de .preview-section-click (ver styles), para que el
-              // slider defina el ANCHO de la franja (no el tamaño de la imagen). El overlay va en
-              // la capa ::after via --sec-ov.
+              // Desktop: COLUMNA CENTRADA del ancho --sec-banner-w, imagen a auto 100% (ver R3). Se
+              // emiten variables que consume la regla ::before de .preview-section-click; el slider
+              // define el ANCHO de la franja. El overlay va en la capa ::after via --sec-ov.
               css = `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
             }
           } else {
-            // Pantalla completa: cover.
+            // Pantalla completa (fit explícito 'cover'): cover.
             css = `background: ${dark}url(${m.url}) ${m.position || 'center'}/cover no-repeat`;
           }
           break;

@@ -63,8 +63,10 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
         }
       }
       <!-- Capa de primer plano (contenido). Es el contenedor de posicionamiento de los drag-box
-           (data-drag-bounds), ocupa toda la sección, y va sobre el fondo (z-index 1). -->
-      <div class="hero-fg" data-drag-bounds>
+           (data-drag-bounds). Se acota a un ancho FIJO centrado por dispositivo (desktop:
+           --canvas-desktop-w; mobile: --canvas-mobile-w) para que los objetos en % no se reescalen
+           al cambiar el dispositivo del selector y coincidan canvas/preview/landing. z-index 1. -->
+      <div class="hero-fg" [class.hero-fg-desktop]="heroDesktopFixed" [class.hero-fg-mobile]="heroMobileFixed" data-drag-bounds>
       <div class="hero-content">
         @if (config.eventDescription) {
         <app-drag-box [editable]="editable" [position]="heroPosData('eventType')" [ngStyle]="heroPos('eventType')" (positionChange)="onPosChange('eventType', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
@@ -238,6 +240,18 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       position: absolute; inset: 0; z-index: 1;
       display: flex; align-items: center; justify-content: center;
     }
+    /* PARIDAD canvas-preview-landing: acotar el lienzo a un ancho FIJO CENTRADO por dispositivo.
+       Sin esto, .hero-fg (inset:0) medía todo el ancho de la sección/viewport, que varía con el
+       selector de dispositivos y entre contextos → los objetos en % se reescalaban. Mantiene
+       top/bottom:0 para conservar el alto completo (centrado vertical del contenido). */
+    .hero-fg.hero-fg-desktop {
+      left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px);
+      transform: translateX(-50%);
+    }
+    .hero-fg.hero-fg-mobile {
+      left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px);
+      transform: translateX(-50%);
+    }
     @media (min-width: 768px) {
       /* Modo banner (desktop): columna centrada del ancho configurado. Igual que las secciones,
          la imagen se ajusta al ALTO (auto 100%) y su ancho va a proporción, sin recortar los
@@ -363,6 +377,12 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     if (this.previewDevice) return this.previewDevice === 'mobile';
     return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
+
+  /** True cuando el lienzo (.hero-fg) debe acotarse al ancho fijo DESKTOP (--canvas-desktop-w). */
+  get heroDesktopFixed(): boolean { return !this.isMobilePos; }
+  /** True cuando el lienzo (.hero-fg) debe acotarse al ancho fijo MOBILE (--canvas-mobile-w), para
+      que no se reescale al cambiar el dispositivo del selector del canvas. */
+  get heroMobileFixed(): boolean { return this.isMobilePos; }
 
   /** True si el ancho actual (o previewDevice) es escritorio, para elegir override de media. */
   get isDesktopMedia(): boolean {

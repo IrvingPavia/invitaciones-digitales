@@ -39,9 +39,10 @@ import { resolveMedia, isVideoUrl, ResolvedMedia } from '../../../core/utils/med
           }
         </div>
       }
-      <!-- Lienzo de posicionamiento (data-drag-bounds). En desktop se acota a 680px centrado
-           para que el drag coincida entre canvas/preview/landing (clase intro-fg-desktop). -->
-      <div class="intro-fg" [class.intro-fg-desktop]="introDesktopFixed" data-drag-bounds>
+      <!-- Lienzo de posicionamiento (data-drag-bounds). Se acota a un ancho FIJO centrado por
+           dispositivo (desktop: --canvas-desktop-w; mobile: --canvas-mobile-w) para que el drag
+           coincida entre canvas/preview/landing sin reescalarse al cambiar de dispositivo. -->
+      <div class="intro-fg" [class.intro-fg-desktop]="introDesktopFixed" [class.intro-fg-mobile]="introMobileFixed" data-drag-bounds>
       <!-- Frase: con DragBox para posicionarla libremente (como en la pantalla de inicio). -->
       <app-drag-box [editable]="editable" [position]="introPosData('phrase')" [ngStyle]="phraseWrapStyle()" (positionChange)="onPosChange('phrase', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
         @if (config.phraseHtml) {
@@ -194,10 +195,12 @@ import { resolveMedia, isVideoUrl, ResolvedMedia } from '../../../core/utils/med
     /* El drag-box interno recupera eventos (el lienzo los bloquea para no tapar el click del
        overlay que inicia la intro). */
     .intro-fg app-drag-box { pointer-events: auto; }
-    /* PARIDAD canvas-preview-landing (desktop): el lienzo se acota a 680px CENTRADO. En la landing
-       el overlay es fixed = ancho de ventana; en el canvas = ancho del viewport. Con 680px fijo el
-       drag coincide en los 3 contextos. En mobile no aplica (la clase solo entra en desktop). */
-    .intro-fg.intro-fg-desktop { left: 50%; right: auto; width: 680px; max-width: 680px; transform: translateX(-50%); }
+    /* PARIDAD canvas-preview-landing: el lienzo se acota a un ancho FIJO CENTRADO por dispositivo.
+       El overlay de la intro es fixed = ancho de ventana (landing) o del viewport (canvas), por eso
+       sin acotar el mismo % daba anchos físicos distintos. Con ancho fijo el drag coincide en los
+       5 contextos y no se reescala al cambiar el dispositivo del selector. */
+    .intro-fg.intro-fg-desktop { left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px); transform: translateX(-50%); }
+    .intro-fg.intro-fg-mobile { left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px); transform: translateX(-50%); }
 
     /* Linea de carga (centrada abajo por defecto; posicion absoluta en el overlay). */
     .intro-progress-wrap {
@@ -384,6 +387,12 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
       lienzo medía todo el ancho de la ventana y el texto se estiraba. En mobile no aplica. */
   get introDesktopFixed(): boolean {
     return !this.isMobilePos;
+  }
+  /** True cuando el lienzo debe acotarse al ancho fijo MOBILE (--canvas-mobile-w). El overlay de
+      la intro es fixed a pantalla completa, así que sin acotar, en mobile el lienzo medía todo el
+      ancho del dispositivo (variable con el selector) y los objetos en % se reescalaban. */
+  get introMobileFixed(): boolean {
+    return this.isMobilePos;
   }
 
   /** Fondo resuelto de la intro para el dispositivo activo. Prioriza el nuevo modelo `media`

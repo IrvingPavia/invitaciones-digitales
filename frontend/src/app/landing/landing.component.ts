@@ -459,17 +459,18 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       min-height: 100svh;
       display: flex; flex-direction: column; justify-content: center;
     }
-    /* En DESKTOP la columna de contenido se ESTABILIZA en 680px (térm. central fijo en 340px)
-       en vez de depender de 50vw. Antes, en viewports desktop estrechos —p. ej. el iframe de
-       Preview del builder (~900px)— el 25vw colapsaba al mínimo y la columna caía a ~520px, por
-       lo que el Preview NO coincidía con la landing a pantalla completa (680px) ni con el canvas.
-       Con 340px fijo, el contenido = 2×340 = 680px en cualquier viewport ≥768px, igualando los 3
-       contextos. El max(20px, …) sigue protegiendo viewports desktop muy angostos. En MÓVIL
+    /* En DESKTOP la columna de contenido se ESTABILIZA en --canvas-desktop-w (600px; térm. central
+       = la mitad de ese ancho) en vez de depender de 50vw. Antes, en viewports desktop estrechos
+       —p. ej. el iframe de Preview del builder (~900px)— el 25vw colapsaba al mínimo y la columna
+       caía a ~520px, por lo que el Preview NO coincidía con la landing a pantalla completa ni con
+       el canvas. Con el término central fijo, el contenido = 2×(w/2) = --canvas-desktop-w en
+       cualquier viewport ≥768px, igualando los 5 contextos (canvas/preview mobile+desktop +
+       landing). El max(20px, …) sigue protegiendo viewports desktop muy angostos. En MÓVIL
        (<768px) no aplica: se conserva el padding fluido original. */
     @media (min-width: 768px) {
       .section-block {
-        padding-left: max(20px, calc(50vw - 340px));
-        padding-right: max(20px, calc(50vw - 340px));
+        padding-left: max(20px, calc(50vw - (var(--canvas-desktop-w, 600px) / 2)));
+        padding-right: max(20px, calc(50vw - (var(--canvas-desktop-w, 600px) / 2)));
       }
     }
     /* ===== Override de texto por sección =====
@@ -582,14 +583,14 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       font-size: var(--section-content-size) !important;
     }
     /* Fondo de sección en modo BANNER.
-       Móvil (prioridad): la imagen CUBRE el ancho y el alto de la sección (cover). Para que
-       SIEMPRE abarque el alto de la pantalla por defecto, la sección con imagen de fondo toma
-       min-height del viewport; así no quedan huecos con el fondo de la landing entre secciones.
-       En secciones altas (muchas cards) el usuario ajusta/quita el fondo él mismo.
-       Escritorio (≥768px): columna centrada del ancho --sec-banner-w (se afina después). */
+       Móvil (REGLA R3 del steering): la imagen se dimensiona por el ALTO (auto 100%) y su ancho va
+       a PROPORCIÓN, CENTRADA, SIN deformar (NO cover, que recortaba/deformaba). Verticales llenan;
+       horizontales se ven como banner con franjas laterales (precio de no deformar). La sección toma
+       min-height del viewport para abarcar el alto de pantalla. En secciones altas (muchas cards) el
+       usuario ajusta/quita el fondo él mismo. Escritorio (≥768px): columna centrada --sec-banner-w. */
     .section-block[style*="--sec-bg-image"] {
       background-image: var(--sec-bg-image);
-      background-size: cover;
+      background-size: auto 100%;
       background-position: center center;
       background-repeat: no-repeat;
       min-height: 100vh;

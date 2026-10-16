@@ -11,7 +11,107 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-13 (noche 5)
+## Estado actual del proyecto: 2026-10-15 (c)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: revertir navbar + fondo de sección a `auto 100%` + REGLAS DE DISEÑO PERMANENTES en steering
+
+- **Navbar REVERTIDO:** se quitó el acotamiento del `.nav-inner` a la columna del lienzo (fue un
+  error de la tanda anterior). Vuelve a ocupar el ancho de la ventana.
+- **Fondo de SECCIÓN (imagen) unificado a `auto 100%` centrado en los 4 contextos** (canvas
+  mobile/desktop + landing mobile/desktop): alto = ventana, ancho proporcional, sin deformar.
+  Antes landing/canvas mobile usaban `cover` (deformaba). `builder.component.ts getSectionBgStyle`
+  (rama banner mobile) y `landing.component.ts .section-block[style*="--sec-bg-image"]` (base mobile).
+- **Se añadió al steering una sección de REGLAS DE DISEÑO PERMANENTES (R1–R4)** para no volver a
+  perder estas reglas con futuros cambios: R1 lienzo fijo vs capas responsivas, R2 navbar ancho
+  completo, R3 fondo de sección `auto 100%`, R4 variables de ancho única fuente de verdad.
+- **PENDIENTE:** validación al configurar imagen de fondo que advierta si es horizontal (no óptima
+  en mobile), sin bloquear. Video de fondo sigue con `cover` (pendiente menor).
+
+Build OK, contenedor reconstruido (`--no-cache`), arriba.
+
+---
+
+## Estado actual del proyecto: 2026-10-15 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: fix Preview iframe no respetaba el dispositivo seleccionado
+
+Reporte del usuario: (1) el modo Preview (iframe) no respetaba el dispositivo elegido; (2) duda de
+si el canvas desktop quedó atado al dispositivo mobile.
+
+- **FIX (1):** `.builder-preview-frame.mobile` tenía `flex:1; width:100%` + override `width:var(--canvas-mobile-w)`
+  que pisaba el `[style.width/height.px]` inline del dispositivo. Cambiado a
+  `flex:0 0 auto; width:auto; margin:0 auto` + nueva clase condicional `.builder-preview-area.center-frame`
+  (`justify-content:center; overflow:auto`), espejo del `.center-frame` del canvas. Ahora el iframe
+  toma el ancho×alto exacto del dispositivo, centrado y con scroll si no cabe.
+- **ACLARACIÓN (2):** el canvas/preview DESKTOP ya es independiente del `canvasDevice` (ternario
+  `previewDevice()==='mobile' ? canvasDeviceWidth() : null`). Marco desktop 900px, lienzo 600px
+  centrado → franjas laterales que replican FIELMENTE la landing real desktop (fondo 100vw + columna
+  600px). No es bug. El selector solo existe en mobile (`@if previewDevice()==='mobile'`); si se vio
+  en desktop era bundle viejo (Ctrl+F5).
+
+Build OK, contenedor reconstruido (`--no-cache`), bundle verificado.
+
+---
+
+## Estado del proyecto: 2026-10-15
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: ancho de lienzo FIJO por dispositivo en las 4 secciones de apertura (paridad en los 5 contextos) + navbar acotado
+
+Se atacó el problema reportado: al cambiar el dispositivo del selector del canvas mobile se movían
+y reescalaban los objetos drag-and-drop, y lo configurado en el canvas no coincidía con la landing
+real. CAUSA RAÍZ (confirmada por context-gatherer): posición (x,y centro) y tamaño (w,h) de cada
+objeto están en **% del contenedor `data-drag-bounds`**; el font-size va en px fijos aparte. Tamaño
+físico = (% guardado) × (ancho real del contenedor). Si el ancho del contenedor cambia (selector de
+dispositivos agranda el marco, o distinto ancho entre canvas/preview/landing), el objeto se reescala
+aunque el % sea idéntico. Invitación ya estaba pineada (360/680); el resto NO.
+
+**Solución: ancho de referencia del lienzo FIJO por dispositivo en los 5 contextos** (canvas mobile,
+canvas desktop, preview mobile iframe, preview desktop iframe, landing real):
+
+- **Nueva variable CSS global `--canvas-desktop-w: 600px`** en `styles.scss :root` (hermana de
+  `--canvas-mobile-w: 360px`; fuente de verdad ÚNICA, la heredan canvas, iframes de preview y
+  landing). Desktop bajó de 680 → **600px** (petición del usuario).
+- **Columna de la landing (`landing.component.ts .section-block`)**: el `@media(min-width:768px)`
+  pasó de `50vw - 340px` a `50vw - (var(--canvas-desktop-w)/2)` → 600px en cualquier viewport ≥768px.
+- **Pines de ancho FIJO centrado por dispositivo (desktop + mobile) en las 4 secciones**:
+  - Invitación: `.inv-fg.canvas-desktop/.canvas-mobile` (680→var). Ya tenía ambos.
+  - Intro: `.intro-fg.intro-fg-desktop` (680→var) + NUEVO `.intro-fg.intro-fg-mobile` (getter
+    `introMobileFixed`). Antes solo tenía desktop.
+  - Plano (envelope): `.plain-container.plain-desktop` (680→var) + NUEVO `.plain-container.plain-mobile`
+    (getter `plainMobileFixed`). Antes solo desktop.
+  - Carátula (hero): el `.hero-fg` (data-drag-bounds, antes `inset:0` = sin acotar) ahora toma
+    NUEVAS clases `.hero-fg-desktop`/`.hero-fg-mobile` (getters `heroDesktopFixed`/`heroMobileFixed`)
+    que lo acotan a `var(--canvas-desktop-w)` / `var(--canvas-mobile-w)` centrado. Era la única sección
+    sin ningún pin → por eso se reescalaba con el selector. Era el pendiente abierto.
+- **Pines `::ng-deep` del canvas (`builder.component.ts`)**: 680→`var(--canvas-desktop-w)` y añadidos
+  los pines MOBILE que faltaban para plano/intro/hero (antes solo invitación tenía mobile). Son la
+  excepción al `::ng-deep * { max-width:100% }` universal del canvas.
+- **Navbar acotado**: `.nav-inner` dejó de ocupar el 100% del ancho; ahora `margin:auto` +
+  `max-width` por dispositivo (`.landing-nav.nav-desktop/.nav-mobile .nav-inner` →
+  `var(--canvas-desktop-w)`/`var(--canvas-mobile-w)`). El `<nav>` recibe las clases nav-desktop/
+  nav-mobile vía `heroDesktopFixed`/`heroMobileFixed`. Resuelve que el menú se expandiera al ancho
+  de la ventana en el canvas. (Usa clases y no media query porque en el canvas mobile la ventana del
+  navegador es ancha pero el viewport del canvas es angosto.)
+
+**Build/deploy:** `npm run build` OK (solo warnings NG8107 preexistentes). `docker-compose build
+--no-cache frontend` + `docker rm -f invitaciones-frontend` + `docker compose up -d --no-deps
+frontend`. Bundle verificado: contiene `canvas-desktop-w`, `hero-fg-mobile`, `nav-mobile`. Ctrl+F5
+obligatorio (cambió el hash JS).
+
+**⚠️ PENDIENTE (reajuste de datos, no de código):** las posiciones ya guardadas de Valeria quedaron
+contra 680px (desktop) y 375px (mobile histórico); al pasar a 600/360 habrá que reajustarlas UNA vez
+por sección. Verificación visual del usuario pendiente (cambiar de dispositivo no debe mover objetos;
+canvas desktop = landing desktop; navbar acotado).
+
+---
+
+## Estado del proyecto: 2026-10-13 (noche 5)
 
 ### Rama activa: `feature/drag-elementos-secciones`
 

@@ -174,9 +174,9 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
        de la columna de la landing en un monitor completo. Así los 3 contextos del builder
        coinciden. La landing REAL (previewDevice=null) NO lleva esta clase → conserva su columna
        responsiva. MOBILE del builder tampoco (solo aplica con canvas-desktop). */
-    .inv-fg.canvas-desktop { max-width: 680px; margin-left: auto; margin-right: auto; }
+    .inv-fg.canvas-desktop { max-width: var(--canvas-desktop-w, 600px); margin-left: auto; margin-right: auto; }
     .inv-fg.canvas-desktop.positioned {
-      left: 50%; right: auto; width: 680px; max-width: 680px; transform: translateX(-50%);
+      left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px); transform: translateX(-50%);
     }
     /* ===== PARIDAD en MOBILE =====
        En modo posicionado, .landing-section.positioned quita el padding lateral, así que el

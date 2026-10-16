@@ -112,7 +112,7 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
       <!-- ============ TEMPLATE: PLAIN ============ -->
       @if (getTemplate() === 'plain') {
-        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [class.plain-desktop]="plainDesktopFixed" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
+        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [class.plain-desktop]="plainDesktopFixed" [class.plain-mobile]="plainMobileFixed" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
           @if (config.plainTitle) {
             <app-drag-box [editable]="editable" [position]="plainPosData('title')" [ngStyle]="plainPos('title')" (positionChange)="onPosChange('title', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
               <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
@@ -390,7 +390,16 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     .plain-container.plain-desktop.bg-banner {
       top: 0; bottom: 0;
       left: 50%; right: auto;
-      width: 680px; max-width: 680px;
+      width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px);
+      transform: translateX(-50%);
+    }
+    /* MOBILE: mismo criterio que desktop pero con --canvas-mobile-w, para que el lienzo no se
+       reescale al cambiar el dispositivo del selector del canvas (el marco crece, el lienzo no). */
+    .plain-container.plain-mobile,
+    .plain-container.plain-mobile.bg-banner {
+      top: 0; bottom: 0;
+      left: 50%; right: auto;
+      width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px);
       transform: translateX(-50%);
     }
     .plain-title {
@@ -545,6 +554,13 @@ export class LandingEnvelopeComponent {
       los 3 contextos coinciden. En mobile no aplica (cada dispositivo mantiene su ancho). */
   get plainDesktopFixed(): boolean {
     return !this.isMobilePos;
+  }
+  /** True cuando el LIENZO DE TEXTO del Plano debe acotarse al ancho fijo MOBILE
+      (--canvas-mobile-w). El envelope es un overlay fixed a pantalla completa, así que sin acotar
+      el lienzo medía todo el ancho del dispositivo (variable con el selector) y los objetos en %
+      se reescalaban al cambiar de dispositivo. */
+  get plainMobileFixed(): boolean {
+    return this.isMobilePos;
   }
   @Output() done = new EventEmitter<void>();
   opened = false;
