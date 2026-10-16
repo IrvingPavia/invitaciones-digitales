@@ -49,6 +49,34 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-15 (d) — integrados los cambios de despliegue de `deploy_prod` en la rama feature
+
+Rama `feature/drag-elementos-secciones`. Se mezcló `origin/deploy_prod` (FAST-FORWARD limpio, sin
+conflictos) para que la config de deploy del server NO se planche al subir el feature a prod.
+
+- **Contexto:** `deploy_prod` nació de mi último commit (`4300902`) y le sumó 3 commits SOLO de
+  despliegue; ya contenía TODO mi trabajo del builder. merge-base = `4300902`. Por eso el merge fue
+  un fast-forward (HEAD avanzó `4300902 → 11245e7`). OJO: `origin/deploy_prod` había tenido un
+  FORCE-PUSH reciente (`59e7acd...11245e7 forced update`); por eso 2 de los commits son "reponer tras
+  force-push".
+- **Los 3 commits traídos (solo tocan 3 archivos de infra, nada del builder):**
+  - `56b7537` fix(db): en `backend/src/models/database.js` se crea `events` ANTES de `user_events`
+    (user_events tiene FK a events(id); antes fallaba el orden). No cambia el esquema final, solo el
+    orden de CREATE.
+  - `94dc0bc` fix(prod): `docker-compose.yml` frontend expone `8080:80` (antes `80:80`) para no
+    chocar con el nginx del HOST en el puerto 80.
+  - `11245e7` ci(prod): NUEVO `.github/workflows/deploy.yml` — auto-deploy por SSH que se dispara
+    SOLO `on: push: branches: [deploy_prod]` (hace `git reset --hard origin/deploy_prod` +
+    `docker compose up -d --build` + prune en `/opt/pavi`). Tenerlo en la rama feature NO dispara
+    nada (solo corre al pushear a deploy_prod).
+- **Estado git tras el merge:** HEAD local = `11245e7` = `origin/deploy_prod`. La rama feature local
+  quedó 1 commit por delante de `origin/feature/drag-elementos-secciones` (que sigue en `4300902`)
+  hasta que se pushee.
+- **Para desplegar a prod (flujo):** cuando el feature esté listo, llevar estos cambios a
+  `deploy_prod` y pushear esa rama → el workflow despliega por SSH. El puerto del frontend en el host
+  es 8080 (nginx del host enruta el 80→8080). Prod sigue necesitando `client_max_body_size 25m` en el
+  nginx del host (deuda conocida).
+
 ---
 
 ## 🧱 REGLAS DE DISEÑO PERMANENTES (INVARIANTES — NO romper con cambios)
