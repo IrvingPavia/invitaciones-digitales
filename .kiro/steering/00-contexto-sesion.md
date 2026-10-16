@@ -49,6 +49,37 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-16 (b) — scripts de migración MANUAL de Valeria + limpieza (NO se versionan)
+
+Rama `feature/drag-elementos-secciones`. Generados en `scripts/migrate-valeria/` para que el usuario
+los ejecute A MANO en el server. Separa DATOS (esto) de ESQUEMA (lo hace el runner de migraciones).
+**La carpeta está en `.gitignore`** (datos personales reales de 55 invitados; migración manual) →
+NO se commitea. Las imágenes las sube el usuario manualmente (el evento queda registrado).
+
+- **Hallazgos en dev:** hay DOS eventos Valeria → `id=1` slug `xv-valeria` (asignado a KarlaAzarcoya,
+  user 3) y `id=17` slug `invitacion-valeria` (el de la tarea Totoro). El 17 NO está en `user_events`
+  (sin dueño). Evento 17: 1 config, 55 invitados, 0 itinerario/fotos/tarjetas. El config referencia
+  8 imágenes en `/uploads/images/` (todas existen en el volumen).
+- **Carpeta `scripts/migrate-valeria/` (ignorada por git):**
+  - `00-limpiar-invitaciones.sql` — DESTRUCTIVO: borra TODOS los eventos y su contenido (config,
+    guests, itinerary, photos, card_templates, registrations, user_events, postponements; suggestions
+    a NULL). PRESERVA users/plans/purchases/transactions y el esquema. FK_CHECKS=0 y vaciado explícito
+    en orden seguro. Para dejar el server limpio antes de migrar.
+  - `01-valeria-data.sql` — upsert IDEMPOTENTE (evento + event_config + 55 guests). Claves:
+    events.id/slug, event_config.event_id, guests.unique_code → re-ejecutar actualiza, no duplica.
+  - `README.md` — pasos manuales (docker cp + mysql < script), nombres exactos de las 8 imágenes a
+    subir, y el INSERT opcional de user_events si se quiere asignar dueño.
+  - **AMBOS scripts VERIFICADOS en una BD temporal `valeria_test` (esquema clonado): migrar dio
+    1/1/55; limpiar dejó todo en 0, sin errores de FK.** Se usó `--default-character-set=utf8mb4`.
+- **OJO ENCODING (lección):** `Out-File -Encoding utf8` de PowerShell CORROMPE los acentos UTF-8 del
+  dump (quedaba `Invitaci├│n`). Solución usada: generar el dump DENTRO del contenedor y sacarlo con
+  `docker cp` (binario, sin reinterpretar); el .sql final se escribió con UTF8 SIN BOM. Al ejecutar,
+  usar `SET NAMES utf8mb4` + `mysql --default-character-set=utf8mb4`.
+- **Pre-requisito del script:** el backend del server debe tener ya el runner de migraciones (esquema
+  homologado) para que el import no falle por columnas inexistentes.
+- **NO asigna user_events** (el 17 no tenía dueño en dev); si un cliente debe administrarlo, crear la
+  fila aparte. **DATO SENSIBLE:** el .sql lleva nombres reales de 55 invitados (repo privado).
+
 ### 🔽 ACTUALIZACIÓN 2026-10-16 — sistema de migraciones AUTOMÁTICAS (resuelve la deuda de homologación BD)
 
 Rama `feature/drag-elementos-secciones`. Se implementó el mecanismo HÍBRIDO acordado para homologar
