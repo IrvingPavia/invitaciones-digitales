@@ -1,5 +1,37 @@
 # 🗄️ Migraciones de Base de Datos
 
+## ⚙️ Sistema de migraciones AUTOMÁTICAS (desde 2026-10-16) — LEER PRIMERO
+
+> A partir de ahora **NO se ejecutan scripts SQL a mano en prod**. El backend homologa la BD solo,
+> en cada arranque, de forma idempotente y sin tocar los datos existentes. Las entradas de abajo
+> (sesiones 2025-xx) son el historial manual anterior; se conservan como referencia.
+
+**Cómo funciona (híbrido):**
+1. `backend/src/models/database.js` → `initDB()` crea el esquema BASE en una BD vacía (bootstrap).
+2. `backend/src/migrations/runner.js` → corre después de `initDB()`. Lee los `.sql` de
+   `backend/src/migrations/sql/` ordenados por nombre y ejecuta SOLO los que no están registrados en
+   la tabla `schema_migrations`. Cada migración aplicada queda registrada para no repetirse.
+3. Se engancha en `backend/src/index.js`: `await initDB(); await runMigrations(); ...`.
+
+**Flujo de deploy:** el workflow `deploy_prod` hace `docker compose up -d --build` → el backend
+arranca → corre las migraciones pendientes → la BD queda homologada. Cero pasos manuales.
+
+**Cómo añadir una migración nueva (para un feature futuro):**
+- Crear `backend/src/migrations/sql/NNN_descripcion.sql` (NNN con ceros: `002_...`, `003_...`).
+- Debe ser **idempotente**: `CREATE TABLE IF NOT EXISTS` para tablas; para columnas/índices/FKs usar
+  el patrón `SET @ddl := (SELECT IF(COUNT(*)=0, '<ALTER>', 'SELECT 1') FROM information_schema... );
+  PREPARE s FROM @ddl; EXECUTE s; DEALLOCATE PREPARE s;` (ver `001_homologacion_esquema_prod.sql`).
+- NUNCA borrar datos. El runner se detiene si una migración falla (no la marca como aplicada).
+
+**Migración `001_homologacion_esquema_prod.sql`** (2026-10-16): homologa prod con dev. Crea 5 tablas
+que `initDB()` no tenía (`plans`, `purchases`, `transactions`, `postponements`,
+`email_verifications`) y añade columnas faltantes en `users` (email, email_verified,
+verification_status, self_registered, full_name, trial_used + índice), `events` (lifecycle_status,
+deactivation_date, purchase_id + FK, postponed, plan_type + índices) y `photos` (thumb_url,
+gallery_url). Verificada idempotente sobre dev (que ya tenía todo).
+
+---
+
 ## Sesión 2025-06-15 — Seguridad: Forzar cambio de contraseña + Audit Log + Compartir
 
 **Se ejecutan automáticamente** al iniciar el backend (migrations en `database.js`). Si necesitas aplicarlas manualmente:

@@ -6,6 +6,7 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const { initDB } = require('./models/database');
+const { runMigrations } = require('./migrations/runner');
 const { fixUrls } = require('./migrations/fix-urls');
 
 const authRoutes = require('./routes/auth');
@@ -88,7 +89,8 @@ app.use((err, req, res, next) => {
 });
 
 (async () => {
-  await initDB();
+  await initDB();          // bootstrap del esquema base (BD vacia)
+  await runMigrations();   // homologa el esquema en cada arranque (idempotente, sin tocar datos)
   await fixUrls();
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 })();

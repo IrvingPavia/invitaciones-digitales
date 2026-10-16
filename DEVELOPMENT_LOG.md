@@ -11,6 +11,47 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-16
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: sistema de migraciones AUTOMÁTICAS (homologación BD en cada deploy)
+
+Implementado el mecanismo híbrido para homologar la BD automáticamente en cada arranque del backend,
+idempotente y sin tocar datos. Resuelve la deuda técnica dev↔prod.
+
+- **`backend/src/migrations/runner.js`** (nuevo): tabla `schema_migrations` + ejecuta los `.sql` de
+  `migrations/sql/` pendientes (orden por nombre), los registra, se detiene si falla.
+- **`backend/src/index.js`**: `initDB()` → `runMigrations()` → `fixUrls()`.
+- **`migrations/sql/001_homologacion_esquema_prod.sql`**: crea 5 tablas que faltaban en `initDB()`
+  (`plans`, `purchases`, `transactions`, `postponements`, `email_verifications`) + columnas de
+  `users`/`events`/`photos`. Idempotente (CREATE IF NOT EXISTS + PREPARE/EXECUTE condicionado a
+  information_schema).
+- Verificado: aplicó las 73 sentencias sobre dev sin error, registró 001, al reiniciar no reejecuta.
+- `docs/MIGRATIONS.md` actualizado con la guía del nuevo sistema.
+- Pendiente aparte: migrar DATOS de Valeria (evento 17 + config + imágenes) al server.
+
+---
+
+## Estado actual del proyecto: 2026-10-15 (d)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: integrados los cambios de despliegue de `deploy_prod` (fast-forward)
+
+Se mezcló `origin/deploy_prod` en la rama feature (fast-forward limpio) para no planchar la config
+de deploy del server al subir el feature. `deploy_prod` partía de mi commit `4300902` + 3 commits
+solo de infra. Traídos:
+- `56b7537` orden FK en `database.js` (crea `events` antes de `user_events`).
+- `94dc0bc` `docker-compose.yml` frontend `8080:80` (evita choque con nginx del host).
+- `11245e7` nuevo `.github/workflows/deploy.yml` (auto-deploy por SSH, dispara solo en push a
+  `deploy_prod`).
+
+HEAD local = `11245e7`. La rama feature local va 1 commit por delante de su remoto hasta pushear.
+`origin/deploy_prod` tuvo force-push reciente (de ahí los commits "reponer tras force-push").
+
+---
+
 ## Estado actual del proyecto: 2026-10-15 (c)
 
 ### Rama activa: `feature/drag-elementos-secciones`
