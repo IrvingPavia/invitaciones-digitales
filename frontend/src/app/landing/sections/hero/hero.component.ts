@@ -139,10 +139,34 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
           @if (guides.y !== undefined) { <div class="ad-guide ad-guide-h" [style.top.%]="guides.y"></div> }
         }
 
-        <div class="scroll-indicator animate-in" style="animation-delay:1.2s">
-          <span class="material-icons scroll-arrow">expand_more</span>
-          <span class="material-icons scroll-arrow" style="animation-delay:0.2s">expand_more</span>
-        </div>
+        @if (scrollIndicator().show) {
+          <div class="scroll-indicator animate-in" style="animation-delay:1.2s"
+               [attr.data-anim]="scrollIndicator().animation"
+               [style.color]="scrollIndicator().color"
+               [style.font-size.px]="scrollIndicator().size">
+            @switch (scrollIndicator().type) {
+              @case ('single-chevron') {
+                <span class="material-icons scroll-arrow">keyboard_arrow_down</span>
+              }
+              @case ('arrow-down') {
+                <span class="material-icons scroll-arrow">south</span>
+              }
+              @case ('chevron-circle') {
+                <span class="material-icons scroll-arrow">expand_circle_down</span>
+              }
+              @case ('mouse') {
+                <span class="material-icons scroll-arrow">mouse</span>
+              }
+              @case ('dot') {
+                <span class="scroll-dot"></span>
+              }
+              @default {
+                <span class="material-icons scroll-arrow">expand_more</span>
+                <span class="material-icons scroll-arrow scroll-arrow-2">expand_more</span>
+              }
+            }
+          </div>
+        }
       </div>
       </div><!-- /.hero-fg -->
     </section>
@@ -327,22 +351,50 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     /* El indicador de scroll se ancla SIEMPRE al fondo de la carátula, independiente del
        flujo. Así no se reacomoda cuando otros elementos pasan a position:absolute por el
        posicionamiento asistido. */
+    /* Centrado robusto: ocupa todo el ancho del lienzo y centra su contenido con flex, en vez de
+       left:50% + translateX (que dependía del box del glyph y lo dejaba ligeramente descentrado).
+       El color/tamaño se definen inline desde la config (scrollIndicator). */
     .scroll-indicator {
-      position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 0; z-index: 3;
+      position: absolute; left: 0; right: 0; bottom: 24px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0; z-index: 3;
+      color: var(--theme-text-primary, rgba(255,255,255,0.9));
+      pointer-events: none;
     }
     .scroll-arrow {
-      font-size: 32px; color: var(--theme-text-primary, rgba(255,255,255,0.4));
-      animation: scrollBounce 1.5s ease-in-out infinite;
-      display: block; opacity: 0.6;
+      font-size: inherit; color: inherit;
+      line-height: 0.7;
+      display: block;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35); /* legibilidad sobre fondos claros/variados */
     }
+    .scroll-arrow-2 { margin-top: -0.35em; opacity: 0.65; }
+    /* Punto (type='dot'): círculo que late dentro de una pista tipo "mouse scroll". */
+    .scroll-dot {
+      width: 0.28em; height: 0.28em; border-radius: 50%;
+      background: currentColor; display: block;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+    /* ===== Animaciones del indicador (data-anim) ===== */
+    .scroll-indicator[data-anim="bounce"]   .scroll-arrow,
+    .scroll-indicator[data-anim="bounce"]   .scroll-dot { animation: scrollBounce 1.5s ease-in-out infinite; }
+    .scroll-indicator[data-anim="pulse"]    .scroll-arrow,
+    .scroll-indicator[data-anim="pulse"]    .scroll-dot { animation: scrollPulse 1.4s ease-in-out infinite; }
+    .scroll-indicator[data-anim="fade"]     .scroll-arrow,
+    .scroll-indicator[data-anim="fade"]     .scroll-dot { animation: scrollFade 1.6s ease-in-out infinite; }
+    .scroll-indicator[data-anim="slide-down"] .scroll-arrow,
+    .scroll-indicator[data-anim="slide-down"] .scroll-dot { animation: scrollSlide 1.6s ease-in-out infinite; }
+    .scroll-indicator[data-anim="none"] .scroll-arrow,
+    .scroll-indicator[data-anim="none"] .scroll-dot { animation: none; opacity: 0.9; }
+    @keyframes scrollPulse { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.25); opacity: 1; } }
+    @keyframes scrollFade  { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+    @keyframes scrollSlide { 0% { transform: translateY(-6px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(8px); opacity: 0; } }
     .animate-in { animation: fadeInUp 0.8s ease both; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     /* Guías de alineación del drag asistido */
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
     .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
     .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
-    @keyframes scrollBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(6px); opacity: 0.8; } }
+    @keyframes scrollBounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(6px); opacity: 1; } }
   `]
 })
 export class LandingHeroComponent implements OnInit, OnDestroy {
@@ -376,6 +428,19 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
   get isMobilePos(): boolean {
     if (this.previewDevice) return this.previewDevice === 'mobile';
     return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  /** Config efectiva del indicador de scroll, con defaults retrocompatibles (si no hay nada en el
+      config, muestra el doble chevron con animación de rebote y color heredado del texto primario). */
+  scrollIndicator(): { show: boolean; type: string; color: string | null; size: number; animation: string } {
+    const s = this.config?.scrollIndicator || {};
+    return {
+      show: s.show !== false,
+      type: s.type || 'double-chevron',
+      color: s.color || null, // null => hereda var(--theme-text-primary) del CSS
+      size: s.size || 32,
+      animation: s.animation || 'bounce',
+    };
   }
 
   /** True cuando el lienzo (.hero-fg) debe acotarse al ancho fijo DESKTOP (--canvas-desktop-w). */

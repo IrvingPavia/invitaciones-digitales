@@ -11,6 +11,24 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-16 (c)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: indicador de scroll configurable (carátula) + fix tamaño de canvas al primer render
+
+- **Indicador de scroll (flechas de la carátula) configurable:** nuevo `HeroConfig.scrollIndicator`
+  (show/type/color/size/animation) + acordeón "Indicador de scroll" en Carátula. Fix de centrado
+  (`left:0;right:0`+flex en vez de left:50%+translateX) y de color (ahora configurable, antes se perdía
+  en fondos claros). 6 tipos de icono, 5 animaciones. Retrocompatible.
+- **Fix canvas no tomaba el dispositivo al 1er render:** `activeDevice` pasó a `computed` signal y se
+  reafirma el dispositivo + re-mide alto en rAF tras cargar la config. Antes el marco solo tomaba el
+  tamaño al cambiar de dispositivo manualmente.
+
+Build OK, frontend reconstruido. Pendiente: publicar a prod (push a deploy_prod) cuando se valide.
+
+---
+
 ## Estado actual del proyecto: 2026-10-16
 
 ### Rama activa: `feature/drag-elementos-secciones`

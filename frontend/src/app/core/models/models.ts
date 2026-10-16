@@ -365,6 +365,24 @@ export interface HeroConfig {
   countdownLabelColor?: string;
   /** Posiciones personalizadas de los elementos de la caratula (eventType, names, description, phrase, countdown). */
   positions?: ElementPositions;
+  /** Indicador de scroll (flechas al pie de la caratula) configurable. */
+  scrollIndicator?: ScrollIndicatorConfig;
+}
+
+/** Configuracion del indicador de scroll (flechas al pie de la caratula). Todo opcional y
+    retrocompatible: si no se define, usa el default (doble chevron, color del texto primario,
+    animacion de rebote). */
+export interface ScrollIndicatorConfig {
+  /** Mostrar u ocultar el indicador. Default: true. */
+  show?: boolean;
+  /** Tipo de icono/forma. Default: 'double-chevron'. */
+  type?: 'single-chevron' | 'double-chevron' | 'arrow-down' | 'chevron-circle' | 'mouse' | 'dot';
+  /** Color del indicador. Default: hereda del texto primario del tema. */
+  color?: string;
+  /** Tamano del icono en px. Default: 32. */
+  size?: number;
+  /** Animacion. Default: 'bounce'. */
+  animation?: 'bounce' | 'pulse' | 'fade' | 'slide-down' | 'none';
 }
 
 export interface InvitationConfig {

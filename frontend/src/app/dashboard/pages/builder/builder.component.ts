@@ -1078,15 +1078,22 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   get canvasDeviceOptions(): SelectOption[] {
     return this.canvasDevices.map(d => ({ value: d.id, label: d.label }));
   }
-  /** Dispositivo activo resuelto. */
-  private get activeDevice() {
-    return this.canvasDevices.find(d => d.id === this.canvasDevice()) || this.canvasDevices[0];
-  }
-  /** Ancho/alto CSS del marco del canvas mobile según el dispositivo elegido. */
-  canvasDeviceWidth(): number { return this.activeDevice.w; }
-  canvasDeviceHeight(): number { return this.activeDevice.h; }
+  /** Dispositivo activo resuelto (COMPUTED: reactivo a canvasDevice desde el primer render). */
+  private activeDeviceSig = computed(() =>
+    this.canvasDevices.find(d => d.id === this.canvasDevice()) || this.canvasDevices[0]
+  );
+  /** Ancho/alto CSS del marco del canvas mobile según el dispositivo elegido. Métodos que leen el
+      computed → el binding [style.width/height.px] se recalcula correctamente ya en el 1er render
+      (antes eran getters sobre un plain getter y el ancho no se aplicaba hasta cambiar de dispositivo). */
+  canvasDeviceWidth(): number { return this.activeDeviceSig().w; }
+  canvasDeviceHeight(): number { return this.activeDeviceSig().h; }
   /** Cambia el dispositivo del marco mobile. */
-  setCanvasDevice(id: string) { this.canvasDevice.set(id); }
+  setCanvasDevice(id: string) {
+    this.canvasDevice.set(id);
+    // Re-medir el alto visible del canvas tras cambiar el marco (el ResizeObserver también lo hace,
+    // pero esto garantiza el refresh inmediato).
+    requestAnimationFrame(() => this._applyCanvasHeight?.());
+  }
 
   /** Ancho del viewport, reactivo para recalcular el layout de paneles al redimensionar. */
   viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1280);
@@ -1225,6 +1232,14 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.isWide()) {
         this.panelVisible.set(true);
       }
+      // FIX primer render: el canvas se monta recién ahora (tras cargar la config). Reafirmamos el
+      // dispositivo activo y re-medimos el alto en el siguiente frame, para que el marco tome el
+      // ancho×alto del dispositivo por defecto de inmediato (antes solo se aplicaba al cambiar de
+      // dispositivo manualmente, porque el viewport aún no existía en el primer ciclo).
+      requestAnimationFrame(() => {
+        this.canvasDevice.set(this.canvasDevice());
+        this._applyCanvasHeight?.();
+      });
       // Precargar medios de fondo (intro + hero) para que estén decodificados en el
       // primer render del canvas. Sin esto, la intro salía sin fondo hasta reiniciar.
       this.preloadCanvasMedia(v2?.intro?.background);

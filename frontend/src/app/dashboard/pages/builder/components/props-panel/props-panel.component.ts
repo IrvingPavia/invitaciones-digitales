@@ -703,6 +703,29 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             </div>
           }
+
+          <!-- Indicador de scroll (flechas al pie de la caratula) -->
+          <div class="accordion" [class.open]="expanded['hero-scroll']" (click)="toggle('hero-scroll')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['hero-scroll'] ? 'expand_more' : 'chevron_right' }}</span><span>Indicador de scroll</span></div>
+          </div>
+          @if (expanded['hero-scroll']) {
+            <div class="accordion-body">
+              <div class="toggle-row">
+                <span class="toggle-title">Mostrar indicador</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="si('show') !== false" (ngModelChange)="setSI('show',$event)"><span class="slider"></span></label>
+              </div>
+              @if (si('show') !== false) {
+                <div class="pf"><label>Tipo</label>
+                  <app-custom-select [options]="scrollIndicatorTypeOptions" [value]="si('type')||'double-chevron'" (valueChange)="setSI('type',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="si('color')||cfg()!.theme.textPrimary||'#ffffff'" (valueChange)="setSI('color',$event)"></app-color-picker></div>
+                <div class="pf"><label>Tamaño ({{si('size')||32}}px)</label><input type="range" class="pinput-range" min="16" max="64" [ngModel]="si('size')||32" (ngModelChange)="setSI('size',+$event)"></div>
+                <div class="pf"><label>Animación</label>
+                  <app-custom-select [options]="scrollIndicatorAnimOptions" [value]="si('animation')||'bounce'" (valueChange)="setSI('animation',$event)"></app-custom-select>
+                </div>
+              }
+            </div>
+          }
         }
 
         <!-- ===== INVITATION ===== -->
@@ -1740,6 +1763,11 @@ export class BuilderPropsPanelComponent {
 
   sec(key: string): any { return (this.cfg() as any)?.[key] || null; }
 
+  /** Lee una propiedad del indicador de scroll de la caratula (hero.scrollIndicator.<prop>). */
+  si(prop: string): any { return (this.cfg() as any)?.hero?.scrollIndicator?.[prop]; }
+  /** Escribe una propiedad del indicador de scroll de la caratula. */
+  setSI(prop: string, value: any) { this.setSecNested('hero', 'scrollIndicator', prop, value); }
+
   setSec(secKey: string, prop: string, value: any) {
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
     if (!(cfg as any)[secKey]) (cfg as any)[secKey] = {};
@@ -2431,6 +2459,21 @@ export class BuilderPropsPanelComponent {
   instructionAnimOptions: SelectOption[] = [
     {value:'pulse',label:'Pulso'},{value:'bounce',label:'Rebote'},{value:'fade',label:'Aparecer/Desaparecer'},
     {value:'slide-up',label:'Deslizar arriba'},{value:'glow',label:'Brillar'},{value:'none',label:'Sin animacion'}
+  ];
+
+  /** Opciones del indicador de scroll de la caratula (tipo de icono). */
+  scrollIndicatorTypeOptions: SelectOption[] = [
+    {value:'double-chevron',label:'Doble flecha (chevron)'},
+    {value:'single-chevron',label:'Flecha simple (chevron)'},
+    {value:'arrow-down',label:'Flecha hacia abajo'},
+    {value:'chevron-circle',label:'Flecha en circulo'},
+    {value:'mouse',label:'Mouse'},
+    {value:'dot',label:'Punto'},
+  ];
+  /** Opciones de animacion del indicador de scroll. */
+  scrollIndicatorAnimOptions: SelectOption[] = [
+    {value:'bounce',label:'Rebote'},{value:'pulse',label:'Pulso'},{value:'fade',label:'Aparecer/Desaparecer'},
+    {value:'slide-down',label:'Deslizar abajo'},{value:'none',label:'Sin animacion'}
   ];
 
   /** Opciones de animacion de SALIDA del template Plano (al tocar para continuar). */

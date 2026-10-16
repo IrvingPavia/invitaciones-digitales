@@ -49,6 +49,35 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-16 (c) — indicador de scroll configurable (carátula) + fix canvas no toma el dispositivo al 1er render
+
+Rama `feature/drag-elementos-secciones`. Build OK, frontend reconstruido. Ctrl+F5.
+
+**1. Indicador de scroll (flechas al pie de la carátula) CONFIGURABLE + fix de centrado/color:**
+- Problema: las flechas (`.scroll-indicator`) no se distinguían (color heredaba de `--theme-text-primary`
+  con opacity, se perdía en fondos claros) y estaban descentradas (usaban `left:50%`+`translateX`
+  dependiente del box del glyph).
+- Modelo: nuevo `HeroConfig.scrollIndicator?` (`ScrollIndicatorConfig` en models.ts): `show`, `type`
+  (single-chevron/double-chevron/arrow-down/chevron-circle/mouse/dot), `color`, `size`, `animation`
+  (bounce/pulse/fade/slide-down/none). Todo opcional/retrocompatible (default: double-chevron, bounce,
+  color texto primario, 32px).
+- `hero.component.ts`: el `.scroll-indicator` ahora centra con `left:0;right:0`+flex (robusto, ya no
+  depende del glyph). Color/tamaño inline desde la config; `text-shadow` para legibilidad. Switch de
+  tipos de icono (material-icons/punto) + animaciones por `data-anim`. Getter `scrollIndicator()` con
+  defaults. Backend ya preserva el campo (spread raíz del hero en ensureConfigDefaults).
+- `props-panel.component.ts`: NUEVO acordeón "Indicador de scroll" en Carátula (toggle mostrar + tipo
+  + color + tamaño + animación). Helpers `si()`/`setSI()` (usan `setSecNested('hero','scrollIndicator',…)`).
+  Arrays `scrollIndicatorTypeOptions` / `scrollIndicatorAnimOptions`.
+
+**2. FIX: el canvas no tomaba el tamaño del dispositivo al PRIMER render (solo al cambiar de disp.):**
+- Causa: `canvasDeviceWidth()/Height()` leían un plain getter `activeDevice`; en el primer ciclo (el
+  canvas se monta DESPUÉS de cargar la config async) el `[style.width/height.px]` inline no se
+  reflejaba hasta que un cambio de signal forzaba reflow.
+- Fix: `activeDevice` → `computed` signal (`activeDeviceSig`); los métodos leen el computed (reactivo
+  desde el 1er render). Además, tras cargar la config, en rAF se reafirma `canvasDevice.set(canvasDevice())`
+  + `_applyCanvasHeight()` para que el marco tome ancho×alto del dispositivo por defecto de inmediato.
+  `setCanvasDevice` también re-mide el alto en rAF.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-16 (b) — scripts de migración MANUAL de Valeria + limpieza (NO se versionan)
 
 Rama `feature/drag-elementos-secciones`. Generados en `scripts/migrate-valeria/` para que el usuario
