@@ -49,6 +49,37 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-16 — sistema de migraciones AUTOMÁTICAS (resuelve la deuda de homologación BD)
+
+Rama `feature/drag-elementos-secciones`. Se implementó el mecanismo HÍBRIDO acordado para homologar
+la BD en cada despliegue sin tocar datos. Esto resuelve la DEUDA TÉCNICA de desincronización
+dev↔prod (`initDB()` no registraba todas las tablas/columnas nuevas).
+
+- **`backend/src/migrations/runner.js`** (NUEVO): crea tabla `schema_migrations`, lee los `.sql` de
+  `backend/src/migrations/sql/` ordenados por nombre y ejecuta SOLO los no registrados; registra cada
+  uno. Idempotente, se detiene si una migración falla (no la marca aplicada). Incluye un
+  `splitSqlStatements` que respeta comentarios/strings/backticks para partir por `;`.
+- **`backend/src/index.js`**: ahora `await initDB(); await runMigrations(); await fixUrls();`.
+- **`backend/src/migrations/sql/001_homologacion_esquema_prod.sql`** (NUEVA migración): homologa prod
+  con dev. CAUSA de la deuda confirmada al inspeccionar dev (16 tablas) vs `initDB()` (13): faltaban
+  5 TABLAS (`plans`, `purchases`, `transactions`, `postponements`, `email_verifications`) + columnas
+  en `users` (email, email_verified, verification_status, self_registered, full_name, trial_used +
+  idx), `events` (lifecycle_status, deactivation_date, purchase_id + FK a purchases, postponed,
+  plan_type + idx), `photos` (thumb_url, gallery_url). Patrón idempotente: `CREATE TABLE IF NOT
+  EXISTS` + `SET @ddl := IF(COUNT(*)=0,'<ALTER>','SELECT 1') FROM information_schema...; PREPARE/
+  EXECUTE/DEALLOCATE` para columnas/índices/FKs. Orden de FK respetado (plans→purchases→
+  transactions→postponements; events.purchase_id→purchases).
+- **VERIFICADO:** backend reconstruido; el runner aplicó las 73 sentencias sobre la BD de dev (que ya
+  tenía todo) SIN error (prueba de idempotencia); registró `001` en `schema_migrations`; al reiniciar
+  dice "BD al dia, nada que aplicar" (no reejecuta). Backend `healthy`.
+- **Cómo añadir migraciones futuras:** crear `sql/NNN_descripcion.sql` idempotente (ver
+  `docs/MIGRATIONS.md`, sección "Sistema de migraciones AUTOMÁTICAS"). Ej. futuro: los campos
+  `guests.table_assignment` / `guests.souvenir` (feature documentado no implementado) irían como
+  `002_...`.
+- **Flujo prod:** push a `deploy_prod` → `docker compose up -d --build` → backend arranca → migra →
+  BD homologada. Cero pasos manuales. ⚠️ PENDIENTE aparte: migrar los DATOS de Valeria (evento 17 +
+  config + 7 imágenes a uploads) al server — eso NO lo hace este runner (es esquema, no datos).
+
 ### 🔽 ACTUALIZACIÓN 2026-10-15 (d) — integrados los cambios de despliegue de `deploy_prod` en la rama feature
 
 Rama `feature/drag-elementos-secciones`. Se mezcló `origin/deploy_prod` (FAST-FORWARD limpio, sin

@@ -11,6 +11,28 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-16
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: sistema de migraciones AUTOMÁTICAS (homologación BD en cada deploy)
+
+Implementado el mecanismo híbrido para homologar la BD automáticamente en cada arranque del backend,
+idempotente y sin tocar datos. Resuelve la deuda técnica dev↔prod.
+
+- **`backend/src/migrations/runner.js`** (nuevo): tabla `schema_migrations` + ejecuta los `.sql` de
+  `migrations/sql/` pendientes (orden por nombre), los registra, se detiene si falla.
+- **`backend/src/index.js`**: `initDB()` → `runMigrations()` → `fixUrls()`.
+- **`migrations/sql/001_homologacion_esquema_prod.sql`**: crea 5 tablas que faltaban en `initDB()`
+  (`plans`, `purchases`, `transactions`, `postponements`, `email_verifications`) + columnas de
+  `users`/`events`/`photos`. Idempotente (CREATE IF NOT EXISTS + PREPARE/EXECUTE condicionado a
+  information_schema).
+- Verificado: aplicó las 73 sentencias sobre dev sin error, registró 001, al reiniciar no reejecuta.
+- `docs/MIGRATIONS.md` actualizado con la guía del nuevo sistema.
+- Pendiente aparte: migrar DATOS de Valeria (evento 17 + config + imágenes) al server.
+
+---
+
 ## Estado actual del proyecto: 2026-10-15 (d)
 
 ### Rama activa: `feature/drag-elementos-secciones`
