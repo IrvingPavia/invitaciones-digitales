@@ -49,6 +49,96 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-16 (b) — scripts de migración MANUAL de Valeria + limpieza (NO se versionan)
+
+Rama `feature/drag-elementos-secciones`. Generados en `scripts/migrate-valeria/` para que el usuario
+los ejecute A MANO en el server. Separa DATOS (esto) de ESQUEMA (lo hace el runner de migraciones).
+**La carpeta está en `.gitignore`** (datos personales reales de 55 invitados; migración manual) →
+NO se commitea. Las imágenes las sube el usuario manualmente (el evento queda registrado).
+
+- **Hallazgos en dev:** hay DOS eventos Valeria → `id=1` slug `xv-valeria` (asignado a KarlaAzarcoya,
+  user 3) y `id=17` slug `invitacion-valeria` (el de la tarea Totoro). El 17 NO está en `user_events`
+  (sin dueño). Evento 17: 1 config, 55 invitados, 0 itinerario/fotos/tarjetas. El config referencia
+  8 imágenes en `/uploads/images/` (todas existen en el volumen).
+- **Carpeta `scripts/migrate-valeria/` (ignorada por git):**
+  - `00-limpiar-invitaciones.sql` — DESTRUCTIVO: borra TODOS los eventos y su contenido (config,
+    guests, itinerary, photos, card_templates, registrations, user_events, postponements; suggestions
+    a NULL). PRESERVA users/plans/purchases/transactions y el esquema. FK_CHECKS=0 y vaciado explícito
+    en orden seguro. Para dejar el server limpio antes de migrar.
+  - `01-valeria-data.sql` — upsert IDEMPOTENTE (evento + event_config + 55 guests). Claves:
+    events.id/slug, event_config.event_id, guests.unique_code → re-ejecutar actualiza, no duplica.
+  - `README.md` — pasos manuales (docker cp + mysql < script), nombres exactos de las 8 imágenes a
+    subir, y el INSERT opcional de user_events si se quiere asignar dueño.
+  - **AMBOS scripts VERIFICADOS en una BD temporal `valeria_test` (esquema clonado): migrar dio
+    1/1/55; limpiar dejó todo en 0, sin errores de FK.** Se usó `--default-character-set=utf8mb4`.
+- **OJO ENCODING (lección):** `Out-File -Encoding utf8` de PowerShell CORROMPE los acentos UTF-8 del
+  dump (quedaba `Invitaci├│n`). Solución usada: generar el dump DENTRO del contenedor y sacarlo con
+  `docker cp` (binario, sin reinterpretar); el .sql final se escribió con UTF8 SIN BOM. Al ejecutar,
+  usar `SET NAMES utf8mb4` + `mysql --default-character-set=utf8mb4`.
+- **Pre-requisito del script:** el backend del server debe tener ya el runner de migraciones (esquema
+  homologado) para que el import no falle por columnas inexistentes.
+- **NO asigna user_events** (el 17 no tenía dueño en dev); si un cliente debe administrarlo, crear la
+  fila aparte. **DATO SENSIBLE:** el .sql lleva nombres reales de 55 invitados (repo privado).
+
+### 🔽 ACTUALIZACIÓN 2026-10-16 — sistema de migraciones AUTOMÁTICAS (resuelve la deuda de homologación BD)
+
+Rama `feature/drag-elementos-secciones`. Se implementó el mecanismo HÍBRIDO acordado para homologar
+la BD en cada despliegue sin tocar datos. Esto resuelve la DEUDA TÉCNICA de desincronización
+dev↔prod (`initDB()` no registraba todas las tablas/columnas nuevas).
+
+- **`backend/src/migrations/runner.js`** (NUEVO): crea tabla `schema_migrations`, lee los `.sql` de
+  `backend/src/migrations/sql/` ordenados por nombre y ejecuta SOLO los no registrados; registra cada
+  uno. Idempotente, se detiene si una migración falla (no la marca aplicada). Incluye un
+  `splitSqlStatements` que respeta comentarios/strings/backticks para partir por `;`.
+- **`backend/src/index.js`**: ahora `await initDB(); await runMigrations(); await fixUrls();`.
+- **`backend/src/migrations/sql/001_homologacion_esquema_prod.sql`** (NUEVA migración): homologa prod
+  con dev. CAUSA de la deuda confirmada al inspeccionar dev (16 tablas) vs `initDB()` (13): faltaban
+  5 TABLAS (`plans`, `purchases`, `transactions`, `postponements`, `email_verifications`) + columnas
+  en `users` (email, email_verified, verification_status, self_registered, full_name, trial_used +
+  idx), `events` (lifecycle_status, deactivation_date, purchase_id + FK a purchases, postponed,
+  plan_type + idx), `photos` (thumb_url, gallery_url). Patrón idempotente: `CREATE TABLE IF NOT
+  EXISTS` + `SET @ddl := IF(COUNT(*)=0,'<ALTER>','SELECT 1') FROM information_schema...; PREPARE/
+  EXECUTE/DEALLOCATE` para columnas/índices/FKs. Orden de FK respetado (plans→purchases→
+  transactions→postponements; events.purchase_id→purchases).
+- **VERIFICADO:** backend reconstruido; el runner aplicó las 73 sentencias sobre la BD de dev (que ya
+  tenía todo) SIN error (prueba de idempotencia); registró `001` en `schema_migrations`; al reiniciar
+  dice "BD al dia, nada que aplicar" (no reejecuta). Backend `healthy`.
+- **Cómo añadir migraciones futuras:** crear `sql/NNN_descripcion.sql` idempotente (ver
+  `docs/MIGRATIONS.md`, sección "Sistema de migraciones AUTOMÁTICAS"). Ej. futuro: los campos
+  `guests.table_assignment` / `guests.souvenir` (feature documentado no implementado) irían como
+  `002_...`.
+- **Flujo prod:** push a `deploy_prod` → `docker compose up -d --build` → backend arranca → migra →
+  BD homologada. Cero pasos manuales. ⚠️ PENDIENTE aparte: migrar los DATOS de Valeria (evento 17 +
+  config + 7 imágenes a uploads) al server — eso NO lo hace este runner (es esquema, no datos).
+
+### 🔽 ACTUALIZACIÓN 2026-10-15 (d) — integrados los cambios de despliegue de `deploy_prod` en la rama feature
+
+Rama `feature/drag-elementos-secciones`. Se mezcló `origin/deploy_prod` (FAST-FORWARD limpio, sin
+conflictos) para que la config de deploy del server NO se planche al subir el feature a prod.
+
+- **Contexto:** `deploy_prod` nació de mi último commit (`4300902`) y le sumó 3 commits SOLO de
+  despliegue; ya contenía TODO mi trabajo del builder. merge-base = `4300902`. Por eso el merge fue
+  un fast-forward (HEAD avanzó `4300902 → 11245e7`). OJO: `origin/deploy_prod` había tenido un
+  FORCE-PUSH reciente (`59e7acd...11245e7 forced update`); por eso 2 de los commits son "reponer tras
+  force-push".
+- **Los 3 commits traídos (solo tocan 3 archivos de infra, nada del builder):**
+  - `56b7537` fix(db): en `backend/src/models/database.js` se crea `events` ANTES de `user_events`
+    (user_events tiene FK a events(id); antes fallaba el orden). No cambia el esquema final, solo el
+    orden de CREATE.
+  - `94dc0bc` fix(prod): `docker-compose.yml` frontend expone `8080:80` (antes `80:80`) para no
+    chocar con el nginx del HOST en el puerto 80.
+  - `11245e7` ci(prod): NUEVO `.github/workflows/deploy.yml` — auto-deploy por SSH que se dispara
+    SOLO `on: push: branches: [deploy_prod]` (hace `git reset --hard origin/deploy_prod` +
+    `docker compose up -d --build` + prune en `/opt/pavi`). Tenerlo en la rama feature NO dispara
+    nada (solo corre al pushear a deploy_prod).
+- **Estado git tras el merge:** HEAD local = `11245e7` = `origin/deploy_prod`. La rama feature local
+  quedó 1 commit por delante de `origin/feature/drag-elementos-secciones` (que sigue en `4300902`)
+  hasta que se pushee.
+- **Para desplegar a prod (flujo):** cuando el feature esté listo, llevar estos cambios a
+  `deploy_prod` y pushear esa rama → el workflow despliega por SSH. El puerto del frontend en el host
+  es 8080 (nginx del host enruta el 80→8080). Prod sigue necesitando `client_max_body_size 25m` en el
+  nginx del host (deuda conocida).
+
 ---
 
 ## 🧱 REGLAS DE DISEÑO PERMANENTES (INVARIANTES — NO romper con cambios)
