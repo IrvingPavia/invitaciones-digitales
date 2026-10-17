@@ -112,8 +112,9 @@ interface BuilderSection {
         <div class="builder-sections-list" cdkDropList (cdkDropListDropped)="onSectionDrop($event)">
           @for (section of sections(); track section.key) {
             <div class="builder-section-item" cdkDrag
-                 [class.active]="canvasState.selectedSection() === section.key"
+                 [class.active]="canvasState.selectedSection() === section.key && !(section.key === 'details' && canvasState.selectedDetailIndex() >= 0)"
                  [class.disabled]="!section.enabled"
+                 [class.is-group]="section.key === 'details'"
                  (click)="selectSection(section.key)">
               <span class="material-icons drag-handle" cdkDragHandle>drag_indicator</span>
               <span class="material-icons section-icon">{{ section.icon }}</span>
@@ -127,6 +128,26 @@ interface BuilderSection {
                 </button>
               }
             </div>
+
+            <!-- ===== Sub-entradas de DETALLES: cada card = "Detalle N" (mini-sección) ===== -->
+            @if (section.key === 'details') {
+              <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onDetailDrop($event)">
+                @for (card of detailCards(); track card.id; let di = $index) {
+                  <div class="builder-subsection-item" cdkDrag
+                       [class.active]="canvasState.selectedSection() === 'details' && canvasState.selectedDetailIndex() === di"
+                       (click)="selectDetail(di); $event.stopPropagation()">
+                    <span class="material-icons sub-drag-handle" cdkDragHandle>drag_indicator</span>
+                    <span class="subsection-label">{{ card.label || ('Detalle ' + (di + 1)) }}</span>
+                    <button class="subsection-delete" title="Eliminar detalle" (click)="removeDetail(di); $event.stopPropagation()">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </div>
+                }
+                <button class="builder-add-detail" (click)="addDetail(); $event.stopPropagation()">
+                  <span class="material-icons">add</span><span>Agregar Detalle</span>
+                </button>
+              </div>
+            }
           }
         </div>
 
@@ -190,9 +211,16 @@ interface BuilderSection {
                   }
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
-                  <div class="preview-section-click" data-section="details" [class.section-active]="canvasState.selectedSection() === 'details'" [attr.style]="getSectionBgStyle('details')" (click)="selectSection('details'); $event.stopPropagation()">
-                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.details.sectionStyle" />
-                  </div>
+                  <!-- Cada card de Detalles = una mini-sección seleccionable independiente. El
+                       componente details renderiza SOLO esa card (onlyIndex). El fondo/estilo por
+                       card se resuelven dentro del componente, por eso aquí NO se inyecta getSectionBgStyle. -->
+                  @for (dcard of detailCards(); track dcard.id; let di = $index) {
+                    <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" [attr.data-section]="'details:' + dcard.id"
+                         [class.section-active]="canvasState.selectedSection() === 'details' && canvasState.selectedDetailIndex() === di"
+                         (click)="selectDetail(di); $event.stopPropagation()">
+                      <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.details.sectionStyle" [onlyIndex]="di" [previewDevice]="previewDevice()" [editable]="canvasMode() === 'canvas'" (positionsChange)="onDetailPositionsChange($event)" />
+                    </div>
+                  }
                 }
                 @if (canvasState.config()?.venues?.enabled) {
                   <div class="preview-section-click" data-section="venues" [class.section-active]="canvasState.selectedSection() === 'venues'" [attr.style]="getSectionBgStyle('venues')" (click)="selectSection('venues'); $event.stopPropagation()">
@@ -441,6 +469,34 @@ interface BuilderSection {
     .drag-handle { font-size: 14px; color: rgba(255,255,255,0.2); cursor: grab; }
     .section-icon { font-size: 16px; color: var(--gold-light); }
     .section-label { flex: 1; color: rgba(255,255,255,0.8); }
+    /* "Detalles" actúa como encabezado agrupador: su label se ve un poco más tenue. */
+    .builder-section-item.is-group .section-label { color: rgba(255,255,255,0.6); font-weight: 600; letter-spacing: 0.3px; }
+    /* ===== Sub-entradas "Detalle N" (mini-secciones de Detalles) ===== */
+    .builder-subsections { margin: 0 0 4px 18px; padding-left: 8px; border-left: 1px solid rgba(139,92,246,0.15); display: flex; flex-direction: column; gap: 2px; }
+    .builder-subsection-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px; border-radius: 7px; cursor: pointer;
+      border: 1px solid transparent; font-size: 11.5px; transition: all 0.15s;
+      &:hover { background: rgba(139,92,246,0.06); }
+      &.active { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.3); }
+    }
+    .sub-drag-handle { font-size: 13px; color: rgba(255,255,255,0.18); cursor: grab; }
+    .subsection-label { flex: 1; color: rgba(255,255,255,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subsection-delete {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 6px; cursor: pointer; padding: 3px; display: flex; flex-shrink: 0;
+      color: #ff8585; transition: all 0.2s;
+      .material-icons { font-size: 15px; }
+      &:hover { background: rgba(239,68,68,0.85); border-color: rgba(239,68,68,0.9); color: #fff; }
+    }
+    .builder-add-detail {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 2px; padding: 6px 8px; border-radius: 7px;
+      background: rgba(139,92,246,0.06); border: 1px dashed rgba(139,92,246,0.25);
+      color: #c084fc; font-size: 11px; cursor: pointer; transition: all 0.2s;
+      .material-icons { font-size: 15px; }
+      &:hover { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.45); }
+    }
     .builder-theme-btn {
       display: flex; align-items: center; gap: 8px;
       padding: 9px 14px; margin: 6px 6px 4px;
@@ -644,6 +700,8 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .hero-fg.hero-fg-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .inv-fg.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
     .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .details-mini.positioned .details-mini-inner.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .details-mini.positioned .details-mini-inner.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
     .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }
@@ -788,10 +846,13 @@ interface BuilderSection {
       &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
     /* Hero/envelope/intro manejan su propio alto (margin negativo / overlays); no imponer el
-       min-height genérico ni el centrado flex. */
+       min-height genérico ni el centrado flex. Las mini-secciones de DETALLES (data-section
+       "details:<id>") también: cada card (.details-mini) gestiona su propio min-height (var
+       --canvas-vh / 100svh), así que el wrapper no debe sumar otro alto. */
     .preview-section-click[data-section="hero"],
     .preview-section-click[data-section="envelope"],
-    .preview-section-click[data-section="intro"] { min-height: 0; display: block; }
+    .preview-section-click[data-section="intro"],
+    .preview-section-click[data-section^="details:"] { min-height: 0; display: block; }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper.
        Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
@@ -1344,6 +1405,9 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   selectSection(key: string) {
     if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(key);
+    // Al seleccionar el grupo "Detalles" o cualquier otra sección, deseleccionar la card de detalle
+    // activa (se re-selecciona solo al clickear una sub-entrada "Detalle N").
+    this.canvasState.selectedDetailIndex.set(-1);
     this.currentSection.set(key);
     // On mobile, don't auto-open props panel (user can tap FAB to open it)
     if (!this.isMobileView()) {
@@ -1767,6 +1831,18 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.scheduleAutoSave();
   }
 
+  /** Persiste las posiciones de UNA card de Detalles (drag) en esa card. */
+  onDetailPositionsChange(ev: { cardId: string; positions: any }) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    const card = (cfg as any).details?.cards?.find((c: any) => c.id === ev.cardId);
+    if (!card) return;
+    card.positions = ev.positions;
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
   /** Secciones permanentes que no se pueden ocultar (siempre visibles en la invitación). */
   isPermanentSection(key: string): boolean {
     return key === 'hero' || key === 'invitation';
@@ -1794,6 +1870,76 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     const s = this.sections();
     moveItemInArray(s, event.previousIndex, event.currentIndex);
     this.sections.set([...s]);
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== DETALLES como mini-secciones (sub-entradas del menú) =====
+
+  /** Cards de Detalles para el menú (sub-entradas "Detalle N"). */
+  detailCards(): any[] {
+    return (this.canvasState.config() as any)?.details?.cards || [];
+  }
+
+  /** Selecciona una card de Detalles (la marca activa y abre sus propiedades). */
+  selectDetail(index: number) {
+    if (this.canvasMode() === 'preview') return;
+    this.canvasState.selectSection('details');
+    this.canvasState.selectedDetailIndex.set(index);
+    this.currentSection.set('details');
+    if (!this.isMobileView()) this.showProps.set(true);
+    if (!this.isWide()) { this.panelVisible.set(false); this.showLeftPanel.set(false); }
+    // Desplazar el canvas a esa mini-sección (data-section="details:<id>").
+    const card = this.detailCards()[index];
+    if (card) this.scrollToSection('details:' + card.id);
+  }
+
+  /** Agrega una nueva card de Detalles y la selecciona. */
+  addDetail() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const d = (cfg as any).details;
+    if (!d.cards) d.cards = [];
+    d.cards.push({
+      id: 'c-' + Date.now(),
+      iconType: 'none', icon: '', iconUrl: '',
+      title: '', content: '', textAlign: 'center',
+    });
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.selectDetail(d.cards.length - 1);
+  }
+
+  /** Elimina una card de Detalles, con confirmación. */
+  async removeDetail(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const d = (cfg as any).details;
+    const card = d?.cards?.[index];
+    if (!card) return;
+    const name = card.label || ('Detalle ' + (index + 1));
+    const ok = await this.dialog.confirm(
+      'Eliminar detalle',
+      `¿Eliminar "${name}"? Esta acción no se puede deshacer.`,
+      'Eliminar'
+    );
+    if (!ok) return;
+    d.cards.splice(index, 1);
+    // Ajustar la selección actual.
+    const sel = this.canvasState.selectedDetailIndex();
+    if (sel === index) this.canvasState.selectedDetailIndex.set(-1);
+    else if (sel > index) this.canvasState.selectedDetailIndex.set(sel - 1);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+  }
+
+  /** Reordena las cards de Detalles (drag dentro del grupo). */
+  onDetailDrop(event: CdkDragDrop<any[]>) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const cards = (cfg as any).details?.cards; if (!cards) return;
+    moveItemInArray(cards, event.previousIndex, event.currentIndex);
+    // Mantener seleccionada la misma card tras el reordenamiento.
+    const sel = this.canvasState.selectedDetailIndex();
+    if (sel === event.previousIndex) this.canvasState.selectedDetailIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();
   }

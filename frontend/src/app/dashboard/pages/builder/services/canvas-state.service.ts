@@ -38,6 +38,10 @@ export class CanvasStateService {
   readonly editingMode = computed(() => this.state().editingMode);
   readonly isDirty = signal(false);
 
+  /** Índice de la card de Detalles seleccionada (modelo mini-secciones). -1 = ninguna.
+      Se usa junto con selectedSection==='details' para que el props-panel edite esa card. */
+  readonly selectedDetailIndex = signal(-1);
+
   /** Get the selected element object */
   readonly activeElement = computed(() => {
     const s = this.state();

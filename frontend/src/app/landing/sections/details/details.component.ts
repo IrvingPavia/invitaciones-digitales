@@ -1,81 +1,139 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DetailsConfig, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
+import { DetailsConfig, DetailCard, GlobalTextStyles, SectionStyle, CardStyle, ElementPosition, ElementPositions } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
+import { DragBoxComponent } from '../../../core/components/drag-box.component';
+import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-background.util';
 
 @Component({
   selector: 'app-landing-details',
   standalone: true,
-  imports: [CommonModule, HeadingOrnamentComponent],
+  imports: [CommonModule, HeadingOrnamentComponent, DragBoxComponent],
   template: `
-    <section id="details" class="details-section">
-      <div class="section-container">
-        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
-          <div class="section-header-block">
-            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-            <h2 class="section-heading"
-                [style.font-family]="headingFont()"
-                [style.font-size]="headingSize()"
-                [style.color]="headingColor()"
-            >{{ config.title || 'Detalles del Evento' }}</h2>
-            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-          </div>
-        } @else {
-          <div class="section-header">
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-            <h2 class="section-heading"
-                [style.font-family]="headingFont()"
-                [style.font-size]="headingSize()"
-                [style.color]="headingColor()"
-            >{{ config.title || 'Detalles del Evento' }}</h2>
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          </div>
-        }
-        <div class="details-grid">
-          @for (card of config.cards; track card.id) {
-            <div class="detail-card reveal" [class.no-bg]="(card.showCardBg ?? config.showCardBg) === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
-              @if (card.iconType !== 'none') {
-                @if (card.iconType === 'emoji' && card.icon) {
-                  <div class="detail-icon emoji-icon">
-                    <span>{{ card.icon }}</span>
-                  </div>
-                } @else if (card.iconUrl) {
-                  <div class="detail-icon">
-                    <img [src]="card.iconUrl" [alt]="card.title">
-                  </div>
-                }
+    <!-- Cada card es una MINI-SECCIÓN independiente, con su propio encabezado (opcional), su propio
+         fondo/estilo de sección y de card, y alto FLEXIBLE (crece con su contenido). La PRIMERA usa
+         el título general de Detalles (config.title) como encabezado; las demás usan card.heading
+         (si está vacío, el encabezado no se muestra). Retrocompatible: si una card no define
+         sectionStyle/cardStyle, hereda el de la sección (this.sectionStyle / this.config). -->
+    @for (card of visibleCards(); track card.id) {
+      <section class="details-mini" [class.has-image-bg]="hasImageBg(card)" [class.positioned]="hasAnyPosition(card)" [attr.id]="realIndex(card) === 0 ? 'details' : null" [attr.data-detail-id]="'details:' + card.id" [style.background]="miniBg(card)">
+        <div class="details-mini-inner" [class.canvas-desktop]="fgDesktop" [class.canvas-mobile]="fgMobile" data-drag-bounds>
+          @if (headingText(card)) {
+            <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [position]="posData(card,'heading')" [ngStyle]="pos(card,'heading')"
+                          (positionChange)="onPosChange(card,'heading',$event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+              @if (hasOrnament(card) && getOrnamentPosition(card) !== 'sides') {
+                <div class="section-header-block">
+                  @if (getOrnamentPosition(card) === 'above' || getOrnamentPosition(card) === 'both') {
+                    <app-heading-ornament [type]="getOrnamentType(card)" [color]="getOrnamentColor(card)" [size]="getOrnamentSize(card)" />
+                  }
+                  <h2 class="section-heading"
+                      [style.font-family]="headingFont(card)"
+                      [style.font-size]="headingSize(card)"
+                      [style.color]="headingColor(card)"
+                  >{{ headingText(card) }}</h2>
+                  @if (getOrnamentPosition(card) === 'below' || getOrnamentPosition(card) === 'both') {
+                    <app-heading-ornament [type]="getOrnamentType(card)" [color]="getOrnamentColor(card)" [size]="getOrnamentSize(card)" />
+                  }
+                </div>
+              } @else {
+                <div class="section-header">
+                  <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+                  <h2 class="section-heading"
+                      [style.font-family]="headingFont(card)"
+                      [style.font-size]="headingSize(card)"
+                      [style.color]="headingColor(card)"
+                  >{{ headingText(card) }}</h2>
+                  <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+                </div>
               }
-              @if (card.title) {
-                <h3 [style.font-family]="titleFont()"
-                    [style.font-size]="titleSize()"
-                    [style.font-weight]="titleWeight()"
-                    [style.background-image]="getTitleGradient()"
-                    [class.gradient-text]="useTitleGradient()"
-                    [style.color]="!useTitleGradient() ? titleColor() : null"
-                >{{ card.title }}</h3>
-              }
-              <div [style.text-align]="card.textAlign"
-                 class="detail-content"
-                 [style.font-family]="contentFont()"
-                 [style.font-size]="contentSize()"
-                 [style.color]="contentColor()"
-                 [innerHTML]="card.content"
-              ></div>
-            </div>
+            </app-drag-box>
           }
+
+          <div class="details-grid">
+            <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [position]="posData(card,'card')" [ngStyle]="pos(card,'card')"
+                          (positionChange)="onPosChange(card,'card',$event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
+              <div class="detail-card reveal"
+                   [class.positioned]="hasAnyPosition(card)"
+                   [class.no-bg]="getShowCardBg(card) === false"
+                   [style.border-radius]="getCardBorderRadius(card)"
+                   [style.--card-bg-opacity]="getCardBgOpacity(card) / 100"
+                   [style.border-style]="getCardBorderStyle(card)"
+                   [style.border-width.px]="getCardBorderWidth(card)"
+                   [style.box-shadow]="getCardBoxShadow(card)"
+                   [style.--card-bg]="getCardBgColor(card)"
+                   [style.border-color]="getCardBorderColor(card)"
+                   [class.neon-border]="getIsNeon(card)">
+                @if (card.iconType !== 'none') {
+                  @if (card.iconType === 'emoji' && card.icon) {
+                    <div class="detail-icon emoji-icon"><span>{{ card.icon }}</span></div>
+                  } @else if (card.iconUrl) {
+                    <div class="detail-icon"><img [src]="card.iconUrl" [alt]="card.title"></div>
+                  }
+                }
+                @if (card.title) {
+                  <h3 [style.font-family]="titleFont(card)"
+                      [style.font-size]="titleSize(card)"
+                      [style.font-weight]="titleWeight(card)"
+                      [style.background-image]="useTitleGradient(card) ? getTitleGradient() : null"
+                      [class.gradient-text]="useTitleGradient(card)"
+                      [style.color]="!useTitleGradient(card) ? titleColor(card) : null"
+                  >{{ card.title }}</h3>
+                }
+                <div class="detail-content"
+                     [style.text-align]="card.textAlign"
+                     [style.font-family]="contentFont(card)"
+                     [style.font-size]="contentSize(card)"
+                     [style.color]="contentColor(card)"
+                     [innerHTML]="card.content"
+                ></div>
+              </div>
+            </app-drag-box>
+          </div>
         </div>
-      </div>
-    </section>
+
+        @if (editable && dragging && guides) {
+          @if (guides.x !== undefined) { <div class="ad-guide ad-guide-v" [style.left.%]="guides.x"></div> }
+          @if (guides.y !== undefined) { <div class="ad-guide ad-guide-h" [style.top.%]="guides.y"></div> }
+        }
+      </section>
+    }
   `,
   styles: [`
-    .details-section { padding: 80px 20px; }
-    .section-container { max-width: 800px; margin: 0 auto; }
-    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
-    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 48px; text-align: center; }
+    /* Mini-sección de card: alto FLEXIBLE (no 100vh). El fondo se adapta a su alto; si la imagen no
+       cuadra, se ve el fondo global fijo detrás. */
+    /* Alto MÍNIMO = alto de la ventana (pantalla del dispositivo/desktop) para TODAS las
+       mini-secciones: arrancan ocupando la pantalla y, si el contenido (card con texto largo) crece,
+       la sección se ALARGA más allá del mínimo (min-height es piso, no techo). El contenido se
+       centra verticalmente. Con imagen de fondo esto además dimensiona la imagen (auto 100%) a
+       pantalla en vez de quedar aplastada al alto corto del contenido. */
+    .details-mini {
+      position: relative; padding: 48px 20px;
+      /* En el canvas, --canvas-vh = alto del dispositivo simulado; en la landing real la variable no
+         existe → cae a 100svh (alto de la ventana). Así arranca con el alto de pantalla en ambos. */
+      min-height: var(--canvas-vh, 100svh);
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .details-mini-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; width: 100%; }
+    /* En modo posicionado (drag): el contenedor interno (data-drag-bounds) cubre TODA la mini-sección
+       para que los objetos (encabezado/card) absolutos se posicionen en % respecto a él (igual que
+       .inv-fg). Se acota a un ancho FIJO por dispositivo (REGLA R1/R4) centrado, para que el drag
+       coincida y no se reescale al cambiar de dispositivo. */
+    .details-mini.positioned .details-mini-inner {
+      position: absolute; top: 0; bottom: 0; max-width: none; margin: 0;
+    }
+    .details-mini.positioned .details-mini-inner.canvas-desktop {
+      left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); transform: translateX(-50%);
+    }
+    .details-mini.positioned .details-mini-inner.canvas-mobile {
+      left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); transform: translateX(-50%);
+    }
+    .details-mini.positioned .details-grid { display: block; max-width: none; margin: 0; }
+    /* Guías de alineación del drag asistido */
+    .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
+    .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
+    .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
+    .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 32px; text-align: center; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
     .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
     .details-grid { display: flex; flex-direction: column; gap: 24px; max-width: 600px; margin: 0 auto; }
@@ -123,14 +181,142 @@ export class LandingDetailsComponent {
   @Input() config!: DetailsConfig;
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+  /** Si se define, renderiza SOLO la card de ese índice (una mini-sección). Lo usa el canvas del
+      builder para pintar cada "Detalle N" en su propio bloque seleccionable. En la landing real se
+      deja sin definir → renderiza TODAS las cards como mini-secciones. */
+  @Input() onlyIndex?: number;
+  /** Dispositivo activo (canvas/preview). En landing es null → se decide por el ancho de ventana.
+      Determina si el banner se pinta como columna (desktop) o a todo el ancho (mobile). */
+  @Input() previewDevice: 'mobile' | 'desktop' | null = null;
+  /** Modo edición (canvas builder): activa el arrastre de objetos. */
+  @Input() editable = false;
+  /** Emite el nuevo mapa de posiciones de UNA card (drag). El builder lo persiste en esa card. */
+  @Output() positionsChange = new EventEmitter<{ cardId: string; positions: ElementPositions }>();
 
-  hasOrnament(): boolean {
-    return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
+  /** Estado de arrastre para dibujar guías. */
+  dragging = false;
+  guides: { x?: number; y?: number } | null = null;
+
+  /** True si debemos tratar el fondo como DESKTOP (banner = columna centrada). */
+  private get isDesktopBg(): boolean {
+    if (this.previewDevice) return this.previewDevice === 'desktop';
+    return typeof window !== 'undefined' && window.innerWidth >= 768;
   }
-  getOrnamentType(): string { return this.sectionStyle?.headingOrnament?.type || 'none'; }
-  getOrnamentPosition(): string { return this.sectionStyle?.headingOrnament?.position || 'below'; }
-  getOrnamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
-  getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
+
+  // ===== Drag & drop por card (objetos: 'heading' y 'card') =====
+  private get isMobilePos(): boolean {
+    if (this.previewDevice) return this.previewDevice === 'mobile';
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+  /** El lienzo de drag se acota a un ancho FIJO por dispositivo (REGLA R1/R4), para que las
+      posiciones en % no se reescalen al cambiar de dispositivo/ventana. */
+  get fgDesktop(): boolean { return !this.isMobilePos; }
+  get fgMobile(): boolean { return this.isMobilePos; }
+  private readonly DETAIL_POS_KEYS = ['heading', 'card'];
+  /** Posiciones por defecto (centro, %) cuando la mini-sección entra en modo posicionado. */
+  private readonly DETAIL_DEFAULT_POS: Record<string, ElementPosition> = {
+    heading: { x: 50, y: 22 },
+    card: { x: 50, y: 60, w: 80 },
+  };
+
+  /** True si ESTA card tiene al menos una posición personalizada (en cualquier dispositivo). */
+  hasAnyPosition(card: DetailCard): boolean {
+    const p = card.positions;
+    if (!p) return false;
+    return (!!p.desktop && Object.keys(p.desktop).length > 0) || (!!p.mobile && Object.keys(p.mobile).length > 0);
+  }
+
+  private resolvePos(card: DetailCard, key: string): ElementPosition {
+    const p = card.positions;
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const other = this.isMobilePos ? 'desktop' : 'mobile';
+    return p?.[dev]?.[key] ?? p?.[other]?.[key] ?? this.DETAIL_DEFAULT_POS[key] ?? { x: 50, y: 50 };
+  }
+
+  /** Estilo de posicionamiento de un objeto de la card. Si la card no está posicionada, {} (flujo). */
+  pos(card: DetailCard, key: string): Record<string, string> {
+    if (!this.hasAnyPosition(card)) return {};
+    const r = this.resolvePos(card, key);
+    const style: Record<string, string> = {
+      position: 'absolute', left: r.x + '%', top: r.y + '%',
+      right: 'auto', bottom: 'auto', transform: 'translate(-50%, -50%)', margin: '0',
+    };
+    if (r.w != null) style['width'] = r.w + '%';
+    else if (key === 'card') style['width'] = '80%';
+    else style['width'] = 'max-content';
+    if (r.h != null) style['height'] = r.h + '%';
+    return style;
+  }
+
+  posData(card: DetailCard, key: string): ElementPosition | null {
+    if (!this.hasAnyPosition(card)) return null;
+    return this.resolvePos(card, key);
+  }
+
+  /** Persiste la nueva posición de un objeto de la card y emite el cambio (con cardId). Al primer
+      movimiento siembra todos los objetos con su posición efectiva (evita el desacomodo). */
+  onPosChange(card: DetailCard, key: string, pos: ElementPosition) {
+    const dev = this.isMobilePos ? 'mobile' : 'desktop';
+    const positions: ElementPositions = {
+      desktop: { ...(card.positions?.desktop || {}) },
+      mobile: { ...(card.positions?.mobile || {}) },
+    };
+    if (!this.hasAnyPosition(card)) {
+      for (const k of this.DETAIL_POS_KEYS) {
+        // Solo sembrar heading si existe (si no hay encabezado, no tiene objeto).
+        if (k === 'heading' && !this.headingText(card)) continue;
+        positions[dev]![k] = { ...this.resolvePos(card, k) };
+      }
+    }
+    positions[dev]![key] = pos;
+    card.positions = positions;
+    this.positionsChange.emit({ cardId: card.id, positions });
+  }
+
+  /** Cards a renderizar: todas, o solo la de onlyIndex (modo canvas por-card). */
+  visibleCards(): DetailCard[] {
+    const cards = this.config?.cards || [];
+    if (this.onlyIndex == null) return cards;
+    const c = cards[this.onlyIndex];
+    return c ? [c] : [];
+  }
+
+  /** Índice REAL de la card dentro del array (robusto aunque se renderice un subset). */
+  realIndex(card: DetailCard): number {
+    return (this.config?.cards || []).findIndex(c => c.id === card.id);
+  }
+
+
+
+  /** Estilo de sección de una card: SOLO el propio de la card (modelo mini-secciones). NO hereda el
+      sectionStyle de la sección global —eso causaba que el fondo apareciera en todas las cards cuando
+      el toggle estaba apagado—. La migración (migration.service) ya copió el estilo global a cada card
+      la primera vez. Si la card no tiene sectionStyle, los helpers de texto caen al tema global. */
+  private ss(card: DetailCard): SectionStyle | undefined {
+    return card.sectionStyle;
+  }
+  /** Estilo de card: SOLO el propio de la card (card.cardStyle). La migración ya trasladó el estilo
+      global legacy a cada card. Si no hay cardStyle, se usan los defaults del getter correspondiente. */
+  private cs(card: DetailCard): CardStyle {
+    return card.cardStyle || {};
+  }
+
+  /** Texto del encabezado de la mini-sección: la 1ª (índice real 0) usa el título general de
+      Detalles; las demás usan card.heading. Vacío => no se muestra el encabezado. */
+  headingText(card: DetailCard): string {
+    if (this.realIndex(card) === 0) return this.config.title || 'Detalles del Evento';
+    return (card.heading || '').trim();
+  }
+
+  // ===== Adorno (por card: card.sectionStyle > sección) =====
+  hasOrnament(card: DetailCard): boolean {
+    const o = this.ss(card)?.headingOrnament;
+    return !!o && o.type !== 'none';
+  }
+  getOrnamentType(card: DetailCard): string { return this.ss(card)?.headingOrnament?.type || 'none'; }
+  getOrnamentPosition(card: DetailCard): string { return this.ss(card)?.headingOrnament?.position || 'below'; }
+  getOrnamentColor(card: DetailCard): string { return this.ss(card)?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
+  getOrnamentSize(card: DetailCard): number { return this.ss(card)?.headingOrnament?.size || 1; }
 
   getFontFamily(key?: string): string {
     const map: Record<string, string> = {
@@ -143,28 +329,62 @@ export class LandingDetailsComponent {
     return map[key || 'sans'] || 'var(--font-sans)';
   }
 
-  /* ===== Resolución de estilos de texto con override por sección =====
-     Prioridad: sectionStyle (override por sección) > styles (tema global) > default.
-     Se resuelve 100% en el componente (no depende de variables CSS externas ni reglas
-     ::ng-deep), por lo que funciona idéntico en canvas y landing. */
+  /* ===== Estilos de texto, resueltos POR CARD: card.sectionStyle > tema global > default ===== */
+  // Encabezado de sección (h2)
+  headingColor(card: DetailCard): string { return this.ss(card)?.sectionHeadingColor || this.styles?.sectionHeadingStyle?.color || '#d4a017'; }
+  headingFont(card: DetailCard): string { return this.getFontFamily(this.ss(card)?.sectionHeadingFont || this.styles?.sectionHeadingStyle?.fontFamily); }
+  headingSize(card: DetailCard): string { return `${this.ss(card)?.sectionHeadingSize || this.styles?.sectionHeadingStyle?.fontSize || 36}px`; }
 
-  // Encabezado de sección (h2) -> sectionStyle.sectionHeading* > styles.sectionHeadingStyle
-  headingColor(): string { return this.sectionStyle?.sectionHeadingColor || this.styles?.sectionHeadingStyle?.color || '#d4a017'; }
-  headingFont(): string { return this.getFontFamily(this.sectionStyle?.sectionHeadingFont || this.styles?.sectionHeadingStyle?.fontFamily); }
-  headingSize(): string { return `${this.sectionStyle?.sectionHeadingSize || this.styles?.sectionHeadingStyle?.fontSize || 36}px`; }
+  // Títulos internos (h3)
+  titleColor(card: DetailCard): string { return this.ss(card)?.headingColor || this.styles?.titleStyle?.color || '#d4a017'; }
+  titleFont(card: DetailCard): string { return this.getFontFamily(this.ss(card)?.headingFont || this.styles?.titleStyle?.fontFamily); }
+  titleSize(card: DetailCard): string { return `${this.ss(card)?.headingFontSize || this.styles?.titleStyle?.fontSize || 18}px`; }
+  titleWeight(card: DetailCard): string { return `${this.ss(card)?.headingFontWeight || this.styles?.titleStyle?.fontWeight || 400}`; }
+  useTitleGradient(card: DetailCard): boolean { return !this.ss(card)?.headingColor && !!this.styles?.titleStyle?.color2; }
 
-  // Títulos internos (h3) -> sectionStyle.heading* > styles.titleStyle
-  titleColor(): string { return this.sectionStyle?.headingColor || this.styles?.titleStyle?.color || '#d4a017'; }
-  titleFont(): string { return this.getFontFamily(this.sectionStyle?.headingFont || this.styles?.titleStyle?.fontFamily); }
-  titleSize(): string { return `${this.sectionStyle?.headingFontSize || this.styles?.titleStyle?.fontSize || 18}px`; }
-  titleWeight(): string { return `${this.sectionStyle?.headingFontWeight || this.styles?.titleStyle?.fontWeight || 400}`; }
-  /** Gradiente del título: aplica si hay color2 global y la sección NO define un color de título propio. */
-  useTitleGradient(): boolean { return !this.sectionStyle?.headingColor && !!this.styles?.titleStyle?.color2; }
+  // Contenido (.detail-content)
+  contentColor(card: DetailCard): string { return this.ss(card)?.contentColor || this.styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'; }
+  contentFont(card: DetailCard): string { return this.getFontFamily(this.ss(card)?.contentFont || this.styles?.contentStyle?.fontFamily); }
+  contentSize(card: DetailCard): string { return `${this.ss(card)?.contentFontSize || this.styles?.contentStyle?.fontSize || 14}px`; }
 
-  // Contenido (.detail-content) -> sectionStyle.content* > styles.contentStyle
-  contentColor(): string { return this.sectionStyle?.contentColor || this.styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'; }
-  contentFont(): string { return this.getFontFamily(this.sectionStyle?.contentFont || this.styles?.contentStyle?.fontFamily); }
-  contentSize(): string { return `${this.sectionStyle?.contentFontSize || this.styles?.contentStyle?.fontSize || 14}px`; }
+  /** Fondo de la mini-sección (color/gradiente/imagen del sectionStyle de la card). Para imagen usa
+      `resolveMedia` (honra media/legacy, override desktop) y aplica el mismo criterio que las demás
+      secciones: `cover` = llena; `banner` = en desktop columna centrada de bannerWidth (REGLA R3,
+      `auto 100%`), en mobile a todo el ancho con `auto 100%`. Incluye overlay oscuro si overlay>0.
+      Si no hay fondo propio → transparente (se ve el fondo global). */
+  miniBg(card: DetailCard): string {
+    const ss = this.ss(card) as any;
+    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return 'transparent';
+    if (ss.bgType === 'solid') return ss.bgColor1 || 'transparent';
+    if (ss.bgType === 'linear') {
+      const a = ss.bgAngle ?? 180; const c1 = ss.bgColor1 || '#1a1a2e'; const c2 = ss.bgColor2 || '#0d1117';
+      return `linear-gradient(${a}deg, ${c1}, ${c2})`;
+    }
+    if (ss.bgType === 'image') {
+      const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
+      if (!m.hasMedia || m.isVideo) return 'transparent';
+      const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
+      const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
+      if (m.fit === 'banner') {
+        // Banner (desktop y mobile): imagen a auto 100% CENTRADA (se dimensiona por el ALTO, ancho a
+        // proporción, SIN deformar). REGLA R3. Si la imagen es más angosta que el bloque, se ve como
+        // franja centrada con el fondo global a los lados.
+        return `${dark}url(${m.url}) center / auto 100% no-repeat`;
+      }
+      // cover: llena el bloque.
+      return `${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
+    }
+    return 'transparent';
+  }
+
+  /** True si la mini-sección tiene fondo de imagen propio (para darle alto mínimo de pantalla y que
+      la imagen se dimensione bien, en vez de quedar aplastada al alto corto del contenido). */
+  hasImageBg(card: DetailCard): boolean {
+    const ss = this.ss(card) as any;
+    if (!ss || ss.bgType !== 'image') return false;
+    const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
+    return m.hasMedia && !m.isVideo;
+  }
 
   getSeparatorBg(): string {
     const c = this.styles?.separatorStyle?.color || '#d4a017';
@@ -196,49 +416,33 @@ export class LandingDetailsComponent {
     return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
   }
 
-  getCardBgColor(): string {
-    return (this.config as any).cardBgColor || '';
+  /* ===== Estilo de card, resuelto POR CARD: card.cardStyle > campos de sección (fallback) ===== */
+  getShowCardBg(card: DetailCard): boolean { return this.cs(card).showCardBg !== false; }
+  getCardBgOpacity(card: DetailCard): number { return this.cs(card).cardBgOpacity ?? 100; }
+  getCardBgColor(card: DetailCard): string { return this.cs(card).cardBgColor || ''; }
+  getCardBorderColor(card: DetailCard): string { return this.cs(card).cardBorderColor || ''; }
+  getCardBorderStyle(card: DetailCard): string {
+    const s = this.cs(card).cardBorderStyle || 'none';
+    return (s === 'glow' || s === 'neon') ? 'solid' : s;
   }
-
-  getCardBorderColor(): string {
-    return (this.config as any).cardBorderColor || '';
+  getIsNeon(card: DetailCard): boolean { return this.cs(card).cardBorderStyle === 'neon'; }
+  getCardBorderWidth(card: DetailCard): number {
+    const cs = this.cs(card);
+    if (cs.cardBorderStyle === 'none' || !cs.cardBorderStyle) return 0;
+    return cs.cardBorderWidth ?? 1;
   }
-
-  getCardBorderStyle(): string {
-    const s = (this.config as any).cardBorderStyle || 'none';
-    if (s === 'glow' || s === 'neon') return 'solid';
-    return s;
-  }
-
-  getIsNeon(): boolean {
-    return (this.config as any).cardBorderStyle === 'neon';
-  }
-
-  getCardBorderWidth(): number {
-    if ((this.config as any).cardBorderStyle === 'none') return 0;
-    return (this.config as any).cardBorderWidth ?? 1;
-  }
-
-  getCardBoxShadow(): string {
-    const style = (this.config as any).cardBorderStyle;
-    const color = (this.config as any).cardGlowColor || '#d4a017';
-    const width = (this.config as any).cardBorderWidth ?? 1;
-    if (style === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
-    if (style === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
+  getCardBoxShadow(card: DetailCard): string {
+    const cs = this.cs(card);
+    const color = cs.cardGlowColor || '#d4a017';
+    const width = cs.cardBorderWidth ?? 1;
+    if (cs.cardBorderStyle === 'glow') return `0 0 ${width * 4}px ${width * 2}px ${color}, inset 0 0 ${width * 2}px ${color}`;
+    if (cs.cardBorderStyle === 'neon') return `0 0 ${width * 5}px ${color}, 0 0 ${width * 10}px ${color}, 0 0 ${width * 20}px ${color}`;
     return 'none';
   }
-
-  getCardFilter(): string {
-    return 'none';
-  }
-
-  getCardClipPath(): string {
-    return 'none';
-  }
-
-  getCardBorderRadius(): string {
-    const shape = (this.config as any).cardShape || 'standard';
-    const base = (this.config as any).cardBorderRadius ?? 16;
+  getCardBorderRadius(card: DetailCard): string {
+    const cs = this.cs(card);
+    const shape = cs.cardShape || 'standard';
+    const base = cs.cardBorderRadius ?? 16;
     switch (shape) {
       case 'rounded': return '50px';
       case 'ticket': return `${base}px`;

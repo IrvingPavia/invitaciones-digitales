@@ -49,6 +49,79 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-16 (d) — Detalles como MINI-SECCIONES por card (Entregas A y B; falta drag)
+
+Rama `feature/drag-elementos-secciones`. SIN commit todavía (pendiente de validación del usuario en el
+builder). Build OK, frontend reconstruido. Tarea completa documentada en
+**`docs/TAREA-DETALLES-MINISECCIONES.md`** (plan por fases + estado).
+
+**Objetivo:** convertir Detalles (1 sección con N cards) en N MINI-SECCIONES, una por card, cada una
+con lienzo/estilo propio y arrastrable de forma independiente. OPCIÓN A (confirmada): se mantiene
+`config.details.cards[]` como almacén (retrocompatible); cada card se COMPORTA como sección en UI/
+landing. En el MENÚ: "Detalles" = encabezado agrupador; sub-entradas "Detalle 1..N" (renombrables vía
+`card.label`), drag SOLO dentro del grupo, botón eliminar por card (con confirmación) y "+ Agregar
+Detalle". Reglas: alto FLEXIBLE por card (no 100vh), fondo que se adapta al alto (si no cuadra, se ve
+el fondo global); card = objeto único; 1ª card lleva el encabezado general (`details.title`), las
+demás `card.heading` (vacío = oculto).
+
+**Modelo (models.ts):** nueva `CardStyle` + `DetailCard` extendido con `label?`, `heading?`,
+`sectionStyle?`, `cardStyle?`, `positions?`. Todo opcional/retrocompatible.
+
+**ENTREGA A (landing) — HECHA:** `details.component.ts` REESCRITO: cada card es una `<section
+.details-mini>` (padding 48px, alto flexible). Encabezado por card (`headingText`). TODOS los helpers
+de estilo reciben `card` y resuelven: estilo de card `cs(card)` = `card.cardStyle` > campos sueltos de
+`config` (retrocompat); estilo de sección `ss(card)` = `card.sectionStyle` > `this.sectionStyle`. Fondo
+por card `miniBg(card)` (solid/linear/image con `auto 100%` centrado, REGLA R3). `@Input() onlyIndex`
+para renderizar 1 card (canvas). `realIndex()`/`visibleCards()`.
+
+**ENTREGA B (builder) — HECHA:**
+- canvasState: nuevo signal `selectedDetailIndex` (-1 = ninguna).
+- builder (menú): "Detalles" `.is-group`; sub-entradas "Detalle N" con CDK dropList propio
+  (`onDetailDrop`), eliminar (`removeDetail` con `DialogService.confirm`), "+ Agregar" (`addDetail`),
+  `detailCards()`/`selectDetail()`. `selectSection` resetea `selectedDetailIndex`.
+- builder (canvas): `@for` de cards → cada una en `.preview-section-click data-section="details:<id>"`
+  con `[onlyIndex]=di`, seleccionable. Ya NO inyecta getSectionBgStyle en details (el fondo lo pinta el
+  componente por card).
+- props-panel: edita la card activa. Helpers `dcard/dIdx/updateDCard/updateDCardStyle/dCardStyle/
+  styleHolder`. `ss/setSS/sectionMediaModel/setSectionMediaModel/hasSectionStyle/toggleSectionStyle/
+  getOrnamentType/getOrnamentProp/setOrnament` REDIRIGIDOS a la card activa (vía styleHolder) cuando es
+  details+card. Acordeones: "Encabezado de la sección" (solo 1ª card, edita details.title),
+  "Contenido" (label/heading/title/content/icon/align), "Apariencia de Cards" (ahora POR CARD vía
+  cardStyle), y el "Estilo de Sección" común (oculto en details sin card). Add/remove viejo ELIMINADO.
+- Backend: `ensureConfigDefaults` ya pasa `cards` completo → NO requirió cambios.
+
+**FIX post-B (fallback de estilos + migración Opción 2 + botón eliminar) — HECHO:**
+- BUG reportado: el fondo de imagen aparecía en TODAS las cards con el toggle "Estilo de Sección"
+  APAGADO y "se reseteaba" al activarlo. CAUSA: `ss(card)`/`cs(card)` en details.component hacían
+  fallback a `this.sectionStyle`/campos sueltos de la sección global (Valeria sí tenía fondo ahí).
+- FIX: quitado el fallback → `ss(card)=card.sectionStyle`, `cs(card)=card.cardStyle||{}` (cada card
+  usa SOLO lo suyo; sin estilo propio, el texto cae al tema global).
+- MIGRACIÓN Opción 2 (`migration.service.migrateDetailsToMiniSections`, idempotente vía
+  `details._miniMigrated`): al cargar copia UNA vez `details.sectionStyle` global + campos de card
+  sueltos a cada `card.sectionStyle`/`card.cardStyle`, para no perder lo ya configurado. Valeria
+  conserva su fondo/estilos en ambas cards y quedan independientes. ⚠️ Tras migrar, el toggle "Estilo
+  de Sección" sale ACTIVADO por card (esperado). El usuario debe GUARDAR para persistir la migración.
+- Botón eliminar del menú: ahora con fondo/borde rojizo + hover sólido (antes casi invisible).
+
+**ENTREGA C (drag) — HECHA:** en `details.component.ts` el encabezado y la card se envuelven en
+`app-drag-box` (objeto único por tipo), posiciones POR CARD (`card.positions`, mobile/desktop).
+Objetos: `heading` (si existe) y `card`. Helpers `hasAnyPosition/pos/posData/resolvePos/onPosChange`
+reciben `card`. Lienzo `data-drag-bounds` = `.details-mini-inner`, acotado a ancho FIJO por dispositivo
+(`.canvas-desktop`=600 / `.canvas-mobile`=360, REGLA R1/R4, getters `fgDesktop/fgMobile`) en modo
+posicionado + pines `::ng-deep` en el builder. Inputs `editable`/`positionsChange` (emite
+`{cardId, positions}`). Canvas pasa `[editable]`+`drag-enabled` y persiste con `onDetailPositionsChange`.
+El fondo va en `.details-mini` (llena el marco), el lienzo acotado en `.details-mini-inner`.
+
+**MEJORA props-panel (controles de texto movidos):** los controles de estilo de texto (Encabezado/
+Título/Contenido: fuente/color/tamaño/degradado) se movieron del acordeón "Texto de Sección" al
+acordeón "Contenido" de cada Detalle. "Texto de Sección" se OCULTA en Detalles. Heredan del Tema Global
+y lo sustituyen si se configuran. Sub-grupo Encabezado solo si la card tiene encabezado. El control de
+Contenido es la BASE del editor enriquecido (los estilos inline del editor mandan sobre él).
+
+**FEATURE DETALLES MINI-SECCIONES: COMPLETO (fases 1-7 + 3 fixes + mejora props).** Pendiente solo la
+VALIDACIÓN visual del usuario (builder + landing de Valeria) y GUARDAR para persistir la migración.
+Detalle completo en `docs/TAREA-DETALLES-MINISECCIONES.md`.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-16 (c) — indicador de scroll configurable (carátula) + fix canvas no toma el dispositivo al 1er render
 
 Rama `feature/drag-elementos-secciones`. Build OK, frontend reconstruido. Ctrl+F5.

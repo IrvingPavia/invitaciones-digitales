@@ -11,6 +11,49 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-16 (d)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Detalles como MINI-SECCIONES por card (Entregas A y B; falta el drag = Entrega C)
+
+Rediseño de la sección Detalles: de 1 sección con N cards apiladas → N mini-secciones (una por card),
+cada una con lienzo/estilo propio y gestionables desde el menú de secciones. OPCIÓN A: se mantiene
+`config.details.cards[]` como almacén (retrocompatible). Documentación completa + plan por fases en
+`docs/TAREA-DETALLES-MINISECCIONES.md`. SIN commit (pendiente de validación del usuario).
+
+- **Modelo (models.ts):** `CardStyle` nueva + `DetailCard` con `label/heading/sectionStyle/cardStyle/
+  positions` (opcionales).
+- **Entrega A (landing, hecha):** `details.component.ts` reescrito; cada card = `<section .details-mini>`
+  con alto flexible, encabezado por card, estilos resueltos por card (fallback a sección/global), fondo
+  propio por card (`auto 100%`). `@Input() onlyIndex` para el canvas.
+- **Entrega B (builder, hecha):** menú con "Detalles" agrupador + sub-entradas "Detalle N" (renombrables,
+  reordenables dentro del grupo, con "+ Agregar Detalle" y eliminar con confirmación). Canvas pinta cada
+  card como bloque seleccionable (`onlyIndex`). Props-panel edita la card activa: contenido + Apariencia
+  de Card PROPIA + Estilo de Sección PROPIO (helpers redirigidos vía `styleHolder`). Signal
+  `selectedDetailIndex` en canvasState. Add/remove viejo eliminado del acordeón.
+- **Backend:** sin cambios (ensureConfigDefaults ya pasa `cards` completo).
+- **Fix post-B:** quitado el fallback de estilos a nivel sección en `details.component` (causaba que el
+  fondo apareciera en todas las cards con el toggle apagado). Migración Opción 2 en `migration.service`
+  (`migrateDetailsToMiniSections`, idempotente): copia una vez el estilo de sección + card globales a
+  cada card para no perder lo de Valeria. Botón eliminar del menú más visible. El usuario debe GUARDAR
+  para persistir la migración.
+- **Fix 2:** título con recuadro de color (gradiente aplicado sin la clase que lo recorta al texto) →
+  gateado por `useTitleGradient`. Fondo pequeño/cortado → `miniBg` usa `resolveMedia` (cover/banner/
+  overlay/override desktop) y `.details-mini.has-image-bg` toma alto de pantalla.
+- **Fix 3:** alto de mini-sección = pantalla para TODAS (`min-height: var(--canvas-vh,100svh)`, crece
+  con el contenido); quitado el slider de opacidad duplicado (el color-picker ya trae alfa).
+- **Entrega C (drag):** encabezado y card arrastrables/redimensionables como objetos únicos por card
+  (`card.positions`), lienzo acotado a 600/360 por dispositivo. Canvas pasa editable + persiste con
+  `onDetailPositionsChange`.
+- **Mejora props-panel:** controles de texto (Encabezado/Título/Contenido) movidos al acordeón
+  "Contenido" de cada Detalle; "Texto de Sección" oculto en Detalles. Heredan del Tema Global.
+
+FEATURE DETALLES MINI-SECCIONES COMPLETO (1-7 + fixes + mejora). Falta validación del usuario +
+Guardar para persistir la migración. Build OK, frontend reconstruido.
+
+---
+
 ## Estado actual del proyecto: 2026-10-16 (c)
 
 ### Rama activa: `feature/drag-elementos-secciones`

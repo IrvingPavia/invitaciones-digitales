@@ -143,6 +143,7 @@ export class MigrationService {
       config.details = { enabled: false, title: 'Detalles', cards: [] } as any;
     }
     if (!config.details.cards) config.details.cards = [];
+    this.migrateDetailsToMiniSections(config.details as any);
 
     // Venues: ensure exists
     if (!config.venues) {
@@ -289,6 +290,52 @@ export class MigrationService {
     }
 
     return { version: 2, minHeight: 60, elements };
+  }
+
+  /**
+   * Migración al modelo de MINI-SECCIONES de Detalles (Opción 2).
+   * Antes el estilo de sección (fondo/texto/adorno) y el estilo de card eran GLOBALES de la sección.
+   * Ahora cada card es independiente (card.sectionStyle / card.cardStyle). Para no perder lo ya
+   * configurado (p. ej. Valeria), copiamos UNA sola vez el estilo de sección y de card globales a
+   * cada card que todavía no tenga el suyo. Idempotente vía la bandera `_miniMigrated`.
+   */
+  private migrateDetailsToMiniSections(details: any) {
+    if (!details || details._miniMigrated) return;
+    const cards: any[] = details.cards || [];
+    if (cards.length === 0) { details._miniMigrated = true; return; }
+
+    // Estilo de sección global previo (si existía).
+    const secStyle = details.sectionStyle;
+    // Estilo de card global previo (campos sueltos a nivel sección).
+    const legacyCardStyle = {
+      showCardBg: details.showCardBg,
+      cardBgColor: details.cardBgColor,
+      cardBgOpacity: details.cardBgOpacity,
+      cardBorderStyle: details.cardBorderStyle,
+      cardBorderWidth: details.cardBorderWidth,
+      cardBorderColor: details.cardBorderColor,
+      cardGlowColor: details.cardGlowColor,
+      cardShape: details.cardShape,
+      cardBorderRadius: details.cardBorderRadius,
+    };
+    const hasLegacyCard = Object.values(legacyCardStyle).some(v => v !== undefined && v !== null);
+
+    for (const card of cards) {
+      // Estilo de sección por card: si no lo tiene, clona el global (copia profunda).
+      if (!card.sectionStyle && secStyle) {
+        card.sectionStyle = JSON.parse(JSON.stringify(secStyle));
+      }
+      // Estilo de card por card: si no lo tiene, toma el global legacy; si la card ya traía
+      // showCardBg/cardBorderRadius sueltos (modelo viejo per-card), respétalos por encima.
+      if (!card.cardStyle && hasLegacyCard) {
+        card.cardStyle = { ...legacyCardStyle };
+      }
+      if (card.cardStyle) {
+        if (card.showCardBg !== undefined && card.cardStyle.showCardBg === undefined) card.cardStyle.showCardBg = card.showCardBg;
+        if (card.cardBorderRadius !== undefined && card.cardStyle.cardBorderRadius === undefined) card.cardStyle.cardBorderRadius = card.cardBorderRadius;
+      }
+    }
+    details._miniMigrated = true;
   }
 
   private buildDetailsCanvas(config: EventConfig): CanvasSectionData {

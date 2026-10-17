@@ -66,10 +66,19 @@
 - [x] **Invitación** — drag selectivo (ornamento sup/título/subtítulo/card/ornamento inf) +
   decoradores configurables (Opción A: `app-heading-ornament` con tipos stars/hearts/diamonds/leaves,
   ocultar con `none`). Validado por el usuario.
-- [ ] Replicar drag selectivo + decoradores en las 7 secciones restantes (details, venues,
-  itinerary, gallery, dresscode, gifts, rsvp), una por una, definiendo con el usuario qué objetos
-  son individuales y cuáles conjunto. En las que no tengan decorador o no se vea por el tamaño del
-  texto, ofrecer configurarlo/añadirlo.
+- [~] **Detalles — rediseño a MINI-SECCIONES por card (en curso, ver `docs/TAREA-DETALLES-MINISECCIONES.md`)**: cada card de Detalles pasa a ser una mini-sección independiente (lienzo/estilo propio, gestionada desde el menú de secciones como "Detalle 1..N"). Opción A (retrocompatible sobre `details.cards[]`).
+    - [x] Modelo (`CardStyle` + `label/heading/sectionStyle/cardStyle/positions` en `DetailCard`).
+    - [x] Entrega A — landing: cada card como `<section .details-mini>` (alto flexible, encabezado y estilos por card, fondo propio `auto 100%`).
+    - [x] Entrega B — builder: menú "Detalles" agrupador + sub-entradas "Detalle N" (renombrar/reordenar/agregar/eliminar con confirmación); canvas por card (`onlyIndex`); props-panel edita la card activa (contenido + Apariencia de Card propia + Estilo de Sección propio).
+    - [x] Fix post-B: quitado el fallback de estilos a nivel sección (el fondo salía en todas las cards con el toggle apagado) + migración Opción 2 (`migration.service.migrateDetailsToMiniSections`, idempotente) que copia una vez el estilo de sección/card global a cada card para no perder lo de Valeria + botón eliminar más visible. ⚠️ GUARDAR para persistir la migración.
+    - [x] Entrega C — DRAG: encabezado y card arrastrables/redimensionables como objetos únicos por card (`app-drag-box`, `card.positions`), lienzo acotado a 600/360 por dispositivo; canvas pasa editable y persiste con `onDetailPositionsChange`.
+    - [x] Fixes 2 y 3: título con recuadro de color (gateado por useTitleGradient) + fondo pequeño (`miniBg` con resolveMedia + alto de pantalla) + alto de mini-sección = pantalla para todas + quitado slider de opacidad duplicado.
+    - [x] Mejora props-panel: controles de texto (Encabezado/Título/Contenido) movidos al acordeón "Contenido" de cada Detalle; "Texto de Sección" oculto en Detalles. Heredan del Tema Global.
+    - [ ] Verificación del usuario (builder + landing de Valeria) + GUARDAR para persistir la migración. Luego: replicar el modelo de mini-secciones en otras secciones con cards si se desea.
+- [ ] Replicar drag selectivo + decoradores en las 6 secciones restantes (venues, itinerary, gallery,
+  dresscode, gifts, rsvp), una por una, definiendo con el usuario qué objetos son individuales y
+  cuáles conjunto. En las que no tengan decorador o no se vea por el tamaño del texto, ofrecer
+  configurarlo/añadirlo. (Detalles se trata aparte: ver arriba, modelo de mini-secciones.)
 - [ ] Afinar resize de ALTO en objetos de texto/adorno (los dots inferiores estiran la caja pero
   el texto no crece). Propuesta: ocultar handles de alto en adornos/títulos. Sin decidir.
 - [x] Dashboard: fondo de card del carrusel con cascada landing-media → hero-media → color+textura.

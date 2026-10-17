@@ -785,93 +785,128 @@ import { ApiService } from '../../../../../core/services/api.service';
 
         <!-- ===== DETAILS ===== -->
         @if (canvasState.selectedSection() === 'details') {
-          <div class="accordion" [class.open]="expanded['det-content']" (click)="toggle('det-content')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['det-content'] ? 'expand_more' : 'chevron_right' }}</span><span>Contenido</span></div>
-          </div>
-          @if (expanded['det-content']) {
-            <div class="accordion-body">
-              <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('details')?.title" (ngModelChange)="setSec('details','title',$event)"></div>
-            </div>
-          }
-
-          <div class="accordion" [class.open]="expanded['det-cards']" (click)="toggle('det-cards')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['det-cards'] ? 'expand_more' : 'chevron_right' }}</span><span>Cards de Detalles</span></div>
-          </div>
-          @if (expanded['det-cards']) {
-            <div class="accordion-body">
-              <div class="items-header"><span>Cards ({{sec('details')?.cards?.length||0}})</span><button class="sm-btn" (click)="addCard('details');$event.stopPropagation()">+ Agregar</button></div>
-              @for (card of sec('details')?.cards||[]; track card.id; let i=$index) {
-                <div class="item-card">
-                  <div class="item-head"><button class="delete-btn" (click)="removeCard('details',i);$event.stopPropagation()"><span class="material-icons">close</span></button></div>
-                  <input class="pinput" [ngModel]="card.title" (ngModelChange)="updateCard('details',i,'title',$event)" placeholder="Titulo">
-                  <div class="pf"><label>Contenido</label>
-                    <app-rich-text-editor [ngModel]="card.content" (ngModelChange)="updateCard('details',i,'content',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
-                  </div>
-                  <div class="pf"><label>Tipo de icono</label>
-                    <div class="btn-row">
-                      <button class="chip" [class.active]="card.iconType === 'none' || !card.iconType" (click)="updateCard('details',i,'iconType','none');$event.stopPropagation()">Sin icono</button>
-                      <button class="chip" [class.active]="card.iconType === 'emoji'" (click)="updateCard('details',i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
-                      <button class="chip" [class.active]="card.iconType === 'image'" (click)="updateCard('details',i,'iconType','image');$event.stopPropagation()">Imagen</button>
-                    </div>
-                  </div>
-                  @if (card.iconType === 'emoji') {
-                    <div class="pf"><label>Emoji</label>
-                      <div class="emoji-grid">
-                        @for (e of detailEmojis; track e) {
-                          <button class="emoji-btn" [class.active]="card.icon === e" (click)="updateCard('details',i,'icon',e);$event.stopPropagation()">{{e}}</button>
-                        }
-                      </div>
-                    </div>
-                  }
-                  @if (card.iconType === 'image') {
-                    <div class="pf"><label>Imagen de icono</label>
-                      @if (card.iconUrl) {
-                        <div class="icon-img-row">
-                          <div class="icon-img-preview"><img [src]="card.iconUrl" alt="icono"></div>
-                          <button class="sm-btn" (click)="uploadDetailIcon(i);$event.stopPropagation()">Cambiar</button>
-                          <button class="delete-btn" (click)="updateCard('details',i,'iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
-                        </div>
-                      } @else {
-                        <button class="sm-btn" (click)="uploadDetailIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
-                      }
-                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
-                    </div>
-                  }
-                  <div class="pf"><label>Alineacion</label>
-                    <app-custom-select [options]="textAlignOptions" [value]="card.textAlign||'center'" (valueChange)="updateCard('details',i,'textAlign',$event)"></app-custom-select>
-                  </div>
-                  <div class="toggle-row">
-                    <span class="toggle-title">Fondo</span>
-                    <label class="toggle-switch"><input type="checkbox" [ngModel]="card.showCardBg !== false" (ngModelChange)="updateCard('details',i,'showCardBg',$event)"><span class="slider"></span></label>
-                  </div>
-                  <div class="pf"><label>Esquinas ({{card.cardBorderRadius ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="card.cardBorderRadius ?? 16" (ngModelChange)="updateCard('details',i,'cardBorderRadius',+$event)"></div>
+          <!-- Modelo mini-secciones: se edita la card (Detalle N) seleccionada en el menú. -->
+          @if (dcard(); as dc) {
+            @if (dIdx() === 0) {
+              <div class="accordion" [class.open]="expanded['det-general']" (click)="toggle('det-general')">
+                <div class="accordion-header"><span class="material-icons">{{ expanded['det-general'] ? 'expand_more' : 'chevron_right' }}</span><span>Encabezado de la sección</span></div>
+              </div>
+              @if (expanded['det-general']) {
+                <div class="accordion-body">
+                  <p class="pf-hint">Este encabezado se muestra arriba del primer detalle (es el título general de la sección Detalles).</p>
+                  <div class="pf"><label>Encabezado</label><input class="pinput" [ngModel]="sec('details')?.title" (ngModelChange)="setSec('details','title',$event)"></div>
                 </div>
               }
+            }
+
+            <div class="accordion" [class.open]="expanded['det-content']" (click)="toggle('det-content')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['det-content'] ? 'expand_more' : 'chevron_right' }}</span><span>Contenido</span></div>
+            </div>
+            @if (expanded['det-content']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Nombre en el menú</label><input class="pinput" [ngModel]="dc.label || ''" (ngModelChange)="updateDCard('label',$event)" [placeholder]="'Detalle ' + (dIdx()+1)"></div>
+                @if (dIdx() !== 0) {
+                  <div class="pf"><label>Encabezado (opcional)</label><input class="pinput" [ngModel]="dc.heading || ''" (ngModelChange)="updateDCard('heading',$event)" placeholder="Vacío = sin encabezado"></div>
+                }
+                <div class="pf"><label>Título de la card</label><input class="pinput" [ngModel]="dc.title" (ngModelChange)="updateDCard('title',$event)" placeholder="Título"></div>
+                <div class="pf"><label>Contenido</label>
+                  <app-rich-text-editor [ngModel]="dc.content" (ngModelChange)="updateDCard('content',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
+                </div>
+                <div class="pf"><label>Tipo de icono</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="dc.iconType === 'none' || !dc.iconType" (click)="updateDCard('iconType','none');$event.stopPropagation()">Sin icono</button>
+                    <button class="chip" [class.active]="dc.iconType === 'emoji'" (click)="updateDCard('iconType','emoji');$event.stopPropagation()">Emoji</button>
+                    <button class="chip" [class.active]="dc.iconType === 'image'" (click)="updateDCard('iconType','image');$event.stopPropagation()">Imagen</button>
+                  </div>
+                </div>
+                @if (dc.iconType === 'emoji') {
+                  <div class="pf"><label>Emoji</label>
+                    <div class="emoji-grid">
+                      @for (e of detailEmojis; track e) {
+                        <button class="emoji-btn" [class.active]="dc.icon === e" (click)="updateDCard('icon',e);$event.stopPropagation()">{{e}}</button>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (dc.iconType === 'image') {
+                  <div class="pf"><label>Imagen de icono</label>
+                    @if (dc.iconUrl) {
+                      <div class="icon-img-row">
+                        <div class="icon-img-preview"><img [src]="dc.iconUrl" alt="icono"></div>
+                        <button class="sm-btn" (click)="uploadDetailIcon(dIdx());$event.stopPropagation()">Cambiar</button>
+                        <button class="delete-btn" (click)="updateDCard('iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                      </div>
+                    } @else {
+                      <button class="sm-btn" (click)="uploadDetailIcon(dIdx());$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                    }
+                    <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados.</p>
+                  </div>
+                }
+                <div class="pf"><label>Alineacion</label>
+                  <app-custom-select [options]="textAlignOptions" [value]="dc.textAlign||'center'" (valueChange)="updateDCard('textAlign',$event)"></app-custom-select>
+                </div>
+
+                <!-- ===== Estilo de los textos (heredan del Tema Global; si se configuran, lo sustituyen) ===== -->
+                <p class="pf-hint" style="margin-top:12px">Deja un campo vacío para heredar del Tema Global.</p>
+
+                @if (dIdx() === 0 || dc.heading) {
+                  <span class="pf-section-title">Texto · Encabezado</span>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+                }
+
+                <span class="pf-section-title" style="margin-top:8px">Texto · Título de la card</span>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamaño ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+                <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+                <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
+
+                <span class="pf-section-title" style="margin-top:8px">Texto · Contenido</span>
+                <p class="pf-hint">Base del contenido. Si aplicas estilos dentro del editor de texto, esos mandan sobre esto.</p>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('contentFont')||''" (valueChange)="setSS('contentFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamaño ({{ss('contentFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('contentFontSize')||''" (ngModelChange)="setSS('contentFontSize',$event ? +$event : '')" min="10" max="36" placeholder="Hereda"></div>
+                <div class="pf"><label>Color</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
+                <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar estilos de texto</button>
+              </div>
+            }
+          } @else {
+            <div class="accordion-body">
+              <p class="pf-hint">Selecciona un <b>Detalle</b> en el menú de secciones (izquierda) para editar su contenido y estilo, o usa <b>“+ Agregar Detalle”</b> para crear uno nuevo.</p>
             </div>
           }
 
           <div class="accordion" [class.open]="expanded['det-appear']" (click)="toggle('det-appear')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['det-appear'] ? 'expand_more' : 'chevron_right' }}</span><span>Apariencia de Cards</span></div>
           </div>
-          @if (expanded['det-appear']) {
+          @if (expanded['det-appear'] && dcard()) {
             <div class="accordion-body">
+              <p class="pf-hint">Apariencia de la card de este detalle (propia de "{{ dcard()?.label || ('Detalle ' + (dIdx()+1)) }}").</p>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('details')?.showCardBg !== false" (ngModelChange)="setSec('details','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="dCardStyle('showCardBg') !== false" (ngModelChange)="updateDCardStyle('showCardBg',$event)"><span class="slider"></span></label>
               </div>
-              <div class="pf"><label>Opacidad fondo ({{sec('details')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('details')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('details','cardBgOpacity',+$event)"></div>
-              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('details')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('details','cardBgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Radio borde ({{sec('details')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('details')?.cardBorderRadius||8" (ngModelChange)="setSec('details','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="dCardStyle('cardBgColor') || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="updateDCardStyle('cardBgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Radio borde ({{dCardStyle('cardBorderRadius') ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="dCardStyle('cardBorderRadius') ?? 16" (ngModelChange)="updateDCardStyle('cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <app-custom-select [options]="borderStyleOptions" [value]="sec('details')?.cardBorderStyle || 'none'" (valueChange)="setSec('details','cardBorderStyle',$event)"></app-custom-select>
+                <app-custom-select [options]="borderStyleOptions" [value]="dCardStyle('cardBorderStyle') || 'none'" (valueChange)="updateDCardStyle('cardBorderStyle',$event)"></app-custom-select>
               </div>
-              <div class="pf"><label>Grosor borde ({{sec('details')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('details')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('details','cardBorderWidth',+$event)"></div>
-              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('details')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('details','cardBorderColor',$event)"></app-color-picker></div>
-              @if (sec('details')?.cardBorderStyle === 'glow' || sec('details')?.cardBorderStyle === 'neon') {
-                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('details')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('details','cardGlowColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Grosor borde ({{dCardStyle('cardBorderWidth') ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="dCardStyle('cardBorderWidth') ?? 1" (ngModelChange)="updateDCardStyle('cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="dCardStyle('cardBorderColor') || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="updateDCardStyle('cardBorderColor',$event)"></app-color-picker></div>
+              @if (dCardStyle('cardBorderStyle') === 'glow' || dCardStyle('cardBorderStyle') === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="dCardStyle('cardGlowColor') || '#d4a017'" (valueChange)="updateDCardStyle('cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <app-custom-select [options]="cardShapeOptions" [value]="sec('details')?.cardShape || 'standard'" (valueChange)="setSec('details','cardShape',$event)"></app-custom-select>
+                <app-custom-select [options]="cardShapeOptions" [value]="dCardStyle('cardShape') || 'standard'" (valueChange)="updateDCardStyle('cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -1386,8 +1421,8 @@ import { ApiService } from '../../../../../core/services/api.service';
           }
         }
 
-        <!-- ===== COMMON SECTION STYLE (excluded for envelope, intro, hero) ===== -->
-        @if (canvasState.selectedSection() !== 'envelope' && canvasState.selectedSection() !== 'intro' && canvasState.selectedSection() !== 'hero') {
+        <!-- ===== COMMON SECTION STYLE (excluded for envelope, intro, hero; en details requiere card seleccionada) ===== -->
+        @if (canvasState.selectedSection() !== 'envelope' && canvasState.selectedSection() !== 'intro' && canvasState.selectedSection() !== 'hero' && !(canvasState.selectedSection() === 'details' && dIdx() < 0)) {
           <div class="section-style-toggle">
             <div class="toggle-row" (click)="toggleSectionStyle();$event.stopPropagation()">
               <span class="toggle-title">Estilo de Seccion</span>
@@ -1449,6 +1484,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
+            <!-- "Texto de Sección" NO se muestra en Detalles: sus controles de texto (Encabezado/
+                 Título/Contenido) se movieron al acordeón "Contenido" de cada Detalle. -->
+            @if (canvasState.selectedSection() !== 'details') {
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>
@@ -1480,6 +1518,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <div class="pf"><label>Color</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
                 <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar todo</button>
               </div>
+            }
             }
 
             <div class="accordion" [class.open]="expanded['sec-anim']" (click)="toggle('sec-anim')">
@@ -1787,12 +1826,25 @@ export class BuilderPropsPanelComponent {
 
   ss(prop: string): any {
     const key = this.canvasState.selectedSection(); if (!key) return null;
+    // Detalles con una card seleccionada: el estilo de sección es PROPIO de la card (mini-sección).
+    if (key === 'details' && this.dIdx() >= 0) {
+      return this.dcard()?.sectionStyle?.[prop] ?? null;
+    }
     return (this.cfg() as any)?.[key]?.sectionStyle?.[prop] ?? null;
   }
 
   setSS(prop: string, value: any) {
     const key = this.canvasState.selectedSection(); if (!key) return;
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    // Detalles con card seleccionada: escribir en card.sectionStyle (no en el de la sección).
+    if (key === 'details' && this.dIdx() >= 0) {
+      const card = (cfg as any).details?.cards?.[this.dIdx()]; if (!card) return;
+      if (!card.sectionStyle) card.sectionStyle = { bgType:'inherit', dividerType:'none' };
+      card.sectionStyle[prop] = value;
+      this.canvasState.notifyChange();
+      this.canvasState.triggerAutoSave();
+      return;
+    }
     const s = (cfg as any)[key];
     if (!s.sectionStyle) s.sectionStyle = { bgType:'inherit', dividerType:'none' };
     s.sectionStyle[prop] = value;
@@ -1803,19 +1855,18 @@ export class BuilderPropsPanelComponent {
   clearColors() { this.setSS('headingColor',''); this.setSS('headingColor2',''); this.setSS('contentColor',''); this.setSS('sectionHeadingColor',''); this.setSS('sectionHeadingFont',''); this.setSS('headingFont',''); this.setSS('contentFont',''); }
 
   hasSectionStyle(): boolean {
-    const key = this.canvasState.selectedSection(); if (!key) return false;
-    return !!(this.cfg() as any)?.[key]?.sectionStyle;
+    const s = this.styleHolder(); if (!s) return false;
+    return !!s.sectionStyle;
   }
 
   toggleSectionStyle() {
-    const key = this.canvasState.selectedSection(); if (!key) return;
-    const cfg = this.canvasState.getConfig(); if (!cfg) return;
-    const s = (cfg as any)[key];
+    const s = this.styleHolder(); if (!s) return;
     if (s.sectionStyle) {
       delete s.sectionStyle;
     } else {
       s.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
     }
+    this.canvasState.notifyChange();
     this.canvasState.isDirty.set(true);
   }
 
@@ -1856,7 +1907,10 @@ export class BuilderPropsPanelComponent {
       como MediaBackground para que el control los muestre y el usuario pueda editarlos. */
   sectionMediaModel(): MediaBackground | null {
     const key = this.canvasState.selectedSection(); if (!key) return null;
-    const ss = (this.cfg() as any)?.[key]?.sectionStyle;
+    // Detalles con card seleccionada: el fondo es el de la card (card.sectionStyle.media).
+    const ss = (key === 'details' && this.dIdx() >= 0)
+      ? this.dcard()?.sectionStyle
+      : (this.cfg() as any)?.[key]?.sectionStyle;
     if (!ss) return null;
     if (ss.media && ss.media.url) return ss.media;
     if (ss.bgImage) {
@@ -1873,7 +1927,11 @@ export class BuilderPropsPanelComponent {
   setSectionMediaModel(media: MediaBackground) {
     const key = this.canvasState.selectedSection(); if (!key) return;
     const cfg = this.canvasState.getConfig(); if (!cfg) return;
-    const s = (cfg as any)[key];
+    // Detalles con card seleccionada: escribir el fondo en card.sectionStyle.media.
+    const s = (key === 'details' && this.dIdx() >= 0)
+      ? (cfg as any).details?.cards?.[this.dIdx()]
+      : (cfg as any)[key];
+    if (!s) return;
     if (!s.sectionStyle) s.sectionStyle = { bgType: 'image', dividerType: 'none' };
     s.sectionStyle.media = media;
     this.canvasState.notifyChange();
@@ -1955,28 +2013,22 @@ export class BuilderPropsPanelComponent {
 
   // Ornament helpers
   getOrnamentType(): string {
-    const cfg = this.canvasState.getConfig(); if (!cfg) return 'none';
     const sec = this.canvasState.selectedSection();
     if (!sec) return 'none';
-    const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
+    const s = this.styleHolder()?.sectionStyle?.headingOrnament;
     // Invitación trae 'stars' (✦ ✦ ✦) por defecto; las demás 'none'.
     const fallback = sec === 'invitation' ? 'stars' : 'none';
     return s?.type || fallback;
   }
 
   getOrnamentProp(prop: string): any {
-    const cfg = this.canvasState.getConfig(); if (!cfg) return null;
-    const sec = this.canvasState.selectedSection();
-    if (!sec) return null;
-    const s = (cfg as any)[sec]?.sectionStyle?.headingOrnament;
+    const s = this.styleHolder()?.sectionStyle?.headingOrnament;
     return s ? (s as any)[prop] : null;
   }
 
   setOrnament(prop: string, value: any) {
-    const cfg = this.canvasState.getConfig(); if (!cfg) return;
-    const sec = this.canvasState.selectedSection();
-    if (!sec) return;
-    const section = (cfg as any)[sec];
+    const section = this.styleHolder();
+    if (!section) return;
     if (!section.sectionStyle) section.sectionStyle = { bgType: 'inherit', dividerType: 'none' };
     if (!section.sectionStyle.headingOrnament) section.sectionStyle.headingOrnament = { type: 'none', position: 'below', color: '#d4a017', size: 1 };
     (section.sectionStyle.headingOrnament as any)[prop] = value;
@@ -2124,6 +2176,53 @@ export class BuilderPropsPanelComponent {
     const cfg = this.canvasState.getConfig(); if(!cfg) return;
     (cfg as any)[secKey].cards[i][prop] = val;
     this.canvasState.isDirty.set(true);
+  }
+
+  // ===== DETALLES: card activa (modelo mini-secciones) =====
+
+  /** Índice de la card de Detalles seleccionada (del canvasState). */
+  dIdx(): number { return this.canvasState.selectedDetailIndex(); }
+
+  /** Card de Detalles seleccionada, o null si ninguna. */
+  dcard(): any | null {
+    const i = this.dIdx();
+    if (i < 0) return null;
+    return (this.cfg() as any)?.details?.cards?.[i] || null;
+  }
+
+  /** Actualiza una propiedad plana de la card de Detalles activa (title/content/label/heading/…). */
+  updateDCard(prop: string, val: any) {
+    const i = this.dIdx(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const card = (cfg as any).details?.cards?.[i]; if (!card) return;
+    card[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  /** Actualiza una propiedad del cardStyle de la card de Detalles activa. */
+  updateDCardStyle(prop: string, val: any) {
+    const i = this.dIdx(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const card = (cfg as any).details?.cards?.[i]; if (!card) return;
+    if (!card.cardStyle) card.cardStyle = {};
+    card.cardStyle[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+  /** Lee una propiedad del cardStyle de la card activa (con fallback a los campos sueltos de la card). */
+  dCardStyle(prop: string): any {
+    const card = this.dcard(); if (!card) return undefined;
+    return card.cardStyle?.[prop];
+  }
+
+  /** Objeto que ALOJA el `sectionStyle` activo: la card de Detalles seleccionada (mini-sección) o,
+      en el resto de secciones, la sección misma. Centraliza la redirección details+card. */
+  styleHolder(): any | null {
+    const key = this.canvasState.selectedSection(); if (!key) return null;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return null;
+    if (key === 'details' && this.dIdx() >= 0) return (cfg as any).details?.cards?.[this.dIdx()] || null;
+    return (cfg as any)[key] || null;
   }
 
   addVenue() {

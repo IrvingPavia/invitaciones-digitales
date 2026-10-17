@@ -424,6 +424,21 @@ export interface DetailTextStyle {
   fontWeight?: number; // 100-900
 }
 
+/** Estilo visual de una card (apariencia del recuadro). Antes vivía suelto en DetailsConfig a
+    nivel de SECCIÓN; ahora puede definirse POR CARD para el modelo de mini-secciones. Todo opcional:
+    si una card no lo define, hereda el estilo de la sección (retrocompatible). */
+export interface CardStyle {
+  showCardBg?: boolean;
+  cardBgColor?: string;
+  cardBgOpacity?: number;
+  cardBorderStyle?: string;      // none/solid/dotted/dashed/double/glow/neon
+  cardBorderWidth?: number;
+  cardBorderColor?: string;
+  cardGlowColor?: string;
+  cardShape?: string;            // standard/rounded/ticket/cut...
+  cardBorderRadius?: number;
+}
+
 export interface DetailCard {
   id: string;
   iconType: 'emoji' | 'image' | 'none';
@@ -434,6 +449,19 @@ export interface DetailCard {
   textAlign: 'left' | 'center' | 'right';
   showCardBg?: boolean;
   cardBorderRadius?: number;
+  /** ===== Modelo de MINI-SECCIÓN por card (drag & drop selectivo de Detalles) ===== */
+  /** Nombre que se muestra en el MENÚ de secciones (sub-entrada "Detalle N"). Renombrable por el
+      usuario. Si está vacío, el menú muestra "Detalle {n}" por índice. Distinto de `heading`. */
+  label?: string;
+  /** Encabezado VISIBLE de la mini-sección en la landing (opcional). Si está vacío, no se muestra.
+      En la PRIMERA card se usa el título general de la sección (details.title) como encabezado. */
+  heading?: string;
+  /** Estilo de sección propio de esta card (fondo, transición, texto, animación, adorno). */
+  sectionStyle?: SectionStyle;
+  /** Estilo de la card (apariencia del recuadro) propio de esta card. */
+  cardStyle?: CardStyle;
+  /** Posiciones (drag) de los objetos de esta mini-sección: 'heading' y 'card'. */
+  positions?: ElementPositions;
 }
 
 export interface VenuesConfig {
