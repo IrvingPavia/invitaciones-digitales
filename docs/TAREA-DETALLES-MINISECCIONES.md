@@ -147,6 +147,35 @@ En `core/models/models.ts`:
       sustituyen si se configuran. El sub-grupo "Encabezado" solo aparece si la card tiene encabezado
       (1ª card o con `heading`). Nota: el control de Contenido es la BASE del editor enriquecido (si el
       usuario aplica estilos inline en el editor, esos mandan). Build OK, desplegado.
+- [x] **Ajuste props-panel 2 (texto junto a su campo + contenido solo por editor + fix render)**:
+      - Estilo del ENCABEZADO ahora en el acordeón "Encabezado de la sección" (1ª card) / junto al campo
+        heading (2ª+); estilo del TÍTULO junto al campo título. Cada estilo pegado a su texto.
+      - CONTENIDO: se quitaron los controles de texto del props-panel (el contenido se estiliza SOLO
+        desde la barra del editor enriquecido). Nota en el panel.
+      - FIX render: `.detail-content` ya NO fuerza color/font/size inline (pisaban el HTML del editor →
+        el canvas no reflejaba lo editado). El tema global pasa a ser BASE HEREDABLE vía variables CSS
+        (`--dc-font/--dc-size/--dc-color`) en la regla `.detail-content`; los `<span style>` del editor
+        GANAN. Build OK, desplegado.
+- [x] **Ajuste props-panel 3 (gradiente título + contenido refleja editor + alineación duplicada)** —
+      context-gatherer:
+      - BUG gradiente bicolor del título NO aplicaba: `useTitleGradient` se desactivaba justo cuando la
+        card tenía `headingColor`, y `getTitleGradient()` leía del tema GLOBAL (ignoraba la card). FIX:
+        `useTitleGradient(card)` = true si la card tiene `headingColor2` (degradado propio), false si solo
+        `headingColor` (color plano), si no cae al global; `getTitleGradient(card)` resuelve color1/color2/
+        ángulo/intensidad desde `card.sectionStyle` con fallback al tema global. Binding pasa `card`.
+      - BUG contenido no reflejaba el editor en el canvas: `[innerHTML]="card.content"` crudo → Angular
+        SANEA y ELIMINA los `style` inline de los spans del editor. FIX: inyectado `DomSanitizer` +
+        `safeContent()` cacheado con `bypassSecurityTrustHtml` (patrón hero/envelope/intro; el contenido
+        ya se sanea en backend). Binding `[innerHTML]="safeContent(card.content)"`. Las variables `--dc-*`
+        quedan como base heredable para el texto sin estilizar.
+      - Quitado el control "Alineacion" del props-panel de Detalles (la alineación ya está en el editor
+        de texto; estaba duplicada). También se quitó el `[style.text-align]` del `.detail-content`.
+      - Build OK, desplegado.
+- [x] **Ajuste props-panel 4 (acordeón "Encabezado" unificado para todas las cards)**: ahora TODAS las
+      cards tienen el acordeón "Encabezado de la sección" arriba (antes solo la 1ª; las demás lo tenían
+      dentro de "Contenido"). 1ª card edita `details.title` (encabezado general); las demás `card.heading`
+      (opcional, vacío = sin encabezado). El estilo del encabezado (fuente/tamaño/color) va dentro del
+      acordeón, visible si hay encabezado (1ª o `heading` no vacío). Build OK, desplegado.
 - [ ] **Fase 2b (histórica, ya cubierta por Entrega A):** renderizar cada card como BLOQUE independiente
       (lienzo `data-drag-bounds` propio, alto flexible, fondo propio adaptable al alto). Encabezado
       por card (vacío = oculto); 1ª card usa `details.title`. Helpers de estilo resueltos POR CARD

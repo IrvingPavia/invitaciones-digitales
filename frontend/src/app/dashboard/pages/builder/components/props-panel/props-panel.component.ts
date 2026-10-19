@@ -787,16 +787,32 @@ import { ApiService } from '../../../../../core/services/api.service';
         @if (canvasState.selectedSection() === 'details') {
           <!-- Modelo mini-secciones: se edita la card (Detalle N) seleccionada en el menú. -->
           @if (dcard(); as dc) {
-            @if (dIdx() === 0) {
-              <div class="accordion" [class.open]="expanded['det-general']" (click)="toggle('det-general')">
-                <div class="accordion-header"><span class="material-icons">{{ expanded['det-general'] ? 'expand_more' : 'chevron_right' }}</span><span>Encabezado de la sección</span></div>
-              </div>
-              @if (expanded['det-general']) {
-                <div class="accordion-body">
-                  <p class="pf-hint">Este encabezado se muestra arriba del primer detalle (es el título general de la sección Detalles).</p>
+            <!-- Acordeón "Encabezado de la sección" para TODAS las cards. En la 1ª edita el título
+                 general (details.title); en las demás, el encabezado propio opcional (card.heading).
+                 El estilo del encabezado va dentro del acordeón en ambos casos. -->
+            <div class="accordion" [class.open]="expanded['det-general']" (click)="toggle('det-general')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['det-general'] ? 'expand_more' : 'chevron_right' }}</span><span>Encabezado de la sección</span></div>
+            </div>
+            @if (expanded['det-general']) {
+              <div class="accordion-body">
+                @if (dIdx() === 0) {
+                  <p class="pf-hint">Encabezado general de la sección Detalles (se muestra arriba del primer detalle).</p>
                   <div class="pf"><label>Encabezado</label><input class="pinput" [ngModel]="sec('details')?.title" (ngModelChange)="setSec('details','title',$event)"></div>
-                </div>
-              }
+                } @else {
+                  <p class="pf-hint">Encabezado opcional de este detalle. Déjalo vacío si no quieres mostrar encabezado.</p>
+                  <div class="pf"><label>Encabezado (opcional)</label><input class="pinput" [ngModel]="dc.heading || ''" (ngModelChange)="updateDCard('heading',$event)" placeholder="Vacío = sin encabezado"></div>
+                }
+                <!-- Estilo del encabezado (solo útil si hay encabezado visible). -->
+                @if (dIdx() === 0 || dc.heading) {
+                  <span class="pf-section-title" style="margin-top:10px">Estilo del encabezado</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+                }
+              </div>
             }
 
             <div class="accordion" [class.open]="expanded['det-content']" (click)="toggle('det-content')">
@@ -805,14 +821,32 @@ import { ApiService } from '../../../../../core/services/api.service';
             @if (expanded['det-content']) {
               <div class="accordion-body">
                 <div class="pf"><label>Nombre en el menú</label><input class="pinput" [ngModel]="dc.label || ''" (ngModelChange)="updateDCard('label',$event)" [placeholder]="'Detalle ' + (dIdx()+1)"></div>
-                @if (dIdx() !== 0) {
-                  <div class="pf"><label>Encabezado (opcional)</label><input class="pinput" [ngModel]="dc.heading || ''" (ngModelChange)="updateDCard('heading',$event)" placeholder="Vacío = sin encabezado"></div>
-                }
+
+                <!-- TÍTULO de la card + su estilo, juntos. -->
                 <div class="pf"><label>Título de la card</label><input class="pinput" [ngModel]="dc.title" (ngModelChange)="updateDCard('title',$event)" placeholder="Título"></div>
+                @if (dc.title) {
+                  <span class="pf-section-title">Estilo del título</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                  <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
+                }
+
+                <!-- CONTENIDO: su estilo (fuente/color/tamaño) se configura DENTRO del editor
+                     enriquecido, por eso aquí no hay controles de texto adicionales. -->
                 <div class="pf"><label>Contenido</label>
                   <app-rich-text-editor [ngModel]="dc.content" (ngModelChange)="updateDCard('content',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
                 </div>
-                <div class="pf"><label>Tipo de icono</label>
+                <p class="pf-hint">El color, la fuente y el tamaño del contenido se ajustan desde la barra del editor de texto de arriba.</p>
+
+                <!-- ICONO y ALINEACIÓN al final. -->
+                <div class="pf" style="margin-top:10px"><label>Tipo de icono</label>
                   <div class="btn-row">
                     <button class="chip" [class.active]="dc.iconType === 'none' || !dc.iconType" (click)="updateDCard('iconType','none');$event.stopPropagation()">Sin icono</button>
                     <button class="chip" [class.active]="dc.iconType === 'emoji'" (click)="updateDCard('iconType','emoji');$event.stopPropagation()">Emoji</button>
@@ -842,41 +876,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                     <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados.</p>
                   </div>
                 }
-                <div class="pf"><label>Alineacion</label>
-                  <app-custom-select [options]="textAlignOptions" [value]="dc.textAlign||'center'" (valueChange)="updateDCard('textAlign',$event)"></app-custom-select>
-                </div>
-
-                <!-- ===== Estilo de los textos (heredan del Tema Global; si se configuran, lo sustituyen) ===== -->
-                <p class="pf-hint" style="margin-top:12px">Deja un campo vacío para heredar del Tema Global.</p>
-
-                @if (dIdx() === 0 || dc.heading) {
-                  <span class="pf-section-title">Texto · Encabezado</span>
-                  <div class="pf"><label>Fuente</label>
-                    <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
-                  </div>
-                  <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
-                  <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
-                }
-
-                <span class="pf-section-title" style="margin-top:8px">Texto · Título de la card</span>
-                <div class="pf"><label>Fuente</label>
-                  <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
-                </div>
-                <div class="pf"><label>Tamaño ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
-                <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
-                <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
-                <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
-                <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
-                <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
-
-                <span class="pf-section-title" style="margin-top:8px">Texto · Contenido</span>
-                <p class="pf-hint">Base del contenido. Si aplicas estilos dentro del editor de texto, esos mandan sobre esto.</p>
-                <div class="pf"><label>Fuente</label>
-                  <app-custom-select [options]="themeFontOptions" [value]="ss('contentFont')||''" (valueChange)="setSS('contentFont',$event)"></app-custom-select>
-                </div>
-                <div class="pf"><label>Tamaño ({{ss('contentFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('contentFontSize')||''" (ngModelChange)="setSS('contentFontSize',$event ? +$event : '')" min="10" max="36" placeholder="Hereda"></div>
-                <div class="pf"><label>Color</label><app-color-picker [value]="ss('contentColor')||''" (valueChange)="setSS('contentColor',$event)"></app-color-picker></div>
-                <button class="sm-btn" (click)="clearColors();$event.stopPropagation()">Limpiar estilos de texto</button>
+                <button class="sm-btn" style="margin-top:10px" (click)="clearColors();$event.stopPropagation()">Limpiar estilos de texto</button>
               </div>
             }
           } @else {

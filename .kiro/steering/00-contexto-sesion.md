@@ -118,9 +118,21 @@ acordeón "Contenido" de cada Detalle. "Texto de Sección" se OCULTA en Detalles
 y lo sustituyen si se configuran. Sub-grupo Encabezado solo si la card tiene encabezado. El control de
 Contenido es la BASE del editor enriquecido (los estilos inline del editor mandan sobre él).
 
-**FEATURE DETALLES MINI-SECCIONES: COMPLETO (fases 1-7 + 3 fixes + mejora props).** Pendiente solo la
-VALIDACIÓN visual del usuario (builder + landing de Valeria) y GUARDAR para persistir la migración.
-Detalle completo en `docs/TAREA-DETALLES-MINISECCIONES.md`.
+**FEATURE DETALLES MINI-SECCIONES: COMPLETO (fases 1-7 + fixes + mejoras props-panel).** Validado por
+el usuario en el builder. Detalle completo en `docs/TAREA-DETALLES-MINISECCIONES.md`.
+
+**Ajustes finales del props-panel de Detalles (validados):**
+- Controles de texto junto a su campo: estilo del Encabezado en el acordeón "Encabezado de la sección"
+  (UNIFICADO para TODAS las cards: 1ª edita `details.title`, las demás `card.heading` opcional); estilo
+  del Título junto al campo título en "Contenido".
+- CONTENIDO: se estiliza SOLO desde el editor enriquecido (se quitaron los controles de texto y el de
+  alineación duplicados del panel).
+- FIX gradiente bicolor del título: `useTitleGradient(card)`/`getTitleGradient(card)` resuelven el
+  degradado desde `card.sectionStyle` (headingColor/headingColor2/angle/intensity) con fallback al tema
+  global (antes se desactivaba al tener color propio y leía solo el global).
+- FIX canvas no reflejaba el editor en el contenido: `[innerHTML]` crudo → Angular saneaba y borraba los
+  `style` inline. Ahora `safeContent()` con `DomSanitizer.bypassSecurityTrustHtml` (patrón hero/envelope).
+- PENDIENTE menor: GUARDAR en el builder persiste la migración Opción 2 de las cards de Valeria.
 
 ### 🔽 ACTUALIZACIÓN 2026-10-16 (c) — indicador de scroll configurable (carátula) + fix canvas no toma el dispositivo al 1er render
 

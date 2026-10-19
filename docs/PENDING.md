@@ -74,7 +74,9 @@
     - [x] Entrega C — DRAG: encabezado y card arrastrables/redimensionables como objetos únicos por card (`app-drag-box`, `card.positions`), lienzo acotado a 600/360 por dispositivo; canvas pasa editable y persiste con `onDetailPositionsChange`.
     - [x] Fixes 2 y 3: título con recuadro de color (gateado por useTitleGradient) + fondo pequeño (`miniBg` con resolveMedia + alto de pantalla) + alto de mini-sección = pantalla para todas + quitado slider de opacidad duplicado.
     - [x] Mejora props-panel: controles de texto (Encabezado/Título/Contenido) movidos al acordeón "Contenido" de cada Detalle; "Texto de Sección" oculto en Detalles. Heredan del Tema Global.
-    - [ ] Verificación del usuario (builder + landing de Valeria) + GUARDAR para persistir la migración. Luego: replicar el modelo de mini-secciones en otras secciones con cards si se desea.
+    - [x] Ajustes finales props-panel (validados): controles de texto junto a su campo; acordeón "Encabezado de la sección" unificado para todas las cards (1ª=details.title, resto=card.heading opcional); contenido solo por el editor enriquecido (quitados controles de texto y alineación duplicados); FIX gradiente bicolor del título (resuelve desde card.sectionStyle) + FIX canvas no reflejaba el editor (`safeContent` con bypassSecurityTrustHtml).
+    - [x] Validación del usuario en el builder: OK. ⚠️ Pendiente menor: GUARDAR en el builder persiste la migración Opción 2 de las cards de Valeria.
+    - [ ] (Futuro, opcional) Replicar el modelo de mini-secciones en otras secciones con cards si se desea.
 - [ ] Replicar drag selectivo + decoradores en las 6 secciones restantes (venues, itinerary, gallery,
   dresscode, gifts, rsvp), una por una, definiendo con el usuario qué objetos son individuales y
   cuáles conjunto. En las que no tengan decorador o no se vea por el tamaño del texto, ofrecer

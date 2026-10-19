@@ -11,6 +11,32 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-17
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: ajustes finales del props-panel de Detalles mini-secciones (validado)
+
+Pulido de la UX y fixes de render de la sección Detalles (mini-secciones por card). Validado por el
+usuario. Detalle completo en `docs/TAREA-DETALLES-MINISECCIONES.md`.
+
+- **Controles de texto junto a su campo:** estilo del Encabezado en el acordeón "Encabezado de la
+  sección" (UNIFICADO para todas las cards: 1ª edita `details.title`, las demás `card.heading` opcional);
+  estilo del Título junto al campo título.
+- **Contenido solo por el editor enriquecido:** se quitaron los controles de texto y el de alineación
+  duplicados del panel (ya están en la barra del editor).
+- **FIX gradiente bicolor del título:** `useTitleGradient(card)`/`getTitleGradient(card)` resuelven el
+  degradado desde `card.sectionStyle` con fallback al tema global (antes se desactivaba al tener color
+  propio y leía solo el global).
+- **FIX canvas no reflejaba el editor:** `[innerHTML]` crudo → Angular borraba los `style` inline del
+  editor. Ahora `safeContent()` con `bypassSecurityTrustHtml` (patrón hero/envelope); el tema global
+  queda como base heredable vía variables `--dc-*`.
+
+FEATURE DETALLES MINI-SECCIONES COMPLETO y validado. Falta: GUARDAR en el builder para persistir la
+migración Opción 2 de las cards de Valeria. Build OK, frontend reconstruido.
+
+---
+
 ## Estado actual del proyecto: 2026-10-16 (d)
 
 ### Rama activa: `feature/drag-elementos-secciones`

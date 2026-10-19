@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { DetailsConfig, DetailCard, GlobalTextStyles, SectionStyle, CardStyle, ElementPosition, ElementPositions } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
@@ -74,17 +75,21 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
                   <h3 [style.font-family]="titleFont(card)"
                       [style.font-size]="titleSize(card)"
                       [style.font-weight]="titleWeight(card)"
-                      [style.background-image]="useTitleGradient(card) ? getTitleGradient() : null"
+                      [style.background-image]="useTitleGradient(card) ? getTitleGradient(card) : null"
                       [class.gradient-text]="useTitleGradient(card)"
                       [style.color]="!useTitleGradient(card) ? titleColor(card) : null"
                   >{{ card.title }}</h3>
                 }
+                <!-- Contenido: HTML del editor enriquecido con bypassSecurityTrustHtml para preservar
+                     los estilos inline de los spans (color/fuente/tamaño/alineación/interlineado). El
+                     tema global es la BASE HEREDABLE (vía variables CSS en .detail-content) para el
+                     texto que el editor deja sin estilizar; los spans del editor mandan. La alineación
+                     y demás formato vienen del propio editor. -->
                 <div class="detail-content"
-                     [style.text-align]="card.textAlign"
-                     [style.font-family]="contentFont(card)"
-                     [style.font-size]="contentSize(card)"
-                     [style.color]="contentColor(card)"
-                     [innerHTML]="card.content"
+                     [style.--dc-font]="contentFont(card)"
+                     [style.--dc-size]="contentSize(card)"
+                     [style.--dc-color]="contentColor(card)"
+                     [innerHTML]="safeContent(card.content)"
                 ></div>
               </div>
             </app-drag-box>
@@ -170,7 +175,15 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
       display: inline-block;
     }
     p { line-height: 1.7; white-space: pre-line; }
-    .detail-content { line-height: 1.7; }
+    /* Base del contenido = tema global (vía variables --dc-*). Se aplica como regla CSS (no inline),
+       así los estilos inline de los <span> del editor enriquecido GANAN y el canvas refleja lo
+       editado. El texto que el editor deja sin envolver hereda esta base. */
+    .detail-content {
+      line-height: 1.7;
+      font-family: var(--dc-font, inherit);
+      font-size: var(--dc-size, inherit);
+      color: var(--dc-color, inherit);
+    }
     .detail-content p { margin: 0 0 8px; }
     .detail-content p:last-child { margin-bottom: 0; }
     .reveal { animation: revealUp 0.8s ease both; }
@@ -178,6 +191,18 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
   `]
 })
 export class LandingDetailsComponent {
+  private sanitizer = inject(DomSanitizer);
+  /** Cache de SafeHtml por valor: el contenido de la card es HTML del editor enriquecido (spans con
+      estilos inline). Angular SANEA el [innerHTML] crudo y ELIMINA esos style → el canvas no reflejaba
+      lo editado. Con bypassSecurityTrustHtml se preservan (el contenido ya se sanea en el backend,
+      igual que hero/envelope/intro). */
+  private _safeCache = new Map<string, SafeHtml>();
+  safeContent(html: string | undefined | null): SafeHtml {
+    const h = html || '';
+    if (!this._safeCache.has(h)) this._safeCache.set(h, this.sanitizer.bypassSecurityTrustHtml(h));
+    return this._safeCache.get(h)!;
+  }
+
   @Input() config!: DetailsConfig;
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
@@ -340,7 +365,28 @@ export class LandingDetailsComponent {
   titleFont(card: DetailCard): string { return this.getFontFamily(this.ss(card)?.headingFont || this.styles?.titleStyle?.fontFamily); }
   titleSize(card: DetailCard): string { return `${this.ss(card)?.headingFontSize || this.styles?.titleStyle?.fontSize || 18}px`; }
   titleWeight(card: DetailCard): string { return `${this.ss(card)?.headingFontWeight || this.styles?.titleStyle?.fontWeight || 400}`; }
-  useTitleGradient(card: DetailCard): boolean { return !this.ss(card)?.headingColor && !!this.styles?.titleStyle?.color2; }
+  /** Usa degradado si la card define color 2 (headingColor2) o, si la card no define color propio,
+      cae al degradado del tema global (titleStyle.color2). Antes se desactivaba justo cuando la card
+      tenía color propio → el degradado por-card nunca aplicaba. */
+  useTitleGradient(card: DetailCard): boolean {
+    const ss = this.ss(card);
+    if (ss?.headingColor2) return true;                     // degradado propio de la card
+    if (ss?.headingColor) return false;                     // color plano propio de la card
+    return !!this.styles?.titleStyle?.color2;               // sin color propio → degradado global si existe
+  }
+  /** Degradado del título resuelto POR CARD (headingColor/headingColor2/angle/intensity del
+      sectionStyle de la card), con fallback al tema global (titleStyle). */
+  getTitleGradient(card?: DetailCard): string {
+    const ss = card ? this.ss(card) : undefined;
+    const g = this.styles?.titleStyle;
+    const c1 = ss?.headingColor ?? g?.color ?? '#d4a017';
+    const c2 = ss?.headingColor2 ?? g?.color2;
+    if (!c2) return 'none';
+    const angle = ss?.headingGradientAngle ?? g?.gradientAngle ?? 135;
+    const v = Math.max(0, Math.min(100, ss?.headingGradientIntensity ?? g?.gradientIntensity ?? 50));
+    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
+  }
 
   // Contenido (.detail-content)
   contentColor(card: DetailCard): string { return this.ss(card)?.contentColor || this.styles?.contentStyle?.color || 'rgba(255,255,255,0.7)'; }
@@ -403,17 +449,6 @@ export class LandingDetailsComponent {
   getSeparatorHeight(): string {
     const t = this.styles?.separatorStyle?.type || 'elegant';
     switch (t) { case 'executive': return '4px'; case 'festive': return '3px'; case 'ornamental': return '2px'; default: return '1px'; }
-  }
-
-  getTitleGradient(): string {
-    const s = this.styles?.titleStyle;
-    if (!s?.color2) return 'none';
-    const c1 = s.color || '#d4a017';
-    const c2 = s.color2;
-    const angle = s.gradientAngle ?? 135;
-    const v = Math.max(0, Math.min(100, s.gradientIntensity ?? 50));
-    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
-    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
   }
 
   /* ===== Estilo de card, resuelto POR CARD: card.cardStyle > campos de sección (fallback) ===== */
