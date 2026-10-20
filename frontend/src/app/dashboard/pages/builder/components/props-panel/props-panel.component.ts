@@ -914,90 +914,171 @@ import { ApiService } from '../../../../../core/services/api.service';
 
         <!-- ===== VENUES ===== -->
         @if (canvasState.selectedSection() === 'venues') {
-          <div class="accordion" [class.open]="expanded['ven-list']" (click)="toggle('ven-list')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['ven-list'] ? 'expand_more' : 'chevron_right' }}</span><span>Lugares</span></div>
-          </div>
-          @if (expanded['ven-list']) {
-            <div class="accordion-body">
-              <div class="items-header"><span>{{sec('venues')?.items?.length||0}} lugar{{(sec('venues')?.items?.length||0) !== 1 ? 'es' : ''}}</span><button class="sm-btn" (click)="addVenue();$event.stopPropagation()">+ Agregar</button></div>
-              @for (item of sec('venues')?.items||[]; track item.id; let i=$index) {
-                <div class="item-card">
-                  <div class="item-head">
-                    
-                    <button class="delete-btn" (click)="removeVenue(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
-                  </div>
-                  <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="item.title" (ngModelChange)="updateVenue(i,'title',$event)" placeholder="Ej: Ceremonia"></div>
-                  <div class="pf"><label>Nombre del lugar</label><input class="pinput" [ngModel]="item.name" (ngModelChange)="updateVenue(i,'name',$event)" placeholder="Nombre del recinto"></div>
-                  <div class="pf"><label>Direccion</label><input class="pinput" [ngModel]="item.address" (ngModelChange)="updateVenue(i,'address',$event)" placeholder="Calle, numero, colonia"></div>
-                  <div class="pf"><label>Hora</label>
-                    <app-wheel-time-picker [value]="item.time" (valueChange)="updateVenue(i,'time',$event)"></app-wheel-time-picker>
-                  </div>
-                  <div class="pf"><label>URL Google Maps</label><input class="pinput" [ngModel]="item.mapsUrl" (ngModelChange)="updateVenue(i,'mapsUrl',$event)" placeholder="https://maps.google.com/..."></div>
-                  <div class="pf"><label>Tipo de icono</label>
-                    <div class="btn-row">
-                      <button class="chip" [class.active]="item.iconType === 'none' || !item.iconType" (click)="updateVenue(i,'iconType','none');$event.stopPropagation()">Sin icono</button>
-                      <button class="chip" [class.active]="item.iconType === 'emoji'" (click)="updateVenue(i,'iconType','emoji');$event.stopPropagation()">Emoji</button>
-                      <button class="chip" [class.active]="item.iconType === 'image'" (click)="updateVenue(i,'iconType','image');$event.stopPropagation()">Imagen</button>
-                    </div>
-                  </div>
-                  @if (item.iconType === 'emoji') {
-                    <div class="pf"><label>Emoji</label>
-                      <div class="emoji-grid">
-                        @for (e of venueEmojis; track e) {
-                          <button class="emoji-btn" [class.active]="item.iconEmoji === e" (click)="updateVenue(i,'iconEmoji',e);$event.stopPropagation()">{{e}}</button>
-                        }
-                      </div>
-                    </div>
-                  }
-                  @if (item.iconType === 'image') {
-                    <div class="pf"><label>Imagen de icono</label>
-                      @if (item.icon) {
-                        <div class="icon-img-row">
-                          <div class="icon-img-preview"><img [src]="item.icon" alt="icono"></div>
-                          <button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()">Cambiar</button>
-                          <button class="delete-btn" (click)="updateVenue(i,'icon','');$event.stopPropagation()"><span class="material-icons">close</span></button>
-                        </div>
-                      } @else {
-                        <button class="sm-btn" (click)="uploadVenueIcon(i);$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
-                      }
-                      <p class="upload-hint"><span class="material-icons">info</span> Usa PNG, SVG o WebP con fondo transparente para mejores resultados. El JPG no admite transparencia.</p>
-                    </div>
-                  }
-                  <div class="toggle-row" style="margin-top:6px">
-                    <span class="toggle-title">Fondo</span>
-                    <label class="toggle-switch"><input type="checkbox" [ngModel]="item.showCardBg !== false" (ngModelChange)="updateVenue(i,'showCardBg',$event)"><span class="slider"></span></label>
+          <!-- Modelo mini-secciones: se edita el Lugar (Lugar N) seleccionado en el menú. -->
+          @if (vcard(); as vc) {
+            <!-- Encabezado de la sección (todas las cards: 1ª=título general, resto=heading opcional) -->
+            <div class="accordion" [class.open]="expanded['ven-general']" (click)="toggle('ven-general')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['ven-general'] ? 'expand_more' : 'chevron_right' }}</span><span>Encabezado de la sección</span></div>
+            </div>
+            @if (expanded['ven-general']) {
+              <div class="accordion-body">
+                @if (vIdx() === 0) {
+                  <p class="pf-hint">Encabezado general de la sección Lugares (arriba del primer lugar).</p>
+                  <div class="pf"><label>Encabezado</label><input class="pinput" [ngModel]="sec('venues')?.title || ''" (ngModelChange)="setSec('venues','title',$event)" placeholder="Lugares del Evento"></div>
+                } @else {
+                  <p class="pf-hint">Encabezado opcional de este lugar. Vacío = sin encabezado.</p>
+                  <div class="pf"><label>Encabezado (opcional)</label><input class="pinput" [ngModel]="vc.heading || ''" (ngModelChange)="updateVCard('heading',$event)" placeholder="Vacío = sin encabezado"></div>
+                }
+                @if (vIdx() === 0 || vc.heading) {
+                  <span class="pf-section-title" style="margin-top:10px">Estilo del encabezado</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label><app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select></div>
+                  <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+                }
+              </div>
+            }
+
+            <!-- Contenido -->
+            <div class="accordion" [class.open]="expanded['ven-content']" (click)="toggle('ven-content')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['ven-content'] ? 'expand_more' : 'chevron_right' }}</span><span>Contenido</span></div>
+            </div>
+            @if (expanded['ven-content']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Nombre en el menú</label><input class="pinput" [ngModel]="vc.label || ''" (ngModelChange)="updateVCard('label',$event)" [placeholder]="'Lugar ' + (vIdx()+1)"></div>
+
+                <!-- Título + estilo (con bicolor) -->
+                <div class="pf"><label>Título</label><input class="pinput" [ngModel]="vc.title" (ngModelChange)="updateVCard('title',$event)" placeholder="Ej: Ceremonia religiosa"></div>
+                @if (vc.title) {
+                  <span class="pf-section-title">Estilo del título</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label><app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select></div>
+                  <div class="pf"><label>Tamaño ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                }
+
+                <!-- Nombre del lugar = contenido (editor enriquecido) -->
+                <div class="pf"><label>Nombre del lugar (contenido)</label>
+                  <app-rich-text-editor [ngModel]="vc.nameHtml || vc.name || ''" (ngModelChange)="updateVCard('nameHtml',$event)" [placeholder]="'Nombre del recinto...'"></app-rich-text-editor>
+                </div>
+                <p class="pf-hint">El color, la fuente y el tamaño del nombre se ajustan desde la barra del editor.</p>
+              </div>
+            }
+
+            <!-- Horario (control de hora + estilo del horario) -->
+            <div class="accordion" [class.open]="expanded['ven-time']" (click)="toggle('ven-time')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['ven-time'] ? 'expand_more' : 'chevron_right' }}</span><span>Horario</span></div>
+            </div>
+            @if (expanded['ven-time']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Hora</label>
+                  <app-wheel-time-picker [value]="vc.time" (valueChange)="updateVCard('time',$event)"></app-wheel-time-picker>
+                </div>
+                <div class="pf"><label>Icono de reloj</label>
+                  <app-custom-select [options]="venueTimeIconOptions" [value]="vTime('icon')||'schedule'" (valueChange)="setVTime('icon',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="vTime('font')||''" (valueChange)="setVTime('font',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamaño ({{vTime('fontSize') || 14}}px)</label><input type="range" class="pinput-range" min="10" max="32" [ngModel]="vTime('fontSize') || 14" (ngModelChange)="setVTime('fontSize',+$event)"></div>
+                <div class="pf"><label>Color (icono y texto)</label><app-color-picker [value]="vTime('color') || cfg()!.theme.textSecondary || 'rgba(255,255,255,0.7)'" (valueChange)="setVTime('color',$event)"></app-color-picker></div>
+              </div>
+            }
+
+            <!-- Ubicación: dirección + URL de Maps + botón "Cómo llegar" -->
+            <div class="accordion" [class.open]="expanded['ven-btn']" (click)="toggle('ven-btn')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['ven-btn'] ? 'expand_more' : 'chevron_right' }}</span><span>Ubicación</span></div>
+            </div>
+            @if (expanded['ven-btn']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Dirección</label>
+                  <app-rich-text-editor [ngModel]="vc.addressHtml || vc.address || ''" (ngModelChange)="updateVCard('addressHtml',$event)" [placeholder]="'Calle, número, colonia...'"></app-rich-text-editor>
+                </div>
+                <div class="pf"><label>URL Google Maps</label><input class="pinput" [ngModel]="vc.mapsUrl" (ngModelChange)="updateVCard('mapsUrl',$event)" placeholder="https://maps.google.com/..."></div>
+                <span class="pf-section-title" style="margin-top:10px">Botón "Cómo llegar"</span>
+                <p class="pf-hint">Hereda del Tema Global; si configuras aquí, lo sustituye para este lugar.</p>
+                <div class="pf"><label>Texto del botón</label><input class="pinput" [ngModel]="vBtn('text') || ''" (ngModelChange)="setVBtn('text',$event)" placeholder="Cómo llegar"></div>
+                <div class="pf"><label>Icono</label>
+                  <app-custom-select [options]="venueBtnIconOptions" [value]="vBtn('icon')||'map'" (valueChange)="setVBtn('icon',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color de fondo</label><app-color-picker [value]="vBtn('bgColor') || cfg()!.theme.buttonBg || '#d4a017'" (valueChange)="setVBtn('bgColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color de texto</label><app-color-picker [value]="vBtn('textColor') || cfg()!.theme.buttonText || '#1a1a2e'" (valueChange)="setVBtn('textColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color de borde</label><app-color-picker [value]="vBtn('borderColor') || ''" (valueChange)="setVBtn('borderColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Radio borde ({{vBtn('borderRadius') ?? 24}}px)</label><input type="range" class="pinput-range" min="0" max="40" [ngModel]="vBtn('borderRadius') ?? 24" (ngModelChange)="setVBtn('borderRadius',+$event)"></div>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="vBtn('font')||''" (valueChange)="setVBtn('font',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamaño ({{vBtn('fontSize') || 13}}px)</label><input type="range" class="pinput-range" min="10" max="24" [ngModel]="vBtn('fontSize') || 13" (ngModelChange)="setVBtn('fontSize',+$event)"></div>
+              </div>
+            }
+
+            <!-- Apariencia de la card (por lugar) + icono del lugar -->
+            <div class="accordion" [class.open]="expanded['ven-appear']" (click)="toggle('ven-appear')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['ven-appear'] ? 'expand_more' : 'chevron_right' }}</span><span>Apariencia de Cards</span></div>
+            </div>
+            @if (expanded['ven-appear']) {
+              <div class="accordion-body">
+                <p class="pf-hint">Apariencia de la card de este lugar (propia de "{{ vc.label || ('Lugar ' + (vIdx()+1)) }}").</p>
+                <!-- Icono del lugar (elección emoji/imagen/ninguno + estilo del contenedor del icono) -->
+                <div class="pf"><label>Icono del lugar</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="vc.iconType === 'none' || !vc.iconType" (click)="updateVCard('iconType','none');$event.stopPropagation()">Sin icono</button>
+                    <button class="chip" [class.active]="vc.iconType === 'emoji'" (click)="updateVCard('iconType','emoji');$event.stopPropagation()">Emoji</button>
+                    <button class="chip" [class.active]="vc.iconType === 'image'" (click)="updateVCard('iconType','image');$event.stopPropagation()">Imagen</button>
                   </div>
                 </div>
-              }
-            </div>
-          }
-
-          <div class="accordion" [class.open]="expanded['ven-appear']" (click)="toggle('ven-appear')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['ven-appear'] ? 'expand_more' : 'chevron_right' }}</span><span>Apariencia de Cards</span></div>
-          </div>
-          @if (expanded['ven-appear']) {
+                @if (vc.iconType === 'emoji') {
+                  <div class="pf"><label>Emoji</label>
+                    <div class="emoji-grid">
+                      @for (e of venueEmojis; track e) {
+                        <button class="emoji-btn" [class.active]="vc.iconEmoji === e" (click)="updateVCard('iconEmoji',e);$event.stopPropagation()">{{e}}</button>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (vc.iconType === 'image') {
+                  <div class="pf"><label>Imagen de icono</label>
+                    @if (vc.icon) {
+                      <div class="icon-img-row">
+                        <div class="icon-img-preview"><img [src]="vc.icon" alt="icono"></div>
+                        <button class="sm-btn" (click)="uploadVenueIcon(vIdx());$event.stopPropagation()">Cambiar</button>
+                        <button class="delete-btn" (click)="updateVCard('icon','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                      </div>
+                    } @else {
+                      <button class="sm-btn" (click)="uploadVenueIcon(vIdx());$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                    }
+                  </div>
+                }
+                @if (vc.iconType !== 'none') {
+                  <div class="pf"><label>Estilo de icono</label>
+                    <app-custom-select [options]="iconStyleOptions" [value]="sec('venues')?.iconStyle||'circle'" (valueChange)="setSec('venues','iconStyle',$event)"></app-custom-select>
+                  </div>
+                }
+                <div class="toggle-row">
+                  <span class="toggle-title">Fondo de card</span>
+                  <label class="toggle-switch"><input type="checkbox" [ngModel]="vCardStyle('showCardBg') !== false" (ngModelChange)="updateVCardStyle('showCardBg',$event)"><span class="slider"></span></label>
+                </div>
+                <div class="pf"><label>Color de fondo</label><app-color-picker [value]="vCardStyle('cardBgColor') || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="updateVCardStyle('cardBgColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Radio borde ({{vCardStyle('cardBorderRadius') ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="vCardStyle('cardBorderRadius') ?? 16" (ngModelChange)="updateVCardStyle('cardBorderRadius',+$event)"></div>
+                <div class="pf"><label>Estilo borde</label>
+                  <app-custom-select [options]="borderStyleOptions" [value]="vCardStyle('cardBorderStyle') || 'none'" (valueChange)="updateVCardStyle('cardBorderStyle',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Grosor borde ({{vCardStyle('cardBorderWidth') ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="vCardStyle('cardBorderWidth') ?? 1" (ngModelChange)="updateVCardStyle('cardBorderWidth',+$event)"></div>
+                <div class="pf"><label>Color de borde</label><app-color-picker [value]="vCardStyle('cardBorderColor') || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="updateVCardStyle('cardBorderColor',$event)"></app-color-picker></div>
+                @if (vCardStyle('cardBorderStyle') === 'glow' || vCardStyle('cardBorderStyle') === 'neon') {
+                  <div class="pf"><label>Color sombra</label><app-color-picker [value]="vCardStyle('cardGlowColor') || '#d4a017'" (valueChange)="updateVCardStyle('cardGlowColor',$event)"></app-color-picker></div>
+                }
+                <div class="pf"><label>Forma de card</label>
+                  <app-custom-select [options]="cardShapeOptions" [value]="vCardStyle('cardShape') || 'standard'" (valueChange)="updateVCardStyle('cardShape',$event)"></app-custom-select>
+                </div>
+              </div>
+            }
+          } @else {
             <div class="accordion-body">
-              <div class="pf"><label>Estilo de icono</label>
-                <app-custom-select [options]="iconStyleOptions" [value]="sec('venues')?.iconStyle||'circle'" (valueChange)="setSec('venues','iconStyle',$event)"></app-custom-select>
-              </div>
-              <div class="toggle-row">
-                <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('venues')?.showCardBg !== false" (ngModelChange)="setSec('venues','showCardBg',$event)"><span class="slider"></span></label>
-              </div>
-              <div class="pf"><label>Opacidad fondo ({{sec('venues')?.cardBgOpacity ?? 100}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('venues')?.cardBgOpacity ?? 100" (ngModelChange)="setSec('venues','cardBgOpacity',+$event)"></div>
-              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('venues')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('venues','cardBgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Radio borde ({{sec('venues')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('venues')?.cardBorderRadius||8" (ngModelChange)="setSec('venues','cardBorderRadius',+$event)"></div>
-              <div class="pf"><label>Estilo borde</label>
-                <app-custom-select [options]="borderStyleOptions" [value]="sec('venues')?.cardBorderStyle || 'none'" (valueChange)="setSec('venues','cardBorderStyle',$event)"></app-custom-select>
-              </div>
-              <div class="pf"><label>Grosor borde ({{sec('venues')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('venues')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('venues','cardBorderWidth',+$event)"></div>
-              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('venues')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('venues','cardBorderColor',$event)"></app-color-picker></div>
-              @if (sec('venues')?.cardBorderStyle === 'glow' || sec('venues')?.cardBorderStyle === 'neon') {
-                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('venues')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('venues','cardGlowColor',$event)"></app-color-picker></div>
-              }
-              <div class="pf"><label>Forma de card</label>
-                <app-custom-select [options]="cardShapeOptions" [value]="sec('venues')?.cardShape || 'standard'" (valueChange)="setSec('venues','cardShape',$event)"></app-custom-select>
-              </div>
+              <p class="pf-hint">Selecciona un <b>Lugar</b> en el menú de secciones (izquierda) para editar su contenido y estilo, o usa <b>“+ Agregar Lugar”</b> para crear uno nuevo.</p>
             </div>
           }
         }
@@ -1421,8 +1502,8 @@ import { ApiService } from '../../../../../core/services/api.service';
           }
         }
 
-        <!-- ===== COMMON SECTION STYLE (excluded for envelope, intro, hero; en details requiere card seleccionada) ===== -->
-        @if (canvasState.selectedSection() !== 'envelope' && canvasState.selectedSection() !== 'intro' && canvasState.selectedSection() !== 'hero' && !(canvasState.selectedSection() === 'details' && dIdx() < 0)) {
+        <!-- ===== COMMON SECTION STYLE (excluido para envelope/intro/hero; en details/venues requiere ítem seleccionado) ===== -->
+        @if (canvasState.selectedSection() !== 'envelope' && canvasState.selectedSection() !== 'intro' && canvasState.selectedSection() !== 'hero' && !(canvasState.selectedSection() === 'details' && dIdx() < 0) && !(canvasState.selectedSection() === 'venues' && vIdx() < 0)) {
           <div class="section-style-toggle">
             <div class="toggle-row" (click)="toggleSectionStyle();$event.stopPropagation()">
               <span class="toggle-title">Estilo de Seccion</span>
@@ -1825,29 +1906,15 @@ export class BuilderPropsPanelComponent {
   }
 
   ss(prop: string): any {
-    const key = this.canvasState.selectedSection(); if (!key) return null;
-    // Detalles con una card seleccionada: el estilo de sección es PROPIO de la card (mini-sección).
-    if (key === 'details' && this.dIdx() >= 0) {
-      return this.dcard()?.sectionStyle?.[prop] ?? null;
-    }
-    return (this.cfg() as any)?.[key]?.sectionStyle?.[prop] ?? null;
+    // Detalles/Lugares con sub-ítem seleccionado: el estilo de sección es PROPIO del ítem.
+    const h = this.styleHolder();
+    return h?.sectionStyle?.[prop] ?? null;
   }
 
   setSS(prop: string, value: any) {
-    const key = this.canvasState.selectedSection(); if (!key) return;
-    const cfg = this.canvasState.getConfig(); if (!cfg) return;
-    // Detalles con card seleccionada: escribir en card.sectionStyle (no en el de la sección).
-    if (key === 'details' && this.dIdx() >= 0) {
-      const card = (cfg as any).details?.cards?.[this.dIdx()]; if (!card) return;
-      if (!card.sectionStyle) card.sectionStyle = { bgType:'inherit', dividerType:'none' };
-      card.sectionStyle[prop] = value;
-      this.canvasState.notifyChange();
-      this.canvasState.triggerAutoSave();
-      return;
-    }
-    const s = (cfg as any)[key];
-    if (!s.sectionStyle) s.sectionStyle = { bgType:'inherit', dividerType:'none' };
-    s.sectionStyle[prop] = value;
+    const h = this.styleHolder(); if (!h) return;
+    if (!h.sectionStyle) h.sectionStyle = { bgType:'inherit', dividerType:'none' };
+    h.sectionStyle[prop] = value;
     this.canvasState.notifyChange();
     this.canvasState.triggerAutoSave();
   }
@@ -1907,10 +1974,8 @@ export class BuilderPropsPanelComponent {
       como MediaBackground para que el control los muestre y el usuario pueda editarlos. */
   sectionMediaModel(): MediaBackground | null {
     const key = this.canvasState.selectedSection(); if (!key) return null;
-    // Detalles con card seleccionada: el fondo es el de la card (card.sectionStyle.media).
-    const ss = (key === 'details' && this.dIdx() >= 0)
-      ? this.dcard()?.sectionStyle
-      : (this.cfg() as any)?.[key]?.sectionStyle;
+    // Detalles/Lugares con ítem seleccionado: el fondo es el del ítem (styleHolder).
+    const ss = this.styleHolder()?.sectionStyle;
     if (!ss) return null;
     if (ss.media && ss.media.url) return ss.media;
     if (ss.bgImage) {
@@ -1925,13 +1990,8 @@ export class BuilderPropsPanelComponent {
     return ss.media ?? null;
   }
   setSectionMediaModel(media: MediaBackground) {
-    const key = this.canvasState.selectedSection(); if (!key) return;
-    const cfg = this.canvasState.getConfig(); if (!cfg) return;
-    // Detalles con card seleccionada: escribir el fondo en card.sectionStyle.media.
-    const s = (key === 'details' && this.dIdx() >= 0)
-      ? (cfg as any).details?.cards?.[this.dIdx()]
-      : (cfg as any)[key];
-    if (!s) return;
+    // Detalles/Lugares con ítem seleccionado: escribir en el sectionStyle del ítem (styleHolder).
+    const s = this.styleHolder(); if (!s) return;
     if (!s.sectionStyle) s.sectionStyle = { bgType: 'image', dividerType: 'none' };
     s.sectionStyle.media = media;
     this.canvasState.notifyChange();
@@ -2216,13 +2276,60 @@ export class BuilderPropsPanelComponent {
     return card.cardStyle?.[prop];
   }
 
-  /** Objeto que ALOJA el `sectionStyle` activo: la card de Detalles seleccionada (mini-sección) o,
-      en el resto de secciones, la sección misma. Centraliza la redirección details+card. */
+  /** Objeto que ALOJA el `sectionStyle` activo: la card de Detalles / el Lugar seleccionado
+      (mini-sección) o, en el resto de secciones, la sección misma. Centraliza la redirección. */
   styleHolder(): any | null {
     const key = this.canvasState.selectedSection(); if (!key) return null;
     const cfg = this.canvasState.getConfig(); if (!cfg) return null;
     if (key === 'details' && this.dIdx() >= 0) return (cfg as any).details?.cards?.[this.dIdx()] || null;
+    if (key === 'venues' && this.vIdx() >= 0) return (cfg as any).venues?.items?.[this.vIdx()] || null;
     return (cfg as any)[key] || null;
+  }
+
+  // ===== LUGARES: venue activo (modelo mini-secciones) =====
+  vIdx(): number { return this.canvasState.selectedVenueIndex(); }
+  vcard(): any | null {
+    const i = this.vIdx();
+    if (i < 0) return null;
+    return (this.cfg() as any)?.venues?.items?.[i] || null;
+  }
+  updateVCard(prop: string, val: any) {
+    const i = this.vIdx(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const v = (cfg as any).venues?.items?.[i]; if (!v) return;
+    v[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+  vCardStyle(prop: string): any { return this.vcard()?.cardStyle?.[prop]; }
+  updateVCardStyle(prop: string, val: any) {
+    const i = this.vIdx(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const v = (cfg as any).venues?.items?.[i]; if (!v) return;
+    if (!v.cardStyle) v.cardStyle = {};
+    v.cardStyle[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+  vTime(prop: string): any { return this.vcard()?.timeStyle?.[prop]; }
+  setVTime(prop: string, val: any) {
+    const i = this.vIdx(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const v = (cfg as any).venues?.items?.[i]; if (!v) return;
+    if (!v.timeStyle) v.timeStyle = {};
+    v.timeStyle[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+  vBtn(prop: string): any { return this.vcard()?.buttonStyle?.[prop]; }
+  setVBtn(prop: string, val: any) {
+    const i = this.vIdx(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const v = (cfg as any).venues?.items?.[i]; if (!v) return;
+    if (!v.buttonStyle) v.buttonStyle = {};
+    v.buttonStyle[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
   }
 
   addVenue() {
@@ -2558,6 +2665,21 @@ export class BuilderPropsPanelComponent {
   instructionAnimOptions: SelectOption[] = [
     {value:'pulse',label:'Pulso'},{value:'bounce',label:'Rebote'},{value:'fade',label:'Aparecer/Desaparecer'},
     {value:'slide-up',label:'Deslizar arriba'},{value:'glow',label:'Brillar'},{value:'none',label:'Sin animacion'}
+  ];
+
+  /** Catálogo de iconos de RELOJ (Material Icons, monocromáticos) para el horario de un lugar. */
+  venueTimeIconOptions: SelectOption[] = [
+    {value:'schedule',label:'Reloj (clásico)'},{value:'access_time',label:'Reloj (contorno)'},
+    {value:'alarm',label:'Alarma'},{value:'watch_later',label:'Reloj (relleno)'},
+    {value:'hourglass_empty',label:'Reloj de arena'},{value:'event',label:'Calendario'},
+    {value:'none',label:'Sin icono'},
+  ];
+  /** Catálogo de iconos de MAPA/UBICACIÓN para el botón "Cómo llegar" de un lugar. */
+  venueBtnIconOptions: SelectOption[] = [
+    {value:'map',label:'Mapa'},{value:'place',label:'Pin de ubicación'},
+    {value:'location_on',label:'Ubicación'},{value:'near_me',label:'Navegación'},
+    {value:'directions',label:'Direcciones'},{value:'explore',label:'Brújula'},
+    {value:'none',label:'Sin icono'},
   ];
 
   /** Opciones del indicador de scroll de la caratula (tipo de icono). */

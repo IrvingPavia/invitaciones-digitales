@@ -11,6 +11,53 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-17 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Lugares mini-secciones + fixes del editor enriquecido + encabezados ocultables
+
+Tanda grande sobre la sección **Lugares** (replicando el modelo de Detalles) + fixes transversales del
+editor de texto enriquecido y del encabezado de sección. Detalle completo en
+`docs/TAREA-LUGARES-MINISECCIONES.md`. Todo compilado y desplegado en local; pendiente validación visual
+final del usuario.
+
+- **Lugares = mini-secciones por venue (A/B/C):** cada venue es su propia sección ("Lugar N") con
+  encabezado + card (objeto único) arrastrables, estilos/fondo/drag propios, retrocompatible sobre
+  `config.venues.items[]` (Opción A). Horario (icono reloj Material monocromático + color compartido),
+  botón "Cómo llegar" (icono mapa + props que heredan del tema), nombre y dirección con editor
+  enriquecido. Migración `migrateVenuesToMiniSections` (idempotente) copia el estilo global a cada venue.
+  Reorganización de acordeones: Encabezado / Contenido / Horario / Ubicación (dir+maps+botón) /
+  Apariencia de Cards. Horario va ANTES de la dirección.
+
+- **FIX editor enriquecido — fondo negro al pegar:** `rich-text-editor.component.ts` gana `onPaste` +
+  `sanitizePastedHtml` que depura el HTML pegado (quita background/box-shadow/border/line-height/
+  position/display/..., degrada `h1-h6` a `span`, elimina nodos basura y atributos `on*`). Causa: pegar
+  la dirección desde Google arrastraba `background-color: rgb(34,36,42)`. Red de seguridad CSS en
+  `.venue-name/.venue-address`. Dato Valeria local limpiado por `REPLACE`.
+
+- **FIX editor enriquecido — interlineado ignorado:** `execLineHeight` ahora limpia el `line-height`
+  inline de todos los descendientes del bloque antes de aplicar el elegido (un `<h1>` pegado con
+  `line-height: 1.75rem` fijo lo pisaba). Dato Valeria local limpiado por `REPLACE`.
+
+- **FIX Lugares — opacidad de card distinta al resto:** la card multiplicaba alpha-del-color ×
+  `cardBgOpacity`; los venues arrastraban `cardBgOpacity` 30/vacío de la migración. `getCardBgOpacity`
+  en venues ahora devuelve SIEMPRE 100 → la opacidad viene solo del alpha del color picker, como en las
+  demás secciones. Se quitó el slider de opacidad añadido por error al panel de Lugares. Dato Valeria
+  normalizado a 100 vía `scripts/migrate-valeria/fix-venue-card-opacity.js` (ignorado por git).
+
+- **Encabezado de sección ocultable:** si el usuario borra el título, NO se muestra el encabezado
+  (título+adorno+líneas). Backend `ensureConfigDefaults.js`: `||`→`??` en `title` de details/itinerary/
+  gallery/dresscode/gifts/rsvp (el `||` reponía el default al recibir `''`). Frontend: helper
+  `headingText()` (`?? default`) + `@if (headingText())` en itinerary/gallery/dresscode/gifts/register/
+  rsvp (details/venues ya lo tenían).
+
+- ⚠️ **PENDIENTE PROD:** al desplegar, replicar en el server los 3 fixes de datos de Valeria (fondo negro
+  de dirección, line-height fijo, cardBgOpacity→100).
+- ⚠️ Recordatorio: GUARDAR en el builder para persistir la migración de venues/cards de Valeria.
+
+---
+
 ## Estado actual del proyecto: 2026-10-17
 
 ### Rama activa: `feature/drag-elementos-secciones`

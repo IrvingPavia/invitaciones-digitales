@@ -10,30 +10,32 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
   template: `
     <section id="itinerary" class="landing-section itinerary-section">
       <div class="section-container">
-        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
-          <div class="section-header-block">
-            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-            <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'Itinerario' }}</h2>
-            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-          </div>
-        } @else {
-          <div class="section-header">
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-            <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'Itinerario' }}</h2>
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          </div>
+        @if (headingText()) {
+          @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+            <div class="section-header-block">
+              @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+                <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+              }
+              <h2 class="section-heading"
+                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+              >{{ headingText() }}</h2>
+              @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+                <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+              }
+            </div>
+          } @else {
+            <div class="section-header">
+              <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+              <h2 class="section-heading"
+                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+              >{{ headingText() }}</h2>
+              <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            </div>
+          }
         }
 
         <div class="timeline" [attr.data-align]="config.timelineAlign || 'center'" [attr.data-line]="config.lineStyle || 'solid'" [style.--line-color]="getLineColor()" [style.--timeline-dot-bg]="getDotBg()" [style.--timeline-dot-border]="getDotBorder()">
@@ -248,6 +250,12 @@ export class LandingItineraryComponent implements AfterViewInit, OnChanges, DoCh
   /** Color propio de la linea decorativa del timeline (independiente del borde de card). */
   getLineColor(): string {
     return (this.config as any).lineColor || 'var(--theme-card-border, rgba(212,160,23,0.6))';
+  }
+
+  /** Encabezado de la sección: si el usuario borra el título (string vacío) NO se muestra el
+      encabezado; solo se usa el default cuando el campo nunca se definió (config legacy). */
+  headingText(): string {
+    return (this.config.title ?? 'Itinerario').trim();
   }
 
   hasOrnament(): boolean {

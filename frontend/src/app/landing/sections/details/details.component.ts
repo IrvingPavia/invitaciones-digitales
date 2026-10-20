@@ -327,9 +327,11 @@ export class LandingDetailsComponent {
   }
 
   /** Texto del encabezado de la mini-sección: la 1ª (índice real 0) usa el título general de
-      Detalles; las demás usan card.heading. Vacío => no se muestra el encabezado. */
+      Detalles; las demás usan card.heading. Vacío => no se muestra el encabezado.
+      Si el usuario borra el título (string vacío) se respeta y NO se muestra; solo se usa el
+      default cuando el campo nunca se definió (config legacy = undefined/null). */
   headingText(card: DetailCard): string {
-    if (this.realIndex(card) === 0) return this.config.title || 'Detalles del Evento';
+    if (this.realIndex(card) === 0) return (this.config.title ?? 'Detalles del Evento').trim();
     return (card.heading || '').trim();
   }
 

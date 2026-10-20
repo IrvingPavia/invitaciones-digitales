@@ -112,9 +112,9 @@ interface BuilderSection {
         <div class="builder-sections-list" cdkDropList (cdkDropListDropped)="onSectionDrop($event)">
           @for (section of sections(); track section.key) {
             <div class="builder-section-item" cdkDrag
-                 [class.active]="canvasState.selectedSection() === section.key && !(section.key === 'details' && canvasState.selectedDetailIndex() >= 0)"
+                 [class.active]="canvasState.selectedSection() === section.key && !(section.key === 'details' && canvasState.selectedDetailIndex() >= 0) && !(section.key === 'venues' && canvasState.selectedVenueIndex() >= 0)"
                  [class.disabled]="!section.enabled"
-                 [class.is-group]="section.key === 'details'"
+                 [class.is-group]="section.key === 'details' || section.key === 'venues'"
                  (click)="selectSection(section.key)">
               <span class="material-icons drag-handle" cdkDragHandle>drag_indicator</span>
               <span class="material-icons section-icon">{{ section.icon }}</span>
@@ -145,6 +145,26 @@ interface BuilderSection {
                 }
                 <button class="builder-add-detail" (click)="addDetail(); $event.stopPropagation()">
                   <span class="material-icons">add</span><span>Agregar Detalle</span>
+                </button>
+              </div>
+            }
+
+            <!-- ===== Sub-entradas de LUGARES: cada venue = "Lugar N" (mini-sección) ===== -->
+            @if (section.key === 'venues') {
+              <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onVenueDrop($event)">
+                @for (venue of venueItems(); track venue.id; let vi = $index) {
+                  <div class="builder-subsection-item" cdkDrag
+                       [class.active]="canvasState.selectedSection() === 'venues' && canvasState.selectedVenueIndex() === vi"
+                       (click)="selectVenue(vi); $event.stopPropagation()">
+                    <span class="material-icons sub-drag-handle" cdkDragHandle>drag_indicator</span>
+                    <span class="subsection-label">{{ venue.label || ('Lugar ' + (vi + 1)) }}</span>
+                    <button class="subsection-delete" title="Eliminar lugar" (click)="removeVenueMini(vi); $event.stopPropagation()">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </div>
+                }
+                <button class="builder-add-detail" (click)="addVenueMini(); $event.stopPropagation()">
+                  <span class="material-icons">add</span><span>Agregar Lugar</span>
                 </button>
               </div>
             }
@@ -223,9 +243,14 @@ interface BuilderSection {
                   }
                 }
                 @if (canvasState.config()?.venues?.enabled) {
-                  <div class="preview-section-click" data-section="venues" [class.section-active]="canvasState.selectedSection() === 'venues'" [attr.style]="getSectionBgStyle('venues')" (click)="selectSection('venues'); $event.stopPropagation()">
-                    <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()?.globalStyles!" />
-                  </div>
+                  <!-- Cada venue = mini-sección seleccionable independiente (como Detalles). -->
+                  @for (vitem of venueItems(); track vitem.id; let vi = $index) {
+                    <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" [attr.data-section]="'venues:' + vitem.id"
+                         [class.section-active]="canvasState.selectedSection() === 'venues' && canvasState.selectedVenueIndex() === vi"
+                         (click)="selectVenue(vi); $event.stopPropagation()">
+                      <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.venues.sectionStyle" [onlyIndex]="vi" [previewDevice]="previewDevice()" [editable]="canvasMode() === 'canvas'" (positionsChange)="onVenuePositionsChange($event)" />
+                    </div>
+                  }
                 }
                 @if (canvasState.config()?.itinerary?.enabled) {
                   <div class="preview-section-click" data-section="itinerary" [class.section-active]="canvasState.selectedSection() === 'itinerary'" [attr.style]="getSectionBgStyle('itinerary')" (click)="selectSection('itinerary'); $event.stopPropagation()">
@@ -702,6 +727,8 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .details-mini.positioned .details-mini-inner.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
     .preview-mode-canvas ::ng-deep .details-mini.positioned .details-mini-inner.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .venues-mini.positioned .venues-mini-inner.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .venues-mini.positioned .venues-mini-inner.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
     .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }
@@ -852,7 +879,8 @@ interface BuilderSection {
     .preview-section-click[data-section="hero"],
     .preview-section-click[data-section="envelope"],
     .preview-section-click[data-section="intro"],
-    .preview-section-click[data-section^="details:"] { min-height: 0; display: block; }
+    .preview-section-click[data-section^="details:"],
+    .preview-section-click[data-section^="venues:"] { min-height: 0; display: block; }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper.
        Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
@@ -1405,9 +1433,10 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   selectSection(key: string) {
     if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(key);
-    // Al seleccionar el grupo "Detalles" o cualquier otra sección, deseleccionar la card de detalle
-    // activa (se re-selecciona solo al clickear una sub-entrada "Detalle N").
+    // Al seleccionar el grupo o cualquier otra sección, deseleccionar la sub-entrada activa de
+    // Detalles/Lugares (se re-selecciona solo al clickear "Detalle N" / "Lugar N").
     this.canvasState.selectedDetailIndex.set(-1);
+    this.canvasState.selectedVenueIndex.set(-1);
     this.currentSection.set(key);
     // On mobile, don't auto-open props panel (user can tap FAB to open it)
     if (!this.isMobileView()) {
@@ -1939,6 +1968,72 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     // Mantener seleccionada la misma card tras el reordenamiento.
     const sel = this.canvasState.selectedDetailIndex();
     if (sel === event.previousIndex) this.canvasState.selectedDetailIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== LUGARES como mini-secciones (espejo de Detalles) =====
+
+  venueItems(): any[] { return (this.canvasState.config() as any)?.venues?.items || []; }
+
+  selectVenue(index: number) {
+    if (this.canvasMode() === 'preview') return;
+    this.canvasState.selectSection('venues');
+    this.canvasState.selectedVenueIndex.set(index);
+    this.currentSection.set('venues');
+    if (!this.isMobileView()) this.showProps.set(true);
+    if (!this.isWide()) { this.panelVisible.set(false); this.showLeftPanel.set(false); }
+    const v = this.venueItems()[index];
+    if (v) this.scrollToSection('venues:' + v.id);
+  }
+
+  addVenueMini() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const vz = (cfg as any).venues;
+    if (!vz.items) vz.items = [];
+    vz.items.push({
+      id: 'v-' + Date.now(), title: '', icon: '', iconType: 'none', iconEmoji: '',
+      name: '', address: '', time: '', mapsUrl: '',
+    });
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.selectVenue(vz.items.length - 1);
+  }
+
+  async removeVenueMini(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const vz = (cfg as any).venues;
+    const v = vz?.items?.[index];
+    if (!v) return;
+    const name = v.label || ('Lugar ' + (index + 1));
+    const ok = await this.dialog.confirm('Eliminar lugar', `¿Eliminar "${name}"? Esta acción no se puede deshacer.`, 'Eliminar');
+    if (!ok) return;
+    vz.items.splice(index, 1);
+    const sel = this.canvasState.selectedVenueIndex();
+    if (sel === index) this.canvasState.selectedVenueIndex.set(-1);
+    else if (sel > index) this.canvasState.selectedVenueIndex.set(sel - 1);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+  }
+
+  onVenueDrop(event: CdkDragDrop<any[]>) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const items = (cfg as any).venues?.items; if (!items) return;
+    moveItemInArray(items, event.previousIndex, event.currentIndex);
+    const sel = this.canvasState.selectedVenueIndex();
+    if (sel === event.previousIndex) this.canvasState.selectedVenueIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones (drag) de UN venue en ese venue. */
+  onVenuePositionsChange(ev: { venueId: string; positions: any }) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const v = (cfg as any).venues?.items?.find((x: any) => x.id === ev.venueId);
+    if (!v) return;
+    v.positions = ev.positions;
     this.canvasState.notifyChange();
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();

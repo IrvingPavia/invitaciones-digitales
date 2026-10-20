@@ -474,6 +474,29 @@ export interface VenuesConfig {
   sectionStyle?: SectionStyle;
 }
 
+/** Estilo del horario de un lugar (etiqueta con icono de reloj + texto). El icono es monocromático
+    (Material Icon) y toma el color del texto; el tamaño del texto también escala el icono. */
+export interface VenueTimeStyle {
+  /** Icono de reloj (Material Icon). 'none' = sin icono. */
+  icon?: 'schedule' | 'access_time' | 'alarm' | 'watch_later' | 'hourglass_empty' | 'event' | 'none';
+  font?: string;
+  fontSize?: number;
+  color?: string;
+}
+
+/** Estilo del botón "Cómo llegar" de un lugar. Hereda del Tema Global; si se define, lo sustituye. */
+export interface VenueButtonStyle {
+  /** Icono de mapa/ubicación (Material Icon). 'none' = sin icono. */
+  icon?: 'place' | 'location_on' | 'map' | 'near_me' | 'directions' | 'explore' | 'none';
+  text?: string;            // texto del botón (default "Cómo llegar")
+  bgColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  borderRadius?: number;
+  font?: string;
+  fontSize?: number;
+}
+
 export interface VenueItem {
   id: string;
   title: string;
@@ -485,6 +508,22 @@ export interface VenueItem {
   time: string;
   mapsUrl: string;
   showCardBg?: boolean;
+  /** ===== Modelo de MINI-SECCIÓN por lugar (igual que DetailCard) ===== */
+  /** Nombre en el MENÚ de secciones (sub-entrada "Lugar N"). Vacío → "Lugar {n}". */
+  label?: string;
+  /** Encabezado VISIBLE de la mini-sección (opcional). La 1ª usa el título general de Lugares. */
+  heading?: string;
+  /** `name` enriquecido (editor de texto libre). Si existe, manda sobre `name` plano. */
+  nameHtml?: string;
+  /** `address` enriquecida (editor de texto libre). Si existe, manda sobre `address` plano. */
+  addressHtml?: string;
+  sectionStyle?: SectionStyle;
+  cardStyle?: CardStyle;
+  /** Posiciones (drag) de los objetos de esta mini-sección: 'heading' y 'card'. */
+  positions?: ElementPositions;
+  /** Estilo propio del horario y del botón (icono/colores/tipografía). */
+  timeStyle?: VenueTimeStyle;
+  buttonStyle?: VenueButtonStyle;
 }
 
 export interface ItineraryConfig {

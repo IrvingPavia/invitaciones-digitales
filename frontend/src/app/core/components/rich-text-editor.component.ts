@@ -100,7 +100,7 @@ import { ColorPickerComponent } from './color-picker.component';
         }
       </div>
       <div #editor class="rte-content" contenteditable="true"
-           (input)="onInput()" (blur)="onBlur()"
+           (input)="onInput()" (blur)="onBlur()" (paste)="onPaste($event)"
            (mouseup)="syncFromSelection()" (keyup)="syncFromSelection()"
            [style]="contentStyles">
       </div>
@@ -412,7 +412,10 @@ export class RichTextEditorComponent implements AfterViewInit, OnChanges, Contro
   currentLineHeight: number | null = null;
 
   /** Aplica el interlineado al bloque que contiene la selección (afecta todo el párrafo,
-      como en Word). Si el contenido no tiene bloques, aplica al contenedor del editor. */
+      como en Word). Si el contenido no tiene bloques, aplica al contenedor del editor.
+      IMPORTANTE: limpia el line-height de TODOS los descendientes del contenedor donde
+      aplica, para que un hijo con line-height propio (p.ej. un <h1> pegado desde Google con
+      "line-height: 1.75rem" fijo) no pise el valor elegido por el usuario. */
   execLineHeight(e: Event) {
     const sel = e.target as HTMLSelectElement;
     const lh = parseFloat(sel.value);
@@ -426,16 +429,29 @@ export class RichTextEditorComponent implements AfterViewInit, OnChanges, Contro
     // Buscar los bloques (p/div) tocados por la selección.
     const blocks = this.getSelectedBlocks(range);
     if (blocks.length > 0) {
-      blocks.forEach((b) => (b.style.lineHeight = String(lh)));
+      blocks.forEach((b) => {
+        this.clearLineHeightDescendants(b);
+        b.style.lineHeight = String(lh);
+      });
     } else {
       // No hay bloques: envolver TODO el contenido del editor en un div con el line-height,
       // para que se persista en el HTML (el interlineado afecta todo el párrafo/contenido).
       const wrapper = document.createElement('div');
       wrapper.style.lineHeight = String(lh);
       while (el.firstChild) wrapper.appendChild(el.firstChild);
+      this.clearLineHeightDescendants(wrapper);
       el.appendChild(wrapper);
     }
     this.emitChange();
+  }
+
+  /** Elimina cualquier line-height inline en los descendientes del nodo dado, para que el
+      line-height aplicado en el ancestro sea el que mande (no lo pise un hijo heredado/pegado). */
+  private clearLineHeightDescendants(root: HTMLElement) {
+    root.querySelectorAll<HTMLElement>('[style*="line-height"]').forEach((n) => {
+      n.style.removeProperty('line-height');
+      if (!n.getAttribute('style')) n.removeAttribute('style');
+    });
   }
 
   /** Devuelve los elementos de bloque (p, div) que intersecta la selección. */
@@ -548,6 +564,73 @@ export class RichTextEditorComponent implements AfterViewInit, OnChanges, Contro
   closeColorPicker(e?: Event) {
     e?.preventDefault();
     this.colorPickerOpen = false;
+  }
+
+  /** Propiedades de estilo que NUNCA deben entrar al editor al pegar: pintan fondos/cajas
+      ajenas al diseño (p.ej. pegar desde una página con tema oscuro arrastra
+      background-color: rgb(34,36,42) y deja un recuadro negro detrás del texto). */
+  private readonly bannedStyleProps = [
+    'background', 'background-color', 'background-image',
+    'box-shadow', 'border', 'border-color', 'outline',
+    'position', 'display', 'width', 'height', 'margin', 'padding',
+    // line-height pegado (p.ej. "1.75rem" fijo desde Google) impide que el control de
+    // interlineado del editor surta efecto; que lo gobierne solo el editor.
+    'line-height', 'font-stretch', 'font-variant', 'font-variant-numeric',
+    'font-variant-east-asian', 'font-variant-alternates', 'font-optical-sizing',
+    'font-kerning', 'font-feature-settings', 'font-variation-settings',
+    'list-style', 'overflow', 'vertical-align', 'border-radius',
+  ];
+
+  /** Intercepta el pegado para insertar HTML saneado: conserva color/fuente/tamaño del
+      texto pero elimina fondos, bordes y layout que vienen del origen (Word, páginas web,
+      etc.). Evita el recuadro de fondo que aparecía al pegar direcciones. */
+  onPaste(e: ClipboardEvent) {
+    e.preventDefault();
+    const data = e.clipboardData;
+    if (!data) return;
+    const html = data.getData('text/html');
+    const text = data.getData('text/plain');
+    let fragmentHtml: string;
+    if (html && html.trim()) {
+      fragmentHtml = this.sanitizePastedHtml(html);
+    } else {
+      // Sin HTML: escapar el texto plano y respetar saltos de línea.
+      fragmentHtml = (text || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\r?\n/g, '<br>');
+    }
+    document.execCommand('insertHTML', false, fragmentHtml);
+    this.emitChange();
+  }
+
+  /** Devuelve el HTML pegado sin estilos de fondo/caja ni atributos peligrosos. Parsea en un
+      contenedor aislado, recorre los nodos y depura `style` dejando solo tipografía/color. */
+  private sanitizePastedHtml(html: string): string {
+    const tpl = document.createElement('div');
+    tpl.innerHTML = html;
+    // Quitar nodos no deseables por completo.
+    tpl.querySelectorAll('style, script, meta, link, img, svg, iframe').forEach((n) => n.remove());
+    // Degradar encabezados pegados (h1-h6) a <span>: suelen arrastrar line-height/fuente
+    // propios del origen (p.ej. Google) que rompen el formato del editor.
+    tpl.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
+      const span = document.createElement('span');
+      const style = h.getAttribute('style');
+      if (style) span.setAttribute('style', style);
+      while (h.firstChild) span.appendChild(h.firstChild);
+      h.replaceWith(span);
+    });
+    tpl.querySelectorAll<HTMLElement>('*').forEach((el) => {
+      // Depurar el atributo style: eliminar propiedades prohibidas.
+      const style = el.getAttribute('style');
+      if (style) {
+        this.bannedStyleProps.forEach((p) => el.style.removeProperty(p));
+        if (!el.getAttribute('style')) el.removeAttribute('style');
+      }
+      // Quitar atributos de presentación/eventos heredados del origen.
+      ['bgcolor', 'class', 'id', 'align', 'width', 'height'].forEach((a) => el.removeAttribute(a));
+      Array.from(el.attributes).forEach((a) => { if (a.name.startsWith('on')) el.removeAttribute(a.name); });
+    });
+    return tpl.innerHTML;
   }
 
   onInput() {

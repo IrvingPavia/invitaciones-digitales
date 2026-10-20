@@ -1,5 +1,24 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-17 — Lugares mini-secciones + editor + encabezados
+
+- [x] **Lugares como mini-secciones por venue** (igual que Detalles): A (modelo+landing+migración),
+  B (menú/canvas/props por venue), C (drag), reorganización de acordeones (Horario/Ubicación/
+  Apariencia), horario antes de dirección, dirección con editor enriquecido. Ver
+  `docs/TAREA-LUGARES-MINISECCIONES.md`.
+- [x] **Editor enriquecido: fondo negro al pegar** — `onPaste`/`sanitizePastedHtml` depuran el HTML
+  pegado (quitan background/bordes/line-height, degradan h1-h6 a span). Red de seguridad CSS en
+  venues + dato de Valeria limpiado.
+- [x] **Editor enriquecido: interlineado no se respetaba** — `execLineHeight` ahora limpia el
+  line-height de los descendientes (un `<h1>` pegado con line-height fijo lo pisaba).
+- [x] **Lugares: opacidad de card distinta al resto** — `getCardBgOpacity` fija 100 (solo manda el
+  alpha del color picker, como las demás secciones); dato de Valeria normalizado a 100.
+- [x] **Encabezado de sección se oculta si queda vacío** — backend `||`→`??` en `title` de
+  details/itinerary/gallery/dresscode/gifts/rsvp; frontend helper `headingText()` + `@if` en las 6
+  secciones simples (details/venues ya lo tenían).
+- [ ] PENDIENTE prod: replicar en el server los 3 fixes de datos de Valeria (fondo negro dirección,
+  line-height fijo, cardBgOpacity→100).
+
 ## Bugs activos
 
 - [x] **PDF tarjetas se cortan con márgenes de 10mm**: En el preview del layout se ve correcto, pero al generar el PDF las tarjetas se cortan (overflow). Ocurre cuando se usa margen de 10mm en la hoja y las tarjetas al tamaño máximo posible sin modificar el margen.

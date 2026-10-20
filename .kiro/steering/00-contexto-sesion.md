@@ -49,6 +49,54 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-17 (b) — Lugares mini-secciones + fixes del editor enriquecido + encabezados ocultables
+
+Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA. Detalle completo en
+**`docs/TAREA-LUGARES-MINISECCIONES.md`**. Compilado y desplegado en local; pendiente validación visual
+final del usuario.
+
+- **Lugares = mini-secciones por venue (A/B/C):** mismo modelo que Detalles sobre `config.venues.items[]`
+  (Opción A, retrocompatible). Cada venue = "Lugar N" con encabezado + card (objeto único) arrastrables,
+  estilos/fondo/drag propios. Horario (icono reloj Material MONOCROMÁTICO + color compartido icono+texto),
+  botón "Cómo llegar" (icono mapa + props que heredan del tema), nombre y DIRECCIÓN con editor
+  enriquecido. Migración `migrateVenuesToMiniSections` (idempotente, `venues._miniMigrated`). Acordeones:
+  Encabezado / Contenido / Horario / Ubicación (dir+maps+botón) / Apariencia de Cards. Horario ANTES de
+  la dirección.
+
+- **FIX editor enriquecido (TRANSVERSAL, afecta a TODAS las secciones que usan el editor):**
+  `core/components/rich-text-editor.component.ts` gana `onPaste` + `sanitizePastedHtml`. Al pegar HTML
+  (p.ej. una dirección copiada de Google) se depura: quita `background/background-color/box-shadow/
+  border/line-height/position/display/width/height/margin/padding/...`, degrada `h1-h6` a `span`, y
+  elimina nodos basura (`style/script/img/...`) y atributos `on*`. RESUELVE dos bugs:
+  1. **Fondo negro** en la dirección (venía de `background-color: rgb(34,36,42)` pegado).
+  2. **Interlineado ignorado**: además, `execLineHeight` ahora limpia el `line-height` inline de los
+     descendientes (`clearLineHeightDescendants`) antes de aplicar el elegido — un `<h1>` pegado con
+     `line-height: 1.75rem` fijo lo pisaba.
+  Red de seguridad CSS en `.venue-name/.venue-address` (background transparent !important).
+
+- **FIX opacidad de card en Lugares (doble opacidad):** la card multiplica alpha-del-color-picker ×
+  `cardBgOpacity`. En el RESTO de secciones `cardBgOpacity` queda neutro (100) y manda solo el alpha
+  (el slider de opacidad se quitó hace tiempo). Los venues arrastraban `cardBgOpacity` 30/vacío de la
+  migración → la opacidad "cambiaba" respecto al picker. FIX: `getCardBgOpacity` en venues devuelve
+  SIEMPRE 100 (ignora el heredado). Se quitó el slider de opacidad que se había añadido por error al
+  panel de Lugares. REGLA: en todas las secciones la opacidad de card se controla SOLO con el alpha del
+  color picker.
+
+- **Encabezado de sección OCULTABLE si queda vacío:** borrar el título oculta el encabezado completo
+  (título+adorno+líneas); el default solo se usa si el campo nunca se definió (legacy=undefined). Backend
+  `ensureConfigDefaults.js`: `||`→`??` en `title` de details/itinerary/gallery/dresscode/gifts/rsvp (el
+  `||` reponía el default al recibir `''`). Frontend: helper `headingText()` (`?? default`) +
+  `@if (headingText())` en las 6 secciones simples (details/venues ya lo tenían).
+
+- **FIXES DE DATOS de Valeria (BD LOCAL, event_id=17):** (1) `REPLACE` quitó `background-color:
+  rgb(34,36,42);` del addressHtml; (2) `REPLACE` quitó `line-height: 1.75rem;` fijo; (3) script
+  `scripts/migrate-valeria/fix-venue-card-opacity.js` (parsea JSON con mysql2 del backend, ignorado por
+  git) puso `cardBgOpacity: 100` en los 2 venues. ⚠️ **FALTAN EN PROD** al desplegar.
+
+- **OJO datos BD:** el config de la invitación vive en `event_config.config_json` (NO en `events`).
+  Para scripts Node dentro del contenedor backend: ejecutar en `/app` (ahí resuelve `mysql2`) y usar las
+  env `DB_HOST/DB_USER/DB_PASSWORD/DB_NAME` del backend (usuario `invitaciones_user`, NO root).
+
 ### 🔽 ACTUALIZACIÓN 2026-10-16 (d) — Detalles como MINI-SECCIONES por card (Entregas A y B; falta drag)
 
 Rama `feature/drag-elementos-secciones`. SIN commit todavía (pendiente de validación del usuario en el

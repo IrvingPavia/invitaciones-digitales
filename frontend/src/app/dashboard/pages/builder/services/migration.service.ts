@@ -150,6 +150,7 @@ export class MigrationService {
       config.venues = { enabled: false, items: [] } as any;
     }
     if (!config.venues.items) config.venues.items = [];
+    this.migrateVenuesToMiniSections(config.venues as any);
 
     // Itinerary: ensure exists
     if (!config.itinerary) {
@@ -336,6 +337,29 @@ export class MigrationService {
       }
     }
     details._miniMigrated = true;
+  }
+
+  /** Migración al modelo de MINI-SECCIONES de Lugares (igual que Detalles, Opción 2). Copia una vez
+      el estilo de sección y de card globales a cada venue que no tenga el suyo. Idempotente. */
+  private migrateVenuesToMiniSections(venues: any) {
+    if (!venues || venues._miniMigrated) return;
+    const items: any[] = venues.items || [];
+    if (items.length === 0) { venues._miniMigrated = true; return; }
+    const secStyle = venues.sectionStyle;
+    const legacyCardStyle = {
+      showCardBg: venues.showCardBg, cardBgColor: venues.cardBgColor, cardBgOpacity: venues.cardBgOpacity,
+      cardBorderStyle: venues.cardBorderStyle, cardBorderWidth: venues.cardBorderWidth, cardBorderColor: venues.cardBorderColor,
+      cardGlowColor: venues.cardGlowColor, cardShape: venues.cardShape, cardBorderRadius: venues.cardBorderRadius,
+    };
+    const hasLegacyCard = Object.values(legacyCardStyle).some(v => v !== undefined && v !== null);
+    for (const it of items) {
+      if (!it.sectionStyle && secStyle) it.sectionStyle = JSON.parse(JSON.stringify(secStyle));
+      if (!it.cardStyle && hasLegacyCard) it.cardStyle = { ...legacyCardStyle };
+      if (it.cardStyle && it.showCardBg !== undefined && it.cardStyle.showCardBg === undefined) {
+        it.cardStyle.showCardBg = it.showCardBg;
+      }
+    }
+    venues._miniMigrated = true;
   }
 
   private buildDetailsCanvas(config: EventConfig): CanvasSectionData {

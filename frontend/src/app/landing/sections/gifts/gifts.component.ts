@@ -10,30 +10,32 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
   template: `
     <section id="gifts" class="landing-section gifts-section">
       <div class="section-container">
-        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
-          <div class="section-header-block">
-            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-            <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title }}</h2>
-            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-          </div>
-        } @else {
-          <div class="section-header">
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-            <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title }}</h2>
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          </div>
+        @if (headingText()) {
+          @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+            <div class="section-header-block">
+              @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+                <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+              }
+              <h2 class="section-heading"
+                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+              >{{ headingText() }}</h2>
+              @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+                <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+              }
+            </div>
+          } @else {
+            <div class="section-header">
+              <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+              <h2 class="section-heading"
+                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+              >{{ headingText() }}</h2>
+              <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            </div>
+          }
         }
         <div class="gifts-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
           @if (getGiftsIcon(); as icon) {
@@ -221,6 +223,12 @@ export class LandingGiftsComponent {
   @Input() config!: GiftsConfig;
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+
+  /** Encabezado de la sección: si el usuario borra el título (string vacío) NO se muestra el
+      encabezado; solo se usa el default cuando el campo nunca se definió (config legacy). */
+  headingText(): string {
+    return (this.config.title ?? '').trim();
+  }
 
   hasOrnament(): boolean {
     return !!this.sectionStyle?.headingOrnament && this.sectionStyle.headingOrnament.type !== 'none';
