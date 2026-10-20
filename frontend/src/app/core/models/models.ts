@@ -88,6 +88,11 @@ export interface MediaBackground {
   overlay?: number;
 }
 
+/** Modo de transición entre secciones de la landing (desde la Carátula hacia abajo).
+    Fase 1 (CSS scroll-snap): 'free' | 'snap-soft' | 'snap-firm'.
+    Fase 2 (futuro): se añadirán modos animados ('fade', 'slide', ...). */
+export type SectionTransition = 'free' | 'snap-soft' | 'snap-firm';
+
 export interface ThemeConfig {
   cardBg: string;
   cardBorder: string;
@@ -117,6 +122,12 @@ export interface ThemeConfig {
   landingBgBannerWidth?: number; // ancho del banner como % del ancho de la ventana (10-100), default 70
   // Scroll animation
   scrollAnimation?: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale' | 'none';
+  /** Transición entre secciones (a partir de la Carátula). Configurable por dispositivo.
+      Fase 1: 'free' (scroll normal), 'snap-soft' (enganche suave = proximity),
+      'snap-firm' (enganche firme = mandatory). Fase 2 (futuro) añadirá transiciones animadas
+      tipo 'fade'/'slide'. Ausente → 'free' (comportamiento actual, retrocompatible). */
+  sectionTransitionMobile?: SectionTransition;
+  sectionTransitionDesktop?: SectionTransition;
   // Navbar & Menu
   navBarBg1?: string;
   navBarBg2?: string;

@@ -1,5 +1,19 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Mejora futura — Transición entre secciones Fase 2 (animaciones)
+
+La **Fase 1** (scroll-snap configurable) ya está implementada: propiedad `theme.sectionTransition{Mobile|
+Desktop}` con `free` / `snap-soft` (proximity) / `snap-firm` (mandatory), control en Tema Global →
+"Navegación entre secciones", render vía clase `lp-snap-*` en `<html>` + reglas en `styles.scss`.
+Solo en landing real (no builder). Secciones largas scrollean normal y enganchan al pasar.
+
+**Fase 2 (pendiente, solo si la Fase 1 queda sólida):** añadir modos de transición ANIMADA al mismo
+control (p.ej. `fade`, `slide`): la sección saliente se desvanece/desliza y la entrante aparece, tipo
+presentación. Implica interceptar el gesto/scroll con JavaScript (no es scroll nativo), gestionar
+scroll interno de secciones largas, y cuidar el comportamiento de la barra del navegador en móvil
+(mayor riesgo; por eso va aparte). El tipo `SectionTransition` en models.ts ya está pensado para crecer
+con estos valores. El control del panel solo necesitaría los chips nuevos.
+
 ## Completado 2026-10-21 — Opacidad unificada por color picker + tamaño de icono (Lugares)
 
 - [x] **Opacidad de fondo de card unificada** — se quitaron los 6 sliders "Opacidad fondo"

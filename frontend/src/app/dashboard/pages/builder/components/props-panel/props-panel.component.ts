@@ -139,6 +139,27 @@ import { ApiService } from '../../../../../core/services/api.service';
           </div>
         }
 
+        <div class="accordion" [class.open]="expanded['section-nav']" (click)="toggle('section-nav')">
+          <div class="accordion-header"><span class="material-icons">{{ expanded['section-nav'] ? 'expand_more' : 'chevron_right' }}</span><span>Navegacion entre secciones</span></div>
+        </div>
+        @if (expanded['section-nav']) {
+          <div class="accordion-body">
+            <p class="pf-hint">Cómo se pasa de una sección a otra al hacer scroll (a partir de la Carátula). "Enganche" hace que cada sección se acomode sola en la pantalla. Configurable por dispositivo.</p>
+            <span class="pf-section-title">Móvil</span>
+            <div class="btn-row">
+              <button class="chip" [class.active]="(cfg()!.theme.sectionTransitionMobile || 'free') === 'free'" (click)="setTheme('sectionTransitionMobile','free');$event.stopPropagation()">Libre</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionMobile === 'snap-soft'" (click)="setTheme('sectionTransitionMobile','snap-soft');$event.stopPropagation()">Enganche suave</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionMobile === 'snap-firm'" (click)="setTheme('sectionTransitionMobile','snap-firm');$event.stopPropagation()">Enganche firme</button>
+            </div>
+            <span class="pf-section-title" style="margin-top:12px">Escritorio</span>
+            <div class="btn-row">
+              <button class="chip" [class.active]="(cfg()!.theme.sectionTransitionDesktop || 'free') === 'free'" (click)="setTheme('sectionTransitionDesktop','free');$event.stopPropagation()">Libre</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionDesktop === 'snap-soft'" (click)="setTheme('sectionTransitionDesktop','snap-soft');$event.stopPropagation()">Enganche suave</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionDesktop === 'snap-firm'" (click)="setTheme('sectionTransitionDesktop','snap-firm');$event.stopPropagation()">Enganche firme</button>
+            </div>
+          </div>
+        }
+
         <div class="accordion" [class.open]="expanded['nav']" (click)="toggle('nav')">
           <div class="accordion-header"><span class="material-icons">{{ expanded['nav'] ? 'expand_more' : 'chevron_right' }}</span><span>Navbar y Menu</span></div>
         </div>

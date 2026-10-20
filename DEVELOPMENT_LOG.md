@@ -11,6 +11,47 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-22
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: scroll-snap (Fase 1) + 3 fixes de fondo/animación en mini-secciones (Detalles/Lugares)
+
+- **Transición entre secciones — Fase 1 (scroll-snap configurable):** nueva propiedad
+  `theme.sectionTransition{Mobile|Desktop}` (`free` / `snap-soft` = proximity / `snap-firm` =
+  mandatory). Control en Tema Global → "Navegación entre secciones" (chips por dispositivo). Render vía
+  clase `lp-snap-*` en `<html>` (la pone `LandingComponent.applySectionTransition()` según tema+ancho;
+  se re-evalúa en resize y se limpia en ngOnDestroy) + reglas en `styles.scss` (snap-align:start en
+  `#section-hero` y `.section-block`, `scroll-snap-stop:normal` para no atascar secciones largas). NO
+  aplica en builder/preview (iframe). Fase 2 (animaciones fade/slide) documentada en PENDING.
+  ⚠️ El scroll-snap SOLO se ve en la LANDING REAL (no en preview, que es iframe).
+
+- **FIX doble imagen de fondo en Detalles/Lugares (mini-secciones):** el fondo se pintaba 2 veces en la
+  landing: (1) el `.section-block` via `getSectionBg` + (2) cada `.details-mini`/`.venues-mini` via
+  `miniBg`. Fix: el `.section-block` de details/venues ya NO pinta fondo/padding/video/overlay (clase
+  `section-block-mini` que neutraliza padding/min-height/flex); cada mini-sección pinta su propio
+  fondo. Queda consistente con el canvas (que nunca duplicó).
+
+- **FIX "Ancho del banner" no hacía nada en Detalles/Lugares:** `miniBg` pintaba la imagen como
+  `background: ... auto 100%` ignorando `bannerWidth`. Fix: en modo banner `miniBg` inyecta variables
+  `--sec-bg-image/--sec-banner-w/--sec-ov` y un `::before`/`::after` en `.details-mini.bg-banner`/
+  `.venues-mini.bg-banner` pinta la COLUMNA CENTRADA de ancho `--sec-banner-w` (igual que el
+  `.section-block` normal). Helper `isBannerBg()` activa la clase. El slider ya surte efecto.
+
+- **FIX la animación de scroll (fade) afectaba al FONDO en la 1ª mini-sección:** el `appScrollReveal`
+  envolvía el `.section-inner` (que ahora contiene el fondo banner). Fix: se quitó el `appScrollReveal`
+  de details/venues en la landing; el fade lo aplica el PROPIO componente SOLO al contenido
+  (`.details-mini-inner`/`.venues-mini-inner`) vía un IntersectionObserver interno (clase `reveal-fade`
+  → `reveal-in`, SOLO opacidad para no romper el drag ni tocar el fondo). Nuevo `@Input() scrollAnim`
+  (del tema; 'none' lo desactiva). NOTA: las mini-secciones hacen fade de opacidad (no replican
+  slide/scale del tema, que usan transform y chocarían con el posicionamiento).
+
+- ⏳ PENDIENTE observado (sin empezar): en el CANVAS desktop, al scrollear de la carátula a la siguiente
+  sección, la TEXTURA del fondo global se "mueve" hacia arriba y deja un hueco abajo. Es tema del canvas
+  (no de la landing). Se revisa aparte.
+
+---
+
 ## Estado actual del proyecto: 2026-10-21
 
 ### Rama activa: `feature/drag-elementos-secciones`

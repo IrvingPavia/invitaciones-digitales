@@ -49,6 +49,40 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-22 — scroll-snap (Fase 1) + fixes de fondo/animación en mini-secciones
+
+Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA.
+
+- **Transición entre secciones (Fase 1, scroll-snap configurable):** `theme.sectionTransition{Mobile|
+  Desktop}` = `free`/`snap-soft` (proximity)/`snap-firm` (mandatory). Control en Tema Global →
+  "Navegación entre secciones". Render con clase `lp-snap-*` en `<html>` (LandingComponent.
+  applySectionTransition, re-evaluada en resize, limpia en destroy) + reglas en `styles.scss`
+  (snap-align:start en #section-hero y .section-block; scroll-snap-stop:normal). NO aplica en
+  builder/preview (iframe) → el snap SOLO se ve en la landing real. Fase 2 (fade/slide animado) =
+  mejora futura documentada en PENDING (requiere JS, mayor riesgo). El tipo `SectionTransition` ya
+  admite crecer.
+
+- **Mini-secciones (Detalles/Lugares) — 3 fixes de fondo/animación (IMPORTANTE para futuros cambios):**
+  1. DOBLE fondo: el fondo se pintaba en el `.section-block` (landing) Y en cada `.details-mini`/
+     `.venues-mini`. FIX: el `.section-block` de details/venues ya NO pinta fondo (clase
+     `section-block-mini` que neutraliza padding/min-height/flex); SOLO el componente pinta el fondo
+     por mini-sección. REGLA: en Detalles/Lugares el fondo de sección lo pinta el COMPONENTE, no el
+     `.section-block`.
+  2. "Ancho del banner" no respondía: `miniBg()` pintaba `background: auto 100%` ignorando bannerWidth.
+     FIX: en banner, `miniBg()` devuelve variables `--sec-bg-image/--sec-banner-w/--sec-ov` y un
+     `::before`/`::after` en `.{details|venues}-mini.bg-banner` pinta la columna centrada (igual que el
+     `.section-block` normal). Helper `isBannerBg()`.
+  3. El fade de scroll afectaba al FONDO: el `appScrollReveal` envolvía el `.section-inner` (que ahora
+     tiene el fondo). FIX: se quitó el `appScrollReveal` de details/venues en la landing; el fade lo
+     hace el componente SOLO sobre el contenido (`.{details|venues}-mini-inner`) con IntersectionObserver
+     interno (clase `reveal-fade`→`reveal-in`, SOLO opacidad para no romper el drag ni el fondo). Nuevo
+     `@Input() scrollAnim`. OJO: mini-secciones hacen fade de OPACIDAD (no slide/scale del tema, que
+     usan transform y chocarían con el posicionamiento del drag).
+
+- **⏳ PENDIENTE (sin empezar):** en el CANVAS desktop, al scrollear de la carátula a la siguiente
+  sección, la TEXTURA del fondo global se mueve hacia arriba y deja hueco abajo. Tema del canvas, no de
+  la landing. Revisar aparte.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-21 — opacidad de card unificada (solo color picker) + tamaño de icono en Lugares
 
 Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA. Pendiente validación ya hecha por el usuario.

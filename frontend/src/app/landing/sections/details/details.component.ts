@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { DetailsConfig, DetailCard, GlobalTextStyles, SectionStyle, CardStyle, ElementPosition, ElementPositions } from '../../../core/models/models';
@@ -17,7 +17,7 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
          (si está vacío, el encabezado no se muestra). Retrocompatible: si una card no define
          sectionStyle/cardStyle, hereda el de la sección (this.sectionStyle / this.config). -->
     @for (card of visibleCards(); track card.id) {
-      <section class="details-mini" [class.has-image-bg]="hasImageBg(card)" [class.positioned]="hasAnyPosition(card)" [attr.id]="realIndex(card) === 0 ? 'details' : null" [attr.data-detail-id]="'details:' + card.id" [style.background]="miniBg(card)">
+      <section class="details-mini" [class.has-image-bg]="hasImageBg(card)" [class.bg-banner]="isBannerBg(card)" [class.positioned]="hasAnyPosition(card)" [attr.id]="realIndex(card) === 0 ? 'details' : null" [attr.data-detail-id]="'details:' + card.id" [style]="miniBg(card)">
         <div class="details-mini-inner" [class.canvas-desktop]="fgDesktop" [class.canvas-mobile]="fgMobile" data-drag-bounds>
           @if (headingText(card)) {
             <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [position]="posData(card,'heading')" [ngStyle]="pos(card,'heading')"
@@ -118,7 +118,27 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
       min-height: var(--canvas-vh, 100svh);
       display: flex; flex-direction: column; justify-content: center;
     }
+    /* BANNER: la imagen de fondo se pinta en una COLUMNA CENTRADA de ancho --sec-banner-w (igual que
+       el .section-block de las secciones normales), para que el slider "Ancho del banner" controle
+       el ancho de la franja y deje franjas laterales con el fondo global. El ::before va DETRÁS del
+       contenido (z-index 0). El ::after es el velo de oscurecimiento (overlay) opcional. */
+    .details-mini.bg-banner::before {
+      content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+      width: var(--sec-banner-w, 70%); transform: translateX(-50%);
+      background-image: var(--sec-bg-image);
+      background-size: auto 100%; background-position: center center; background-repeat: no-repeat;
+      z-index: 0; pointer-events: none;
+    }
+    .details-mini.bg-banner::after {
+      content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+      width: var(--sec-banner-w, 70%); transform: translateX(-50%);
+      background: rgba(0,0,0,var(--sec-ov, 0)); z-index: 0; pointer-events: none;
+    }
     .details-mini-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; width: 100%; }
+    /* Fade-in SOLO del contenido (opacidad; sin transform para no chocar con el posicionamiento/drag).
+       El fondo banner NO se anima (vive en la <section>, fuera de este inner). */
+    .details-mini-inner.reveal-fade { opacity: 0; transition: opacity 0.8s ease; }
+    .details-mini-inner.reveal-fade.reveal-in { opacity: 1; }
     /* En modo posicionado (drag): el contenedor interno (data-drag-bounds) cubre TODA la mini-sección
        para que los objetos (encabezado/card) absolutos se posicionen en % respecto a él (igual que
        .inv-fg). Se acota a un ancho FIJO por dispositivo (REGLA R1/R4) centrado, para que el drag
@@ -190,8 +210,29 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })
-export class LandingDetailsComponent {
+export class LandingDetailsComponent implements AfterViewInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
+  private host = inject(ElementRef);
+  private revealObserver?: IntersectionObserver;
+
+  ngAfterViewInit() {
+    // Fade-in del CONTENIDO (.details-mini-inner) al entrar en viewport. Solo opacidad → no rompe el
+    // posicionamiento (drag) ni afecta el fondo banner (que vive en la <section>, fuera del inner).
+    // Se omite en el builder (iframe sin preview) y si la animación es 'none'.
+    if (this.scrollAnim === 'none') return;
+    if (typeof window !== 'undefined' && window.self !== window.top && !window.location.search.includes('preview=1')) return;
+    const inners: NodeListOf<HTMLElement> = this.host.nativeElement.querySelectorAll('.details-mini-inner');
+    if (!inners.length) return;
+    this.revealObserver = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { e.target.classList.add('reveal-in'); this.revealObserver!.unobserve(e.target); }
+      }
+    }, { threshold: 0.12 });
+    inners.forEach((el) => { el.classList.add('reveal-fade'); this.revealObserver!.observe(el); });
+  }
+
+  ngOnDestroy() { this.revealObserver?.disconnect(); }
+
   /** Cache de SafeHtml por valor: el contenido de la card es HTML del editor enriquecido (spans con
       estilos inline). Angular SANEA el [innerHTML] crudo y ELIMINA esos style → el canvas no reflejaba
       lo editado. Con bypassSecurityTrustHtml se preservan (el contenido ya se sanea en el backend,
@@ -206,6 +247,10 @@ export class LandingDetailsComponent {
   @Input() config!: DetailsConfig;
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+  /** Animación de scroll del CONTENIDO (fade-in de los objetos de la mini-sección). Viene del tema
+      global; 'none' la desactiva. El fade se aplica SOLO al contenido (.details-mini-inner), nunca al
+      fondo banner, que está en la <section> y queda fijo al scrollear. */
+  @Input() scrollAnim: string = 'fade-up';
   /** Si se define, renderiza SOLO la card de ese índice (una mini-sección). Lo usa el canvas del
       builder para pintar cada "Detalle N" en su propio bloque seleccionable. En la landing real se
       deja sin definir → renderiza TODAS las cards como mini-secciones. */
@@ -400,29 +445,41 @@ export class LandingDetailsComponent {
       secciones: `cover` = llena; `banner` = en desktop columna centrada de bannerWidth (REGLA R3,
       `auto 100%`), en mobile a todo el ancho con `auto 100%`. Incluye overlay oscuro si overlay>0.
       Si no hay fondo propio → transparente (se ve el fondo global). */
+  /** Estilo de fondo de la mini-sección. Para IMAGEN en modo BANNER NO pinta un background directo
+      sino que inyecta las variables --sec-bg-image / --sec-banner-w / --sec-ov que consume la regla
+      `.details-mini.bg-banner::before` (columna centrada del ancho configurado, con franjas
+      laterales), igual que el .section-block de las secciones normales. Así el slider "Ancho del
+      banner" SÍ surte efecto. Para solid/linear/cover devuelve un `background` directo. */
   miniBg(card: DetailCard): string {
     const ss = this.ss(card) as any;
-    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return 'transparent';
-    if (ss.bgType === 'solid') return ss.bgColor1 || 'transparent';
+    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return 'background: transparent';
+    if (ss.bgType === 'solid') return `background: ${ss.bgColor1 || 'transparent'}`;
     if (ss.bgType === 'linear') {
       const a = ss.bgAngle ?? 180; const c1 = ss.bgColor1 || '#1a1a2e'; const c2 = ss.bgColor2 || '#0d1117';
-      return `linear-gradient(${a}deg, ${c1}, ${c2})`;
+      return `background: linear-gradient(${a}deg, ${c1}, ${c2})`;
     }
     if (ss.bgType === 'image') {
       const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
-      if (!m.hasMedia || m.isVideo) return 'transparent';
+      if (!m.hasMedia || m.isVideo) return 'background: transparent';
       const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
-      const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
       if (m.fit === 'banner') {
-        // Banner (desktop y mobile): imagen a auto 100% CENTRADA (se dimensiona por el ALTO, ancho a
-        // proporción, SIN deformar). REGLA R3. Si la imagen es más angosta que el bloque, se ve como
-        // franja centrada con el fondo global a los lados.
-        return `${dark}url(${m.url}) center / auto 100% no-repeat`;
+        // Banner: columna CENTRADA de ancho --sec-banner-w pintada en ::before (respeta el slider).
+        return `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
       }
-      // cover: llena el bloque.
-      return `${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
+      // cover: llena todo el bloque.
+      const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
+      return `background: ${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
     }
-    return 'transparent';
+    return 'background: transparent';
+  }
+
+  /** True si la mini-sección usa el modo banner (imagen con fit=banner): activa la clase que pinta
+      el ::before de columna centrada. */
+  isBannerBg(card: DetailCard): boolean {
+    const ss = this.ss(card) as any;
+    if (!ss || ss.bgType !== 'image') return false;
+    const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
+    return m.hasMedia && !m.isVideo && m.fit === 'banner';
   }
 
   /** True si la mini-sección tiene fondo de imagen propio (para darle alto mínimo de pantalla y que

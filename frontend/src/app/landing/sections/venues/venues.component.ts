@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { VenuesConfig, VenueItem, GlobalTextStyles, SectionStyle, CardStyle, ElementPosition, ElementPositions } from '../../../core/models/models';
@@ -16,7 +16,7 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
          propios, alto = pantalla. Retrocompatible: si el venue no define sectionStyle/cardStyle, usa
          defaults (la migración ya copia el estilo global por venue). -->
     @for (venue of visibleItems(); track venue.id) {
-      <section class="venues-mini" [class.positioned]="hasAnyPosition(venue)" [attr.id]="realIndex(venue) === 0 ? 'venues' : null" [attr.data-venue-id]="'venues:' + venue.id" [style.background]="miniBg(venue)">
+      <section class="venues-mini" [class.bg-banner]="isBannerBg(venue)" [class.positioned]="hasAnyPosition(venue)" [attr.id]="realIndex(venue) === 0 ? 'venues' : null" [attr.data-venue-id]="'venues:' + venue.id" [style]="miniBg(venue)">
         <div class="venues-mini-inner" [class.canvas-desktop]="fgDesktop" [class.canvas-mobile]="fgMobile" data-drag-bounds>
 
           @if (headingText(venue)) {
@@ -125,7 +125,25 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
       min-height: var(--canvas-vh, 100svh);
       display: flex; flex-direction: column; justify-content: center;
     }
+    /* BANNER: imagen de fondo en COLUMNA CENTRADA de ancho --sec-banner-w (igual que el .section-block
+       normal), para que el slider "Ancho del banner" controle el ancho de la franja. ::before = imagen
+       (detrás del contenido z-index 0); ::after = velo de oscurecimiento (overlay) opcional. */
+    .venues-mini.bg-banner::before {
+      content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+      width: var(--sec-banner-w, 70%); transform: translateX(-50%);
+      background-image: var(--sec-bg-image);
+      background-size: auto 100%; background-position: center center; background-repeat: no-repeat;
+      z-index: 0; pointer-events: none;
+    }
+    .venues-mini.bg-banner::after {
+      content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+      width: var(--sec-banner-w, 70%); transform: translateX(-50%);
+      background: rgba(0,0,0,var(--sec-ov, 0)); z-index: 0; pointer-events: none;
+    }
     .venues-mini-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; width: 100%; }
+    /* Fade-in SOLO del contenido (opacidad; sin transform). El fondo banner no se anima. */
+    .venues-mini-inner.reveal-fade { opacity: 0; transition: opacity 0.8s ease; }
+    .venues-mini-inner.reveal-fade.reveal-in { opacity: 1; }
     /* Modo posicionado (drag): el contenedor interno (data-drag-bounds) cubre toda la mini-sección y
        se acota a ancho FIJO por dispositivo (REGLA R1/R4) centrado. */
     .venues-mini.positioned .venues-mini-inner { position: absolute; top: 0; bottom: 0; max-width: none; margin: 0; }
@@ -198,8 +216,27 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     @keyframes revealUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })
-export class LandingVenuesComponent {
+export class LandingVenuesComponent implements AfterViewInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
+  private host = inject(ElementRef);
+  private revealObserver?: IntersectionObserver;
+
+  ngAfterViewInit() {
+    // Fade-in del CONTENIDO (.venues-mini-inner) al entrar en viewport (solo opacidad; no toca el
+    // fondo banner ni rompe el drag). Omitido en builder y si scrollAnim='none'.
+    if (this.scrollAnim === 'none') return;
+    if (typeof window !== 'undefined' && window.self !== window.top && !window.location.search.includes('preview=1')) return;
+    const inners: NodeListOf<HTMLElement> = this.host.nativeElement.querySelectorAll('.venues-mini-inner');
+    if (!inners.length) return;
+    this.revealObserver = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { e.target.classList.add('reveal-in'); this.revealObserver!.unobserve(e.target); }
+      }
+    }, { threshold: 0.12 });
+    inners.forEach((el) => { el.classList.add('reveal-fade'); this.revealObserver!.observe(el); });
+  }
+
+  ngOnDestroy() { this.revealObserver?.disconnect(); }
   private _safeCache = new Map<string, SafeHtml>();
   safeName(venue: VenueItem): SafeHtml {
     const h = (venue.nameHtml && venue.nameHtml.trim()) ? venue.nameHtml : (venue.name || '');
@@ -218,6 +255,9 @@ export class LandingVenuesComponent {
   @Input() config!: VenuesConfig;
   @Input() styles?: GlobalTextStyles;
   @Input() sectionStyle?: SectionStyle;
+  /** Animación de scroll del CONTENIDO (fade-in de los objetos). Del tema global; 'none' la desactiva.
+      Solo afecta al contenido (.venues-mini-inner), nunca al fondo banner. */
+  @Input() scrollAnim: string = 'fade-up';
   /** Renderiza SOLO el venue de ese índice (una mini-sección) en el canvas. */
   @Input() onlyIndex?: number;
   @Input() previewDevice: 'mobile' | 'desktop' | null = null;
@@ -376,23 +416,37 @@ export class LandingVenuesComponent {
   btnSize(v: VenueItem): number | null { return v.buttonStyle?.fontSize ?? null; }
 
   // Fondo de la mini-sección
+  /** Estilo de fondo de la mini-sección (lugar). En modo BANNER inyecta variables --sec-bg-image /
+      --sec-banner-w / --sec-ov que consume `.venues-mini.bg-banner::before` (columna centrada del
+      ancho configurado, con franjas laterales), igual que el .section-block normal, para que el
+      slider "Ancho del banner" surta efecto. Para solid/linear/cover devuelve `background` directo. */
   miniBg(venue: VenueItem): string {
     const ss = this.ss(venue) as any;
-    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return 'transparent';
-    if (ss.bgType === 'solid') return ss.bgColor1 || 'transparent';
+    if (!ss || ss.bgType === 'inherit' || !ss.bgType) return 'background: transparent';
+    if (ss.bgType === 'solid') return `background: ${ss.bgColor1 || 'transparent'}`;
     if (ss.bgType === 'linear') {
       const a = ss.bgAngle ?? 180; const c1 = ss.bgColor1 || '#1a1a2e'; const c2 = ss.bgColor2 || '#0d1117';
-      return `linear-gradient(${a}deg, ${c1}, ${c2})`;
+      return `background: linear-gradient(${a}deg, ${c1}, ${c2})`;
     }
     if (ss.bgType === 'image') {
       const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
-      if (!m.hasMedia || m.isVideo) return 'transparent';
+      if (!m.hasMedia || m.isVideo) return 'background: transparent';
       const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
+      if (m.fit === 'banner') {
+        return `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
+      }
       const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
-      if (m.fit === 'banner') return `${dark}url(${m.url}) center / auto 100% no-repeat`;
-      return `${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
+      return `background: ${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
     }
-    return 'transparent';
+    return 'background: transparent';
+  }
+
+  /** True si la mini-sección usa modo banner (imagen con fit=banner): activa la clase bg-banner. */
+  isBannerBg(venue: VenueItem): boolean {
+    const ss = this.ss(venue) as any;
+    if (!ss || ss.bgType !== 'image') return false;
+    const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
+    return m.hasMedia && !m.isVideo && m.fit === 'banner';
   }
 
   formatTime(time: string): string {
