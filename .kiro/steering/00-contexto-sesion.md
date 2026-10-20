@@ -49,6 +49,39 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-21 — opacidad de card unificada (solo color picker) + tamaño de icono en Lugares
+
+Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA. Pendiente validación ya hecha por el usuario.
+
+- **REGLA NUEVA — opacidad de fondo de card = SOLO alpha del color picker.** Se eliminó el control de
+  opacidad SEPARADO (slider "Opacidad fondo") en TODAS las secciones: se multiplicaba con el alpha del
+  color y el fondo nunca quedaba sólido al 100%. Quitados 6 sliders del props-panel (invitation,
+  hero/countdown, itinerary, dresscode, gifts, rsvp) y el binding `[style.--card-bg-opacity]` quedó
+  fijo en `1` en los 8 componentes (details/venues/hero/invitation/itinerary/dresscode/gifts/rsvp). El
+  color picker (`app-color-picker`) SIEMPRE muestra su slider de alpha (no depende de `showOpacity`).
+  Los campos `cardBgOpacity`/`countdownCardBgOpacity` viejos quedan en el config pero YA NO se usan.
+  Fondo de SECCIÓN: no tenía opacidad separada (solo overlay/velo), intacto. Al implementar fondos de
+  card nuevos, NO volver a añadir slider de opacidad.
+
+- **Tamaño de icono/imagen del lugar (Lugares):** `VenueItem.iconSize?: small|medium|large` + 3 chips
+  "Tamaño de icono" en "Apariencia de Cards" (bajo "Estilo de icono", solo si iconType != none).
+  Escalas small=100%/medium=115%/large=130% vía `--venue-icon-scale` (`calc(base*scale)` en
+  `.venue-icon`). Helper `iconScale(venue)`. Retrocompatible (ausente → small).
+
+- **⚠️ LECCIÓN CRÍTICA — mover SQL/UTF-8 NO por PowerShell.** Al intentar generar el script SQL para
+  pasar el diseño de Valeria a PROD, probé el SQL contra la BD LOCAL y el volcado por PowerShell
+  corrompió los acentos (ñ/á → mojibake `├`). Se RECUPERÓ el config local al estado previo (0:59:55)
+  reproduciendo la transacción buena desde el BINARY LOG de MySQL (log_bin=ON) con un contenedor
+  `mariadb:11` efímero montando el volumen `invitaciones_mysql_data` (filtrar los `SET @@session...
+  check_constraint_checks...` con sed; usar `--skip-ssl`). REGLAS: (1) NO tocar la BD local para
+  generar scripts de PROD; (2) para exportar config_json con acentos, generarlo DENTRO del contenedor
+  (Node + mysql2) y sacarlo con `docker cp` (binario), nunca por el stdout de PowerShell; (3) el config
+  de la invitación vive en `event_config.config_json` (no en `events`); (4) scripts Node del backend
+  se ejecutan en `/app` con las env `DB_*` (usuario `invitaciones_user`, no root).
+
+- **PENDIENTE abierto:** generar el script SQL de PROD (SOLO diseño/config, emparejando por SLUG, sin
+  tocar invitados) con el método seguro de arriba. NO se completó por el incidente.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-17 (b) — Lugares mini-secciones + fixes del editor enriquecido + encabezados ocultables
 
 Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA. Detalle completo en

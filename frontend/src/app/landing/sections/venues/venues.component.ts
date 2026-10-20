@@ -53,7 +53,7 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
                    [class.positioned]="hasAnyPosition(venue)"
                    [class.no-bg]="getShowCardBg(venue) === false"
                    [style.border-radius]="getCardBorderRadius(venue)"
-                   [style.--card-bg-opacity]="getCardBgOpacity(venue) / 100"
+                   [style.--card-bg-opacity]="1"
                    [style.border-style]="getCardBorderStyle(venue)"
                    [style.border-width.px]="getCardBorderWidth(venue)"
                    [style.box-shadow]="getCardBoxShadow(venue)"
@@ -61,7 +61,7 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
                    [style.border-color]="getCardBorderColor(venue)"
                    [class.neon-border]="getIsNeon(venue)">
                 @if (config.iconStyle !== 'none' && (venue.iconType !== 'none')) {
-                  <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'">
+                  <div class="venue-icon" [class.icon-plain]="config.iconStyle === 'plain'" [style.--venue-icon-scale]="iconScale(venue)">
                     @if (venue.iconType === 'emoji' && venue.iconEmoji) {
                       <span class="emoji-icon">{{ venue.iconEmoji }}</span>
                     } @else if (venue.icon) {
@@ -153,15 +153,16 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     }
     @keyframes neonPulse { from { filter: brightness(1); } to { filter: brightness(1.3); } }
     .venue-icon {
-      width: 72px; height: 72px; border-radius: 50%;
+      /* Tamaño base (pequeño) escalado por --venue-icon-scale (1 / 1.1 / 1.2). */
+      width: calc(72px * var(--venue-icon-scale, 1)); height: calc(72px * var(--venue-icon-scale, 1)); border-radius: 50%;
       background: var(--theme-card-bg, rgba(0,0,0,0.3)); border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 16px; overflow: hidden;
       img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-      .material-icons { font-size: 32px; color: var(--theme-text-primary, var(--gold)); }
-      .emoji-icon { font-size: 32px; }
+      .material-icons { font-size: calc(32px * var(--venue-icon-scale, 1)); color: var(--theme-text-primary, var(--gold)); }
+      .emoji-icon { font-size: calc(32px * var(--venue-icon-scale, 1)); }
     }
-    .venue-icon.icon-plain { background: none; border: none; border-radius: 12px; width: 80px; height: 80px; img { border-radius: 12px; } }
+    .venue-icon.icon-plain { background: none; border: none; border-radius: 12px; width: calc(80px * var(--venue-icon-scale, 1)); height: calc(80px * var(--venue-icon-scale, 1)); img { border-radius: 12px; } }
     .venue-title { font-family: var(--font-serif); font-size: 18px; color: var(--gold); margin-bottom: 8px; line-height: 1.4; padding: 0.1em 0; }
     .venue-title.gradient-text { -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
     .venue-name { color: var(--dc-color, white); font-family: var(--dc-font, inherit); font-size: 15px; font-weight: 600; margin-bottom: 6px; line-height: 1.6; }
@@ -429,6 +430,11 @@ export class LandingVenuesComponent {
       100 (neutro) para no multiplicar una segunda opacidad y así respetar exactamente el
       alpha elegido en el color. Ignora cualquier cardBgOpacity heredado de la migración. */
   getCardBgOpacity(_v: VenueItem): number { return 100; }
+  /** Factor de escala del icono/imagen del lugar según iconSize: small=1 (base), medium=1.15
+      (+15%), large=1.30 (+30%, 15% por nivel sobre el pequeño). Ausente → 1 (pequeño). */
+  iconScale(v: VenueItem): number {
+    switch (v.iconSize) { case 'medium': return 1.15; case 'large': return 1.30; default: return 1; }
+  }
   getCardBgColor(v: VenueItem): string { return this.cs(v).cardBgColor || ''; }
   getCardBorderColor(v: VenueItem): string { return this.cs(v).cardBorderColor || ''; }
   getCardBorderStyle(v: VenueItem): string { const s = this.cs(v).cardBorderStyle || 'none'; return (s === 'glow' || s === 'neon') ? 'solid' : s; }

@@ -57,7 +57,7 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
                    [class.positioned]="hasAnyPosition(card)"
                    [class.no-bg]="getShowCardBg(card) === false"
                    [style.border-radius]="getCardBorderRadius(card)"
-                   [style.--card-bg-opacity]="getCardBgOpacity(card) / 100"
+                   [style.--card-bg-opacity]="1"
                    [style.border-style]="getCardBorderStyle(card)"
                    [style.border-width.px]="getCardBorderWidth(card)"
                    [style.box-shadow]="getCardBoxShadow(card)"

@@ -41,7 +41,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           }
         }
 
-        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+        <div class="rsvp-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
           @if (confirmed()) {
             <div class="rsvp-success">
               @if (getIcon(); as icon) {

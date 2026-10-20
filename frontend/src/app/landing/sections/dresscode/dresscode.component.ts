@@ -41,7 +41,7 @@ import { LightboxService } from '../../../core/services/lightbox.service';
 
         <!-- Legacy: main dresscode card with icon + description (shown only if no example cards exist) -->
         @if ((!config.cards || config.cards.length === 0) && (config.description || getIcon())) {
-          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+          <div class="dresscode-card reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             @if (getIcon(); as icon) {
               @if (icon.type === 'material') {
                 <span class="material-icons dresscode-icon">{{ icon.value }}</span>
@@ -65,7 +65,7 @@ import { LightboxService } from '../../../core/services/lightbox.service';
         @if (config.cards && config.cards.length > 0) {
           <div class="dresscode-examples">
             @for (card of config.cards; track card.id) {
-              <div class="example-card reveal" [class.no-bg]="(card.showCardBg ?? config.showCardBg) === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+              <div class="example-card reveal" [class.no-bg]="(card.showCardBg ?? config.showCardBg) === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
                 @if (card.images && card.images.length > 0) {
                   <div class="example-images" [class.single]="card.images.length === 1">
                     @for (img of card.images; track img; let j = $index) {

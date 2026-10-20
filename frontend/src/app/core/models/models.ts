@@ -503,6 +503,9 @@ export interface VenueItem {
   icon: string;
   iconType?: 'emoji' | 'image' | 'none';
   iconEmoji?: string;
+  /** Tamaño del icono/imagen del lugar. 'small' = base (100%), 'medium' = +10%, 'large' = +20%.
+      Opcional/retrocompatible: ausente → 'small'. */
+  iconSize?: 'small' | 'medium' | 'large';
   name: string;
   address: string;
   time: string;

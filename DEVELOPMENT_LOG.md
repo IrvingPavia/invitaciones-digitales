@@ -11,6 +11,35 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-21
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: opacidad de card unificada (solo color picker) + tamaño de icono en Lugares
+
+- **Opacidad de fondo de card UNIFICADA en todas las secciones:** se eliminó el control de opacidad
+  separado (slider "Opacidad fondo") que se multiplicaba con el alpha del color picker y hacía que el
+  fondo nunca quedara sólido al 100%. Ahora la opacidad la controla ÚNICAMENTE el alpha del color
+  picker. Se quitaron 6 sliders del props-panel (invitation, hero/countdown, itinerary, dresscode,
+  gifts, rsvp) y el binding `[style.--card-bg-opacity]` quedó fijo en `1` en los 8 componentes de
+  sección (details/venues/hero/invitation/itinerary/dresscode/gifts/rsvp). Los campos `cardBgOpacity`
+  viejos quedan en el config pero ya no se usan. Fondo de SECCIÓN no se tocó (solo tenía overlay/velo).
+
+- **Tamaño de icono/imagen del lugar (Lugares):** nuevo `VenueItem.iconSize` (small/medium/large) +
+  control de 3 chips "Tamaño de icono" en "Apariencia de Cards" (debajo de "Estilo de icono").
+  Escalas: small=100% (base), medium=115% (+15%), large=130% (+30%). Render vía `--venue-icon-scale`
+  (`calc(base * scale)` en width/height/font-size de `.venue-icon`). Retrocompatible.
+
+- ⚠️ Incidente resuelto esta sesión (NO dejó rastro en código): al intentar generar un script SQL para
+  pasar el diseño de Valeria a PROD, se probó el SQL contra la BD LOCAL y PowerShell corrompió los
+  acentos (mojibake). Se RECUPERÓ el config local al estado previo (0:59:55) reproduciendo la
+  transacción buena desde el binary log de MySQL con un contenedor `mariadb:11` efímero. Lección: para
+  generar/mover SQL con UTF-8 NO pasarlo por la consola de PowerShell; usar `docker cp` (binario) o
+  escribir el archivo dentro del contenedor. El script de PROD (solo config, por slug) quedó
+  pendiente de generar con ese método seguro.
+
+---
+
 ## Estado actual del proyecto: 2026-10-17 (b)
 
 ### Rama activa: `feature/drag-elementos-secciones`

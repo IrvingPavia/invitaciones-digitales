@@ -61,7 +61,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           </svg>
           @for (item of items; track item.id; let i = $index) {
             <div class="timeline-item" [class.right]="config.timelineAlign === 'center' && i % 2 !== 0" [style.transition-delay.ms]="i * 100">
-              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.text-align]="config.textAlign || 'left'" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.text-align]="config.textAlign || 'left'" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
                 <div class="timeline-body">
                   @if (formatTime(item.time)) {
                     <span class="timeline-time" [style.font-size.px]="config.timeFontSize || 12">{{ formatTime(item.time) }}</span>

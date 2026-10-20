@@ -126,3 +126,31 @@ Replicar en **Lugares** el modelo de mini-secciones de Detalles: cada venue = un
 - [ ] PRODUCCIÓN: al desplegar, replicar en el server los 3 fixes de datos de Valeria (fondo negro de
   dirección, line-height fijo, cardBgOpacity→100). El script `fix-venue-card-opacity.js` sirve para el
   tercero; los otros dos son `REPLACE` puntuales ya documentados arriba.
+
+## Ajustes posteriores (sesión 2026-10-21)
+
+### Unificación de la OPACIDAD del fondo de card (TODAS las secciones)
+- Problema: existían DOS controles de opacidad que se multiplicaban (alpha del color picker ×
+  `cardBgOpacity`), por lo que al poner 100% en el picker el fondo nunca quedaba sólido. Solo Lugares
+  y Detalles ya estaban "bien" (sin slider), el resto tenía un slider "Opacidad fondo" separado.
+- Decisión del usuario: la opacidad se controla ÚNICAMENTE con el alpha del color picker; quitar el
+  slider separado en todas las secciones.
+- Cambios:
+  - props-panel: eliminados los 6 sliders "Opacidad fondo" (invitation, hero/countdown, itinerary,
+    dresscode, gifts, rsvp). El color picker ya muestra su slider de alpha siempre (no depende de
+    `showOpacity`).
+  - Render: el binding `[style.--card-bg-opacity]` se fija a `1` en TODOS los componentes de sección
+    (details, venues, hero/countdown, invitation, itinerary, dresscode, gifts, rsvp). El `::before`
+    del fondo queda con `opacity:1`, así solo manda el alpha del color. `getCardBgOpacity` quedó como
+    helper huérfano (inofensivo) en details/venues.
+  - Los campos `cardBgOpacity`/`countdownCardBgOpacity` viejos quedan en el config pero YA NO se usan
+    (no hace falta limpiarlos). Backend sin cambios (eran passthrough).
+  - Fondo de SECCIÓN: no tenía opacidad separada (solo overlay/velo), no se tocó.
+
+### Tamaño de icono/imagen del lugar (Lugares)
+- Nuevo `VenueItem.iconSize?: 'small' | 'medium' | 'large'` (opcional, ausente → small).
+- Control de 3 chips "Tamaño de icono" en "Apariencia de Cards", debajo de "Estilo de icono" (solo si
+  iconType != none).
+- Escala vía `--venue-icon-scale` en `.venue-icon` (width/height/font-size con `calc(base * scale)`):
+  small=1 (base), medium=1.15 (+15%), large=1.30 (+30%). Helper `iconScale(venue)`.
+- Backend preserva el campo (venues pasa `items` completo). Retrocompatible.

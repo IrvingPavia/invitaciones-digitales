@@ -1,5 +1,14 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-21 — Opacidad unificada por color picker + tamaño de icono (Lugares)
+
+- [x] **Opacidad de fondo de card unificada** — se quitaron los 6 sliders "Opacidad fondo"
+  (invitation, hero/countdown, itinerary, dresscode, gifts, rsvp); la opacidad ahora la controla
+  SOLO el alpha del color picker. Render con `--card-bg-opacity: 1` en todas las secciones. Detalles
+  y Lugares ya estaban así. Ver `docs/TAREA-LUGARES-MINISECCIONES.md`.
+- [x] **Tamaño de icono/imagen del lugar** — nuevo control (Pequeño/Mediano/Grande) en "Apariencia
+  de Cards" de Lugares: small=100%, medium=+15%, large=+30%. Campo `VenueItem.iconSize`.
+
 ## Completado 2026-10-17 — Lugares mini-secciones + editor + encabezados
 
 - [x] **Lugares como mini-secciones por venue** (igual que Detalles): A (modelo+landing+migración),
