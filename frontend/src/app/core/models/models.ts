@@ -591,9 +591,23 @@ export interface DresscodeCard {
   id: string;
   title: string;
   description: string;
-  images: string[];  // URLs of dresscode example images
+  /** Descripción enriquecida (editor de texto libre). Si existe, manda sobre `description` plano. */
+  descriptionHtml?: string;
+  images: string[];  // URLs of dresscode example images (hasta 4)
+  /** Tamaño de las imágenes de ejemplo: 'small' = base (100%), 'medium' = +15%, 'large' = +30%.
+      Opcional/retrocompatible: ausente → 'small'. */
+  imageSize?: 'small' | 'medium' | 'large';
   showCardBg?: boolean;
   cardBorderRadius?: number;
+  /** ===== Modelo de MINI-SECCIÓN por card (igual que DetailCard) ===== */
+  /** Nombre en el MENÚ de secciones (sub-entrada "Vestimenta N"). Vacío → "Vestimenta {n}". */
+  label?: string;
+  /** Encabezado VISIBLE de la mini-sección (opcional). La 1ª usa el título general de Vestimenta. */
+  heading?: string;
+  sectionStyle?: SectionStyle;
+  cardStyle?: CardStyle;
+  /** Posiciones (drag) de los objetos de esta mini-sección: 'heading' y 'card'. */
+  positions?: ElementPositions;
 }
 
 export interface DresscodeConfig {

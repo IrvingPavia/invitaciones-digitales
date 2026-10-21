@@ -112,13 +112,19 @@ interface BuilderSection {
         <div class="builder-sections-list" cdkDropList (cdkDropListDropped)="onSectionDrop($event)">
           @for (section of sections(); track section.key) {
             <div class="builder-section-item" cdkDrag
-                 [class.active]="canvasState.selectedSection() === section.key && !(section.key === 'details' && canvasState.selectedDetailIndex() >= 0) && !(section.key === 'venues' && canvasState.selectedVenueIndex() >= 0)"
+                 [class.active]="canvasState.selectedSection() === section.key && !(section.key === 'details' && canvasState.selectedDetailIndex() >= 0) && !(section.key === 'venues' && canvasState.selectedVenueIndex() >= 0) && !(section.key === 'dresscode' && canvasState.selectedDresscodeIndex() >= 0)"
                  [class.disabled]="!section.enabled"
-                 [class.is-group]="section.key === 'details' || section.key === 'venues'"
+                 [class.is-group]="section.key === 'details' || section.key === 'venues' || section.key === 'dresscode'"
                  (click)="selectSection(section.key)">
               <span class="material-icons drag-handle" cdkDragHandle>drag_indicator</span>
               <span class="material-icons section-icon">{{ section.icon }}</span>
               <span class="section-label">{{ section.label }}</span>
+              @if (section.key === 'details' || section.key === 'venues' || section.key === 'dresscode') {
+                <!-- Chevron de colapso del grupo (independiente por grupo). -->
+                <button class="section-collapse" [title]="groupExpanded()[section.key === 'details' ? 'details' : section.key === 'venues' ? 'venues' : 'dresscode'] ? 'Colapsar' : 'Expandir'" (click)="toggleGroup(section.key === 'details' ? 'details' : section.key === 'venues' ? 'venues' : 'dresscode'); $event.stopPropagation()">
+                  <span class="material-icons">{{ groupExpanded()[section.key === 'details' ? 'details' : section.key === 'venues' ? 'venues' : 'dresscode'] ? 'expand_more' : 'chevron_right' }}</span>
+                </button>
+              }
               @if (isPermanentSection(section.key)) {
                 <!-- Secciones permanentes (Carátula): no se pueden ocultar, es la sección principal -->
                 <span class="section-permanent material-icons" title="Sección principal, siempre visible">push_pin</span>
@@ -130,7 +136,7 @@ interface BuilderSection {
             </div>
 
             <!-- ===== Sub-entradas de DETALLES: cada card = "Detalle N" (mini-sección) ===== -->
-            @if (section.key === 'details') {
+            @if (section.key === 'details' && groupExpanded().details) {
               <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onDetailDrop($event)">
                 @for (card of detailCards(); track card.id; let di = $index) {
                   <div class="builder-subsection-item" cdkDrag
@@ -150,7 +156,7 @@ interface BuilderSection {
             }
 
             <!-- ===== Sub-entradas de LUGARES: cada venue = "Lugar N" (mini-sección) ===== -->
-            @if (section.key === 'venues') {
+            @if (section.key === 'venues' && groupExpanded().venues) {
               <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onVenueDrop($event)">
                 @for (venue of venueItems(); track venue.id; let vi = $index) {
                   <div class="builder-subsection-item" cdkDrag
@@ -165,6 +171,26 @@ interface BuilderSection {
                 }
                 <button class="builder-add-detail" (click)="addVenueMini(); $event.stopPropagation()">
                   <span class="material-icons">add</span><span>Agregar Lugar</span>
+                </button>
+              </div>
+            }
+
+            <!-- ===== Sub-entradas de VESTIMENTA: cada card = "Vestimenta N" (mini-sección) ===== -->
+            @if (section.key === 'dresscode' && groupExpanded().dresscode) {
+              <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onDresscodeDrop($event)">
+                @for (dcard of dresscodeCards(); track dcard.id; let di = $index) {
+                  <div class="builder-subsection-item" cdkDrag
+                       [class.active]="canvasState.selectedSection() === 'dresscode' && canvasState.selectedDresscodeIndex() === di"
+                       (click)="selectDresscode(di); $event.stopPropagation()">
+                    <span class="material-icons sub-drag-handle" cdkDragHandle>drag_indicator</span>
+                    <span class="subsection-label">{{ dcard.label || ('Vestimenta ' + (di + 1)) }}</span>
+                    <button class="subsection-delete" title="Eliminar vestimenta" (click)="removeDresscodeMini(di); $event.stopPropagation()">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </div>
+                }
+                <button class="builder-add-detail" (click)="addDresscodeMini(); $event.stopPropagation()">
+                  <span class="material-icons">add</span><span>Agregar Vestimenta</span>
                 </button>
               </div>
             }
@@ -203,20 +229,25 @@ interface BuilderSection {
                        position:fixed de la landing real. Así el fondo es CONTINUO desde la
                        carátula hasta el final del scope, y el GIF no se estira (se dimensiona
                        al viewport visible, no a la altura total del documento). -->
-                  @if (canvasGlobalBg().hasMedia || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
+                  <!-- TEXTURA: capa propia que cubre TODO el scope (de la carátula al final), NO el
+                       sticky de un solo viewport. La textura es un patrón que debe cubrir toda la
+                       altura scrolleable (igual que el color de fondo), por eso va absolute inset:0
+                       sobre el .canvas-bg-scope. Antes vivía dentro del sticky y se "despegaba" al
+                       scrollear, dejando la parte baja sin textura. -->
+                  @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
+                    <div class="canvas-bg-texture canvas-bg-texture-full" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                  }
+                  <!-- Capa de fondo sticky: GIF/imagen/video (fondo fijo a un viewport, como la
+                       landing real). La textura ya NO va aquí (ver arriba). -->
+                  @if (canvasGlobalBg().hasMedia) {
                     <div class="canvas-bg-sticky">
-                      @if (canvasGlobalBg().hasMedia) {
-                        @if (canvasGlobalBg().isVideo) {
-                          <video class="canvas-bg-media" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" autoplay loop muted playsinline [src]="canvasGlobalBg().url"></video>
-                        } @else {
-                          <div class="canvas-bg-image" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.backgroundImage]="'url(' + canvasGlobalBg().url + ')'"></div>
-                        }
-                        @if (canvasGlobalBg().overlay > 0) {
-                          <div class="canvas-bg-overlay" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.background]="'rgba(0,0,0,' + (canvasGlobalBg().overlay / 100) + ')'"></div>
-                        }
+                      @if (canvasGlobalBg().isVideo) {
+                        <video class="canvas-bg-media" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" autoplay loop muted playsinline [src]="canvasGlobalBg().url"></video>
+                      } @else {
+                        <div class="canvas-bg-image" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.backgroundImage]="'url(' + canvasGlobalBg().url + ')'"></div>
                       }
-                      @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
-                        <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                      @if (canvasGlobalBg().overlay > 0) {
+                        <div class="canvas-bg-overlay" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.background]="'rgba(0,0,0,' + (canvasGlobalBg().overlay / 100) + ')'"></div>
                       }
                     </div>
                   }
@@ -263,9 +294,14 @@ interface BuilderSection {
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
-                  <div class="preview-section-click" data-section="dresscode" [class.section-active]="canvasState.selectedSection() === 'dresscode'" [attr.style]="getSectionBgStyle('dresscode')" (click)="selectSection('dresscode'); $event.stopPropagation()">
-                    <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()?.globalStyles!" />
-                  </div>
+                  <!-- Cada vestimenta = mini-sección seleccionable independiente (como Detalles/Lugares). -->
+                  @for (dcard of dresscodeCards(); track dcard.id; let di = $index) {
+                    <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" [attr.data-section]="'dresscode:' + dcard.id"
+                         [class.section-active]="canvasState.selectedSection() === 'dresscode' && canvasState.selectedDresscodeIndex() === di"
+                         (click)="selectDresscode(di); $event.stopPropagation()">
+                      <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.dresscode.sectionStyle" [onlyIndex]="di" [previewDevice]="previewDevice()" [editable]="canvasMode() === 'canvas'" (positionsChange)="onDresscodePositionsChange($event)" />
+                    </div>
+                  }
                 }
                 @if (canvasState.config()?.gifts?.enabled) {
                   <div class="preview-section-click" data-section="gifts" [class.section-active]="canvasState.selectedSection() === 'gifts'" [attr.style]="getSectionBgStyle('gifts')" (click)="selectSection('gifts'); $event.stopPropagation()">
@@ -496,6 +532,14 @@ interface BuilderSection {
     .section-label { flex: 1; color: rgba(255,255,255,0.8); }
     /* "Detalles" actúa como encabezado agrupador: su label se ve un poco más tenue. */
     .builder-section-item.is-group .section-label { color: rgba(255,255,255,0.6); font-weight: 600; letter-spacing: 0.3px; }
+    /* Botón de colapso (chevron) del grupo (Detalles/Lugares). */
+    .section-collapse {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer; padding: 2px; border-radius: 5px;
+      color: rgba(255,255,255,0.45); transition: background 0.15s, color 0.15s;
+      .material-icons { font-size: 18px; }
+      &:hover { background: rgba(139,92,246,0.15); color: rgba(255,255,255,0.85); }
+    }
     /* ===== Sub-entradas "Detalle N" (mini-secciones de Detalles) ===== */
     .builder-subsections { margin: 0 0 4px 18px; padding-left: 8px; border-left: 1px solid rgba(139,92,246,0.15); display: flex; flex-direction: column; gap: 2px; }
     .builder-subsection-item {
@@ -638,6 +682,10 @@ interface BuilderSection {
     .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; pointer-events: none; }
     .canvas-bg-overlay { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
     .canvas-bg-texture { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    /* Textura que cubre TODO el scope scrolleable (de la carátula al final), no un solo viewport.
+       Va absolute inset:0 sobre .canvas-bg-scope (position:relative con altura completa), así el
+       patrón se repite/cubre toda la altura igual que el color de fondo. */
+    .canvas-bg-texture-full { position: absolute; inset: 0; height: 100%; z-index: 0; pointer-events: none; }
     /* Modo banner en el canvas: la imagen se dibuja a un TAMAÑO FIJO (alto = 100% de la ventana,
        ancho proporcional -> "auto 100%"). El slider solo cambia el ancho de la ventana/mascara
        centrada: recorta mas o menos la imagen SIN re-escalarla. */
@@ -1437,6 +1485,7 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     // Detalles/Lugares (se re-selecciona solo al clickear "Detalle N" / "Lugar N").
     this.canvasState.selectedDetailIndex.set(-1);
     this.canvasState.selectedVenueIndex.set(-1);
+    this.canvasState.selectedDresscodeIndex.set(-1);
     this.currentSection.set(key);
     // On mobile, don't auto-open props panel (user can tap FAB to open it)
     if (!this.isMobileView()) {
@@ -1905,6 +1954,15 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ===== DETALLES como mini-secciones (sub-entradas del menú) =====
 
+  /** Estado de colapso de los grupos del menú (Detalles/Lugares). Independientes: expandir/colapsar
+      uno NO afecta al otro. Ambos arrancan EXPANDIDOS. */
+  groupExpanded = signal<{ details: boolean; venues: boolean; dresscode: boolean }>({ details: true, venues: true, dresscode: true });
+
+  /** Alterna el colapso de un grupo del menú sin tocar el otro. */
+  toggleGroup(key: 'details' | 'venues' | 'dresscode') {
+    this.groupExpanded.update((g) => ({ ...g, [key]: !g[key] }));
+  }
+
   /** Cards de Detalles para el menú (sub-entradas "Detalle N"). */
   detailCards(): any[] {
     return (this.canvasState.config() as any)?.details?.cards || [];
@@ -2034,6 +2092,69 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     const v = (cfg as any).venues?.items?.find((x: any) => x.id === ev.venueId);
     if (!v) return;
     v.positions = ev.positions;
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== VESTIMENTA como mini-secciones (espejo de Detalles/Lugares) =====
+
+  dresscodeCards(): any[] { return (this.canvasState.config() as any)?.dresscode?.cards || []; }
+
+  selectDresscode(index: number) {
+    if (this.canvasMode() === 'preview') return;
+    this.canvasState.selectSection('dresscode');
+    this.canvasState.selectedDresscodeIndex.set(index);
+    this.currentSection.set('dresscode');
+    if (!this.isMobileView()) this.showProps.set(true);
+    if (!this.isWide()) { this.panelVisible.set(false); this.showLeftPanel.set(false); }
+    const d = this.dresscodeCards()[index];
+    if (d) this.scrollToSection('dresscode:' + d.id);
+  }
+
+  addDresscodeMini() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const dz = (cfg as any).dresscode;
+    if (!dz.cards) dz.cards = [];
+    dz.cards.push({ id: 'd-' + Date.now(), title: '', description: '', images: [] });
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.selectDresscode(dz.cards.length - 1);
+  }
+
+  async removeDresscodeMini(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const dz = (cfg as any).dresscode;
+    const d = dz?.cards?.[index];
+    if (!d) return;
+    const name = d.label || ('Vestimenta ' + (index + 1));
+    const ok = await this.dialog.confirm('Eliminar vestimenta', `¿Eliminar "${name}"? Esta acción no se puede deshacer.`, 'Eliminar');
+    if (!ok) return;
+    dz.cards.splice(index, 1);
+    const sel = this.canvasState.selectedDresscodeIndex();
+    if (sel === index) this.canvasState.selectedDresscodeIndex.set(-1);
+    else if (sel > index) this.canvasState.selectedDresscodeIndex.set(sel - 1);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+  }
+
+  onDresscodeDrop(event: CdkDragDrop<any[]>) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const cards = (cfg as any).dresscode?.cards; if (!cards) return;
+    moveItemInArray(cards, event.previousIndex, event.currentIndex);
+    const sel = this.canvasState.selectedDresscodeIndex();
+    if (sel === event.previousIndex) this.canvasState.selectedDresscodeIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones (drag) de UNA card de vestimenta en esa card. */
+  onDresscodePositionsChange(ev: { cardId: string; positions: any }) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const c = (cfg as any).dresscode?.cards?.find((x: any) => x.id === ev.cardId);
+    if (!c) return;
+    c.positions = ev.positions;
     this.canvasState.notifyChange();
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();

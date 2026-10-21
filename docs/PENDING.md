@@ -1,5 +1,21 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-22 (b) — Vestimenta mini-secciones + fixes
+
+- [x] **Vestimenta como mini-secciones por card** (espejo de Detalles/Lugares): cada ejemplo = sección
+  con encabezado/card arrastrables, estilos/fondo propios, descripción enriquecida. Imágenes en
+  cuadrícula 2×2, tamaño pequeño/mediano/grande, PNG transparente (contain), lightbox preservado.
+- [x] **Fix banner mobile (R3)** en Detalles/Lugares: la columna de ancho solo aplica en desktop.
+- [x] **Fix textura del fondo global en canvas desktop** (capa `.canvas-bg-texture-full` que cubre el
+  scope completo, antes se despegaba al scrollear).
+- [x] **Grosor del título en Lugares** (control que faltaba).
+- [x] **Menú colapsable (acordeón)** independiente para Detalles/Lugares/Vestimenta.
+
+### Pendientes abiertos (builder/canvas)
+- [ ] Drag-box: al redimensionar con los dots el objeto se sale del lienzo (falta limitar a bounds).
+- [ ] Cambiar mobile↔desktop no mantiene la sección seleccionada en el canvas (salta de sección).
+- [ ] Toolbar del canvas hace un salto/scroll al alternar Canvas↔Preview.
+
 ## Mejora futura — Transición entre secciones Fase 2 (animaciones)
 
 La **Fase 1** (scroll-snap configurable) ya está implementada: propiedad `theme.sectionTransition{Mobile|

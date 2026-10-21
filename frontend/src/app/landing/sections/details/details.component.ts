@@ -462,24 +462,26 @@ export class LandingDetailsComponent implements AfterViewInit, OnDestroy {
       const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
       if (!m.hasMedia || m.isVideo) return 'background: transparent';
       const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
-      if (m.fit === 'banner') {
-        // Banner: columna CENTRADA de ancho --sec-banner-w pintada en ::before (respeta el slider).
+      // BANNER solo en DESKTOP: columna CENTRADA de ancho --sec-banner-w pintada en ::before
+      // (respeta el slider). En MOBILE el banner NO aplica → cae a la regla R3 de abajo.
+      if (m.fit === 'banner' && this.isDesktopBg) {
         return `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
       }
-      // cover: llena todo el bloque.
+      // REGLA R3 (mobile y modo no-banner): alto = sección, ancho PROPORCIONAL (auto 100%) CENTRADO,
+      // SIN deformar. Verticales llenan el alto; si sobra ancho se ve el fondo global a los lados.
       const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
-      return `background: ${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
+      return `background: ${dark}url(${m.url}) center / auto 100% no-repeat`;
     }
     return 'background: transparent';
   }
 
-  /** True si la mini-sección usa el modo banner (imagen con fit=banner): activa la clase que pinta
-      el ::before de columna centrada. */
+  /** True SOLO si el banner-columna aplica: imagen con fit=banner Y estamos en DESKTOP. En mobile el
+      banner no aplica (R3: imagen a auto 100% a todo el ancho), por eso no activa la clase bg-banner. */
   isBannerBg(card: DetailCard): boolean {
     const ss = this.ss(card) as any;
     if (!ss || ss.bgType !== 'image') return false;
     const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
-    return m.hasMedia && !m.isVideo && m.fit === 'banner';
+    return m.hasMedia && !m.isVideo && m.fit === 'banner' && this.isDesktopBg;
   }
 
   /** True si la mini-sección tiene fondo de imagen propio (para darle alto mínimo de pantalla y que

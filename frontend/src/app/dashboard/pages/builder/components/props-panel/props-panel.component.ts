@@ -977,6 +977,7 @@ import { ApiService } from '../../../../../core/services/api.service';
                   <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
                   <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
                   <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                  <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
                 }
 
                 <!-- Nombre del lugar = contenido (editor enriquecido) -->
@@ -1290,82 +1291,123 @@ import { ApiService } from '../../../../../core/services/api.service';
           }
         }
 
-        <!-- ===== DRESSCODE ===== -->
+        <!-- ===== DRESSCODE (mini-secciones por card, espejo de Detalles/Lugares) ===== -->
         @if (canvasState.selectedSection() === 'dresscode') {
-          <div class="accordion" [class.open]="expanded['dress-content']" (click)="toggle('dress-content')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['dress-content'] ? 'expand_more' : 'chevron_right' }}</span><span>Contenido</span></div>
-          </div>
-          @if (expanded['dress-content']) {
-            <div class="accordion-body">
-              <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('dresscode')?.title" (ngModelChange)="setSec('dresscode','title',$event)"></div>
-              <div class="pf"><label>Descripcion</label><textarea class="pinput" style="min-height:40px" [ngModel]="sec('dresscode')?.description" (ngModelChange)="setSec('dresscode','description',$event)"></textarea></div>
+          @if (dcard2(); as dc) {
+            <!-- Encabezado de la sección (todas las cards: 1ª=título general, resto=heading opcional) -->
+            <div class="accordion" [class.open]="expanded['dress-general']" (click)="toggle('dress-general')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['dress-general'] ? 'expand_more' : 'chevron_right' }}</span><span>Encabezado de la sección</span></div>
             </div>
-          }
-
-          <div class="accordion" [class.open]="expanded['dress-cards']" (click)="toggle('dress-cards')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['dress-cards'] ? 'expand_more' : 'chevron_right' }}</span><span>Ejemplos de vestimenta</span></div>
-          </div>
-          @if (expanded['dress-cards']) {
-            <div class="accordion-body">
-              <div class="items-header"><span>{{sec('dresscode')?.cards?.length||0}} ejemplo{{(sec('dresscode')?.cards?.length||0) !== 1 ? 's' : ''}}</span><button class="sm-btn" (click)="addDresscode();$event.stopPropagation()">+ Agregar</button></div>
-              @for (card of sec('dresscode')?.cards||[]; track card.id; let i=$index) {
-                <div class="item-card">
-                  <div class="item-head">
-                    
-                    <button class="delete-btn" (click)="removeDresscode(i);$event.stopPropagation()"><span class="material-icons">close</span></button>
+            @if (expanded['dress-general']) {
+              <div class="accordion-body">
+                @if (dIdx2() === 0) {
+                  <p class="pf-hint">Encabezado general de la sección Vestimenta (arriba de la primera vestimenta).</p>
+                  <div class="pf"><label>Encabezado</label><input class="pinput" [ngModel]="sec('dresscode')?.title || ''" (ngModelChange)="setSec('dresscode','title',$event)" placeholder="Código de Vestimenta"></div>
+                } @else {
+                  <p class="pf-hint">Encabezado opcional de esta vestimenta. Vacío = sin encabezado.</p>
+                  <div class="pf"><label>Encabezado (opcional)</label><input class="pinput" [ngModel]="dc.heading || ''" (ngModelChange)="updateDCard2('heading',$event)" placeholder="Vacío = sin encabezado"></div>
+                }
+                @if (dIdx2() === 0 || dc.heading) {
+                  <span class="pf-section-title" style="margin-top:10px">Estilo del encabezado</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
                   </div>
-                  <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="card.title" (ngModelChange)="updateDresscode(i,'title',$event)" placeholder="Titulo del ejemplo"></div>
-                  <div class="pf"><label>Descripcion</label><textarea class="pinput sm" [ngModel]="card.description" (ngModelChange)="updateDresscode(i,'description',$event)" placeholder="Descripcion"></textarea></div>
-                  <div class="pf" style="margin-top:6px">
-                    <label>Imagenes de ejemplo ({{card.images?.length || 0}}/4)</label>
-                    <div class="dress-slots-grid">
-                      @for (img of card.images || []; track img; let j=$index) {
-                        <div class="dress-slot filled" [class.selected]="isDressImageSelected(i, j)" (click)="toggleDressImageSelect(i, j);$event.stopPropagation()">
-                          <img [src]="img" alt="">
-                          @if (isDressImageSelected(i, j)) { <span class="slot-check"><span class="material-icons">check</span></span> }
-                        </div>
-                      }
-                      @for (slot of getDressEmptySlots(i); track $index) {
-                        <div class="dress-slot empty" (click)="uploadDresscodeImage(i);$event.stopPropagation()">
-                          <span class="material-icons">add_photo_alternate</span>
-                        </div>
-                      }
-                    </div>
-                    @if (getSelectedDressImages(i).length > 0) {
-                      <button class="photo-upload-btn delete" style="margin-top:6px;width:100%" (click)="deleteSelectedDressImages(i);$event.stopPropagation()">Eliminar ({{getSelectedDressImages(i).length}})</button>
+                  <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="72" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+                }
+              </div>
+            }
+
+            <!-- Contenido de la card de vestimenta -->
+            <div class="accordion" [class.open]="expanded['dress-content']" (click)="toggle('dress-content')">
+              <div class="accordion-header"><span class="material-icons">{{ expanded['dress-content'] ? 'expand_more' : 'chevron_right' }}</span><span>Contenido</span></div>
+            </div>
+            @if (expanded['dress-content']) {
+              <div class="accordion-body">
+                <div class="pf"><label>Nombre en el menú</label><input class="pinput" [ngModel]="dc.label || ''" (ngModelChange)="updateDCard2('label',$event)" [placeholder]="'Vestimenta ' + (dIdx2()+1)"></div>
+
+                <!-- TÍTULO de la card + su estilo, juntos. -->
+                <div class="pf"><label>Título de la card</label><input class="pinput" [ngModel]="dc.title" (ngModelChange)="updateDCard2('title',$event)" placeholder="Título"></div>
+                @if (dc.title) {
+                  <span class="pf-section-title">Estilo del título</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+                  <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
+                }
+
+                <!-- DESCRIPCIÓN (editor enriquecido). -->
+                <div class="pf"><label>Descripción</label>
+                  <app-rich-text-editor [ngModel]="dc.descriptionHtml || dc.description || ''" (ngModelChange)="updateDCard2('descriptionHtml',$event)" [placeholder]="'Descripción de la vestimenta...'"></app-rich-text-editor>
+                </div>
+                <p class="pf-hint">El color, la fuente y el tamaño de la descripción se ajustan desde la barra del editor de texto de arriba.</p>
+
+                <!-- IMÁGENES de ejemplo (de la card activa). -->
+                <div class="pf" style="margin-top:10px">
+                  <label>Imágenes de ejemplo ({{dc.images?.length || 0}}/4)</label>
+                  <div class="dress-slots-grid">
+                    @for (img of dc.images || []; track img; let j=$index) {
+                      <div class="dress-slot filled" [class.selected]="isDressImageSelected(dIdx2(), j)" (click)="toggleDressImageSelect(dIdx2(), j);$event.stopPropagation()">
+                        <img [src]="img" alt="">
+                        @if (isDressImageSelected(dIdx2(), j)) { <span class="slot-check"><span class="material-icons">check</span></span> }
+                      </div>
+                    }
+                    @for (slot of getDressEmptySlots(dIdx2()); track $index) {
+                      <div class="dress-slot empty" (click)="uploadDresscodeImage(dIdx2());$event.stopPropagation()">
+                        <span class="material-icons">add_photo_alternate</span>
+                      </div>
                     }
                   </div>
-                  <div class="toggle-row" style="margin-top:6px">
-                    <span class="toggle-title">Fondo</span>
-                    <label class="toggle-switch"><input type="checkbox" [ngModel]="card.showCardBg !== false" (ngModelChange)="updateDresscode(i,'showCardBg',$event)"><span class="slider"></span></label>
-                  </div>
-                  <div class="pf"><label>Esquinas ({{card.cardBorderRadius ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="card.cardBorderRadius ?? 16" (ngModelChange)="updateDresscode(i,'cardBorderRadius',+$event)"></div>
+                  @if (getSelectedDressImages(dIdx2()).length > 0) {
+                    <button class="photo-upload-btn delete" style="margin-top:6px;width:100%" (click)="deleteSelectedDressImages(dIdx2());$event.stopPropagation()">Eliminar ({{getSelectedDressImages(dIdx2()).length}})</button>
+                  }
                 </div>
-              }
+
+                <!-- Tamaño de imágenes. -->
+                <div class="pf" style="margin-top:10px"><label>Tamaño de imágenes</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="(dc.imageSize || 'small') === 'small'" (click)="updateDCard2('imageSize','small');$event.stopPropagation()">Pequeño</button>
+                    <button class="chip" [class.active]="dc.imageSize === 'medium'" (click)="updateDCard2('imageSize','medium');$event.stopPropagation()">Mediano</button>
+                    <button class="chip" [class.active]="dc.imageSize === 'large'" (click)="updateDCard2('imageSize','large');$event.stopPropagation()">Grande</button>
+                  </div>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="accordion-body">
+              <p class="pf-hint">Selecciona una <b>Vestimenta</b> en el menú de secciones, o usa <b>“+ Agregar Vestimenta”</b> para crear una.</p>
             </div>
           }
 
           <div class="accordion" [class.open]="expanded['dress-appear']" (click)="toggle('dress-appear')">
             <div class="accordion-header"><span class="material-icons">{{ expanded['dress-appear'] ? 'expand_more' : 'chevron_right' }}</span><span>Apariencia de Cards</span></div>
           </div>
-          @if (expanded['dress-appear']) {
+          @if (expanded['dress-appear'] && dcard2()) {
             <div class="accordion-body">
+              <p class="pf-hint">Apariencia de la card de esta vestimenta (propia de "{{ dcard2()?.label || ('Vestimenta ' + (dIdx2()+1)) }}").</p>
               <div class="toggle-row">
                 <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('dresscode')?.showCardBg !== false" (ngModelChange)="setSec('dresscode','showCardBg',$event)"><span class="slider"></span></label>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="dcStyle2('showCardBg') !== false" (ngModelChange)="updateDCStyle2('showCardBg',$event)"><span class="slider"></span></label>
               </div>
-              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('dresscode')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('dresscode','cardBgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Radio borde ({{sec('dresscode')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('dresscode')?.cardBorderRadius||8" (ngModelChange)="setSec('dresscode','cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="dcStyle2('cardBgColor') || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="updateDCStyle2('cardBgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Radio borde ({{dcStyle2('cardBorderRadius') ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="dcStyle2('cardBorderRadius') ?? 16" (ngModelChange)="updateDCStyle2('cardBorderRadius',+$event)"></div>
               <div class="pf"><label>Estilo borde</label>
-                <app-custom-select [options]="borderStyleOptions" [value]="sec('dresscode')?.cardBorderStyle || 'none'" (valueChange)="setSec('dresscode','cardBorderStyle',$event)"></app-custom-select>
+                <app-custom-select [options]="borderStyleOptions" [value]="dcStyle2('cardBorderStyle') || 'none'" (valueChange)="updateDCStyle2('cardBorderStyle',$event)"></app-custom-select>
               </div>
-              <div class="pf"><label>Grosor borde ({{sec('dresscode')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('dresscode')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('dresscode','cardBorderWidth',+$event)"></div>
-              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('dresscode')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('dresscode','cardBorderColor',$event)"></app-color-picker></div>
-              @if (sec('dresscode')?.cardBorderStyle === 'glow' || sec('dresscode')?.cardBorderStyle === 'neon') {
-                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('dresscode')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('dresscode','cardGlowColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Grosor borde ({{dcStyle2('cardBorderWidth') ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="dcStyle2('cardBorderWidth') ?? 1" (ngModelChange)="updateDCStyle2('cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="dcStyle2('cardBorderColor') || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="updateDCStyle2('cardBorderColor',$event)"></app-color-picker></div>
+              @if (dcStyle2('cardBorderStyle') === 'glow' || dcStyle2('cardBorderStyle') === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="dcStyle2('cardGlowColor') || '#d4a017'" (valueChange)="updateDCStyle2('cardGlowColor',$event)"></app-color-picker></div>
               }
               <div class="pf"><label>Forma de card</label>
-                <app-custom-select [options]="cardShapeOptions" [value]="sec('dresscode')?.cardShape || 'standard'" (valueChange)="setSec('dresscode','cardShape',$event)"></app-custom-select>
+                <app-custom-select [options]="cardShapeOptions" [value]="dcStyle2('cardShape') || 'standard'" (valueChange)="updateDCStyle2('cardShape',$event)"></app-custom-select>
               </div>
             </div>
           }
@@ -1525,7 +1567,7 @@ import { ApiService } from '../../../../../core/services/api.service';
         }
 
         <!-- ===== COMMON SECTION STYLE (excluido para envelope/intro/hero; en details/venues requiere ítem seleccionado) ===== -->
-        @if (canvasState.selectedSection() !== 'envelope' && canvasState.selectedSection() !== 'intro' && canvasState.selectedSection() !== 'hero' && !(canvasState.selectedSection() === 'details' && dIdx() < 0) && !(canvasState.selectedSection() === 'venues' && vIdx() < 0)) {
+        @if (canvasState.selectedSection() !== 'envelope' && canvasState.selectedSection() !== 'intro' && canvasState.selectedSection() !== 'hero' && !(canvasState.selectedSection() === 'details' && dIdx() < 0) && !(canvasState.selectedSection() === 'venues' && vIdx() < 0) && !(canvasState.selectedSection() === 'dresscode' && dIdx2() < 0)) {
           <div class="section-style-toggle">
             <div class="toggle-row" (click)="toggleSectionStyle();$event.stopPropagation()">
               <span class="toggle-title">Estilo de Seccion</span>
@@ -2305,6 +2347,7 @@ export class BuilderPropsPanelComponent {
     const cfg = this.canvasState.getConfig(); if (!cfg) return null;
     if (key === 'details' && this.dIdx() >= 0) return (cfg as any).details?.cards?.[this.dIdx()] || null;
     if (key === 'venues' && this.vIdx() >= 0) return (cfg as any).venues?.items?.[this.vIdx()] || null;
+    if (key === 'dresscode' && this.dIdx2() >= 0) return (cfg as any).dresscode?.cards?.[this.dIdx2()] || null;
     return (cfg as any)[key] || null;
   }
 
@@ -2350,6 +2393,32 @@ export class BuilderPropsPanelComponent {
     const v = (cfg as any).venues?.items?.[i]; if (!v) return;
     if (!v.buttonStyle) v.buttonStyle = {};
     v.buttonStyle[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+
+  // ===== VESTIMENTA: card activa (modelo mini-secciones, espejo de Detalles/Lugares) =====
+  dIdx2(): number { return this.canvasState.selectedDresscodeIndex(); }
+  dcard2(): any | null {
+    const i = this.dIdx2();
+    if (i < 0) return null;
+    return (this.cfg() as any)?.dresscode?.cards?.[i] || null;
+  }
+  updateDCard2(prop: string, val: any) {
+    const i = this.dIdx2(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const c = (cfg as any).dresscode?.cards?.[i]; if (!c) return;
+    c[prop] = val;
+    this.canvasState.notifyChange();
+    this.canvasState.triggerAutoSave();
+  }
+  dcStyle2(prop: string): any { return this.dcard2()?.cardStyle?.[prop]; }
+  updateDCStyle2(prop: string, val: any) {
+    const i = this.dIdx2(); if (i < 0) return;
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const c = (cfg as any).dresscode?.cards?.[i]; if (!c) return;
+    if (!c.cardStyle) c.cardStyle = {};
+    c.cardStyle[prop] = val;
     this.canvasState.notifyChange();
     this.canvasState.triggerAutoSave();
   }

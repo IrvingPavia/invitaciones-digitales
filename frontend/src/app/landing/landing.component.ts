@@ -228,18 +228,15 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
           </div>
         }
         @if (data()!.config.dresscode.enabled) {
-          <div id="section-dresscode" class="section-block" [style]="getSectionBg(data()!.config.dresscode.sectionStyle)" [style.padding-top.px]="data()!.config.dresscode.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.dresscode.sectionStyle?.paddingBottom ?? 80">
+          <!-- MINI-SECCIONES: el fondo de cada vestimenta lo pinta el propio componente (.dress-mini
+               via miniBg). El .section-block NO pinta fondo ni padding (clase section-block-mini).
+               El fade lo aplica el componente solo al contenido, no al fondo. -->
+          <div id="section-dresscode" class="section-block section-block-mini">
             @if (data()!.config.dresscode.sectionStyle?.dividerType && data()!.config.dresscode.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.dresscode.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.dresscode.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (sectionMedia(data()!.config.dresscode.sectionStyle).isVideo) {
-              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.dresscode.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.dresscode.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.dresscode.sectionStyle).url" autoplay loop muted playsinline></video>
-            }
-            @if (sectionMedia(data()!.config.dresscode.sectionStyle).hasMedia && sectionMedia(data()!.config.dresscode.sectionStyle).overlay > 0) {
-              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.dresscode.sectionStyle).overlay / 100"></div>
-            }
-            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
-              <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.dresscode.sectionStyle" />
+            <div class="section-inner">
+              <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.dresscode.sectionStyle" [scrollAnim]="data()!.config.theme.scrollAnimation || 'fade-up'" />
             </div>
           </div>
         }

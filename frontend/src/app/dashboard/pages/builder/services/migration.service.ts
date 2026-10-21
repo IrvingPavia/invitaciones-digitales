@@ -168,6 +168,7 @@ export class MigrationService {
       config.dresscode = { enabled: false, title: 'Código de Vestimenta', cards: [] } as any;
     }
     if (!config.dresscode.cards) config.dresscode.cards = [];
+    this.migrateDresscodeToMiniSections(config.dresscode as any);
 
     // Gifts: ensure exists WITH transfer sub-object
     if (!config.gifts) {
@@ -360,6 +361,33 @@ export class MigrationService {
       }
     }
     venues._miniMigrated = true;
+  }
+
+  /** Migración al modelo de MINI-SECCIONES de Vestimenta (igual que Detalles/Lugares, Opción 2).
+      Copia una vez el estilo de sección y de card globales a cada card de dresscode que no tenga el
+      suyo. Conserva las imágenes de ejemplo (card.images). Idempotente vía `_miniMigrated`. */
+  private migrateDresscodeToMiniSections(dress: any) {
+    if (!dress || dress._miniMigrated) return;
+    const cards: any[] = dress.cards || [];
+    if (cards.length === 0) { dress._miniMigrated = true; return; }
+    const secStyle = dress.sectionStyle;
+    const legacyCardStyle = {
+      showCardBg: dress.showCardBg, cardBgColor: dress.cardBgColor, cardBgOpacity: dress.cardBgOpacity,
+      cardBorderStyle: dress.cardBorderStyle, cardBorderWidth: dress.cardBorderWidth, cardBorderColor: dress.cardBorderColor,
+      cardGlowColor: dress.cardGlowColor, cardShape: dress.cardShape, cardBorderRadius: dress.cardBorderRadius,
+    };
+    const hasLegacyCard = Object.values(legacyCardStyle).some(v => v !== undefined && v !== null);
+    for (const card of cards) {
+      if (!card.sectionStyle && secStyle) card.sectionStyle = JSON.parse(JSON.stringify(secStyle));
+      if (!card.cardStyle && hasLegacyCard) card.cardStyle = { ...legacyCardStyle };
+      if (card.cardStyle && card.showCardBg !== undefined && card.cardStyle.showCardBg === undefined) {
+        card.cardStyle.showCardBg = card.showCardBg;
+      }
+      if (card.cardStyle && card.cardBorderRadius !== undefined && card.cardStyle.cardBorderRadius === undefined) {
+        card.cardStyle.cardBorderRadius = card.cardBorderRadius;
+      }
+    }
+    dress._miniMigrated = true;
   }
 
   private buildDetailsCanvas(config: EventConfig): CanvasSectionData {

@@ -11,6 +11,48 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-22 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Vestimenta como mini-secciones + fixes de banner/textura/grosor/acordeón
+
+**VESTIMENTA como MINI-SECCIONES por card** (espejo de Detalles/Lugares). Cada "ejemplo de vestimenta"
+= sección propia con encabezado/card arrastrables, fondo/estilo/drag propios. Resumen:
+- Modelo: `DresscodeCard` extendido con label/heading/descriptionHtml/imageSize/sectionStyle/cardStyle/
+  positions. Conserva images[] (hasta 4 por card).
+- Componente landing: reescrito al patrón mini-sección (dress-mini, bg-banner solo desktop = R3, fade
+  solo contenido, drag, lightbox preservado). Imágenes en cuadrícula 2×2 (grid 2 columnas; 1=centrada,
+  3=2+1 centrada, 4=2+2), `object-fit:contain` (PNG transparente), tamaño configurable small/medium/
+  large (+15% por nivel) vía `--dress-img-scale`.
+- Canvas-state: `selectedDresscodeIndex`. Builder: grupo colapsable con sub-entradas "Vestimenta N",
+  canvas por-card con `onlyIndex`, métodos selectDresscode/addDresscodeMini/removeDresscodeMini/
+  onDresscodeDrop/onDresscodePositionsChange.
+- Panel: acordeones Encabezado / Contenido (label/título+estilo con grosor/descripción enriquecida/
+  imágenes de ejemplo/tamaño) / Apariencia de Cards. Helpers dIdx2/dcard2/updateDCard2/dcStyle2/
+  updateDCStyle2. styleHolder redirige a la card de dresscode. Imágenes operan con dIdx2().
+- Migración: `migrateDresscodeToMiniSections` (idempotente, `_miniMigrated`).
+- Landing: `section-block-mini` (sin fondo/padding/video/overlay duplicados; sin appScrollReveal).
+- Backend sin cambios (passthrough vía spread preserva los campos nuevos).
+
+**Fixes acumulados (misma tanda, pre-Vestimenta):**
+- FIX banner mobile R3 en Detalles/Lugares: `isBannerBg()` y `miniBg()` ahora solo aplican la columna
+  de ancho `--sec-banner-w` en DESKTOP; en mobile la imagen va a `auto 100%` centrado (R3).
+- FIX textura del fondo global en canvas desktop: la textura se movía dentro del sticky (1 viewport) y
+  se "despegaba" al scrollear. Ahora es `.canvas-bg-texture-full` (absolute inset:0 sobre el scope).
+- Control "Grosor" del título añadido a Lugares (faltaba, Detalles ya lo tenía).
+- Menú colapsable (acordeón independiente): Detalles, Lugares y Vestimenta con chevron que colapsa/
+  expande sus sub-ítems. `groupExpanded` signal con los 3 grupos, ambos/todos expandidos por defecto.
+
+**Pendientes detectados (sin empezar):**
+- Drag-box: al redimensionar con los dots, el objeto se puede salir del lienzo (no limita bounds).
+- Al cambiar mobile↔desktop, el canvas no se mantiene en la sección seleccionada (salta a otra).
+- Bug del toolbar del canvas al cambiar Canvas↔Preview (scroll/salto).
+- Scroll-snap Fase 1: validar en landing real.
+- Script SQL para pasar diseño de Valeria a PROD (con método seguro, sin PowerShell).
+
+---
+
 ## Estado actual del proyecto: 2026-10-22
 
 ### Rama activa: `feature/drag-elementos-secciones`

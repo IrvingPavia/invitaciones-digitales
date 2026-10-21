@@ -432,21 +432,23 @@ export class LandingVenuesComponent implements AfterViewInit, OnDestroy {
       const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
       if (!m.hasMedia || m.isVideo) return 'background: transparent';
       const ov = Math.max(0, Math.min(100, m.overlay)) / 100;
-      if (m.fit === 'banner') {
+      // BANNER solo en DESKTOP (columna --sec-banner-w via ::before). En MOBILE cae a R3.
+      if (m.fit === 'banner' && this.isDesktopBg) {
         return `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
       }
+      // REGLA R3 (mobile y no-banner): alto = sección, ancho PROPORCIONAL (auto 100%) centrado.
       const dark = ov > 0 ? `linear-gradient(rgba(0,0,0,${ov}), rgba(0,0,0,${ov})), ` : '';
-      return `background: ${dark}url(${m.url}) ${m.position || 'center'} / cover no-repeat`;
+      return `background: ${dark}url(${m.url}) center / auto 100% no-repeat`;
     }
     return 'background: transparent';
   }
 
-  /** True si la mini-sección usa modo banner (imagen con fit=banner): activa la clase bg-banner. */
+  /** True SOLO si el banner-columna aplica (fit=banner Y desktop). En mobile el banner no aplica (R3). */
   isBannerBg(venue: VenueItem): boolean {
     const ss = this.ss(venue) as any;
     if (!ss || ss.bgType !== 'image') return false;
     const m = resolveMedia(sectionStyleToMedia(ss), this.isDesktopBg);
-    return m.hasMedia && !m.isVideo && m.fit === 'banner';
+    return m.hasMedia && !m.isVideo && m.fit === 'banner' && this.isDesktopBg;
   }
 
   formatTime(time: string): string {

@@ -49,6 +49,37 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-22 (b) — Vestimenta como mini-secciones + fixes (banner mobile/textura/grosor/acordeón)
+
+Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA.
+
+- **VESTIMENTA = mini-secciones por card** (3er sección migrada, espejo de Detalles/Lugares). Modelo
+  `DresscodeCard` + label/heading/descriptionHtml/imageSize/sectionStyle/cardStyle/positions (conserva
+  images[]). Componente `dresscode.component.ts` reescrito al patrón (dress-mini, miniBg/bg-banner solo
+  desktop, fade solo contenido vía scrollAnim, drag heading+card, lightbox preservado). Canvas-state
+  `selectedDresscodeIndex`; builder grupo colapsable + canvas por-card (onlyIndex) + selectDresscode/
+  addDresscodeMini/removeDresscodeMini/onDresscodeDrop/onDresscodePositionsChange; panel con dIdx2/
+  dcard2/updateDCard2/dcStyle2/updateDCStyle2 + styleHolder redirige a la card; migración
+  `migrateDresscodeToMiniSections`; landing con `section-block-mini` (sin doble fondo). Backend sin
+  cambios (passthrough).
+  - IMÁGENES de ejemplo (DIFERENCIA de Vestimenta): cuadrícula 2×2 (`.example-images` grid 2 cols;
+    `[data-count=1]`=centrada, `[data-count=3]` 3ª cruza columnas centrada, 4=2+2; se apila en vertical
+    si no cabe), `object-fit:contain` (respeta PNG transparente), tamaño por card small/medium/large
+    (+15% por nivel) vía `--dress-img-scale`. El VISOR/lightbox se conserva.
+
+- **REGLA reforzada (banner mobile):** `isBannerBg()`/`miniBg()` de details/venues/dresscode aplican la
+  columna `--sec-banner-w` SOLO en desktop; en mobile la imagen va `auto 100%` centrada (R3). Si se
+  crea otra sección con fondo banner, respetar esto.
+- **Fix textura canvas:** la textura del fondo global vive en `.canvas-bg-texture-full` (absolute
+  inset:0 sobre `.canvas-bg-scope`), NO dentro del `.canvas-bg-sticky` (que es de 1 viewport). El
+  sticky solo lleva GIF/imagen/video.
+- **Grosor del título** añadido a Lugares. **Menú acordeón** (colapsable independiente) en los 3 grupos
+  via `groupExpanded` signal + chevron `.section-collapse` + `toggleGroup('details'|'venues'|'dresscode')`.
+
+- **PENDIENTES detectados (sin empezar):** (1) drag-box se sale del lienzo al resize con los dots (no
+  limita bounds); (2) cambiar mobile↔desktop en el canvas NO mantiene la sección seleccionada (salta);
+  (3) toolbar del canvas salta al alternar Canvas↔Preview.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-22 — scroll-snap (Fase 1) + fixes de fondo/animación en mini-secciones
 
 Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA.
