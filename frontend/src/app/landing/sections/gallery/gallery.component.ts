@@ -1,5 +1,6 @@
 ﻿import { Component, Input, signal, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { GalleryConfig, Photo, GlobalTextStyles, SectionStyle } from '../../../core/models/models';
 import { HeadingOrnamentComponent } from '../../components/heading-ornament.component';
 import { LightboxService } from '../../../core/services/lightbox.service';
@@ -18,9 +19,11 @@ import { LightboxService } from '../../../core/services/lightbox.service';
                 <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
               }
               <h2 class="section-heading"
-                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+                  [style.font-family]="headingFont()"
+                  [style.font-size]="headingSize()"
+                  [style.background-image]="useHeadingGradient() ? getHeadingGradient() : null"
+                  [class.gradient-text]="useHeadingGradient()"
+                  [style.color]="!useHeadingGradient() ? headingColor() : null"
               >{{ headingText() }}</h2>
               @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
                 <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
@@ -30,20 +33,22 @@ import { LightboxService } from '../../../core/services/lightbox.service';
             <div class="section-header">
               <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
               <h2 class="section-heading"
-                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+                  [style.font-family]="headingFont()"
+                  [style.font-size]="headingSize()"
+                  [style.background-image]="useHeadingGradient() ? getHeadingGradient() : null"
+                  [class.gradient-text]="useHeadingGradient()"
+                  [style.color]="!useHeadingGradient() ? headingColor() : null"
               >{{ headingText() }}</h2>
               <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
             </div>
           }
         }
-        @if (config.description) {
-          <p class="gallery-desc"
-             [style.font-family]="getFontFamily(styles?.subtitleStyle?.fontFamily)"
-             [style.font-size.px]="styles?.subtitleStyle?.fontSize || 16"
-             [style.color]="styles?.subtitleStyle?.color || 'rgba(255,255,255,0.6)'"
-          >{{ config.description }}</p>
+        @if (hasDescription()) {
+          <div class="gallery-desc"
+               [style.font-family]="contentFont()"
+               [style.font-size]="contentSize()"
+               [style.color]="contentColor()"
+               [innerHTML]="safeDesc()"></div>
         }
 
         @if (photos.length > 0) {
@@ -151,6 +156,8 @@ import { LightboxService } from '../../../core/services/lightbox.service';
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; position: relative; z-index: 2; }
     .section-line { flex: 1; height: 1px; }
     .section-heading { text-align: center; }
+    /* Título BICOLOR (degradado): el background-image (gradiente) se recorta al texto. */
+    .section-heading.gradient-text { -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
     .gallery-desc { text-align: center; margin-bottom: 32px; position: relative; z-index: 2; }
 
     /* === 3D CAROUSEL === */
@@ -310,6 +317,39 @@ export class LandingGalleryComponent implements OnInit, OnDestroy {
   getOrnamentPosition(): string { return this.sectionStyle?.headingOrnament?.position || 'below'; }
   getOrnamentColor(): string { return this.sectionStyle?.headingOrnament?.color || this.styles?.separatorStyle?.color || '#d4a017'; }
   getOrnamentSize(): number { return this.sectionStyle?.headingOrnament?.size || 1; }
+
+  // ===== Texto por SECCIÓN (prioridad sectionStyle > tema global). Espejo de Detalles/Lugares/
+  //       Vestimenta: el control "Texto de Sección" del panel ahora SÍ surte efecto en Galería. =====
+  headingColor(): string { return this.sectionStyle?.sectionHeadingColor || this.styles?.sectionHeadingStyle?.color || '#d4a017'; }
+  headingFont(): string { return this.getFontFamily(this.sectionStyle?.sectionHeadingFont || this.styles?.sectionHeadingStyle?.fontFamily); }
+  headingSize(): string { return `${this.sectionStyle?.sectionHeadingSize || this.styles?.sectionHeadingStyle?.fontSize || 36}px`; }
+  /** Título BICOLOR: usa gradiente si el usuario definió sectionHeadingColor2. */
+  useHeadingGradient(): boolean { return !!this.sectionStyle?.sectionHeadingColor2; }
+  getHeadingGradient(): string {
+    const c1 = this.sectionStyle?.sectionHeadingColor || this.styles?.sectionHeadingStyle?.color || '#d4a017';
+    const c2 = this.sectionStyle?.sectionHeadingColor2;
+    if (!c2) return 'none';
+    const angle = this.sectionStyle?.sectionHeadingGradientAngle ?? 135;
+    const v = Math.max(0, Math.min(100, this.sectionStyle?.sectionHeadingGradientIntensity ?? 50));
+    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
+  }
+  // Descripción (nivel "Contenido"): color/fuente/tamaño por sección con fallback al tema.
+  contentColor(): string { return this.sectionStyle?.contentColor || this.styles?.subtitleStyle?.color || 'rgba(255,255,255,0.6)'; }
+  contentFont(): string { return this.getFontFamily(this.sectionStyle?.contentFont || this.styles?.subtitleStyle?.fontFamily); }
+  contentSize(): string { return `${this.sectionStyle?.contentFontSize || this.styles?.subtitleStyle?.fontSize || 16}px`; }
+
+  // ===== Descripción enriquecida (editor de texto libre). Fallback a texto plano legacy. =====
+  private sanitizer = inject(DomSanitizer);
+  private _safeCache = new Map<string, SafeHtml>();
+  hasDescription(): boolean {
+    return !!((this.config.descriptionHtml && this.config.descriptionHtml.trim()) || (this.config.description && this.config.description.trim()));
+  }
+  safeDesc(): SafeHtml {
+    const h = (this.config.descriptionHtml && this.config.descriptionHtml.trim()) ? this.config.descriptionHtml : (this.config.description || '');
+    if (!this._safeCache.has(h)) this._safeCache.set(h, this.sanitizer.bypassSecurityTrustHtml(h));
+    return this._safeCache.get(h)!;
+  }
 
   current = signal(0);
   lightboxIndex = signal<number | null>(null);

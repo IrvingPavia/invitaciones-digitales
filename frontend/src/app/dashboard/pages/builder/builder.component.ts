@@ -290,7 +290,7 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.gallery.sectionStyle" [staticMode]="true" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
@@ -1817,7 +1817,9 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     // mismas variables CSS --section-* para que el canvas refleje el estilo de texto editado.
     // Las reglas ::ng-deep que las consumen están en los styles de este componente,
     // scopeadas a .preview-section-click[style*="--section-..."].
-    if (ss.sectionHeadingColor) css += `; --section-h2-color: ${ss.sectionHeadingColor}`;
+    // Si hay color2 (H2 bicolor), NO inyectar --section-h2-color: el componente pinta el gradiente
+    // inline y la regla ::ng-deep con !important lo anularía (igual que en la landing).
+    if (ss.sectionHeadingColor && !ss.sectionHeadingColor2) css += `; --section-h2-color: ${ss.sectionHeadingColor}`;
     if (ss.sectionHeadingFont) css += `; --section-h2-font: ${this.getCanvasFont(ss.sectionHeadingFont)}`;
     if (ss.sectionHeadingSize) css += `; --section-h2-size: ${ss.sectionHeadingSize}px`;
     if (ss.headingColor) css += `; --section-heading-color: ${ss.headingColor}`;

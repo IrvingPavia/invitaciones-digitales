@@ -1233,7 +1233,22 @@ import { ApiService } from '../../../../../core/services/api.service';
           @if (expanded['gal-content']) {
             <div class="accordion-body">
               <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('gallery')?.title" (ngModelChange)="setSec('gallery','title',$event)"></div>
-              <div class="pf"><label>Descripcion</label><textarea class="pinput" style="min-height:40px" [ngModel]="sec('gallery')?.description" (ngModelChange)="setSec('gallery','description',$event)"></textarea></div>
+              @if (sec('gallery')?.title) {
+                <span class="pf-section-title">Estilo del título</span>
+                <p class="pf-hint">Deja vacío para heredar del Tema Global. Define dos colores para un título bicolor (degradado).</p>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('sectionHeadingColor2')||''" (valueChange)="setSS('sectionHeadingColor2',$event)"></app-color-picker></div>
+                <div class="pf"><label>Ángulo ({{ss('sectionHeadingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('sectionHeadingGradientAngle') ?? 135" (ngModelChange)="setSS('sectionHeadingGradientAngle',+$event)"></div>
+                <div class="pf"><label>Intensidad ({{ss('sectionHeadingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('sectionHeadingGradientIntensity') ?? 50" (ngModelChange)="setSS('sectionHeadingGradientIntensity',+$event)"></div>
+              }
+              <div class="pf" style="margin-top:8px"><label>Descripcion</label>
+                <app-rich-text-editor [ngModel]="sec('gallery')?.descriptionHtml || sec('gallery')?.description || ''" (ngModelChange)="setSec('gallery','descriptionHtml',$event)" [placeholder]="'Descripción de la galería...'"></app-rich-text-editor>
+              </div>
+              <p class="pf-hint">El color, la fuente y el tamaño de la descripción se ajustan desde la barra del editor de texto de arriba.</p>
             </div>
           }
 
@@ -1635,9 +1650,9 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
-            <!-- "Texto de Sección" NO se muestra en Detalles: sus controles de texto (Encabezado/
-                 Título/Contenido) se movieron al acordeón "Contenido" de cada Detalle. -->
-            @if (canvasState.selectedSection() !== 'details') {
+            <!-- "Texto de Sección" NO se muestra en Detalles ni Galería: sus controles de texto
+                 (Encabezado/Título/Contenido) se movieron al acordeón "Contenido" de la sección. -->
+            @if (canvasState.selectedSection() !== 'details' && canvasState.selectedSection() !== 'gallery') {
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>

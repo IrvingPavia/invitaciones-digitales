@@ -1243,8 +1243,10 @@ export class LandingComponent implements OnInit, OnDestroy {
         break;
       }
     }
-    // Section Heading (H2) overrides
-    if (style.sectionHeadingColor) css += `; --section-h2-color: ${style.sectionHeadingColor}`;
+    // Section Heading (H2) overrides. Si hay color2 (título BICOLOR), NO se inyecta --section-h2-color:
+    // el componente pinta el gradiente inline (background-image + gradient-text) y la regla ::ng-deep
+    // con !important lo anularía. Sin color2, se inyecta el color plano como siempre.
+    if (style.sectionHeadingColor && !style.sectionHeadingColor2) css += `; --section-h2-color: ${style.sectionHeadingColor}`;
     if (style.sectionHeadingFont) css += `; --section-h2-font: ${this.getThemeFont(style.sectionHeadingFont)}`;
     if (style.sectionHeadingSize) css += `; --section-h2-size: ${style.sectionHeadingSize}px`;
     // Titles (h3) overrides

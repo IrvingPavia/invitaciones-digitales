@@ -178,6 +178,11 @@ export interface SectionStyle {
   dividerStrokeOpacity?: number; // 0-1, default 1
   // Text override - Section Heading (H2)
   sectionHeadingColor?: string;
+  /** Segundo color del encabezado (H2) para título BICOLOR (degradado). Si se define, el H2 usa
+      gradiente sectionHeadingColor → sectionHeadingColor2. */
+  sectionHeadingColor2?: string;
+  sectionHeadingGradientAngle?: number;
+  sectionHeadingGradientIntensity?: number;
   sectionHeadingFont?: string;
   sectionHeadingSize?: number;
   // Text override - Titles (h3, internal card titles)
@@ -586,6 +591,8 @@ export interface GalleryConfig {
   enabled: boolean;
   title: string;
   description: string;
+  /** Descripción enriquecida (editor de texto libre). Si existe, manda sobre `description` plano. */
+  descriptionHtml?: string;
   displayStyle?: 'carousel-3d' | 'carousel-vertical' | 'stack' | 'coverflow' | 'flip' | 'polaroid' | 'grid' | 'slideshow';
   sectionStyle?: SectionStyle;
 }

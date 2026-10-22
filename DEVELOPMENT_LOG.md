@@ -11,6 +11,33 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-15 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Galería — texto por sección + título bicolor + descripción enriquecida
+
+**GALERÍA migrada al patrón de texto por sección** (como Detalles/Lugares/Vestimenta), SIN tocar el
+control de galería (estilos extensibles polaroid/mosaico) ni el viewer (LightboxService):
+- Título (h2) y descripción ahora leen de `sectionStyle` con fallback al tema global (helpers
+  `headingColor/Font/Size`, `contentColor/Font/Size`). El canvas ahora pasa `[sectionStyle]` a
+  `app-landing-gallery`.
+- **Título BICOLOR (degradado)**: nuevos campos `SectionStyle.sectionHeadingColor2`,
+  `sectionHeadingGradientAngle`, `sectionHeadingGradientIntensity`. El h2 usa `gradient-text` cuando
+  hay color2. En canvas/landing NO se inyecta `--section-h2-color` si hay color2 (la regla ::ng-deep
+  con !important lo anularía) → el gradiente inline manda. Paridad canvas↔landing.
+- **Descripción enriquecida**: `GalleryConfig.descriptionHtml` (fallback a `description` plano). Panel
+  usa `app-rich-text-editor`.
+- **Panel**: en "Contenido" se añadió "Estilo del título" (fuente/tamaño/Color 1/Color 2/ángulo/
+  intensidad). El acordeón genérico "Texto de Sección" se OCULTA para Galería (y seguía oculto para
+  Detalles); sus controles viven en "Contenido".
+- Retrocompatible: sin migración; configs previas se ven igual hasta editar.
+
+**PENDIENTE sugerido**: replicar "título bicolor + quitar Texto de Sección" en Detalles/Lugares/
+Vestimenta para consistencia (a confirmar con el usuario).
+
+---
+
 ## Estado actual del proyecto: 2026-10-15
 
 ### Rama activa: `feature/drag-elementos-secciones`
