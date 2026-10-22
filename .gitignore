@@ -36,3 +36,5 @@ backup.sql
 # Scripts de migracion de datos de clientes (contienen datos personales reales).
 # Se ejecutan manualmente; NO se versionan.
 scripts/migrate-valeria/
+# Scripts de migracion de config generados (volcado de config_json por evento). Puntuales, locales.
+docs/MIGRACION-*.sql
