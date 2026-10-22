@@ -175,14 +175,22 @@ router.post('/import/:eventId', auth, requirePackageFeature('guest_management'),
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
+    // Clave de deduplicación de un invitado: si tiene family_name se identifica por él
+    // (una familia puede NO tener lista de nombres), si no, por guest_names. Así:
+    //  - familias sin nombres (solo family_name) se identifican y no se duplican al reimportar;
+    //  - invitados individuales se identifican por su nombre.
+    const dedupKey = (familyName, guestNames) => {
+      const f = (familyName || '').toLowerCase().trim();
+      const g = (guestNames || '').toLowerCase().trim();
+      return f ? `f:${f}` : `g:${g}`;
+    };
+
     // Get existing guests for dedup
     const [existing] = await conn.query(
       'SELECT guest_names, family_name FROM guests WHERE event_id = ?',
       [req.params.eventId]
     );
-    const existingSet = new Set(existing.map(g => 
-      `${(g.family_name || '').toLowerCase().trim()}|${(g.guest_names || '').toLowerCase().trim()}`
-    ));
+    const existingSet = new Set(existing.map(g => dedupKey(g.family_name, g.guest_names)));
 
     await conn.beginTransaction();
     const results = [];
@@ -190,17 +198,24 @@ router.post('/import/:eventId', auth, requirePackageFeature('guest_management'),
     for (const row of rows) {
       const guestNames = (row.guest_names || row.nombre || '').trim();
       const familyName = (row.family_name || '').trim();
-      if (!guestNames) continue;
+      // Detectar tipo: respeta guest_type del archivo; si no viene, es family cuando hay
+      // family_name (aunque guest_names esté vacío), si no individual.
+      const guestType = (row.guest_type || '').trim().toLowerCase() === 'family' || (!row.guest_type && familyName)
+        ? 'family' : (row.guest_type || 'individual');
 
-      // Check for duplicate
-      const key = `${familyName.toLowerCase()}|${guestNames.toLowerCase()}`;
+      // Saltar solo filas REALMENTE vacías (sin nombre de familia ni de invitado). Antes se
+      // exigía guest_names, lo que descartaba por error a las familias sin lista de nombres.
+      if (!guestNames && !familyName) continue;
+
+      // Check for duplicate (por family_name o, en su defecto, guest_names)
+      const key = dedupKey(familyName, guestNames);
       if (existingSet.has(key)) { skipped++; continue; }
       existingSet.add(key);
 
       const code = uuidv4().split('-')[0].toUpperCase();
       const [r] = await conn.query(
         'INSERT INTO guests (event_id, unique_code, guest_type, family_name, guest_names, max_companions, phone, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [req.params.eventId, code, row.guest_type || 'individual', familyName,
+        [req.params.eventId, code, guestType, familyName,
           guestNames, parseInt(row.max_companions || row.acompanantes || 0),
           (row.phone || row.telefono || row.celular || '').toString().trim() || null,
           row.notes || row.notas || '']

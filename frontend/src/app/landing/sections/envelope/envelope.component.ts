@@ -112,7 +112,7 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
 
       <!-- ============ TEMPLATE: PLAIN ============ -->
       @if (getTemplate() === 'plain') {
-        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
+        <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [class.plain-desktop]="plainDesktopFixed" [class.plain-mobile]="plainMobileFixed" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
           @if (config.plainTitle) {
             <app-drag-box [editable]="editable" [position]="plainPosData('title')" [ngStyle]="plainPos('title')" (positionChange)="onPosChange('title', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
               <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
@@ -377,6 +377,31 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
         transform: translateX(-50%);
       }
     }
+    /* PARIDAD canvas↔preview↔landing (desktop): el LIENZO DE TEXTO del template Plano
+       (.plain-container = data-drag-bounds) se acota a 680px CENTRADO en desktop. Como el envelope
+       es un overlay fixed a pantalla completa, en la landing el lienzo medía todo el ancho de la
+       ventana (~1024px+) mientras que en el canvas medía ~500px → mismo % daba ancho físico
+       distinto y el texto (font-size px fijo) hacía otro wrapping. En modo banner el problema era
+       aún peor: el texto usaba var(--banner-w) = '%' en canvas pero 'vw' en landing (divergente).
+       Con 680px fijo los 3 contextos coinciden. Esta regla GANA sobre .bg-banner (va después y usa
+       doble clase .plain-container.plain-desktop) para que el ancho del TEXTO sea estable; la
+       IMAGEN de fondo (.envelope-bg-image) conserva su propio --banner-w aparte. */
+    .plain-container.plain-desktop,
+    .plain-container.plain-desktop.bg-banner {
+      top: 0; bottom: 0;
+      left: 50%; right: auto;
+      width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px);
+      transform: translateX(-50%);
+    }
+    /* MOBILE: mismo criterio que desktop pero con --canvas-mobile-w, para que el lienzo no se
+       reescale al cambiar el dispositivo del selector del canvas (el marco crece, el lienzo no). */
+    .plain-container.plain-mobile,
+    .plain-container.plain-mobile.bg-banner {
+      top: 0; bottom: 0;
+      left: 50%; right: auto;
+      width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px);
+      transform: translateX(-50%);
+    }
     .plain-title {
       animation: splashTextIn 1s ease 0.2s both;
     }
@@ -411,7 +436,22 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
     .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
     .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
-    .opened .plain-container { animation: splashOut 0.8s ease forwards; }
+
+    /* === SALIDA DEL TEMPLATE PLANO (configurable via data-exit) ===
+       Default 'fade' = desvanecer sin desplazamiento lateral. transform-origin centrado
+       para que ningun elemento posicionado fuera del centro se corra al escalar. */
+    .opened .plain-container { transform-origin: center center; }
+    .opened .plain-container[data-exit="fade"]     { animation: plainExitFade 0.8s ease forwards; }
+    .opened .plain-container[data-exit="zoom-out"]  { animation: plainExitZoomOut 0.8s ease forwards; }
+    .opened .plain-container[data-exit="zoom-in"]   { animation: plainExitZoomIn 0.8s ease forwards; }
+    .opened .plain-container[data-exit="slide-up"]  { animation: plainExitSlideUp 0.8s ease forwards; }
+    .opened .plain-container[data-exit="blur"]      { animation: plainExitBlur 0.8s ease forwards; }
+    .opened .plain-container[data-exit="none"]      { animation: plainExitFade 0.4s ease forwards; }
+    @keyframes plainExitFade    { 0% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes plainExitZoomOut { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.85); } }
+    @keyframes plainExitZoomIn  { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.12); } }
+    @keyframes plainExitSlideUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+    @keyframes plainExitBlur    { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(12px); } }
   `]
 })
 export class LandingEnvelopeComponent {
@@ -504,6 +544,23 @@ export class LandingEnvelopeComponent {
   /** True si debe aplicarse el modo banner (banner configurado y no forzado a cover). */
   get bannerActive(): boolean {
     return this.config.splashBgFit === 'banner' && !this.forceCover;
+  }
+  /** True si el LIENZO DE TEXTO del template Plano debe acotarse a la columna fija de desktop
+      (680px). Aplica en DESKTOP (canvas con previewDevice='desktop' o landing en ventana ancha),
+      INCLUSO en modo banner: el banner define el ancho de la IMAGEN de fondo (.envelope-bg-image),
+      pero el lienzo de TEXTO debe tener un ancho de referencia estable para que el drag coincida
+      entre canvas, preview y landing. Antes, en banner, el texto usaba var(--banner-w) que es '%'
+      del viewport en el canvas pero 'vw' de la ventana en la landing → divergía. Con 680px fijo
+      los 3 contextos coinciden. En mobile no aplica (cada dispositivo mantiene su ancho). */
+  get plainDesktopFixed(): boolean {
+    return !this.isMobilePos;
+  }
+  /** True cuando el LIENZO DE TEXTO del Plano debe acotarse al ancho fijo MOBILE
+      (--canvas-mobile-w). El envelope es un overlay fixed a pantalla completa, así que sin acotar
+      el lienzo medía todo el ancho del dispositivo (variable con el selector) y los objetos en %
+      se reescalaban al cambiar de dispositivo. */
+  get plainMobileFixed(): boolean {
+    return this.isMobilePos;
   }
   @Output() done = new EventEmitter<void>();
   opened = false;

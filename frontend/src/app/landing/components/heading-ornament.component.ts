@@ -71,10 +71,34 @@ import { CommonModule } from '@angular/common';
           </svg>
         </div>
       }
+      @case ('stars') {
+        <div class="ornament ornament-sym" [style.transform]="'scale(' + scale + ')'" [style.color]="color">
+          <span>✦</span><span>✦</span><span>✦</span>
+        </div>
+      }
+      @case ('hearts') {
+        <div class="ornament ornament-sym" [style.transform]="'scale(' + scale + ')'" [style.color]="color">
+          <span>♥</span><span>♥</span><span>♥</span>
+        </div>
+      }
+      @case ('diamonds') {
+        <div class="ornament ornament-sym" [style.transform]="'scale(' + scale + ')'" [style.color]="color">
+          <span>◆</span><span>◆</span><span>◆</span>
+        </div>
+      }
+      @case ('leaves') {
+        <div class="ornament ornament-sym" [style.transform]="'scale(' + scale + ')'" [style.color]="color">
+          <span>❧</span><span>❦</span><span>❧</span>
+        </div>
+      }
     }
   `,
   styles: [`
-    :host { display: block; width: 100%; }
+    /* El host se ajusta a su contenido (no 100%) para que, dentro de un drag-box con
+       width:max-content, la caja mida exactamente el ornamento y quede centrada. En las
+       secciones que lo usan en flujo, el contenedor (.section-header-block con align-items:center,
+       o text-align:center) sigue centrándolo igual. */
+    :host { display: inline-block; width: auto; }
     .ornament {
       display: flex; align-items: center; justify-content: center;
       padding: 6px 0;
@@ -92,6 +116,15 @@ import { CommonModule } from '@angular/common';
     }
     .dash-line { width: 32px; height: 2px; border-radius: 1px; opacity: 0.7; }
     .dash-dot { width: 6px; height: 6px; border-radius: 50%; }
+    /* Ornamentos de símbolo (estrellas/corazones/diamantes/hojas): tres spans con gap uniforme.
+       Al no usar letter-spacing (que deja hueco asimétrico tras el último símbolo) el centro
+       geométrico coincide con el centro de la caja para CUALQUIER símbolo, independientemente
+       del bearing propio del carácter. Así el handle central del drag-box cae sobre el del medio. */
+    .ornament-sym {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      font-size: 24px; line-height: 1; padding: 6px 0;
+    }
+    .ornament-sym span { display: inline-block; }
     svg { display: block; }
   `]
 })

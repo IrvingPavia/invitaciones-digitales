@@ -57,12 +57,19 @@ interface BuilderSection {
           <span class="material-icons">redo</span>
         </button>
         <div class="builder-tb-sep"></div>
-        <button class="builder-device-btn" [class.active]="previewDevice() === 'mobile'" (click)="previewDevice.set('mobile')">
+        <button class="builder-device-btn" [class.active]="previewDevice() === 'mobile'" (click)="setPreviewDevice('mobile')">
           <span class="material-icons">phone_iphone</span>
         </button>
-        <button class="builder-device-btn" [class.active]="previewDevice() === 'desktop'" (click)="previewDevice.set('desktop')">
+        <button class="builder-device-btn" [class.active]="previewDevice() === 'desktop'" (click)="setPreviewDevice('desktop')">
           <span class="material-icons">monitor</span>
         </button>
+        <!-- Selector de dispositivo (solo modo mobile). En escritorio va aquí en la toolbar;
+             en pantallas angostas se oculta y aparece en el panel de Secciones (ver abajo). -->
+        @if (previewDevice() === 'mobile') {
+          <div class="builder-device-select">
+            <app-custom-select [options]="canvasDeviceOptions" [value]="canvasDevice()" [compact]="true" (valueChange)="setCanvasDevice($event)"></app-custom-select>
+          </div>
+        }
         <div class="builder-tb-sep"></div>
         <button class="builder-mode-toggle" [class.preview]="canvasMode() === 'preview'" (click)="toggleCanvasMode()">
           <span class="material-icons">{{ canvasMode() === 'canvas' ? 'edit' : 'visibility' }}</span>
@@ -89,6 +96,14 @@ interface BuilderSection {
         <div class="builder-panel-header">
           <span>Secciones</span>
         </div>
+        <!-- Selector de dispositivo para móvil: aparece aquí (sobre "Tema Global") cuando NO cabe
+             en la toolbar (pantalla angosta), solo en modo mobile. En escritorio va en la toolbar. -->
+        @if (previewDevice() === 'mobile' && !isWide()) {
+          <div class="builder-device-select-panel">
+            <span class="device-select-label"><span class="material-icons">smartphone</span> Dispositivo</span>
+            <app-custom-select [options]="canvasDeviceOptions" [value]="canvasDevice()" (valueChange)="setCanvasDevice($event)"></app-custom-select>
+          </div>
+        }
         <!-- Theme Global button -->
         <div class="builder-theme-btn" [class.active]="canvasState.selectedSection() === '_theme'" (click)="selectTheme()">
           <span class="material-icons">palette</span>
@@ -97,12 +112,19 @@ interface BuilderSection {
         <div class="builder-sections-list" cdkDropList (cdkDropListDropped)="onSectionDrop($event)">
           @for (section of sections(); track section.key) {
             <div class="builder-section-item" cdkDrag
-                 [class.active]="canvasState.selectedSection() === section.key"
+                 [class.active]="canvasState.selectedSection() === section.key && !(section.key === 'details' && canvasState.selectedDetailIndex() >= 0) && !(section.key === 'venues' && canvasState.selectedVenueIndex() >= 0) && !(section.key === 'dresscode' && canvasState.selectedDresscodeIndex() >= 0)"
                  [class.disabled]="!section.enabled"
+                 [class.is-group]="section.key === 'details' || section.key === 'venues' || section.key === 'dresscode'"
                  (click)="selectSection(section.key)">
               <span class="material-icons drag-handle" cdkDragHandle>drag_indicator</span>
               <span class="material-icons section-icon">{{ section.icon }}</span>
               <span class="section-label">{{ section.label }}</span>
+              @if (section.key === 'details' || section.key === 'venues' || section.key === 'dresscode') {
+                <!-- Chevron de colapso del grupo (independiente por grupo). -->
+                <button class="section-collapse" [title]="groupExpanded()[section.key === 'details' ? 'details' : section.key === 'venues' ? 'venues' : 'dresscode'] ? 'Colapsar' : 'Expandir'" (click)="toggleGroup(section.key === 'details' ? 'details' : section.key === 'venues' ? 'venues' : 'dresscode'); $event.stopPropagation()">
+                  <span class="material-icons">{{ groupExpanded()[section.key === 'details' ? 'details' : section.key === 'venues' ? 'venues' : 'dresscode'] ? 'expand_more' : 'chevron_right' }}</span>
+                </button>
+              }
               @if (isPermanentSection(section.key)) {
                 <!-- Secciones permanentes (Carátula): no se pueden ocultar, es la sección principal -->
                 <span class="section-permanent material-icons" title="Sección principal, siempre visible">push_pin</span>
@@ -112,6 +134,66 @@ interface BuilderSection {
                 </button>
               }
             </div>
+
+            <!-- ===== Sub-entradas de DETALLES: cada card = "Detalle N" (mini-sección) ===== -->
+            @if (section.key === 'details' && groupExpanded().details) {
+              <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onDetailDrop($event)">
+                @for (card of detailCards(); track card.id; let di = $index) {
+                  <div class="builder-subsection-item" cdkDrag
+                       [class.active]="canvasState.selectedSection() === 'details' && canvasState.selectedDetailIndex() === di"
+                       (click)="selectDetail(di); $event.stopPropagation()">
+                    <span class="material-icons sub-drag-handle" cdkDragHandle>drag_indicator</span>
+                    <span class="subsection-label">{{ card.label || ('Detalle ' + (di + 1)) }}</span>
+                    <button class="subsection-delete" title="Eliminar detalle" (click)="removeDetail(di); $event.stopPropagation()">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </div>
+                }
+                <button class="builder-add-detail" (click)="addDetail(); $event.stopPropagation()">
+                  <span class="material-icons">add</span><span>Agregar Detalle</span>
+                </button>
+              </div>
+            }
+
+            <!-- ===== Sub-entradas de LUGARES: cada venue = "Lugar N" (mini-sección) ===== -->
+            @if (section.key === 'venues' && groupExpanded().venues) {
+              <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onVenueDrop($event)">
+                @for (venue of venueItems(); track venue.id; let vi = $index) {
+                  <div class="builder-subsection-item" cdkDrag
+                       [class.active]="canvasState.selectedSection() === 'venues' && canvasState.selectedVenueIndex() === vi"
+                       (click)="selectVenue(vi); $event.stopPropagation()">
+                    <span class="material-icons sub-drag-handle" cdkDragHandle>drag_indicator</span>
+                    <span class="subsection-label">{{ venue.label || ('Lugar ' + (vi + 1)) }}</span>
+                    <button class="subsection-delete" title="Eliminar lugar" (click)="removeVenueMini(vi); $event.stopPropagation()">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </div>
+                }
+                <button class="builder-add-detail" (click)="addVenueMini(); $event.stopPropagation()">
+                  <span class="material-icons">add</span><span>Agregar Lugar</span>
+                </button>
+              </div>
+            }
+
+            <!-- ===== Sub-entradas de VESTIMENTA: cada card = "Vestimenta N" (mini-sección) ===== -->
+            @if (section.key === 'dresscode' && groupExpanded().dresscode) {
+              <div class="builder-subsections" cdkDropList (cdkDropListDropped)="onDresscodeDrop($event)">
+                @for (dcard of dresscodeCards(); track dcard.id; let di = $index) {
+                  <div class="builder-subsection-item" cdkDrag
+                       [class.active]="canvasState.selectedSection() === 'dresscode' && canvasState.selectedDresscodeIndex() === di"
+                       (click)="selectDresscode(di); $event.stopPropagation()">
+                    <span class="material-icons sub-drag-handle" cdkDragHandle>drag_indicator</span>
+                    <span class="subsection-label">{{ dcard.label || ('Vestimenta ' + (di + 1)) }}</span>
+                    <button class="subsection-delete" title="Eliminar vestimenta" (click)="removeDresscodeMini(di); $event.stopPropagation()">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </div>
+                }
+                <button class="builder-add-detail" (click)="addDresscodeMini(); $event.stopPropagation()">
+                  <span class="material-icons">add</span><span>Agregar Vestimenta</span>
+                </button>
+              </div>
+            }
           }
         </div>
 
@@ -121,8 +203,8 @@ interface BuilderSection {
 
       <!-- Center: Canvas or Preview iframe -->
       @if (canvasMode() === 'canvas') {
-      <div class="builder-canvas-area" (click)="onCanvasAreaClick()">
-        <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'">          @if (canvasState.config()) {
+      <div class="builder-canvas-area" [class.center-frame]="previewDevice() === 'mobile'" (click)="onCanvasAreaClick()">
+        <div class="builder-canvas-viewport" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [class.live-preview]="canvasMode() === 'preview'" [style.width.px]="previewDevice() === 'mobile' ? canvasDeviceWidth() : null" [style.height.px]="previewDevice() === 'mobile' ? canvasDeviceHeight() : null">          @if (canvasState.config()) {
               <div class="preview-mode-canvas" [style.--theme-card-bg]="canvasState.config()?.theme?.cardBg || 'rgba(255,255,255,0.05)'" [style.--theme-card-border]="canvasState.config()?.theme?.cardBorder || 'rgba(212,160,23,0.3)'" [style.--theme-text-primary]="canvasState.config()?.theme?.textPrimary || '#ffffff'" [style.--theme-text-secondary]="canvasState.config()?.theme?.textSecondary || 'rgba(255,255,255,0.7)'" [style.--theme-nav-text]="canvasState.config()?.theme?.navFooterText || '#d4a017'" [style.--theme-btn-bg]="canvasState.config()?.theme?.buttonBg || '#d4a017'" [style.--theme-btn-text]="canvasState.config()?.theme?.buttonText || '#1a1a2e'" [style.--theme-nav-btn-bg]="canvasState.config()?.theme?.navBtnBg || 'rgba(255,255,255,0.1)'" [style.--theme-nav-btn-border]="canvasState.config()?.theme?.navBtnBorder || 'rgba(255,255,255,0.2)'" [style.--theme-nav-btn-icon]="canvasState.config()?.theme?.navBtnIcon || '#ffffff'" [style.--theme-nav-menu-bg]="canvasState.config()?.theme?.navMenuBg || 'rgba(13,17,23,0.95)'" [style.--theme-nav-menu-text]="canvasState.config()?.theme?.navMenuText || 'rgba(255,255,255,0.8)'" [style.--theme-nav-menu-blur]="(canvasState.config()?.theme?.navMenuBlur || 12) + 'px'" [style.--theme-nav-bar-bg]="getNavBarBg()" [style.--theme-nav-bar-blur]="(canvasState.config()?.theme?.navBarBlur ?? 12) + 'px'" [style.--theme-nav-bar-border]="canvasState.config()?.theme?.navBarBorder || 'rgba(212,160,23,0.2)'" [style.background]="getCanvasLandingBg()">
                 <!-- Pantalla de inicio (envelope) e Intro van ANTES del fondo: el fondo
                      configurado (GIF/imagen/video) solo aplica desde la carátula hacia abajo,
@@ -147,20 +229,25 @@ interface BuilderSection {
                        position:fixed de la landing real. Así el fondo es CONTINUO desde la
                        carátula hasta el final del scope, y el GIF no se estira (se dimensiona
                        al viewport visible, no a la altura total del documento). -->
-                  @if (canvasGlobalBg().hasMedia || (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none')) {
+                  <!-- TEXTURA: capa propia que cubre TODO el scope (de la carátula al final), NO el
+                       sticky de un solo viewport. La textura es un patrón que debe cubrir toda la
+                       altura scrolleable (igual que el color de fondo), por eso va absolute inset:0
+                       sobre el .canvas-bg-scope. Antes vivía dentro del sticky y se "despegaba" al
+                       scrollear, dejando la parte baja sin textura. -->
+                  @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
+                    <div class="canvas-bg-texture canvas-bg-texture-full" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                  }
+                  <!-- Capa de fondo sticky: GIF/imagen/video (fondo fijo a un viewport, como la
+                       landing real). La textura ya NO va aquí (ver arriba). -->
+                  @if (canvasGlobalBg().hasMedia) {
                     <div class="canvas-bg-sticky">
-                      @if (canvasGlobalBg().hasMedia) {
-                        @if (canvasGlobalBg().isVideo) {
-                          <video class="canvas-bg-media" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" autoplay loop muted playsinline [src]="canvasGlobalBg().url"></video>
-                        } @else {
-                          <div class="canvas-bg-image" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.backgroundImage]="'url(' + canvasGlobalBg().url + ')'"></div>
-                        }
-                        @if (canvasGlobalBg().overlay > 0) {
-                          <div class="canvas-bg-overlay" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.background]="'rgba(0,0,0,' + (canvasGlobalBg().overlay / 100) + ')'"></div>
-                        }
+                      @if (canvasGlobalBg().isVideo) {
+                        <video class="canvas-bg-media" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" autoplay loop muted playsinline [src]="canvasGlobalBg().url"></video>
+                      } @else {
+                        <div class="canvas-bg-image" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.backgroundImage]="'url(' + canvasGlobalBg().url + ')'"></div>
                       }
-                      @if (canvasState.config()?.theme?.landingBgTexture && canvasState.config()?.theme?.landingBgTexture !== 'none') {
-                        <div class="canvas-bg-texture" [attr.data-texture]="canvasState.config()!.theme.landingBgTexture" [style.opacity]="(canvasState.config()!.theme.landingBgTextureOpacity || 5) / 100"></div>
+                      @if (canvasGlobalBg().overlay > 0) {
+                        <div class="canvas-bg-overlay" [class.bg-banner]="canvasGlobalBg().fit === 'banner' && previewDevice() !== 'mobile'" [style.--banner-w]="canvasGlobalBg().bannerWidth + '%'" [style.background]="'rgba(0,0,0,' + (canvasGlobalBg().overlay / 100) + ')'"></div>
                       }
                     </div>
                   }
@@ -169,20 +256,32 @@ interface BuilderSection {
                     <app-landing-hero [config]="canvasState.config()!.hero" [event]="eventData()" [enabledSections]="getPreviewEnabledSections()" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onHeroPositionsChange($event)" />
                   }
                 </div>
-                <div class="preview-section-click" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
+                <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="invitation" [class.section-active]="canvasState.selectedSection() === 'invitation'" [attr.style]="getSectionBgStyle('invitation')" (click)="selectSection('invitation'); $event.stopPropagation()">
                   @if (canvasState.config()!.invitation) {
-                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="previewGuest" [styles]="canvasState.config()?.globalStyles!" />
+                    <app-landing-invitation [config]="canvasState.config()!.invitation" [guest]="previewGuest" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.invitation.sectionStyle" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onInvitationPositionsChange($event)" />
                   }
                 </div>
                 @if (canvasState.config()?.details?.enabled) {
-                  <div class="preview-section-click" data-section="details" [class.section-active]="canvasState.selectedSection() === 'details'" [attr.style]="getSectionBgStyle('details')" (click)="selectSection('details'); $event.stopPropagation()">
-                    <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.details.sectionStyle" />
-                  </div>
+                  <!-- Cada card de Detalles = una mini-sección seleccionable independiente. El
+                       componente details renderiza SOLO esa card (onlyIndex). El fondo/estilo por
+                       card se resuelven dentro del componente, por eso aquí NO se inyecta getSectionBgStyle. -->
+                  @for (dcard of detailCards(); track dcard.id; let di = $index) {
+                    <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" [attr.data-section]="'details:' + dcard.id"
+                         [class.section-active]="canvasState.selectedSection() === 'details' && canvasState.selectedDetailIndex() === di"
+                         (click)="selectDetail(di); $event.stopPropagation()">
+                      <app-landing-details [config]="canvasState.config()!.details" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.details.sectionStyle" [onlyIndex]="di" [previewDevice]="previewDevice()" [editable]="canvasMode() === 'canvas'" (positionsChange)="onDetailPositionsChange($event)" />
+                    </div>
+                  }
                 }
                 @if (canvasState.config()?.venues?.enabled) {
-                  <div class="preview-section-click" data-section="venues" [class.section-active]="canvasState.selectedSection() === 'venues'" [attr.style]="getSectionBgStyle('venues')" (click)="selectSection('venues'); $event.stopPropagation()">
-                    <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()?.globalStyles!" />
-                  </div>
+                  <!-- Cada venue = mini-sección seleccionable independiente (como Detalles). -->
+                  @for (vitem of venueItems(); track vitem.id; let vi = $index) {
+                    <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" [attr.data-section]="'venues:' + vitem.id"
+                         [class.section-active]="canvasState.selectedSection() === 'venues' && canvasState.selectedVenueIndex() === vi"
+                         (click)="selectVenue(vi); $event.stopPropagation()">
+                      <app-landing-venues [config]="canvasState.config()!.venues" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.venues.sectionStyle" [onlyIndex]="vi" [previewDevice]="previewDevice()" [editable]="canvasMode() === 'canvas'" (positionsChange)="onVenuePositionsChange($event)" />
+                    </div>
+                  }
                 }
                 @if (canvasState.config()?.itinerary?.enabled) {
                   <div class="preview-section-click" data-section="itinerary" [class.section-active]="canvasState.selectedSection() === 'itinerary'" [attr.style]="getSectionBgStyle('itinerary')" (click)="selectSection('itinerary'); $event.stopPropagation()">
@@ -191,13 +290,18 @@ interface BuilderSection {
                 }
                 @if (canvasState.config()?.gallery?.enabled) {
                   <div class="preview-section-click" data-section="gallery" [class.section-active]="canvasState.selectedSection() === 'gallery'" [attr.style]="getSectionBgStyle('gallery')" (click)="selectSection('gallery'); $event.stopPropagation()">
-                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [staticMode]="true" />
+                    <app-landing-gallery [config]="canvasState.config()!.gallery" [photos]="photos()" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.gallery.sectionStyle" [staticMode]="true" />
                   </div>
                 }
                 @if (canvasState.config()?.dresscode?.enabled) {
-                  <div class="preview-section-click" data-section="dresscode" [class.section-active]="canvasState.selectedSection() === 'dresscode'" [attr.style]="getSectionBgStyle('dresscode')" (click)="selectSection('dresscode'); $event.stopPropagation()">
-                    <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()?.globalStyles!" />
-                  </div>
+                  <!-- Cada vestimenta = mini-sección seleccionable independiente (como Detalles/Lugares). -->
+                  @for (dcard of dresscodeCards(); track dcard.id; let di = $index) {
+                    <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" [attr.data-section]="'dresscode:' + dcard.id"
+                         [class.section-active]="canvasState.selectedSection() === 'dresscode' && canvasState.selectedDresscodeIndex() === di"
+                         (click)="selectDresscode(di); $event.stopPropagation()">
+                      <app-landing-dresscode [config]="canvasState.config()!.dresscode" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.dresscode.sectionStyle" [onlyIndex]="di" [previewDevice]="previewDevice()" [editable]="canvasMode() === 'canvas'" (positionsChange)="onDresscodePositionsChange($event)" />
+                    </div>
+                  }
                 }
                 @if (canvasState.config()?.gifts?.enabled) {
                   <div class="preview-section-click" data-section="gifts" [class.section-active]="canvasState.selectedSection() === 'gifts'" [attr.style]="getSectionBgStyle('gifts')" (click)="selectSection('gifts'); $event.stopPropagation()">
@@ -219,12 +323,12 @@ interface BuilderSection {
 
       <!-- Preview mode: iframe with real landing -->
       @if (canvasMode() === 'preview') {
-      <div class="builder-preview-area">
+      <div class="builder-preview-area" [class.center-frame]="previewDevice() === 'mobile'">
         <div class="preview-guest-selector">
           <span class="preview-guest-label">Previsualizar invitación:</span>
           <app-custom-select [options]="getPreviewGuestOptions()" [value]="previewGuestCode()" [compact]="true" placeholder="Selecciona una invitación" (valueChange)="selectPreviewGuest($event)"></app-custom-select>
         </div>
-        <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'">
+        <div class="builder-preview-frame" [class.mobile]="previewDevice() === 'mobile'" [class.desktop]="previewDevice() === 'desktop'" [style.width.px]="previewDevice() === 'mobile' ? canvasDeviceWidth() : null" [style.height.px]="previewDevice() === 'mobile' ? canvasDeviceHeight() : null">
           <iframe [src]="previewUrl()" class="preview-iframe" allow="autoplay"></iframe>
         </div>
       </div>
@@ -323,6 +427,19 @@ interface BuilderSection {
       &.active { background: rgba(139,92,246,0.2); color: #c084fc; border: 1px solid rgba(139,92,246,0.4); }
       &:hover:not(.active) { background: rgba(255,255,255,0.1); color: white; }
     }
+    /* Selector de dispositivo en la toolbar (escritorio). Compacto para no robar espacio. */
+    .builder-device-select { min-width: 180px; max-width: 220px; }
+    /* Selector de dispositivo en el panel de Secciones (móvil, sobre "Tema Global"). */
+    .builder-device-select-panel {
+      margin: 8px 6px 4px; padding: 8px 10px; border-radius: 10px;
+      background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.18);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .builder-device-select-panel .device-select-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px;
+      .material-icons { font-size: 15px; color: var(--gold-light); }
+    }
     .builder-save-btn {
       display: flex; align-items: center; justify-content: center; gap: 6px;
       padding: 7px 14px; min-width: 120px; border-radius: 8px; border: none;
@@ -360,6 +477,10 @@ interface BuilderSection {
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       background: #06060e; padding: 8px; overflow: hidden; flex: 1; min-height: 0;
     }
+    /* MOBILE: el marco del preview tiene alto fijo del dispositivo; si no cabe en el área, se
+       permite scroll (overflow:auto) y se centra, igual que el canvas con .center-frame. En desktop
+       el iframe ocupa el área (flex) y no scrollea aquí. */
+    .builder-preview-area.center-frame { justify-content: center; overflow: auto; }
     .preview-guest-selector {
       display: flex; align-items: center; justify-content: center; gap: 10px;
       margin-bottom: 8px; width: 100%; max-width: 400px; align-self: center;
@@ -369,7 +490,11 @@ interface BuilderSection {
     .builder-preview-frame {
       border-radius: 12px; overflow: hidden; flex: 1; width: 100%; min-height: 0;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      &.mobile { width: 375px; max-width: 100%; }
+      /* MOBILE: el marco toma el ancho×ALTO EXACTO del dispositivo seleccionado (vía [style.width/
+         height.px] inline). NO debe estirarse por flex ni forzar width:100% —eso ignoraba el tamaño
+         del dispositivo y hacía que el preview no respetara el selector—. flex:0 + margin:auto lo
+         deja al tamaño del dispositivo y centrado, igual que el canvas mobile. */
+      &.mobile { flex: 0 0 auto; width: auto; max-width: 100%; margin: 0 auto; align-self: center; }
       &.desktop { width: 100%; max-width: 900px; }
     }
     .preview-iframe { width: 100%; height: 100%; border: none; display: block; }
@@ -405,6 +530,42 @@ interface BuilderSection {
     .drag-handle { font-size: 14px; color: rgba(255,255,255,0.2); cursor: grab; }
     .section-icon { font-size: 16px; color: var(--gold-light); }
     .section-label { flex: 1; color: rgba(255,255,255,0.8); }
+    /* "Detalles" actúa como encabezado agrupador: su label se ve un poco más tenue. */
+    .builder-section-item.is-group .section-label { color: rgba(255,255,255,0.6); font-weight: 600; letter-spacing: 0.3px; }
+    /* Botón de colapso (chevron) del grupo (Detalles/Lugares). */
+    .section-collapse {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer; padding: 2px; border-radius: 5px;
+      color: rgba(255,255,255,0.45); transition: background 0.15s, color 0.15s;
+      .material-icons { font-size: 18px; }
+      &:hover { background: rgba(139,92,246,0.15); color: rgba(255,255,255,0.85); }
+    }
+    /* ===== Sub-entradas "Detalle N" (mini-secciones de Detalles) ===== */
+    .builder-subsections { margin: 0 0 4px 18px; padding-left: 8px; border-left: 1px solid rgba(139,92,246,0.15); display: flex; flex-direction: column; gap: 2px; }
+    .builder-subsection-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px; border-radius: 7px; cursor: pointer;
+      border: 1px solid transparent; font-size: 11.5px; transition: all 0.15s;
+      &:hover { background: rgba(139,92,246,0.06); }
+      &.active { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.3); }
+    }
+    .sub-drag-handle { font-size: 13px; color: rgba(255,255,255,0.18); cursor: grab; }
+    .subsection-label { flex: 1; color: rgba(255,255,255,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subsection-delete {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 6px; cursor: pointer; padding: 3px; display: flex; flex-shrink: 0;
+      color: #ff8585; transition: all 0.2s;
+      .material-icons { font-size: 15px; }
+      &:hover { background: rgba(239,68,68,0.85); border-color: rgba(239,68,68,0.9); color: #fff; }
+    }
+    .builder-add-detail {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 2px; padding: 6px 8px; border-radius: 7px;
+      background: rgba(139,92,246,0.06); border: 1px dashed rgba(139,92,246,0.25);
+      color: #c084fc; font-size: 11px; cursor: pointer; transition: all 0.2s;
+      .material-icons { font-size: 15px; }
+      &:hover { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.45); }
+    }
     .builder-theme-btn {
       display: flex; align-items: center; gap: 8px;
       padding: 9px 14px; margin: 6px 6px 4px;
@@ -444,6 +605,10 @@ interface BuilderSection {
       display: flex; align-items: flex-start; justify-content: center;
       background: #06060e; padding: 16px; overflow: hidden; min-height: 0;
     }
+    /* En modo mobile el marco del canvas tiene alto fijo (del dispositivo) y suele ser más corto
+       que el área: lo centramos vertical y horizontalmente. En desktop el canvas es alto y
+       scrollea, por eso ahí se mantiene flex-start (no se centra). */
+    .builder-canvas-area.center-frame { align-items: center; overflow: auto; }
     /* El VIEWPORT es ahora el contenedor scrolleable (antes lo era .builder-canvas-area).
        Esto permite que el fondo (position:sticky) se ancle al viewport y quede fijo mientras
        las secciones scrollean por encima — replicando el fondo fijo de la landing real. */
@@ -452,7 +617,7 @@ interface BuilderSection {
       max-height: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.06);
       background: #0d1117;
-      &.mobile { width: 375px; }
+      &.mobile { width: var(--canvas-mobile-w, 360px); }
       &.desktop { width: 100%; max-width: 900px; }
     }
     /* Ocultar la barra de scroll del viewport para que el mockup se vea limpio */
@@ -517,6 +682,10 @@ interface BuilderSection {
     .canvas-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; pointer-events: none; }
     .canvas-bg-overlay { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
     .canvas-bg-texture { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    /* Textura que cubre TODO el scope scrolleable (de la carátula al final), no un solo viewport.
+       Va absolute inset:0 sobre .canvas-bg-scope (position:relative con altura completa), así el
+       patrón se repite/cubre toda la altura igual que el color de fondo. */
+    .canvas-bg-texture-full { position: absolute; inset: 0; height: 100%; z-index: 0; pointer-events: none; }
     /* Modo banner en el canvas: la imagen se dibuja a un TAMAÑO FIJO (alto = 100% de la ventana,
        ancho proporcional -> "auto 100%"). El slider solo cambia el ancho de la ventana/mascara
        centrada: recorta mas o menos la imagen SIN re-escalarla. */
@@ -589,6 +758,25 @@ interface BuilderSection {
     .live-preview .preview-mode-canvas ::ng-deep .envelope-overlay.opened { opacity: 0 !important; pointer-events: none !important; }
     .live-preview .preview-mode-canvas ::ng-deep .intro-overlay { height: var(--canvas-vh, 640px); cursor: pointer; }
     .preview-mode-canvas ::ng-deep * { max-width: 100% !important; }
+    /* EXCEPCIONES al max-width:100% universal: los LIENZOS de drag (data-drag-bounds) de las
+       secciones de apertura deben conservar su ancho de referencia FIJO por dispositivo
+       (--canvas-desktop-w / --canvas-mobile-w), para que un objeto en % mida igual en canvas,
+       preview (iframe) y landing, y NO se reescale al cambiar el dispositivo del selector (que solo
+       agranda el MARCO). La regla universal de arriba los recortaba al ancho del viewport del
+       canvas; las restablecemos con mayor especificidad.
+       Pines MOBILE + DESKTOP para plano/intro/hero/invitación. */
+    .preview-mode-canvas ::ng-deep .plain-container.plain-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .plain-container.plain-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .intro-fg.intro-fg-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .hero-fg.hero-fg-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .hero-fg.hero-fg-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .inv-fg.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .inv-fg.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .details-mini.positioned .details-mini-inner.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .details-mini.positioned .details-mini-inner.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
+    .preview-mode-canvas ::ng-deep .venues-mini.positioned .venues-mini-inner.canvas-desktop { width: var(--canvas-desktop-w, 600px) !important; max-width: var(--canvas-desktop-w, 600px) !important; }
+    .preview-mode-canvas ::ng-deep .venues-mini.positioned .venues-mini-inner.canvas-mobile { width: var(--canvas-mobile-w, 360px) !important; max-width: var(--canvas-mobile-w, 360px) !important; }
     .preview-mode-canvas ::ng-deep .back-to-top { display: none !important; }
     .preview-mode-canvas ::ng-deep .gallery-section { min-height: 300px; contain: content; overflow: hidden; padding-bottom: 60px; }
     .gallery-canvas-preview { padding: 30px 16px 60px; text-align: center; }
@@ -615,6 +803,10 @@ interface BuilderSection {
        getSectionBgStyle() inyecta las variables --section-* en .preview-section-click;
        estas reglas las aplican a los h2/h3/p internos de los componentes de sección.
        Selectores espejo de los de landing.component.ts, pero scopeados a .preview-section-click. */
+    /* BANNER imagen (canvas): columna centrada cover de ancho --sec-banner-w + overlay --sec-ov. */
+    .preview-section-click[style*="--sec-banner-w"]{position:relative}
+    .preview-section-click[style*="--sec-banner-w"]::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:var(--sec-bg-image) center/auto 100% no-repeat;z-index:0;pointer-events:none}
+    .preview-section-click[style*="--sec-banner-w"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:var(--sec-banner-w,70%);transform:translateX(-50%);background:rgba(0,0,0,var(--sec-ov,0));z-index:0;pointer-events:none}
     .preview-section-click[style*="--section-h2-color"] ::ng-deep .section-heading,
     .preview-section-click[style*="--section-h2-color"] ::ng-deep h2,
     .preview-section-click[style*="--section-h2-color"] ::ng-deep .invitation-title {
@@ -720,14 +912,31 @@ interface BuilderSection {
     }
     .preview-section-click {
       cursor: pointer; position: relative; transition: box-shadow 0.2s;
+      /* Alto mínimo = alto visible del canvas (--canvas-vh, recalculado por el ResizeObserver
+         al redimensionar). Replica el 100svh de la landing: secciones cortas se estiran a la
+         ventana del canvas y centran su contenido; las extensibles crecen más allá del mínimo. */
+      min-height: var(--canvas-vh, 640px);
+      display: flex; flex-direction: column; justify-content: center;
       &:hover { box-shadow: inset 3px 0 0 rgba(139,92,246,0.4), inset -3px 0 0 rgba(139,92,246,0.4), inset 4px 0 6px -3px rgba(139,92,246,0.2), inset -4px 0 6px -3px rgba(139,92,246,0.2); }
       &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
+    /* Hero/envelope/intro manejan su propio alto (margin negativo / overlays); no imponer el
+       min-height genérico ni el centrado flex. Las mini-secciones de DETALLES/LUGARES/VESTIMENTA
+       (data-section "details:<id>" / "venues:<id>" / "dresscode:<id>") también: cada card
+       (.details-mini / .venue-mini / .dress-mini) gestiona su propio min-height (var --canvas-vh /
+       100svh) y crece con su contenido, así que el wrapper no debe imponer otro alto ni centrar. */
+    .preview-section-click[data-section="hero"],
+    .preview-section-click[data-section="envelope"],
+    .preview-section-click[data-section="intro"],
+    .preview-section-click[data-section^="details:"],
+    .preview-section-click[data-section^="venues:"],
+    .preview-section-click[data-section^="dresscode:"] { min-height: 0; display: block; }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper.
        Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
     .preview-section-click > * { pointer-events: none; }
     .preview-section-click.drag-enabled > * { pointer-events: auto; }
+    .preview-section-click[style*="--sec-banner-w"]>*{position:relative;z-index:1}
     /* Live preview mode — enable interactions, remove selection UI */
     .live-preview .preview-section-click { cursor: default; }
     .live-preview .preview-section-click > * { pointer-events: all; }
@@ -941,7 +1150,8 @@ interface BuilderSection {
       .builder-toolbar-center { order: 0; flex: 1; justify-content: center; gap: 2px !important; }
       .builder-toolbar-center .builder-tb-sep { display: none; }
       .builder-toolbar-center .builder-device-btn { display: none; }
-      .builder-canvas-viewport.mobile { width: 375px; max-width: 100%; border-radius: 8px; }
+      .builder-toolbar-center .builder-device-select { display: none; }
+      .builder-canvas-viewport.mobile { width: var(--canvas-mobile-w, 360px); max-width: 100%; border-radius: 8px; }
       .builder-panel-right.panel-visible {
         position: absolute;
         top: 0;
@@ -987,6 +1197,42 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   eventName = signal('');
   sections = signal<BuilderSection[]>([]);
   previewDevice = signal<'mobile' | 'desktop'>('mobile');
+
+  /** Catálogo de dispositivos MOBILE para simular el marco del canvas (ancho×alto CSS reales).
+      El MARCO (fondo + secciones) adopta estas dimensiones; el LIENZO de drag se mantiene a
+      --canvas-mobile-w (360px) centrado, así los objetos no se salen del área segura aunque el
+      dispositivo sea más ancho. Rango: gama baja (360) a gama alta (440). */
+  readonly canvasDevices: { id: string; label: string; w: number; h: number }[] = [
+    { id: 'android-360', label: 'Android (gama baja/media) · 360', w: 360, h: 800 },
+    { id: 'iphone-se', label: 'iPhone SE · 375', w: 375, h: 667 },
+    { id: 'android-384', label: 'Android (gama media-alta) · 384', w: 384, h: 854 },
+    { id: 'iphone-390', label: 'iPhone 14/15/16 · 390', w: 390, h: 844 },
+    { id: 'android-412', label: 'Android (gama alta) · 412', w: 412, h: 915 },
+    { id: 'iphone-414', label: 'iPhone XR/11 · 414', w: 414, h: 896 },
+    { id: 'iphone-max', label: 'iPhone 16 Pro Max · 440', w: 440, h: 956 },
+  ];
+  /** Dispositivo mobile seleccionado para el marco del canvas. Default = Android 360 (base). */
+  canvasDevice = signal<string>('android-360');
+  /** Opciones del selector (app-custom-select). */
+  get canvasDeviceOptions(): SelectOption[] {
+    return this.canvasDevices.map(d => ({ value: d.id, label: d.label }));
+  }
+  /** Dispositivo activo resuelto (COMPUTED: reactivo a canvasDevice desde el primer render). */
+  private activeDeviceSig = computed(() =>
+    this.canvasDevices.find(d => d.id === this.canvasDevice()) || this.canvasDevices[0]
+  );
+  /** Ancho/alto CSS del marco del canvas mobile según el dispositivo elegido. Métodos que leen el
+      computed → el binding [style.width/height.px] se recalcula correctamente ya en el 1er render
+      (antes eran getters sobre un plain getter y el ancho no se aplicaba hasta cambiar de dispositivo). */
+  canvasDeviceWidth(): number { return this.activeDeviceSig().w; }
+  canvasDeviceHeight(): number { return this.activeDeviceSig().h; }
+  /** Cambia el dispositivo del marco mobile. */
+  setCanvasDevice(id: string) {
+    this.canvasDevice.set(id);
+    // Re-medir el alto visible del canvas tras cambiar el marco (el ResizeObserver también lo hace,
+    // pero esto garantiza el refresh inmediato).
+    requestAnimationFrame(() => this._applyCanvasHeight?.());
+  }
 
   /** Ancho del viewport, reactivo para recalcular el layout de paneles al redimensionar. */
   viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1280);
@@ -1125,6 +1371,14 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.isWide()) {
         this.panelVisible.set(true);
       }
+      // FIX primer render: el canvas se monta recién ahora (tras cargar la config). Reafirmamos el
+      // dispositivo activo y re-medimos el alto en el siguiente frame, para que el marco tome el
+      // ancho×alto del dispositivo por defecto de inmediato (antes solo se aplicaba al cambiar de
+      // dispositivo manualmente, porque el viewport aún no existía en el primer ciclo).
+      requestAnimationFrame(() => {
+        this.canvasDevice.set(this.canvasDevice());
+        this._applyCanvasHeight?.();
+      });
       // Precargar medios de fondo (intro + hero) para que estén decodificados en el
       // primer render del canvas. Sin esto, la intro salía sin fondo hasta reiniciar.
       this.preloadCanvasMedia(v2?.intro?.background);
@@ -1167,7 +1421,19 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
       const canvas = document.querySelector('.preview-mode-canvas') as HTMLElement | null;
       if (viewport && canvas) {
-        const h = viewport.clientHeight;
+        // En MOBILE el marco tiene un alto FIJO = alto del dispositivo seleccionado
+        // (canvasDeviceHeight). Ese es el "100svh" real del teléfono simulado, así que
+        // --canvas-vh debe valer EXACTAMENTE ese alto, NO el clientHeight del viewport
+        // (que `max-height:100%` y el alto del área del canvas distorsionan: en monitores
+        // altos quedaba mayor que el dispositivo → las mini-secciones nacían más largas que
+        // la ventana y el contenido parecía cortarse). En DESKTOP sí usamos el clientHeight
+        // del viewport (el canvas desktop se estira al área y scrollea).
+        let h: number;
+        if (this.previewDevice() === 'mobile') {
+          h = this.canvasDeviceHeight();
+        } else {
+          h = viewport.clientHeight;
+        }
         // Ignorar medidas de 0 (p. ej. cuando el canvas está oculto en modo preview):
         // conservaríamos el último alto válido para no colapsar la altura del hero/intro
         // al volver al modo canvas.
@@ -1229,6 +1495,11 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
   selectSection(key: string) {
     if (this.canvasMode() === 'preview') return;
     this.canvasState.selectSection(key);
+    // Al seleccionar el grupo o cualquier otra sección, deseleccionar la sub-entrada activa de
+    // Detalles/Lugares (se re-selecciona solo al clickear "Detalle N" / "Lugar N").
+    this.canvasState.selectedDetailIndex.set(-1);
+    this.canvasState.selectedVenueIndex.set(-1);
+    this.canvasState.selectedDresscodeIndex.set(-1);
     this.currentSection.set(key);
     // On mobile, don't auto-open props panel (user can tap FAB to open it)
     if (!this.isMobileView()) {
@@ -1271,6 +1542,71 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         this.sectionGlowRightValue.set(vpRect.right - areaRect.left);
       }
     }, 100);
+  }
+
+  /** data-section de la sección/mini-sección actualmente seleccionada en el canvas (para re-navegar
+      tras cambiar de dispositivo). Para Detalles/Lugares/Vestimenta devuelve "key:<id>" de la card/
+      ítem activo; para el resto, la propia key. null si no hay selección útil. */
+  private activeSectionDataAttr(): string | null {
+    const key = this.canvasState.selectedSection();
+    if (!key || key === '_theme') return null;
+    if (key === 'details') {
+      const i = this.canvasState.selectedDetailIndex();
+      const c = i >= 0 ? this.detailCards()[i] : null;
+      return c ? 'details:' + c.id : null;
+    }
+    if (key === 'venues') {
+      const i = this.canvasState.selectedVenueIndex();
+      const v = i >= 0 ? this.venueItems()[i] : null;
+      return v ? 'venues:' + v.id : null;
+    }
+    if (key === 'dresscode') {
+      const i = this.canvasState.selectedDresscodeIndex();
+      const d = i >= 0 ? this.dresscodeCards()[i] : null;
+      return d ? 'dresscode:' + d.id : null;
+    }
+    return key;
+  }
+
+  /** Cambia el dispositivo del canvas (mobile/desktop) MANTENIENDO la sección/mini-sección en la que
+      el usuario está editando: captura la sección activa antes de cambiar y re-navega a ella tras el
+      re-render (el viewport cambia de tamaño y el scroll se perdía → saltaba a otra sección). */
+  setPreviewDevice(device: 'mobile' | 'desktop') {
+    if (this.previewDevice() === device) return;
+    const target = this.activeSectionDataAttr();
+    this.previewDevice.set(device);
+    // --canvas-vh depende del dispositivo (mobile = alto del teléfono; desktop = alto del viewport).
+    // Recalcularlo YA para que el relayout de las secciones use el valor correcto antes del scroll.
+    requestAnimationFrame(() => this._applyCanvasHeight?.());
+    if (!target) return;
+    // El cambio de dispositivo recalcula el min-height de TODAS las secciones a la vez, así que la
+    // posición en px de la sección objetivo cambia (y el desfase se acumula cuanto más abajo esté).
+    // Para aterrizar EXACTO: esperar a que el relayout termine (doble rAF + un tick extra) y hacer el
+    // scroll SIN animación (instantáneo y preciso) midiendo con las alturas ya finales. Se reintenta
+    // un par de veces por si el relayout tarda más (imágenes/fuentes).
+    // Un solo salto tras el relayout (doble rAF). Los reintentos solo RE-posicionan si el objetivo
+    // se movió >2px (p.ej. si imágenes/fuentes tardaron en acomodar las alturas) → si el primer
+    // salto ya acertó, no hay parpadeo. Se hace sin animación (instantáneo y preciso).
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      this.scrollToSectionInstant(target);
+      setTimeout(() => this.scrollToSectionInstant(target, 2), 150);
+      setTimeout(() => this.scrollToSectionInstant(target, 2), 350);
+    }));
+  }
+
+  /** Scroll INSTANTÁNEO (sin animación) a una sección por su data-section. Se usa al cambiar de
+      dispositivo, donde el smooth + el relayout producían un aterrizaje impreciso. `threshold` evita
+      re-scrollear si ya está en el punto (quita el parpadeo de los reintentos). */
+  private scrollToSectionInstant(key: string, threshold = 0) {
+    const el = document.querySelector(`.preview-section-click[data-section="${key}"]`);
+    const container = document.querySelector('.builder-canvas-viewport');
+    if (!el || !container) return;
+    const elRect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const offset = elRect.top - containerRect.top + container.scrollTop;
+    // Si ya estamos prácticamente en el objetivo, no re-scrollear (evita el salto/parpadeo).
+    if (Math.abs(container.scrollTop - offset) <= threshold) return;
+    container.scrollTo({ top: offset, behavior: 'auto' });
   }
 
   private scrollToSection(key: string) {
@@ -1458,15 +1794,19 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
           if (m.fit === 'banner') {
             const isMobile = this.previewDevice() === 'mobile';
             if (isMobile) {
-              // Mobile (prioridad): la imagen CUBRE el ancho y alto de la sección (cover) y la
-              // sección toma el alto de pantalla, igual que la landing. Sin huecos.
-              css = `background: ${dark}url(${m.url}) center/cover no-repeat; min-height: var(--canvas-vh, 640px)`;
+              // Mobile (REGLA R3 del steering): la imagen se dimensiona por el ALTO (auto 100%) y su
+              // ancho va a PROPORCIÓN, CENTRADA, SIN deformar. Verticales llenan; horizontales se ven
+              // como banner con franjas laterales. Es responsivo al cambiar de dispositivo (el alto
+              // sigue el marco y el ancho recalcula). Se pinta en el wrapper (que llena el marco).
+              css = `background: ${dark}url(${m.url}) center / auto 100% no-repeat; min-height: var(--canvas-vh, 640px)`;
             } else {
-              // Desktop: columna centrada del ancho configurado (--sec-banner-w).
-              css = `background: ${dark}url(${m.url}) top center / ${m.bannerWidth}% auto no-repeat`;
+              // Desktop: COLUMNA CENTRADA del ancho --sec-banner-w, imagen a auto 100% (ver R3). Se
+              // emiten variables que consume la regla ::before de .preview-section-click; el slider
+              // define el ANCHO de la franja. El overlay va en la capa ::after via --sec-ov.
+              css = `--sec-bg-image: url(${m.url}); --sec-banner-w: ${m.bannerWidth}%; --sec-ov: ${ov}`;
             }
           } else {
-            // Pantalla completa: cover.
+            // Pantalla completa (fit explícito 'cover'): cover.
             css = `background: ${dark}url(${m.url}) ${m.position || 'center'}/cover no-repeat`;
           }
           break;
@@ -1477,7 +1817,9 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     // mismas variables CSS --section-* para que el canvas refleje el estilo de texto editado.
     // Las reglas ::ng-deep que las consumen están en los styles de este componente,
     // scopeadas a .preview-section-click[style*="--section-..."].
-    if (ss.sectionHeadingColor) css += `; --section-h2-color: ${ss.sectionHeadingColor}`;
+    // Si hay color2 (H2 bicolor), NO inyectar --section-h2-color: el componente pinta el gradiente
+    // inline y la regla ::ng-deep con !important lo anularía (igual que en la landing).
+    if (ss.sectionHeadingColor && !ss.sectionHeadingColor2) css += `; --section-h2-color: ${ss.sectionHeadingColor}`;
     if (ss.sectionHeadingFont) css += `; --section-h2-font: ${this.getCanvasFont(ss.sectionHeadingFont)}`;
     if (ss.sectionHeadingSize) css += `; --section-h2-size: ${ss.sectionHeadingSize}px`;
     if (ss.headingColor) css += `; --section-heading-color: ${ss.headingColor}`;
@@ -1639,6 +1981,27 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     this.scheduleAutoSave();
   }
 
+  /** Persiste las posiciones de la invitación tras arrastrar un objeto. */
+  onInvitationPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.invitation as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de UNA card de Detalles (drag) en esa card. */
+  onDetailPositionsChange(ev: { cardId: string; positions: any }) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    const card = (cfg as any).details?.cards?.find((c: any) => c.id === ev.cardId);
+    if (!card) return;
+    card.positions = ev.positions;
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
   /** Secciones permanentes que no se pueden ocultar (siempre visibles en la invitación). */
   isPermanentSection(key: string): boolean {
     return key === 'hero' || key === 'invitation';
@@ -1666,6 +2029,214 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     const s = this.sections();
     moveItemInArray(s, event.previousIndex, event.currentIndex);
     this.sections.set([...s]);
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== DETALLES como mini-secciones (sub-entradas del menú) =====
+
+  /** Estado de colapso de los grupos del menú (Detalles/Lugares). Independientes: expandir/colapsar
+      uno NO afecta al otro. Ambos arrancan EXPANDIDOS. */
+  groupExpanded = signal<{ details: boolean; venues: boolean; dresscode: boolean }>({ details: true, venues: true, dresscode: true });
+
+  /** Alterna el colapso de un grupo del menú sin tocar el otro. */
+  toggleGroup(key: 'details' | 'venues' | 'dresscode') {
+    this.groupExpanded.update((g) => ({ ...g, [key]: !g[key] }));
+  }
+
+  /** Cards de Detalles para el menú (sub-entradas "Detalle N"). */
+  detailCards(): any[] {
+    return (this.canvasState.config() as any)?.details?.cards || [];
+  }
+
+  /** Selecciona una card de Detalles (la marca activa y abre sus propiedades). */
+  selectDetail(index: number) {
+    if (this.canvasMode() === 'preview') return;
+    this.canvasState.selectSection('details');
+    this.canvasState.selectedDetailIndex.set(index);
+    this.currentSection.set('details');
+    if (!this.isMobileView()) this.showProps.set(true);
+    if (!this.isWide()) { this.panelVisible.set(false); this.showLeftPanel.set(false); }
+    // Desplazar el canvas a esa mini-sección (data-section="details:<id>").
+    const card = this.detailCards()[index];
+    if (card) this.scrollToSection('details:' + card.id);
+  }
+
+  /** Agrega una nueva card de Detalles y la selecciona. */
+  addDetail() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const d = (cfg as any).details;
+    if (!d.cards) d.cards = [];
+    d.cards.push({
+      id: 'c-' + Date.now(),
+      iconType: 'none', icon: '', iconUrl: '',
+      title: '', content: '', textAlign: 'center',
+    });
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.selectDetail(d.cards.length - 1);
+  }
+
+  /** Elimina una card de Detalles, con confirmación. */
+  async removeDetail(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const d = (cfg as any).details;
+    const card = d?.cards?.[index];
+    if (!card) return;
+    const name = card.label || ('Detalle ' + (index + 1));
+    const ok = await this.dialog.confirm(
+      'Eliminar detalle',
+      `¿Eliminar "${name}"? Esta acción no se puede deshacer.`,
+      'Eliminar'
+    );
+    if (!ok) return;
+    d.cards.splice(index, 1);
+    // Ajustar la selección actual.
+    const sel = this.canvasState.selectedDetailIndex();
+    if (sel === index) this.canvasState.selectedDetailIndex.set(-1);
+    else if (sel > index) this.canvasState.selectedDetailIndex.set(sel - 1);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+  }
+
+  /** Reordena las cards de Detalles (drag dentro del grupo). */
+  onDetailDrop(event: CdkDragDrop<any[]>) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const cards = (cfg as any).details?.cards; if (!cards) return;
+    moveItemInArray(cards, event.previousIndex, event.currentIndex);
+    // Mantener seleccionada la misma card tras el reordenamiento.
+    const sel = this.canvasState.selectedDetailIndex();
+    if (sel === event.previousIndex) this.canvasState.selectedDetailIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== LUGARES como mini-secciones (espejo de Detalles) =====
+
+  venueItems(): any[] { return (this.canvasState.config() as any)?.venues?.items || []; }
+
+  selectVenue(index: number) {
+    if (this.canvasMode() === 'preview') return;
+    this.canvasState.selectSection('venues');
+    this.canvasState.selectedVenueIndex.set(index);
+    this.currentSection.set('venues');
+    if (!this.isMobileView()) this.showProps.set(true);
+    if (!this.isWide()) { this.panelVisible.set(false); this.showLeftPanel.set(false); }
+    const v = this.venueItems()[index];
+    if (v) this.scrollToSection('venues:' + v.id);
+  }
+
+  addVenueMini() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const vz = (cfg as any).venues;
+    if (!vz.items) vz.items = [];
+    vz.items.push({
+      id: 'v-' + Date.now(), title: '', icon: '', iconType: 'none', iconEmoji: '',
+      name: '', address: '', time: '', mapsUrl: '',
+    });
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.selectVenue(vz.items.length - 1);
+  }
+
+  async removeVenueMini(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const vz = (cfg as any).venues;
+    const v = vz?.items?.[index];
+    if (!v) return;
+    const name = v.label || ('Lugar ' + (index + 1));
+    const ok = await this.dialog.confirm('Eliminar lugar', `¿Eliminar "${name}"? Esta acción no se puede deshacer.`, 'Eliminar');
+    if (!ok) return;
+    vz.items.splice(index, 1);
+    const sel = this.canvasState.selectedVenueIndex();
+    if (sel === index) this.canvasState.selectedVenueIndex.set(-1);
+    else if (sel > index) this.canvasState.selectedVenueIndex.set(sel - 1);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+  }
+
+  onVenueDrop(event: CdkDragDrop<any[]>) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const items = (cfg as any).venues?.items; if (!items) return;
+    moveItemInArray(items, event.previousIndex, event.currentIndex);
+    const sel = this.canvasState.selectedVenueIndex();
+    if (sel === event.previousIndex) this.canvasState.selectedVenueIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones (drag) de UN venue en ese venue. */
+  onVenuePositionsChange(ev: { venueId: string; positions: any }) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const v = (cfg as any).venues?.items?.find((x: any) => x.id === ev.venueId);
+    if (!v) return;
+    v.positions = ev.positions;
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  // ===== VESTIMENTA como mini-secciones (espejo de Detalles/Lugares) =====
+
+  dresscodeCards(): any[] { return (this.canvasState.config() as any)?.dresscode?.cards || []; }
+
+  selectDresscode(index: number) {
+    if (this.canvasMode() === 'preview') return;
+    this.canvasState.selectSection('dresscode');
+    this.canvasState.selectedDresscodeIndex.set(index);
+    this.currentSection.set('dresscode');
+    if (!this.isMobileView()) this.showProps.set(true);
+    if (!this.isWide()) { this.panelVisible.set(false); this.showLeftPanel.set(false); }
+    const d = this.dresscodeCards()[index];
+    if (d) this.scrollToSection('dresscode:' + d.id);
+  }
+
+  addDresscodeMini() {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const dz = (cfg as any).dresscode;
+    if (!dz.cards) dz.cards = [];
+    dz.cards.push({ id: 'd-' + Date.now(), title: '', description: '', images: [] });
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.selectDresscode(dz.cards.length - 1);
+  }
+
+  async removeDresscodeMini(index: number) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const dz = (cfg as any).dresscode;
+    const d = dz?.cards?.[index];
+    if (!d) return;
+    const name = d.label || ('Vestimenta ' + (index + 1));
+    const ok = await this.dialog.confirm('Eliminar vestimenta', `¿Eliminar "${name}"? Esta acción no se puede deshacer.`, 'Eliminar');
+    if (!ok) return;
+    dz.cards.splice(index, 1);
+    const sel = this.canvasState.selectedDresscodeIndex();
+    if (sel === index) this.canvasState.selectedDresscodeIndex.set(-1);
+    else if (sel > index) this.canvasState.selectedDresscodeIndex.set(sel - 1);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+  }
+
+  onDresscodeDrop(event: CdkDragDrop<any[]>) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const cards = (cfg as any).dresscode?.cards; if (!cards) return;
+    moveItemInArray(cards, event.previousIndex, event.currentIndex);
+    const sel = this.canvasState.selectedDresscodeIndex();
+    if (sel === event.previousIndex) this.canvasState.selectedDresscodeIndex.set(event.currentIndex);
+    this.canvasState.notifyChange();
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones (drag) de UNA card de vestimenta en esa card. */
+  onDresscodePositionsChange(ev: { cardId: string; positions: any }) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const c = (cfg as any).dresscode?.cards?.find((x: any) => x.id === ev.cardId);
+    if (!c) return;
+    c.positions = ev.positions;
+    this.canvasState.notifyChange();
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();
   }

@@ -5,6 +5,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Event, KPIs } from '../../../core/models/models';
 import { environment } from '../../../../environments/environment';
+import { resolveMedia, resolveGlobalBackground, isVideoUrl } from '../../../core/utils/media-background.util';
 
 @Component({
   selector: 'app-home',
@@ -54,12 +55,18 @@ import { environment } from '../../../../environments/environment';
                     <div class="card-badge">
                       <span class="material-icons">{{ getEventIcon(event.event_type) }}</span>
                     </div>
-                    <h4 class="card-title" [style.color]="getTitleColor(event.id)">{{ event.name }}</h4>
-                    <span class="card-type" [style.color]="getSubtitleColor(event.id)">{{ event.event_type }}</span>
-                    <span class="card-date" [style.color]="getSubtitleColor(event.id)">{{ formatDate(event.event_date) }}</span>
-                    <div class="card-mode">
-                      <span class="material-icons">{{ event.event_mode === 'open' ? 'public' : 'lock' }}</span>
-                      {{ event.event_mode === 'open' ? 'Abierto' : 'Privado' }}
+                    <!-- Centro vertical: título + tipo de evento -->
+                    <div class="card-center">
+                      <h4 class="card-title" [style.color]="getTitleColor(event.id)">{{ event.name }}</h4>
+                      <span class="card-type" [style.color]="getSubtitleColor(event.id)">{{ event.event_type }}</span>
+                    </div>
+                    <!-- Parte inferior: fecha + modo (privado/abierto) -->
+                    <div class="card-bottom">
+                      <span class="card-date" [style.color]="getSubtitleColor(event.id)">{{ formatDate(event.event_date) }}</span>
+                      <div class="card-mode">
+                        <span class="material-icons">{{ event.event_mode === 'open' ? 'public' : 'lock' }}</span>
+                        {{ event.event_mode === 'open' ? 'Abierto' : 'Privado' }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -319,9 +326,13 @@ import { environment } from '../../../../environments/environment';
     .card-body {
       position: relative; z-index: 2;
       height: 100%; display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-end;
+      align-items: center; justify-content: center;
       padding: 16px 14px; text-align: center;
     }
+    /* Grupo centrado verticalmente: título + tipo de evento. */
+    .card-center { display: flex; flex-direction: column; align-items: center; }
+    /* Grupo anclado al fondo: fecha + modo. margin-top:auto lo empuja abajo. */
+    .card-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; }
     .card-badge {
       position: absolute; top: 14px; right: 14px;
       width: 32px; height: 32px; border-radius: 10px;
@@ -519,7 +530,7 @@ export class HomeComponent implements OnInit {
   user = this.auth.getUser();
   isClient = this.user?.role === 'client';
   isRoot = this.user?.role === 'root';
-  themes = signal<Record<number, { theme: any; heroBackground: string | null; globalStyles: any }>>({});
+  themes = signal<Record<number, { theme: any; heroBackground: string | null; landingBg: any; heroMedia: any; globalStyles: any }>>({});
   registrationStats = signal<{ registered: number; capacity: number | null }>({ registered: 0, capacity: null });
 
   ngOnInit() {
@@ -726,9 +737,22 @@ export class HomeComponent implements OnInit {
     return 'linear-gradient(135deg, #2d2b55, #1a1a2a)';
   }
 
+  /** Media de fondo para la card del carrusel, resuelta en cascada:
+      1) fondo GLOBAL de la landing (theme.landingBg, con fallback legacy a hero.backgroundGif),
+      2) si no hay, media propia de la CARÁTULA (hero.heroBackground),
+      3) si ninguna, null → la card usa solo el color+textura del tema (getCardBackground).
+      Devuelve la URL efectiva (desktop) o null. */
   getHeroMedia(eventId: number): string | null {
     const t = this.themes()[eventId];
-    return t?.heroBackground || null;
+    if (!t) return null;
+    // Paso 1: fondo global (nuevo landingBg o gif legacy).
+    const global = resolveMedia(resolveGlobalBackground(t.landingBg, t.heroBackground), true);
+    if (global.hasMedia) return global.url;
+    // Paso 2: media propia de la carátula.
+    const hero = resolveMedia(t.heroMedia, true);
+    if (hero.hasMedia) return hero.url;
+    // Paso 3: sin media → solo color/textura.
+    return null;
   }
 
   getMediaUrl(path: string): string {
@@ -739,8 +763,7 @@ export class HomeComponent implements OnInit {
   }
 
   isVideo(url: string): boolean {
-    const lower = url.toLowerCase();
-    return lower.endsWith('.mp4') || lower.endsWith('.webm');
+    return isVideoUrl(url);
   }
 
   getTitleColor(eventId: number): string {

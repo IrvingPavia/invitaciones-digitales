@@ -54,17 +54,19 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
            siempre por encima del fondo. Si no hay media propia, deja ver el fondo global. -->
       @if (heroBg().hasMedia) {
         @if (heroBg().isVideo) {
-          <video class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.object-position]="heroBg().position" [src]="heroBg().url" autoplay loop muted playsinline></video>
+          <video class="hero-bg-media" [class.bg-banner]="heroBannerActive" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.object-position]="heroBg().position" [src]="heroBg().url" autoplay loop muted playsinline></video>
         } @else {
-          <div class="hero-bg-media" [class.bg-banner]="heroBg().fit === 'banner'" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.background-image]="'url(' + heroBg().url + ')'" [style.background-position]="heroBg().position"></div>
+          <div class="hero-bg-media" [class.bg-banner]="heroBannerActive" [style.--banner-w]="heroBg().bannerWidth + '%'" [style.background-image]="'url(' + heroBg().url + ')'" [style.background-position]="heroBg().position"></div>
         }
         @if (heroBg().overlay > 0) {
           <div class="hero-bg-overlay" [style.opacity]="heroBg().overlay / 100"></div>
         }
       }
       <!-- Capa de primer plano (contenido). Es el contenedor de posicionamiento de los drag-box
-           (data-drag-bounds), ocupa toda la sección, y va sobre el fondo (z-index 1). -->
-      <div class="hero-fg" data-drag-bounds>
+           (data-drag-bounds). Se acota a un ancho FIJO centrado por dispositivo (desktop:
+           --canvas-desktop-w; mobile: --canvas-mobile-w) para que los objetos en % no se reescalen
+           al cambiar el dispositivo del selector y coincidan canvas/preview/landing. z-index 1. -->
+      <div class="hero-fg" [class.hero-fg-desktop]="heroDesktopFixed" [class.hero-fg-mobile]="heroMobileFixed" data-drag-bounds>
       <div class="hero-content">
         @if (config.eventDescription) {
         <app-drag-box [editable]="editable" [position]="heroPosData('eventType')" [ngStyle]="heroPos('eventType')" (positionChange)="onPosChange('eventType', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
@@ -108,22 +110,22 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
         @if (config.countdownDate && config.showCountdown !== false) {
           <app-drag-box [editable]="editable" [position]="heroPosData('countdown')" [ngStyle]="heroPos('countdown')" (positionChange)="onPosChange('countdown', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
           <div class="countdown animate-in" style="animation-delay:0.8s">
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.days }}</span>
               <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Días</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.hours }}</span>
               <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Horas</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.minutes }}</span>
               <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Min</span>
             </div>
             <div class="countdown-sep">:</div>
-            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="(config.countdownCardBgOpacity ?? 100) / 100" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
+            <div class="countdown-item" [class.no-bg]="config.countdownShowCardBg === false" [style.border-radius]="getCountdownBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCountdownBorderStyle()" [style.border-width.px]="getCountdownBorderWidth()" [style.box-shadow]="getCountdownBoxShadow()" [style.--card-bg]="getCountdownBgColor()" [style.border-color]="getCountdownBorderColor()" [class.neon-border]="getIsCountdownNeon()">
               <span class="countdown-value" [style.color]="config.countdownValueColor || null">{{ countdown.seconds }}</span>
               <span class="countdown-label" [style.color]="config.countdownLabelColor || null">Seg</span>
             </div>
@@ -137,10 +139,34 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
           @if (guides.y !== undefined) { <div class="ad-guide ad-guide-h" [style.top.%]="guides.y"></div> }
         }
 
-        <div class="scroll-indicator animate-in" style="animation-delay:1.2s">
-          <span class="material-icons scroll-arrow">expand_more</span>
-          <span class="material-icons scroll-arrow" style="animation-delay:0.2s">expand_more</span>
-        </div>
+        @if (scrollIndicator().show) {
+          <div class="scroll-indicator animate-in" style="animation-delay:1.2s"
+               [attr.data-anim]="scrollIndicator().animation"
+               [style.color]="scrollIndicator().color"
+               [style.font-size.px]="scrollIndicator().size">
+            @switch (scrollIndicator().type) {
+              @case ('single-chevron') {
+                <span class="material-icons scroll-arrow">keyboard_arrow_down</span>
+              }
+              @case ('arrow-down') {
+                <span class="material-icons scroll-arrow">south</span>
+              }
+              @case ('chevron-circle') {
+                <span class="material-icons scroll-arrow">expand_circle_down</span>
+              }
+              @case ('mouse') {
+                <span class="material-icons scroll-arrow">mouse</span>
+              }
+              @case ('dot') {
+                <span class="scroll-dot"></span>
+              }
+              @default {
+                <span class="material-icons scroll-arrow">expand_more</span>
+                <span class="material-icons scroll-arrow scroll-arrow-2">expand_more</span>
+              }
+            }
+          </div>
+        }
       </div>
       </div><!-- /.hero-fg -->
     </section>
@@ -226,20 +252,44 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       background-size: cover; background-position: center center; background-repeat: no-repeat;
       object-fit: cover;
       pointer-events: none;
+      /* Fade-in propio al aparecer: evita el "parpadeo" cuando la carátula se monta tras la
+         intro y el bitmap del fondo se decodifica un instante después. La capa entra con un
+         desvanecido suave en lugar de aparecer de golpe. */
+      animation: heroBgFadeIn 1s ease both;
     }
+    @keyframes heroBgFadeIn { from { opacity: 0; } to { opacity: 1; } }
     /* Capa de primer plano: cubre toda la sección, centra el contenido y es el contenedor de
        posicionamiento de los drag-box (reemplaza a .hero-section como data-drag-bounds). */
     .hero-fg {
       position: absolute; inset: 0; z-index: 1;
       display: flex; align-items: center; justify-content: center;
     }
+    /* PARIDAD canvas-preview-landing: acotar el lienzo a un ancho FIJO CENTRADO por dispositivo.
+       Sin esto, .hero-fg (inset:0) medía todo el ancho de la sección/viewport, que varía con el
+       selector de dispositivos y entre contextos → los objetos en % se reescalaban. Mantiene
+       top/bottom:0 para conservar el alto completo (centrado vertical del contenido). */
+    .hero-fg.hero-fg-desktop {
+      left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px);
+      transform: translateX(-50%);
+    }
+    .hero-fg.hero-fg-mobile {
+      left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px);
+      transform: translateX(-50%);
+    }
     @media (min-width: 768px) {
-      /* Modo banner (desktop): columna centrada del ancho configurado. */
+      /* Modo banner (desktop): columna centrada del ancho configurado. Igual que las secciones,
+         la imagen se ajusta al ALTO (auto 100%) y su ancho va a proporción, sin recortar los
+         lados por el alto. El slider define el ancho de la columna. */
       .hero-bg-media.bg-banner {
         left: 50%; right: auto; transform: translateX(-50%);
         width: var(--banner-w, 70%);
-        background-size: cover;
+        background-size: auto 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
       }
+      /* El video no soporta "auto 100%"; usa contain para verse completo en vertical dentro
+         de la columna (sin recorte lateral agresivo). */
+      video.hero-bg-media.bg-banner { object-fit: contain; }
     }
     .hero-bg-overlay {
       position: absolute; inset: 0; z-index: 0;
@@ -301,22 +351,50 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     /* El indicador de scroll se ancla SIEMPRE al fondo de la carátula, independiente del
        flujo. Así no se reacomoda cuando otros elementos pasan a position:absolute por el
        posicionamiento asistido. */
+    /* Centrado robusto: ocupa todo el ancho del lienzo y centra su contenido con flex, en vez de
+       left:50% + translateX (que dependía del box del glyph y lo dejaba ligeramente descentrado).
+       El color/tamaño se definen inline desde la config (scrollIndicator). */
     .scroll-indicator {
-      position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 0; z-index: 3;
+      position: absolute; left: 0; right: 0; bottom: 24px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0; z-index: 3;
+      color: var(--theme-text-primary, rgba(255,255,255,0.9));
+      pointer-events: none;
     }
     .scroll-arrow {
-      font-size: 32px; color: var(--theme-text-primary, rgba(255,255,255,0.4));
-      animation: scrollBounce 1.5s ease-in-out infinite;
-      display: block; opacity: 0.6;
+      font-size: inherit; color: inherit;
+      line-height: 0.7;
+      display: block;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35); /* legibilidad sobre fondos claros/variados */
     }
+    .scroll-arrow-2 { margin-top: -0.35em; opacity: 0.65; }
+    /* Punto (type='dot'): círculo que late dentro de una pista tipo "mouse scroll". */
+    .scroll-dot {
+      width: 0.28em; height: 0.28em; border-radius: 50%;
+      background: currentColor; display: block;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+    /* ===== Animaciones del indicador (data-anim) ===== */
+    .scroll-indicator[data-anim="bounce"]   .scroll-arrow,
+    .scroll-indicator[data-anim="bounce"]   .scroll-dot { animation: scrollBounce 1.5s ease-in-out infinite; }
+    .scroll-indicator[data-anim="pulse"]    .scroll-arrow,
+    .scroll-indicator[data-anim="pulse"]    .scroll-dot { animation: scrollPulse 1.4s ease-in-out infinite; }
+    .scroll-indicator[data-anim="fade"]     .scroll-arrow,
+    .scroll-indicator[data-anim="fade"]     .scroll-dot { animation: scrollFade 1.6s ease-in-out infinite; }
+    .scroll-indicator[data-anim="slide-down"] .scroll-arrow,
+    .scroll-indicator[data-anim="slide-down"] .scroll-dot { animation: scrollSlide 1.6s ease-in-out infinite; }
+    .scroll-indicator[data-anim="none"] .scroll-arrow,
+    .scroll-indicator[data-anim="none"] .scroll-dot { animation: none; opacity: 0.9; }
+    @keyframes scrollPulse { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.25); opacity: 1; } }
+    @keyframes scrollFade  { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+    @keyframes scrollSlide { 0% { transform: translateY(-6px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(8px); opacity: 0; } }
     .animate-in { animation: fadeInUp 0.8s ease both; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     /* Guías de alineación del drag asistido */
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
     .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
     .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
-    @keyframes scrollBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(6px); opacity: 0.8; } }
+    @keyframes scrollBounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(6px); opacity: 1; } }
   `]
 })
 export class LandingHeroComponent implements OnInit, OnDestroy {
@@ -352,10 +430,36 @@ export class LandingHeroComponent implements OnInit, OnDestroy {
     return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
+  /** Config efectiva del indicador de scroll, con defaults retrocompatibles (si no hay nada en el
+      config, muestra el doble chevron con animación de rebote y color heredado del texto primario). */
+  scrollIndicator(): { show: boolean; type: string; color: string | null; size: number; animation: string } {
+    const s = this.config?.scrollIndicator || {};
+    return {
+      show: s.show !== false,
+      type: s.type || 'double-chevron',
+      color: s.color || null, // null => hereda var(--theme-text-primary) del CSS
+      size: s.size || 32,
+      animation: s.animation || 'bounce',
+    };
+  }
+
+  /** True cuando el lienzo (.hero-fg) debe acotarse al ancho fijo DESKTOP (--canvas-desktop-w). */
+  get heroDesktopFixed(): boolean { return !this.isMobilePos; }
+  /** True cuando el lienzo (.hero-fg) debe acotarse al ancho fijo MOBILE (--canvas-mobile-w), para
+      que no se reescale al cambiar el dispositivo del selector del canvas. */
+  get heroMobileFixed(): boolean { return this.isMobilePos; }
+
   /** True si el ancho actual (o previewDevice) es escritorio, para elegir override de media. */
-  private get isDesktopMedia(): boolean {
+  get isDesktopMedia(): boolean {
     if (this.previewDevice) return this.previewDevice === 'desktop';
     return typeof window !== 'undefined' && window.innerWidth >= 768;
+  }
+
+  /** El banner (columna centrada) solo aplica en escritorio. En móvil la media cubre todo el
+      ancho. Depende de previewDevice (no del media query) para que el canvas mobile no muestre
+      el banner aunque la ventana del navegador sea ancha. */
+  get heroBannerActive(): boolean {
+    return this.heroBg().fit === 'banner' && this.isDesktopMedia;
   }
 
   /** Fondo propio de la carátula resuelto para el dispositivo activo (override desktop incluido). */

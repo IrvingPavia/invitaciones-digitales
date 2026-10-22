@@ -57,6 +57,20 @@
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.25);
   --radius: 12px;
   --transition: all 0.3s ease;
+  /* Ancho de referencia del LIENZO de drag en MOBILE (área segura donde el cliente posiciona los
+     objetos). 360px = mínimo común del mercado actual (Android gama baja = 360 CSS px), para que
+     lo que se configura dentro de este ancho quepa y se vea consistente en cualquier teléfono.
+     Fuente de verdad ÚNICA: las secciones con drag (invitation/intro/plano/hero) la consumen para
+     acotar su lienzo mobile. El futuro selector de dispositivos del canvas podrá sobrescribirla
+     para mostrar distintos marcos, manteniendo el lienzo acotado a este valor. */
+  --canvas-mobile-w: 360px;
+  /* Ancho de referencia del LIENZO de drag en DESKTOP. Hermana de --canvas-mobile-w: fuente de
+     verdad ÚNICA del ancho de la columna de contenido en escritorio, consumida por las secciones
+     con drag (invitation/intro/plano/hero) y por la columna de la landing (.section-block). Fijarla
+     garantiza que un objeto posicionado en % mida igual en los 5 contextos (canvas mobile/desktop,
+     preview mobile/desktop en iframe, y landing real), ya que el % se calcula sobre un ancho
+     constante. Antes estaba hard-codeada como 680px en varios sitios. */
+  --canvas-desktop-w: 600px;
 }
 
 /* ===== LIGHT MODE ===== */
@@ -1692,4 +1706,28 @@ body.light-mode .ag-dropdown-overlay {
     --ag-row-height: 42px;
     --ag-header-height: 38px;
   }
+}
+
+/* =====================================================================
+   TRANSICIÓN ENTRE SECCIONES DE LA LANDING — Fase 1 (CSS scroll-snap)
+   La clase la pone/quita LandingComponent en <html> según
+   theme.sectionTransition{Mobile|Desktop} y el ancho del dispositivo.
+   - lp-snap-soft = proximity (enganche suave: puedes parar a medias)
+   - lp-snap-firm = mandatory (enganche firme: siempre aterriza en una sección)
+   El snap es al INICIO de cada sección. Las secciones más altas que la
+   pantalla scrollean normal y enganchan al pasar (scroll-snap-stop:normal).
+   NO se aplica en el builder (la clase no se agrega en modo iframe).
+   Fase 2 (futuro): transiciones animadas (fade/slide) — ver docs/PENDING.md.
+   ===================================================================== */
+html.lp-snap-soft { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+html.lp-snap-firm { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+/* Puntos de enganche: la carátula y cada bloque de sección. scroll-snap-stop:normal evita
+   que secciones largas queden "atascadas" (permite cruzarlas de un gesto largo). */
+html.lp-snap-soft #section-hero,
+html.lp-snap-firm #section-hero,
+html.lp-snap-soft .section-block,
+html.lp-snap-firm .section-block {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
 }

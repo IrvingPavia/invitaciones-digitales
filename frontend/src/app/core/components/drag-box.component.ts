@@ -22,16 +22,22 @@ import { DragBoxSelectionService } from './drag-box-selection.service';
          y deje vacío el otro, lo que ocultaba el texto en la landing). -->
     <div class="db-frame" [class.db-interactive]="editable" [class.db-selected]="editable && selected" [class.db-dragging]="editable && dragging"
          (mousedown)="onBodyDown($event)" (touchstart)="onBodyTouchDown($event)">
-      <div class="db-content" [class.db-content-locked]="editable"><ng-content></ng-content></div>
+      <div class="db-content" [class.db-content-locked]="editable" [class.db-content-center]="centerContent"><ng-content></ng-content></div>
       @if (editable && selected && showHandles) {
-        <div class="db-handle db-h-tl" (mousedown)="onHandleDown($event,'tl')" (touchstart)="onHandleTouchDown($event,'tl')"></div>
-        <div class="db-handle db-h-tc" (mousedown)="onHandleDown($event,'tc')" (touchstart)="onHandleTouchDown($event,'tc')"></div>
-        <div class="db-handle db-h-tr" (mousedown)="onHandleDown($event,'tr')" (touchstart)="onHandleTouchDown($event,'tr')"></div>
+        <!-- widthOnly: solo handles de ANCHO (ml/mr). El alto lo manda el contenido (no se
+             redimensiona). Se usa en cards de contenido variable como Vestimenta. -->
+        @if (!widthOnly) {
+          <div class="db-handle db-h-tl" (mousedown)="onHandleDown($event,'tl')" (touchstart)="onHandleTouchDown($event,'tl')"></div>
+          <div class="db-handle db-h-tc" (mousedown)="onHandleDown($event,'tc')" (touchstart)="onHandleTouchDown($event,'tc')"></div>
+          <div class="db-handle db-h-tr" (mousedown)="onHandleDown($event,'tr')" (touchstart)="onHandleTouchDown($event,'tr')"></div>
+        }
         <div class="db-handle db-h-ml" (mousedown)="onHandleDown($event,'ml')" (touchstart)="onHandleTouchDown($event,'ml')"></div>
         <div class="db-handle db-h-mr" (mousedown)="onHandleDown($event,'mr')" (touchstart)="onHandleTouchDown($event,'mr')"></div>
-        <div class="db-handle db-h-bl" (mousedown)="onHandleDown($event,'bl')" (touchstart)="onHandleTouchDown($event,'bl')"></div>
-        <div class="db-handle db-h-bc" (mousedown)="onHandleDown($event,'bc')" (touchstart)="onHandleTouchDown($event,'bc')"></div>
-        <div class="db-handle db-h-br" (mousedown)="onHandleDown($event,'br')" (touchstart)="onHandleTouchDown($event,'br')"></div>
+        @if (!widthOnly) {
+          <div class="db-handle db-h-bl" (mousedown)="onHandleDown($event,'bl')" (touchstart)="onHandleTouchDown($event,'bl')"></div>
+          <div class="db-handle db-h-bc" (mousedown)="onHandleDown($event,'bc')" (touchstart)="onHandleTouchDown($event,'bc')"></div>
+          <div class="db-handle db-h-br" (mousedown)="onHandleDown($event,'br')" (touchstart)="onHandleTouchDown($event,'br')"></div>
+        }
       }
     </div>
   `,
@@ -45,6 +51,9 @@ import { DragBoxSelectionService } from './drag-box-selection.service';
     .db-dragging { outline: 2px solid rgba(157,110,231,1) !important; outline-offset: 2px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4); opacity: 0.92; }
     /* El contenido solo bloquea punteros durante la edición (evita selección nativa). */
     .db-content-locked { pointer-events: none; }
+    /* Centra el contenido dentro de la caja (para ornamentos/elementos inline-block cuyo
+       ancho es menor al de la caja). Opt-in vía [centerContent]. */
+    .db-content-center { display: flex; align-items: center; justify-content: center; height: 100%; }
     .db-handle {
       position: absolute; width: 10px; height: 10px; background: rgba(157,110,231,0.95);
       border: 1.5px solid #fff; border-radius: 2px; z-index: 10;
@@ -77,6 +86,18 @@ export class DragBoxComponent {
   @Input() showHandles = true;
   /** Posicion actual guardada (para preservar el ancho `w` al mover). */
   @Input() position: ElementPosition | null = null;
+  /** Tamaño máximo (ancho/alto) permitido en % de la sección al redimensionar. Default 96.
+      Secciones de contenido (ej. Invitación) pueden subirlo a 100 para llenar el ancho. */
+  @Input() maxSize = 96;
+  /** Límite de posición del centro en % (min y 100-min). Default 2 → confina a 2–98%.
+      Poner 0 permite llegar al borde exacto (0–100%). */
+  @Input() posMargin = 2;
+  /** Centra el contenido dentro de la caja (útil para ornamentos/elementos más estrechos que la caja). */
+  @Input() centerContent = false;
+  /** Modo "solo ancho": oculta los handles de alto y ancla la posición por el BORDE SUPERIOR (no el
+      centro vertical). El alto lo manda el contenido. Para cards de contenido variable (Vestimenta).
+      El `y` emitido/aplicado representa el TOPE de la caja, y el transform vertical se omite. */
+  @Input() widthOnly = false;
 
   /** Emite la nueva posicion (centro, en %) al soltar tras mover. */
   @Output() positionChange = new EventEmitter<ElementPosition>();
@@ -98,11 +119,20 @@ export class DragBoxComponent {
   private startClientX = 0;
   private startClientY = 0;
 
-  private readonly SNAP = 3;
-  private readonly MIN = 2;
-  private readonly MAX = 98;
+  /** Umbral de "imán" para alinear a una guía, en % de la sección. Separado por eje:
+      - X (horizontal): 3% está bien para alinear al centro/tercios (lo validó el usuario).
+      - Y (vertical): 1.2% (más chico) porque el eje vertical tiene menos espacio —sobre todo en
+        mobile— y un umbral grande hacía que el objeto "brincara" entre guías sin dejar ajustar fino. */
+  private readonly SNAP_X_THRESHOLD = 3;
+  private readonly SNAP_Y_THRESHOLD = 1.2;
+  /** Límite inferior/superior del centro, derivado de posMargin (default 2 → 2 y 98). */
+  private get MIN() { return this.posMargin; }
+  private get MAX() { return 100 - this.posMargin; }
+  /** Guías X (horizontal): centro + tercios + bordes, útiles para centrar. */
   private readonly SNAP_X = [10, 25, 50, 75, 90];
-  private readonly SNAP_Y = [10, 25, 50, 75, 90];
+  /** Guías Y (vertical): SOLO el centro. Antes había 5 guías que, con poco espacio vertical
+      (mobile), hacían saltar el objeto entre ellas e impedían el ajuste fino. */
+  private readonly SNAP_Y = [50];
 
   // Deseleccionar al clickear fuera
   @HostListener('document:mousedown', ['$event'])
@@ -154,7 +184,10 @@ export class DragBoxComponent {
     // Fijar el ancho/alto actual del host para que no cambie durante el movimiento
     host.style.width = r.width + 'px';
     this.clickOffsetX = ((cx - (r.left + r.width / 2)) / this.bounds.width) * 100;
-    this.clickOffsetY = ((cy - (r.top + r.height / 2)) / this.bounds.height) * 100;
+    // widthOnly: el anclaje vertical es el BORDE SUPERIOR del frame (no el centro), para que al
+    // mover, el `y` represente el tope y la card pueda crecer hacia abajo con su contenido.
+    const anchorY = this.widthOnly ? r.top : (r.top + r.height / 2);
+    this.clickOffsetY = ((cy - anchorY) / this.bounds.height) * 100;
   }
 
   private processMove(cx: number, cy: number) {
@@ -170,12 +203,17 @@ export class DragBoxComponent {
     let x = ((cx - this.bounds.left) / this.bounds.width) * 100 - this.clickOffsetX;
     let y = ((cy - this.bounds.top) / this.bounds.height) * 100 - this.clickOffsetY;
 
-    // Snap
+    // Snap (imán a guías). Umbral por eje: X más tolerante, Y más estricto para permitir ajuste
+    // fino vertical (sobre todo en mobile, donde hay poco espacio). En widthOnly el `y` es el TOPE,
+    // así que el snap vertical al centro (50) no aplica.
     const guides: { x?: number; y?: number } = {};
-    for (const gx of this.SNAP_X) { if (Math.abs(x - gx) <= this.SNAP) { x = gx; guides.x = gx; break; } }
-    for (const gy of this.SNAP_Y) { if (Math.abs(y - gy) <= this.SNAP) { y = gy; guides.y = gy; break; } }
+    for (const gx of this.SNAP_X) { if (Math.abs(x - gx) <= this.SNAP_X_THRESHOLD) { x = gx; guides.x = gx; break; } }
+    if (!this.widthOnly) {
+      for (const gy of this.SNAP_Y) { if (Math.abs(y - gy) <= this.SNAP_Y_THRESHOLD) { y = gy; guides.y = gy; break; } }
+    }
 
-    // Confinar (sin cambiar tamaño, solo frena)
+    // Confinar (sin cambiar tamaño, solo frena). En widthOnly el tope puede llegar a 0 (MIN=0 con
+    // posMargin 0); no forzamos MAX vertical para no impedir mover la card larga.
     x = Math.max(this.MIN, Math.min(this.MAX, x));
     y = Math.max(this.MIN, Math.min(this.MAX, y));
 
@@ -186,7 +224,8 @@ export class DragBoxComponent {
     host.style.top = y + '%';
     host.style.right = 'auto';
     host.style.bottom = 'auto';
-    host.style.transform = 'translate(-50%, -50%)';
+    // widthOnly: solo centra en X (el tope manda en Y); si no, centra en ambos ejes.
+    host.style.transform = this.widthOnly ? 'translateX(-50%)' : 'translate(-50%, -50%)';
     host.style.margin = '0';
 
     this.lastX = x; this.lastY = y;
@@ -200,14 +239,15 @@ export class DragBoxComponent {
     document.body.style.webkitUserSelect = '';
     this.draggingChange.emit(false);
     this.guidesChange.emit(null);
-    // Preservar ancho/alto guardados al mover (si existen), para no perder el resize previo.
+    // Preservar ancho guardado al mover. El alto (h) NO se emite en widthOnly (lo manda el
+    // contenido); en modo normal se preserva el h previo para no perder el resize.
     const w = this.position?.w;
     const hVal = this.position?.h;
     this.positionChange.emit({
       x: Math.round(this.lastX * 10) / 10,
       y: Math.round(this.lastY * 10) / 10,
       ...(w != null ? { w } : {}),
-      ...(hVal != null ? { h: hVal } : {}),
+      ...(!this.widthOnly && hVal != null ? { h: hVal } : {}),
     });
   }
 
@@ -250,6 +290,12 @@ export class DragBoxComponent {
     const frame = this.el.nativeElement.querySelector('.db-frame') as HTMLElement;
     const r = frame.getBoundingClientRect();
     this.rLeft = r.left; this.rRight = r.right; this.rTop = r.top; this.rBottom = r.bottom;
+    // Sembrar lastX/lastY con el CENTRO ACTUAL real del objeto (en % de la sección). Sin esto,
+    // al redimensionar en un solo eje (p. ej. solo ancho), el eje no tocado conservaba el default
+    // 50 y el objeto saltaba al centro de la sección al soltar. Ahora el eje no tocado mantiene
+    // su posición real.
+    this.lastX = Math.round(((r.left + r.width / 2 - this.bounds.left) / this.bounds.width) * 1000) / 10;
+    this.lastY = Math.round(((r.top + r.height / 2 - this.bounds.top) / this.bounds.height) * 1000) / 10;
   }
 
   private processResize(cx: number, cy: number) {
@@ -275,6 +321,15 @@ export class DragBoxComponent {
     if (touchesTop) top = Math.min(cy, this.rBottom - minPxH);
     if (touchesBottom) bottom = Math.max(cy, this.rTop + minPxH);
 
+    // CONFINAR LOS BORDES AL LIENZO: al arrastrar un handle FUERA del lienzo, el borde que se mueve
+    // no puede pasar de los límites de los bounds (this.bounds). Así el objeto NUNCA se sale del
+    // lienzo al redimensionar (antes el borde seguía al cursor fuera del área).
+    const bL = this.bounds.left, bR = this.bounds.right, bT = this.bounds.top, bB = this.bounds.bottom;
+    if (touchesLeft) left = Math.max(bL, left);
+    if (touchesRight) right = Math.min(bR, right);
+    if (touchesTop) top = Math.max(bT, top);
+    if (touchesBottom) bottom = Math.min(bB, bottom);
+
     const widthPx = right - left;
     const heightPx = bottom - top;
     const centerXPx = left + widthPx / 2;
@@ -287,8 +342,8 @@ export class DragBoxComponent {
     let yPct = ((centerYPx - this.bounds.top) / this.bounds.height) * 100;
 
     // Confinar
-    wPct = Math.max(6, Math.min(96, wPct));
-    hPct = Math.max(4, Math.min(96, hPct));
+    wPct = Math.max(6, Math.min(this.maxSize, wPct));
+    hPct = Math.max(4, Math.min(this.maxSize, hPct));
     xPct = Math.max(this.MIN, Math.min(this.MAX, xPct));
     yPct = Math.max(this.MIN, Math.min(this.MAX, yPct));
 

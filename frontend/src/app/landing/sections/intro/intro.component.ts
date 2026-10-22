@@ -1,33 +1,35 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, DoCheck, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { IntroConfig, IntroParticlesConfig, ElementPosition, ElementPositions } from '../../../core/models/models';
+import { IntroConfig, IntroParticlesConfig, ElementPosition, ElementPositions, MediaBackground } from '../../../core/models/models';
 import { posStyle } from '../../../core/utils/element-position.util';
 import { DragBoxComponent } from '../../../core/components/drag-box.component';
+import { resolveMedia, isVideoUrl, ResolvedMedia } from '../../../core/utils/media-background.util';
 
 @Component({
   selector: 'app-landing-intro',
   standalone: true,
   imports: [CommonModule, DragBoxComponent],
   template: `
-    <div class="intro-overlay" [class.fade-out]="fading" [class.intro-preloading]="!active" [attr.data-transition]="config.transition || 'fade'" data-drag-bounds (click)="onOverlayClick()">
-      @if (config.background) {
-        @if (isVideo(config.background)) {
-          <video #introVideo class="intro-bg-video" [attr.loop]="previewLoop ? true : null" muted playsinline [src]="config.background"></video>
-          <div class="intro-bg-overlay"></div>
+    <div class="intro-overlay" [class.fade-out]="fading" [class.intro-preloading]="!active" [attr.data-transition]="config.transition || 'fade'" (click)="onOverlayClick()">
+      @if (bgUrl) {
+        @if (bgIsVideo) {
+          <video #introVideo class="intro-bg-video" [class.bg-banner]="bgBanner" [style.--banner-w]="bgBannerWidth + '%'" [attr.loop]="previewLoop ? true : null" muted playsinline [src]="bgUrl"></video>
           @if (showPlayHint) {
             <div class="play-hint"><span class="material-icons">touch_app</span><span>Toca para iniciar</span></div>
           }
         } @else {
-          <div class="intro-bg" [style.backgroundImage]="'url(' + config.background + ')'"></div>
-          <div class="intro-bg-overlay"></div>
+          <div class="intro-bg" [class.bg-banner]="bgBanner" [style.--banner-w]="bgBannerWidth + '%'" [style.backgroundImage]="'url(' + bgUrl + ')'"></div>
         }
+        <!-- Oscurecido configurable (overlay). Si no se define, el default sutil mejora la
+             legibilidad de la frase sobre el fondo. -->
+        <div class="intro-bg-overlay" [style.background]="bgOverlayPct > 0 ? 'rgba(0,0,0,' + (bgOverlayPct/100) + ')' : null"></div>
       } @else {
         <div class="intro-bg" [style.background]="defaultBg"></div>
       }
       <!-- La textura del tema solo aplica cuando NO hay multimedia de fondo. Si hay imagen/
            gif/video, no debe superponerse encima para no restarle detalle visual. -->
-      @if (themeTexture && themeTexture !== 'none' && !config.background) {
+      @if (themeTexture && themeTexture !== 'none' && !bgUrl) {
         <div class="intro-texture" [attr.data-texture]="themeTexture" [style.opacity]="(themeTextureOpacity || 5) / 100"></div>
       }
       @if (particlesConfig.enabled) {
@@ -37,6 +39,10 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
           }
         </div>
       }
+      <!-- Lienzo de posicionamiento (data-drag-bounds). Se acota a un ancho FIJO centrado por
+           dispositivo (desktop: --canvas-desktop-w; mobile: --canvas-mobile-w) para que el drag
+           coincida entre canvas/preview/landing sin reescalarse al cambiar de dispositivo. -->
+      <div class="intro-fg" [class.intro-fg-desktop]="introDesktopFixed" [class.intro-fg-mobile]="introMobileFixed" data-drag-bounds>
       <!-- Frase: con DragBox para posicionarla libremente (como en la pantalla de inicio). -->
       <app-drag-box [editable]="editable" [position]="introPosData('phrase')" [ngStyle]="phraseWrapStyle()" (positionChange)="onPosChange('phrase', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
         @if (config.phraseHtml) {
@@ -50,6 +56,7 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
           >{{ config.phrase }}</p>
         }
       </app-drag-box>
+      </div><!-- /.intro-fg -->
 
       <!-- Linea de carga (progress). Configurable: color, estilo, grosor, ancho y visibilidad. -->
       @if (progressVisible) {
@@ -81,25 +88,39 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       -webkit-transform: translateZ(0); transform: translateZ(0);
       backface-visibility: hidden; -webkit-backface-visibility: hidden;
     }
-    .intro-overlay.fade-out { pointer-events: none; transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease; }
+    /* IMPORTANTE: al salir se CANCELA la animación de entrada (animation:none). La animación
+       introFadeIn con fill-mode both retenía opacity:1 y le ganaba a la transition de opacity del
+       fade-out, por lo que la intro NO se desvanecía (desaparecía de golpe al desmontarse). Con
+       animation:none, la transition toma el control y el fade-out se ve. */
+    /* SALIDA por ANIMACIÓN (no transition): la animación de entrada introFadeIn con fill-mode
+       both retenía la opacity y le ganaba a una transition de salida, por lo que el fade-out no
+       se veía (parpadeo). Igual que el canvas (builderFade), la salida usa @keyframes dedicados
+       por tipo de transición; una animation de salida SÍ sustituye a la de entrada sin conflicto. */
+    .intro-overlay.fade-out { pointer-events: none; }
+    .intro-overlay[data-transition="fade"].fade-out { animation: introOutFade 1.2s ease forwards; }
+    .intro-overlay[data-transition="slide-up"].fade-out { animation: introOutSlideUp 1.2s ease forwards; }
+    .intro-overlay[data-transition="slide-down"].fade-out { animation: introOutSlideDown 1.2s ease forwards; }
+    .intro-overlay[data-transition="zoom-in"].fade-out { animation: introOutZoomIn 1.2s ease forwards; }
+    .intro-overlay[data-transition="zoom-out"].fade-out { animation: introOutZoomOut 1.2s ease forwards; }
+    .intro-overlay[data-transition="blur"].fade-out { animation: introOutBlur 1.2s ease forwards; }
+    .intro-overlay[data-transition="none"].fade-out { animation: introOutFade 0.1s linear forwards; }
+    @keyframes introOutFade { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes introOutSlideUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100%); } }
+    @keyframes introOutSlideDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
+    @keyframes introOutZoomIn { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.5); } }
+    @keyframes introOutZoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.3); } }
+    @keyframes introOutBlur { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(20px); transform: scale(1.1); } }
     /* Precarga: montada tras el envelope sin animación de entrada ni interacción.
        El video decodifica y pinta su primer frame aunque el overlay esté invisible,
        de modo que al activarse ya se ve el gif/video sin frame en blanco. */
     .intro-overlay.intro-preloading { animation: none !important; opacity: 0; pointer-events: none; }
     .intro-overlay.intro-preloading .intro-phrase,
     .intro-overlay.intro-preloading .play-hint { animation: none !important; opacity: 0 !important; }
-    /* Transition variants - only apply on fade-out */
-    .intro-overlay[data-transition="fade"].fade-out { opacity: 0; }
-    .intro-overlay[data-transition="slide-up"].fade-out { opacity: 0; transform: translateY(-100%); }
-    .intro-overlay[data-transition="slide-down"].fade-out { opacity: 0; transform: translateY(100%); }
-    .intro-overlay[data-transition="zoom-in"].fade-out { opacity: 0; transform: scale(1.5); }
-    .intro-overlay[data-transition="zoom-out"].fade-out { opacity: 0; transform: scale(0.3); }
-    .intro-overlay[data-transition="blur"].fade-out { opacity: 0; filter: blur(20px); transform: scale(1.1); }
-    .intro-overlay[data-transition="none"].fade-out { opacity: 0; transition: opacity 0.05s; }
     @keyframes introFadeIn { from { opacity: 0; } to { opacity: 1; } }
     .intro-bg {
       position: absolute; inset: 0;
       background-size: cover; background-position: center;
+      background-repeat: no-repeat;
       animation: introBgZoom 5s ease forwards;
     }
     .intro-bg-video {
@@ -108,6 +129,24 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       object-fit: cover;
       animation: introBgZoom 5s ease forwards;
     }
+    /* BANNER (solo desktop): columna centrada del ancho --banner-w. Imagen a 'auto 100%'
+       (llena el alto, ancho proporcional) y video a object-fit cover dentro de la columna,
+       con las franjas laterales dejando ver el color/overlay. Mismo criterio que las secciones.
+       La clase bg-banner la activa el componente solo en desktop (bgBanner).
+       OJO: se DESACTIVA la animación de zoom (introBgZoom usa transform:scale, que pisaría el
+       translateX(-50%) de centrado y dejaba la franja descentrada a la derecha). */
+    .intro-bg.bg-banner {
+      left: 50%; right: auto; width: var(--banner-w, 70%);
+      transform: translateX(-50%);
+      background-size: auto 100%; background-position: center center;
+      animation: none;
+    }
+    .intro-bg-video.bg-banner {
+      left: 50%; right: auto; width: var(--banner-w, 70%);
+      transform: translateX(-50%);
+      object-fit: cover; object-position: center center;
+      animation: none;
+    }
     .play-hint {
       position: absolute; inset: 0; z-index: 5;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
@@ -115,9 +154,11 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
       animation: phraseIn 1s ease 0.3s both;
       .material-icons { font-size: 48px; opacity: 0.6; }
     }
+    /* Oscurecido: SIN gradiente fijo. El componente controla el background inline según el
+       overlay configurado (0 = transparente). Antes había un gradiente oscuro fijo que
+       oscurecía el fondo aunque el usuario no lo pidiera. */
     .intro-bg-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%);
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
     }
     .intro-texture {
       position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -145,6 +186,21 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     .intro-phrase-rich p:last-child { margin-bottom: 0; }
     /* Cuando el DragBox fija un ancho al wrapper, la frase llena ese ancho. */
     app-drag-box[style*="width"] .intro-phrase { padding: 0; width: 100%; }
+
+    /* Lienzo de posicionamiento de la frase (data-drag-bounds). Cubre el overlay (inset:0) para
+       que el drag-box de la frase se posicione en % respecto a él. z-index 2 para quedar sobre el
+       fondo/partículas pero dejar debajo la barra de progreso y el botón skip (que viven en el
+       overlay con su propio z-index). */
+    .intro-fg { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    /* El drag-box interno recupera eventos (el lienzo los bloquea para no tapar el click del
+       overlay que inicia la intro). */
+    .intro-fg app-drag-box { pointer-events: auto; }
+    /* PARIDAD canvas-preview-landing: el lienzo se acota a un ancho FIJO CENTRADO por dispositivo.
+       El overlay de la intro es fixed = ancho de ventana (landing) o del viewport (canvas), por eso
+       sin acotar el mismo % daba anchos físicos distintos. Con ancho fijo el drag coincide en los
+       5 contextos y no se reescala al cambiar el dispositivo del selector. */
+    .intro-fg.intro-fg-desktop { left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); max-width: var(--canvas-desktop-w, 600px); transform: translateX(-50%); }
+    .intro-fg.intro-fg-mobile { left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); max-width: var(--canvas-mobile-w, 360px); transform: translateX(-50%); }
 
     /* Linea de carga (centrada abajo por defecto; posicion absoluta en el overlay). */
     .intro-progress-wrap {
@@ -312,6 +368,9 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   @Input() editable = false;
   /** Emite el nuevo mapa de posiciones de la intro para que el builder lo persista. */
   @Output() positionsChange = new EventEmitter<ElementPositions>();
+  /** Emite al INICIAR el fade-out (landing real). La landing monta la carátula DETRÁS mientras
+      la intro aún se desvanece, para que no haya hueco (fondo vacío) en el relevo intro→carátula. */
+  @Output() fadingStart = new EventEmitter<void>();
 
   /** Estado de arrastre para dibujar guías. */
   dragging = false;
@@ -321,6 +380,39 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
     if (this.previewDevice) return this.previewDevice === 'mobile';
     return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
+
+  /** True si el lienzo de texto de la intro debe acotarse a la columna fija de desktop (680px),
+      para que el drag coincida entre canvas, preview y landing (igual que Pantalla de Inicio e
+      Invitación). El overlay de la intro es fixed a pantalla completa, así que en la landing el
+      lienzo medía todo el ancho de la ventana y el texto se estiraba. En mobile no aplica. */
+  get introDesktopFixed(): boolean {
+    return !this.isMobilePos;
+  }
+  /** True cuando el lienzo debe acotarse al ancho fijo MOBILE (--canvas-mobile-w). El overlay de
+      la intro es fixed a pantalla completa, así que sin acotar, en mobile el lienzo medía todo el
+      ancho del dispositivo (variable con el selector) y los objetos en % se reescalaban. */
+  get introMobileFixed(): boolean {
+    return this.isMobilePos;
+  }
+
+  /** Fondo resuelto de la intro para el dispositivo activo. Prioriza el nuevo modelo `media`
+      (banner/cover + override desktop); si no hay, cae al legacy `background` (string, cover). */
+  bg(): ResolvedMedia {
+    const mb: MediaBackground | null = (this.config.media && this.config.media.url)
+      ? this.config.media
+      : (this.config.background ? { url: this.config.background, fit: 'cover', overlay: 0 } : null);
+    return resolveMedia(mb, !this.isMobilePos);
+  }
+
+  /** URL efectiva del fondo (para el <video>/<img> y el trimmer). */
+  get bgUrl(): string { return this.bg().url; }
+  /** True si el fondo efectivo es video. */
+  get bgIsVideo(): boolean { return this.bg().isVideo; }
+  /** True si debe pintarse en modo banner (columna centrada) — solo desktop. */
+  get bgBanner(): boolean { return this.bg().fit === 'banner' && !this.isMobilePos; }
+  /** Ancho del banner en % y oscurecido 0-100 (configurable). */
+  get bgBannerWidth(): number { return this.bg().bannerWidth; }
+  get bgOverlayPct(): number { return this.bg().overlay; }
 
   /** Estilo de posicionamiento del wrapper de la frase (DragBox host). */
   phraseWrapStyle(): Record<string, string> {
@@ -442,7 +534,7 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
   /** Se llama cuando la intro pasa de precarga a activa (envelope terminó). Arranca el
       timer y, si el video no pudo autoreproducir, muestra el hint de toque. */
   private onActivated() {
-    if (this.config.background && this.isVideo(this.config.background)) {
+    if (this.bgIsVideo) {
       const video = this.introVideo?.nativeElement;
       if (video) {
         // Reiniciar al inicio del segmento para que la intro empiece desde el principio.
@@ -501,10 +593,10 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
     // barra de carga pero NO disparamos la transición de salida, para que nada desaparezca
     // y se pueda editar/arrastrar la frase y ver la línea de carga de forma estática.
     if (this.editable) return;
-    const dur = this.effectiveDuration * 1000;
-    // La transición de salida se dispara JUSTO cuando la barra de progreso termina
-    // (dur completo). La animación de fade (1.2s) ocurre encima, con el medio aún
-    // visible en su último frame, así nada se corta antes de tiempo.
+    // El fade-out ARRANCA ~300ms ANTES de que termine la duración, para que la salida empiece a
+    // notarse mientras la barra/línea de tiempo termina y el relevo a la carátula se solape (sin
+    // corte seco). No baja de 200ms para duraciones muy cortas.
+    const dur = Math.max(200, this.effectiveDuration * 1000 - 300);
     this.timer = setTimeout(() => {
       if (this.previewLoop) {
         // Canvas: transición de salida, breve pausa sobre el fondo, y reinicio del loop.
@@ -530,6 +622,11 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
       } else {
         // Landing real: desvanecer y continuar (el medio se queda en su último frame).
         this.fading = true;
+        // Al iniciar el fade-out, avisar para que la landing monte la carátula DETRÁS ya mismo.
+        // Así, cuando la intro termine de desvanecerse (done), la carátula ya está lista y
+        // visible (sin hueco de fondo vacío). La intro (z-index 9999) tapa la carátula durante
+        // el fade y la revela al volverse transparente.
+        this.fadingStart.emit();
         setTimeout(() => this.done.emit(), 1200);
       }
     }, dur);
@@ -594,7 +691,7 @@ export class LandingIntroComponent implements OnInit, OnDestroy, AfterViewInit, 
     // Imágenes/GIF: arrancar el timer solo si la intro ya está activa. Si se montó en
     // precarga (detrás del envelope), el timer arrancará al activarse (onActivated).
     // Para video, el timer arranca tras play() + active.
-    if (!this.config.background || !this.isVideo(this.config.background)) {
+    if (!this.bgIsVideo) {
       if (this.active) this.startTimer();
     }
   }

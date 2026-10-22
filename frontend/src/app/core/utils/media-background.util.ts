@@ -50,15 +50,20 @@ export function resolveMedia(
 
   const useDesktop = !!(mb.desktopOverride && isDesktop && mb.urlDesktop);
   const url = (useDesktop ? mb.urlDesktop : mb.url) || '';
-  if (!url) return { ...empty, fit: mb.fit || 'cover', position: mb.position || 'center center', overlay: mb.overlay ?? 0, bannerWidth: mb.bannerWidth ?? 70 };
+  // Encuadre/ancho EFECTIVOS: en escritorio usa los campos *Desktop si existen (fallback a los
+  // base = regla de móvil de siempre). En móvil usa SIEMPRE los base. Así separar el ajuste de
+  // escritorio no altera el de móvil, y las configs previas (sin *Desktop) se comportan igual.
+  const effFit = (isDesktop ? (mb.fitDesktop ?? mb.fit) : mb.fit) || 'cover';
+  const effBannerWidth = (isDesktop ? (mb.bannerWidthDesktop ?? mb.bannerWidth) : mb.bannerWidth) ?? 70;
+  if (!url) return { ...empty, fit: effFit, position: mb.position || 'center center', overlay: mb.overlay ?? 0, bannerWidth: effBannerWidth };
 
   return {
     url,
     isVideo: isVideoUrl(url),
-    fit: mb.fit || 'cover',
+    fit: effFit,
     position: mb.position || 'center center',
     overlay: mb.overlay ?? 0,
-    bannerWidth: mb.bannerWidth ?? 70,
+    bannerWidth: effBannerWidth,
     hasMedia: true,
   };
 }
