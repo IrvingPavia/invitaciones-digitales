@@ -24,14 +24,20 @@ import { DragBoxSelectionService } from './drag-box-selection.service';
          (mousedown)="onBodyDown($event)" (touchstart)="onBodyTouchDown($event)">
       <div class="db-content" [class.db-content-locked]="editable" [class.db-content-center]="centerContent"><ng-content></ng-content></div>
       @if (editable && selected && showHandles) {
-        <div class="db-handle db-h-tl" (mousedown)="onHandleDown($event,'tl')" (touchstart)="onHandleTouchDown($event,'tl')"></div>
-        <div class="db-handle db-h-tc" (mousedown)="onHandleDown($event,'tc')" (touchstart)="onHandleTouchDown($event,'tc')"></div>
-        <div class="db-handle db-h-tr" (mousedown)="onHandleDown($event,'tr')" (touchstart)="onHandleTouchDown($event,'tr')"></div>
+        <!-- widthOnly: solo handles de ANCHO (ml/mr). El alto lo manda el contenido (no se
+             redimensiona). Se usa en cards de contenido variable como Vestimenta. -->
+        @if (!widthOnly) {
+          <div class="db-handle db-h-tl" (mousedown)="onHandleDown($event,'tl')" (touchstart)="onHandleTouchDown($event,'tl')"></div>
+          <div class="db-handle db-h-tc" (mousedown)="onHandleDown($event,'tc')" (touchstart)="onHandleTouchDown($event,'tc')"></div>
+          <div class="db-handle db-h-tr" (mousedown)="onHandleDown($event,'tr')" (touchstart)="onHandleTouchDown($event,'tr')"></div>
+        }
         <div class="db-handle db-h-ml" (mousedown)="onHandleDown($event,'ml')" (touchstart)="onHandleTouchDown($event,'ml')"></div>
         <div class="db-handle db-h-mr" (mousedown)="onHandleDown($event,'mr')" (touchstart)="onHandleTouchDown($event,'mr')"></div>
-        <div class="db-handle db-h-bl" (mousedown)="onHandleDown($event,'bl')" (touchstart)="onHandleTouchDown($event,'bl')"></div>
-        <div class="db-handle db-h-bc" (mousedown)="onHandleDown($event,'bc')" (touchstart)="onHandleTouchDown($event,'bc')"></div>
-        <div class="db-handle db-h-br" (mousedown)="onHandleDown($event,'br')" (touchstart)="onHandleTouchDown($event,'br')"></div>
+        @if (!widthOnly) {
+          <div class="db-handle db-h-bl" (mousedown)="onHandleDown($event,'bl')" (touchstart)="onHandleTouchDown($event,'bl')"></div>
+          <div class="db-handle db-h-bc" (mousedown)="onHandleDown($event,'bc')" (touchstart)="onHandleTouchDown($event,'bc')"></div>
+          <div class="db-handle db-h-br" (mousedown)="onHandleDown($event,'br')" (touchstart)="onHandleTouchDown($event,'br')"></div>
+        }
       }
     </div>
   `,
@@ -88,6 +94,10 @@ export class DragBoxComponent {
   @Input() posMargin = 2;
   /** Centra el contenido dentro de la caja (útil para ornamentos/elementos más estrechos que la caja). */
   @Input() centerContent = false;
+  /** Modo "solo ancho": oculta los handles de alto y ancla la posición por el BORDE SUPERIOR (no el
+      centro vertical). El alto lo manda el contenido. Para cards de contenido variable (Vestimenta).
+      El `y` emitido/aplicado representa el TOPE de la caja, y el transform vertical se omite. */
+  @Input() widthOnly = false;
 
   /** Emite la nueva posicion (centro, en %) al soltar tras mover. */
   @Output() positionChange = new EventEmitter<ElementPosition>();
@@ -174,7 +184,10 @@ export class DragBoxComponent {
     // Fijar el ancho/alto actual del host para que no cambie durante el movimiento
     host.style.width = r.width + 'px';
     this.clickOffsetX = ((cx - (r.left + r.width / 2)) / this.bounds.width) * 100;
-    this.clickOffsetY = ((cy - (r.top + r.height / 2)) / this.bounds.height) * 100;
+    // widthOnly: el anclaje vertical es el BORDE SUPERIOR del frame (no el centro), para que al
+    // mover, el `y` represente el tope y la card pueda crecer hacia abajo con su contenido.
+    const anchorY = this.widthOnly ? r.top : (r.top + r.height / 2);
+    this.clickOffsetY = ((cy - anchorY) / this.bounds.height) * 100;
   }
 
   private processMove(cx: number, cy: number) {
@@ -191,12 +204,16 @@ export class DragBoxComponent {
     let y = ((cy - this.bounds.top) / this.bounds.height) * 100 - this.clickOffsetY;
 
     // Snap (imán a guías). Umbral por eje: X más tolerante, Y más estricto para permitir ajuste
-    // fino vertical (sobre todo en mobile, donde hay poco espacio).
+    // fino vertical (sobre todo en mobile, donde hay poco espacio). En widthOnly el `y` es el TOPE,
+    // así que el snap vertical al centro (50) no aplica.
     const guides: { x?: number; y?: number } = {};
     for (const gx of this.SNAP_X) { if (Math.abs(x - gx) <= this.SNAP_X_THRESHOLD) { x = gx; guides.x = gx; break; } }
-    for (const gy of this.SNAP_Y) { if (Math.abs(y - gy) <= this.SNAP_Y_THRESHOLD) { y = gy; guides.y = gy; break; } }
+    if (!this.widthOnly) {
+      for (const gy of this.SNAP_Y) { if (Math.abs(y - gy) <= this.SNAP_Y_THRESHOLD) { y = gy; guides.y = gy; break; } }
+    }
 
-    // Confinar (sin cambiar tamaño, solo frena)
+    // Confinar (sin cambiar tamaño, solo frena). En widthOnly el tope puede llegar a 0 (MIN=0 con
+    // posMargin 0); no forzamos MAX vertical para no impedir mover la card larga.
     x = Math.max(this.MIN, Math.min(this.MAX, x));
     y = Math.max(this.MIN, Math.min(this.MAX, y));
 
@@ -207,7 +224,8 @@ export class DragBoxComponent {
     host.style.top = y + '%';
     host.style.right = 'auto';
     host.style.bottom = 'auto';
-    host.style.transform = 'translate(-50%, -50%)';
+    // widthOnly: solo centra en X (el tope manda en Y); si no, centra en ambos ejes.
+    host.style.transform = this.widthOnly ? 'translateX(-50%)' : 'translate(-50%, -50%)';
     host.style.margin = '0';
 
     this.lastX = x; this.lastY = y;
@@ -221,14 +239,15 @@ export class DragBoxComponent {
     document.body.style.webkitUserSelect = '';
     this.draggingChange.emit(false);
     this.guidesChange.emit(null);
-    // Preservar ancho/alto guardados al mover (si existen), para no perder el resize previo.
+    // Preservar ancho guardado al mover. El alto (h) NO se emite en widthOnly (lo manda el
+    // contenido); en modo normal se preserva el h previo para no perder el resize.
     const w = this.position?.w;
     const hVal = this.position?.h;
     this.positionChange.emit({
       x: Math.round(this.lastX * 10) / 10,
       y: Math.round(this.lastY * 10) / 10,
       ...(w != null ? { w } : {}),
-      ...(hVal != null ? { h: hVal } : {}),
+      ...(!this.widthOnly && hVal != null ? { h: hVal } : {}),
     });
   }
 
@@ -301,6 +320,15 @@ export class DragBoxComponent {
     const touchesBottom = h === 'bl' || h === 'bc' || h === 'br';
     if (touchesTop) top = Math.min(cy, this.rBottom - minPxH);
     if (touchesBottom) bottom = Math.max(cy, this.rTop + minPxH);
+
+    // CONFINAR LOS BORDES AL LIENZO: al arrastrar un handle FUERA del lienzo, el borde que se mueve
+    // no puede pasar de los límites de los bounds (this.bounds). Así el objeto NUNCA se sale del
+    // lienzo al redimensionar (antes el borde seguía al cursor fuera del área).
+    const bL = this.bounds.left, bR = this.bounds.right, bT = this.bounds.top, bB = this.bounds.bottom;
+    if (touchesLeft) left = Math.max(bL, left);
+    if (touchesRight) right = Math.min(bR, right);
+    if (touchesTop) top = Math.max(bT, top);
+    if (touchesBottom) bottom = Math.min(bB, bottom);
 
     const widthPx = right - left;
     const heightPx = bottom - top;

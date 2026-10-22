@@ -121,7 +121,7 @@ function ensureConfigDefaults(cfg) {
     details: {
       ...(cfg.details || {}),
       enabled: cfg.details?.enabled ?? true,
-      title: cfg.details?.title || 'Detalles del Evento',
+      title: cfg.details?.title ?? 'Detalles del Evento',
       showCardBg: cfg.details?.showCardBg,
       cardBgOpacity: cfg.details?.cardBgOpacity,
       cardBorderRadius: cfg.details?.cardBorderRadius,
@@ -153,7 +153,7 @@ function ensureConfigDefaults(cfg) {
     itinerary: {
       ...(cfg.itinerary || {}),
       enabled: cfg.itinerary?.enabled ?? true,
-      title: cfg.itinerary?.title || 'Itinerario',
+      title: cfg.itinerary?.title ?? 'Itinerario',
       showCardBg: cfg.itinerary?.showCardBg,
       cardBgOpacity: cfg.itinerary?.cardBgOpacity,
       cardBorderRadius: cfg.itinerary?.cardBorderRadius,
@@ -169,7 +169,7 @@ function ensureConfigDefaults(cfg) {
     gallery: {
       ...(cfg.gallery || {}),
       enabled: cfg.gallery?.enabled ?? true,
-      title: cfg.gallery?.title || 'Galería',
+      title: cfg.gallery?.title ?? 'Galería',
       description: cfg.gallery?.description || '',
       displayStyle: cfg.gallery?.displayStyle || 'carousel-3d',
       sectionStyle: cfg.gallery?.sectionStyle,
@@ -177,7 +177,7 @@ function ensureConfigDefaults(cfg) {
     dresscode: {
       ...(cfg.dresscode || {}),
       enabled: cfg.dresscode?.enabled ?? true,
-      title: cfg.dresscode?.title || 'Código de Vestimenta',
+      title: cfg.dresscode?.title ?? 'Código de Vestimenta',
       description: cfg.dresscode?.description || '',
       showCardBg: cfg.dresscode?.showCardBg,
       cardBgOpacity: cfg.dresscode?.cardBgOpacity,
@@ -195,7 +195,7 @@ function ensureConfigDefaults(cfg) {
     gifts: {
       ...(cfg.gifts || {}),
       enabled: cfg.gifts?.enabled ?? true,
-      title: cfg.gifts?.title || 'Mesa de Regalos',
+      title: cfg.gifts?.title ?? 'Mesa de Regalos',
       description: cfg.gifts?.description || '',
       link: cfg.gifts?.link || '',
       buttonText: cfg.gifts?.buttonText || 'Ver Lista',
@@ -225,7 +225,7 @@ function ensureConfigDefaults(cfg) {
     rsvp: {
       ...(cfg.rsvp || {}),
       enabled: cfg.rsvp?.enabled ?? true,
-      title: cfg.rsvp?.title || 'Confirmar Asistencia',
+      title: cfg.rsvp?.title ?? 'Confirmar Asistencia',
       showCardBg: cfg.rsvp?.showCardBg,
       cardBgOpacity: cfg.rsvp?.cardBgOpacity,
       cardBorderRadius: cfg.rsvp?.cardBorderRadius,

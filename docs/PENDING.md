@@ -1,5 +1,120 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-15 — Auto-alto Vestimenta (Opción B) + fondos mobile/desktop independientes
+
+- [x] **Vestimenta: alto de sección crece con el contenido (Opción B).** La card ya NO tiene alto fijo
+  (su alto lo manda el contenido); drag de card = posición + ancho (handles de alto ocultos vía nuevo
+  input `widthOnly` en `app-drag-box`). Lienzo de drag con alto fijo (respeta padding) + ResizeObserver
+  (`installAutoHeight`) que mide el `.example-card` y ajusta el `min-height` de la sección. Se limpió el
+  `h` guardado de Valeria en BD. Canvas: dresscode añadido a la exclusión de min-height; `--canvas-vh`
+  en mobile = alto del dispositivo; recálculo al cambiar mobile↔desktop.
+- [x] **Fondo de sección: ajustes MÓVIL y ESCRITORIO independientes.** `MediaBackground` +
+  `fitDesktop?`/`bannerWidthDesktop?` (opcionales). `resolveMedia` usa *Desktop en escritorio (fallback
+  a los base) y SIEMPRE los base en móvil. `BackgroundControlComponent` con dos selectores
+  (móvil/escritorio). Retrocompatible: sin migración de datos, Valeria igual hasta que se toque el
+  ajuste de escritorio.
+
+### Pendientes de GALERÍA (NO implementados; decisión: no romper el control)
+- [ ] **Galería NO tiene drag ni resize del control** (decisión): rompería los estilos extensibles
+  (polaroid/mosaico cambian el alto con el nº de fotos) y el viewer (LightboxService). Se mantiene tal
+  cual.
+- [ ] **Texto de sección en Galería no surte efecto por sección**: el acordeón "Texto de Sección"
+  existe (genérico) pero el componente de Galería lee los estilos del TEMA GLOBAL, no de `sectionStyle`.
+  Pendiente: migrar título/descripción de Galería a helpers `sectionStyle` (prioridad sectionStyle >
+  tema), como se hizo en Detalles/Lugares/Vestimenta.
+- [ ] **Drag opcional solo del encabezado/descripción de Galería** + descripción enriquecida
+  (`descriptionHtml`), SIN tocar el control de galería. Solo si se retoma; de bajo riesgo si se limita
+  al heading.
+
+### Protección de imágenes en DevTools (evaluar / documentar)
+- [ ] **Alcance real (importante):** NO es posible impedir del todo la descarga de las imágenes del
+  cliente. El navegador DEBE descargar la imagen para mostrarla, así que siempre estará accesible en la
+  pestaña Network / caché del DevTools. Cualquiera con conocimientos técnicos puede obtenerla.
+- [ ] **Medidas DISUASORIAS implementables (frenan al usuario casual):** desactivar clic derecho sobre
+  las imágenes, desactivar arrastrar la imagen (`draggable=false` / `-webkit-user-drag:none`), overlay
+  transparente encima, `user-select:none`, servir sin extensión obvia. NO protegen contra un técnico.
+- [ ] **Única protección REAL del contenido:** marca de agua embebida en la imagen (altera la imagen).
+  Decidir con el usuario si se quiere como opción.
+
+## Completado 2026-10-22 (b) — Vestimenta mini-secciones + fixes
+
+- [x] **Vestimenta como mini-secciones por card** (espejo de Detalles/Lugares): cada ejemplo = sección
+  con encabezado/card arrastrables, estilos/fondo propios, descripción enriquecida. Imágenes en
+  cuadrícula 2×2, tamaño pequeño/mediano/grande, PNG transparente (contain), lightbox preservado.
+- [x] **Fix banner mobile (R3)** en Detalles/Lugares: la columna de ancho solo aplica en desktop.
+- [x] **Fix textura del fondo global en canvas desktop** (capa `.canvas-bg-texture-full` que cubre el
+  scope completo, antes se despegaba al scrollear).
+- [x] **Grosor del título en Lugares** (control que faltaba).
+- [x] **Menú colapsable (acordeón)** independiente para Detalles/Lugares/Vestimenta.
+
+### Pendientes abiertos (builder/canvas)
+- [ ] Drag-box: al redimensionar con los dots el objeto se sale del lienzo (falta limitar a bounds).
+- [ ] Cambiar mobile↔desktop no mantiene la sección seleccionada en el canvas (salta de sección).
+- [ ] Toolbar del canvas hace un salto/scroll al alternar Canvas↔Preview.
+
+## Mejora futura (IDEA de negocio) — Diseño DESKTOP independiente / modo "full web"
+
+Contexto: hoy la invitación es de diseño VERTICAL tipo móvil. En desktop se muestra la misma columna
+de contenido centrada (ancho `--canvas-desktop-w` = 600px) con el fondo ambiental a los lados; las
+franjas laterales existen por la REGLA R3 de fondos banner (imagen vertical sin override desktop toma
+el alto de la ventana y el ancho va a proporción; si hay "imagen distinta para escritorio" sí se
+expande a todo el ancho).
+
+Idea a futuro (posible upsell con costo distinto): permitir un **diseño DESKTOP independiente** del
+móvil — que el cliente pueda armar una versión más "web" (layout más ancho / distinto posicionamiento)
+para escritorio, manteniendo el MISMO contenido de la invitación en ambos (textos, imágenes, datos),
+pero con disposición/estilo propio por dispositivo. Opción de "full web" (contenido a todo el ancho)
+como variante premium. El contenido es el mismo; cambia el layout/posicionamiento por dispositivo.
+
+Implicaciones técnicas (alto nivel, para cuando se retome): hoy `sectionStyle`/`positions` ya son por
+dispositivo en el drag (desktop/mobile) pero el ANCHO de columna (`--canvas-desktop-w`) y la estructura
+son compartidos. Un diseño desktop independiente requeriría: ancho de columna configurable por evento/
+plan, posiblemente `sectionStyle`/layout propios de desktop, y que el canvas desktop deje crecer el
+lienzo más allá de 600px cuando el modo "full web" esté activo. Mantener retrocompatibilidad (default =
+comportamiento actual de columna 600px). NO empezar hasta priorizarlo como feature de negocio.
+
+## Mejora futura — Transición entre secciones Fase 2 (animaciones)
+
+La **Fase 1** (scroll-snap configurable) ya está implementada: propiedad `theme.sectionTransition{Mobile|
+Desktop}` con `free` / `snap-soft` (proximity) / `snap-firm` (mandatory), control en Tema Global →
+"Navegación entre secciones", render vía clase `lp-snap-*` en `<html>` + reglas en `styles.scss`.
+Solo en landing real (no builder). Secciones largas scrollean normal y enganchan al pasar.
+
+**Fase 2 (pendiente, solo si la Fase 1 queda sólida):** añadir modos de transición ANIMADA al mismo
+control (p.ej. `fade`, `slide`): la sección saliente se desvanece/desliza y la entrante aparece, tipo
+presentación. Implica interceptar el gesto/scroll con JavaScript (no es scroll nativo), gestionar
+scroll interno de secciones largas, y cuidar el comportamiento de la barra del navegador en móvil
+(mayor riesgo; por eso va aparte). El tipo `SectionTransition` en models.ts ya está pensado para crecer
+con estos valores. El control del panel solo necesitaría los chips nuevos.
+
+## Completado 2026-10-21 — Opacidad unificada por color picker + tamaño de icono (Lugares)
+
+- [x] **Opacidad de fondo de card unificada** — se quitaron los 6 sliders "Opacidad fondo"
+  (invitation, hero/countdown, itinerary, dresscode, gifts, rsvp); la opacidad ahora la controla
+  SOLO el alpha del color picker. Render con `--card-bg-opacity: 1` en todas las secciones. Detalles
+  y Lugares ya estaban así. Ver `docs/TAREA-LUGARES-MINISECCIONES.md`.
+- [x] **Tamaño de icono/imagen del lugar** — nuevo control (Pequeño/Mediano/Grande) en "Apariencia
+  de Cards" de Lugares: small=100%, medium=+15%, large=+30%. Campo `VenueItem.iconSize`.
+
+## Completado 2026-10-17 — Lugares mini-secciones + editor + encabezados
+
+- [x] **Lugares como mini-secciones por venue** (igual que Detalles): A (modelo+landing+migración),
+  B (menú/canvas/props por venue), C (drag), reorganización de acordeones (Horario/Ubicación/
+  Apariencia), horario antes de dirección, dirección con editor enriquecido. Ver
+  `docs/TAREA-LUGARES-MINISECCIONES.md`.
+- [x] **Editor enriquecido: fondo negro al pegar** — `onPaste`/`sanitizePastedHtml` depuran el HTML
+  pegado (quitan background/bordes/line-height, degradan h1-h6 a span). Red de seguridad CSS en
+  venues + dato de Valeria limpiado.
+- [x] **Editor enriquecido: interlineado no se respetaba** — `execLineHeight` ahora limpia el
+  line-height de los descendientes (un `<h1>` pegado con line-height fijo lo pisaba).
+- [x] **Lugares: opacidad de card distinta al resto** — `getCardBgOpacity` fija 100 (solo manda el
+  alpha del color picker, como las demás secciones); dato de Valeria normalizado a 100.
+- [x] **Encabezado de sección se oculta si queda vacío** — backend `||`→`??` en `title` de
+  details/itinerary/gallery/dresscode/gifts/rsvp; frontend helper `headingText()` + `@if` en las 6
+  secciones simples (details/venues ya lo tenían).
+- [ ] PENDIENTE prod: replicar en el server los 3 fixes de datos de Valeria (fondo negro dirección,
+  line-height fijo, cardBgOpacity→100).
+
 ## Bugs activos
 
 - [x] **PDF tarjetas se cortan con márgenes de 10mm**: En el preview del layout se ve correcto, pero al generar el PDF las tarjetas se cortan (overflow). Ocurre cuando se usa margen de 10mm en la hoja y las tarjetas al tamaño máximo posible sin modificar el margen.
@@ -66,10 +181,21 @@
 - [x] **Invitación** — drag selectivo (ornamento sup/título/subtítulo/card/ornamento inf) +
   decoradores configurables (Opción A: `app-heading-ornament` con tipos stars/hearts/diamonds/leaves,
   ocultar con `none`). Validado por el usuario.
-- [ ] Replicar drag selectivo + decoradores en las 7 secciones restantes (details, venues,
-  itinerary, gallery, dresscode, gifts, rsvp), una por una, definiendo con el usuario qué objetos
-  son individuales y cuáles conjunto. En las que no tengan decorador o no se vea por el tamaño del
-  texto, ofrecer configurarlo/añadirlo.
+- [~] **Detalles — rediseño a MINI-SECCIONES por card (en curso, ver `docs/TAREA-DETALLES-MINISECCIONES.md`)**: cada card de Detalles pasa a ser una mini-sección independiente (lienzo/estilo propio, gestionada desde el menú de secciones como "Detalle 1..N"). Opción A (retrocompatible sobre `details.cards[]`).
+    - [x] Modelo (`CardStyle` + `label/heading/sectionStyle/cardStyle/positions` en `DetailCard`).
+    - [x] Entrega A — landing: cada card como `<section .details-mini>` (alto flexible, encabezado y estilos por card, fondo propio `auto 100%`).
+    - [x] Entrega B — builder: menú "Detalles" agrupador + sub-entradas "Detalle N" (renombrar/reordenar/agregar/eliminar con confirmación); canvas por card (`onlyIndex`); props-panel edita la card activa (contenido + Apariencia de Card propia + Estilo de Sección propio).
+    - [x] Fix post-B: quitado el fallback de estilos a nivel sección (el fondo salía en todas las cards con el toggle apagado) + migración Opción 2 (`migration.service.migrateDetailsToMiniSections`, idempotente) que copia una vez el estilo de sección/card global a cada card para no perder lo de Valeria + botón eliminar más visible. ⚠️ GUARDAR para persistir la migración.
+    - [x] Entrega C — DRAG: encabezado y card arrastrables/redimensionables como objetos únicos por card (`app-drag-box`, `card.positions`), lienzo acotado a 600/360 por dispositivo; canvas pasa editable y persiste con `onDetailPositionsChange`.
+    - [x] Fixes 2 y 3: título con recuadro de color (gateado por useTitleGradient) + fondo pequeño (`miniBg` con resolveMedia + alto de pantalla) + alto de mini-sección = pantalla para todas + quitado slider de opacidad duplicado.
+    - [x] Mejora props-panel: controles de texto (Encabezado/Título/Contenido) movidos al acordeón "Contenido" de cada Detalle; "Texto de Sección" oculto en Detalles. Heredan del Tema Global.
+    - [x] Ajustes finales props-panel (validados): controles de texto junto a su campo; acordeón "Encabezado de la sección" unificado para todas las cards (1ª=details.title, resto=card.heading opcional); contenido solo por el editor enriquecido (quitados controles de texto y alineación duplicados); FIX gradiente bicolor del título (resuelve desde card.sectionStyle) + FIX canvas no reflejaba el editor (`safeContent` con bypassSecurityTrustHtml).
+    - [x] Validación del usuario en el builder: OK. ⚠️ Pendiente menor: GUARDAR en el builder persiste la migración Opción 2 de las cards de Valeria.
+    - [ ] (Futuro, opcional) Replicar el modelo de mini-secciones en otras secciones con cards si se desea.
+- [ ] Replicar drag selectivo + decoradores en las 6 secciones restantes (venues, itinerary, gallery,
+  dresscode, gifts, rsvp), una por una, definiendo con el usuario qué objetos son individuales y
+  cuáles conjunto. En las que no tengan decorador o no se vea por el tamaño del texto, ofrecer
+  configurarlo/añadirlo. (Detalles se trata aparte: ver arriba, modelo de mini-secciones.)
 - [ ] Afinar resize de ALTO en objetos de texto/adorno (los dots inferiores estiran la caja pero
   el texto no crece). Propuesta: ocultar handles de alto en adornos/títulos. Sin decidir.
 - [x] Dashboard: fondo de card del carrusel con cascada landing-media → hero-media → color+textura.
@@ -276,7 +402,7 @@
 
 **Pendiente / por verificar:**
 - [x] **Animación de SALIDA del template Plano (Pantalla de Inicio) configurable**: el texto se "deslizaba a la derecha" al tocar para continuar (causa: `splashOut` hardcodeado con `scale(1.1)` sobre un contenedor con hijos posicionados absolute → corrimiento lateral). Fix (Opción C, exclusivo del template `plain`): nuevo campo `EnvelopeConfig.plainExitAnimation` (`fade`/`zoom-out`/`zoom-in`/`slide-up`/`blur`/`none`, default `fade`), atributo `data-exit` + keyframes dedicados en `envelope.component.ts` con `transform-origin:center`, y control "Animación de salida" en el acordeón "Opciones Plano" del props-panel. Backend sin cambios (spread de envelope preserva el campo). Verificado por el usuario. (2026-10-13 noche)
-- [ ] **Flechas del scroll-indicator de la carátula**: el usuario las vio ligeramente descentradas; no se halló causa clara en CSS. Reconfirmar en navegador tras los últimos cambios.
+- [x] **Flechas del scroll-indicator de la carátula (RESUELTO 2026-10-16)**: estaban descentradas (usaban `left:50%`+`translateX` dependiente del box del glyph) y no se distinguían (color heredado con opacity, se perdía en fondos claros). Fix: `.scroll-indicator` centra con `left:0;right:0`+flex; nuevo `HeroConfig.scrollIndicator` configurable (mostrar, tipo [6 opciones], color, tamaño, animación [5 opciones]) con acordeón propio "Indicador de scroll" en Carátula. Retrocompatible.
 - [x] Toggle "Fondo" por card ahora funciona individualmente en Detalles, Vestimenta y Lugares (antes el render usaba `config.showCardBg` global e ignoraba el per-card). El acordeón "Apariencia de Cards" sigue definiendo el estilo global de las cards de la sección. (commit 53d9c8f)
 - [ ] Modo banner en DESKTOP: afinar los anchos laterales para que todas las secciones queden uniformes (se dejó para otra sesión; el foco de esta fue mobile).
 - [ ] `sanitize.js`: se permitió `font-family`/`line-height`/`<div style>` para el editor enriquecido; validar que no haya efectos colaterales en otros campos de texto enriquecido.

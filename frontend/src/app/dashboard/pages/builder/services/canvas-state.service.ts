@@ -38,6 +38,16 @@ export class CanvasStateService {
   readonly editingMode = computed(() => this.state().editingMode);
   readonly isDirty = signal(false);
 
+  /** Índice de la card de Detalles seleccionada (modelo mini-secciones). -1 = ninguna.
+      Se usa junto con selectedSection==='details' para que el props-panel edite esa card. */
+  readonly selectedDetailIndex = signal(-1);
+  /** Índice del Lugar seleccionado (modelo mini-secciones de Lugares). -1 = ninguno.
+      Se usa junto con selectedSection==='venues' para que el props-panel edite ese venue. */
+  readonly selectedVenueIndex = signal(-1);
+  /** Índice de la card de Vestimenta seleccionada (modelo mini-secciones). -1 = ninguna.
+      Se usa junto con selectedSection==='dresscode' para que el props-panel edite esa card. */
+  readonly selectedDresscodeIndex = signal(-1);
+
   /** Get the selected element object */
   readonly activeElement = computed(() => {
     const s = this.state();

@@ -10,30 +10,32 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
   template: `
     <section id="itinerary" class="landing-section itinerary-section">
       <div class="section-container">
-        @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
-          <div class="section-header-block">
-            @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-            <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'Itinerario' }}</h2>
-            @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
-              <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
-            }
-          </div>
-        } @else {
-          <div class="section-header">
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-            <h2 class="section-heading"
-                [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
-                [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
-                [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
-            >{{ config.title || 'Itinerario' }}</h2>
-            <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
-          </div>
+        @if (headingText()) {
+          @if (hasOrnament() && getOrnamentPosition() !== 'sides') {
+            <div class="section-header-block">
+              @if (getOrnamentPosition() === 'above' || getOrnamentPosition() === 'both') {
+                <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+              }
+              <h2 class="section-heading"
+                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+              >{{ headingText() }}</h2>
+              @if (getOrnamentPosition() === 'below' || getOrnamentPosition() === 'both') {
+                <app-heading-ornament [type]="getOrnamentType()" [color]="getOrnamentColor()" [size]="getOrnamentSize()" />
+              }
+            </div>
+          } @else {
+            <div class="section-header">
+              <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+              <h2 class="section-heading"
+                  [style.font-family]="getFontFamily(styles?.sectionHeadingStyle?.fontFamily)"
+                  [style.font-size.px]="styles?.sectionHeadingStyle?.fontSize || 36"
+                  [style.color]="styles?.sectionHeadingStyle?.color || '#d4a017'"
+              >{{ headingText() }}</h2>
+              <div class="section-line" [style.background]="getSeparatorBg()" [style.height]="getSeparatorHeight()"></div>
+            </div>
+          }
         }
 
         <div class="timeline" [attr.data-align]="config.timelineAlign || 'center'" [attr.data-line]="config.lineStyle || 'solid'" [style.--line-color]="getLineColor()" [style.--timeline-dot-bg]="getDotBg()" [style.--timeline-dot-border]="getDotBorder()">
@@ -59,7 +61,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
           </svg>
           @for (item of items; track item.id; let i = $index) {
             <div class="timeline-item" [class.right]="config.timelineAlign === 'center' && i % 2 !== 0" [style.transition-delay.ms]="i * 100">
-              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.text-align]="config.textAlign || 'left'" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+              <div class="timeline-content reveal" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.text-align]="config.textAlign || 'left'" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
                 <div class="timeline-body">
                   @if (formatTime(item.time)) {
                     <span class="timeline-time" [style.font-size.px]="config.timeFontSize || 12">{{ formatTime(item.time) }}</span>
@@ -248,6 +250,12 @@ export class LandingItineraryComponent implements AfterViewInit, OnChanges, DoCh
   /** Color propio de la linea decorativa del timeline (independiente del borde de card). */
   getLineColor(): string {
     return (this.config as any).lineColor || 'var(--theme-card-border, rgba(212,160,23,0.6))';
+  }
+
+  /** Encabezado de la sección: si el usuario borra el título (string vacío) NO se muestra el
+      encabezado; solo se usa el default cuando el campo nunca se definió (config legacy). */
+  headingText(): string {
+    return (this.config.title ?? 'Itinerario').trim();
   }
 
   hasOrnament(): boolean {

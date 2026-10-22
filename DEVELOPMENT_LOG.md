@@ -11,6 +11,343 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-15 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Galería — texto por sección + título bicolor + descripción enriquecida
+
+**GALERÍA migrada al patrón de texto por sección** (como Detalles/Lugares/Vestimenta), SIN tocar el
+control de galería (estilos extensibles polaroid/mosaico) ni el viewer (LightboxService):
+- Título (h2) y descripción ahora leen de `sectionStyle` con fallback al tema global (helpers
+  `headingColor/Font/Size`, `contentColor/Font/Size`). El canvas ahora pasa `[sectionStyle]` a
+  `app-landing-gallery`.
+- **Título BICOLOR (degradado)**: nuevos campos `SectionStyle.sectionHeadingColor2`,
+  `sectionHeadingGradientAngle`, `sectionHeadingGradientIntensity`. El h2 usa `gradient-text` cuando
+  hay color2. En canvas/landing NO se inyecta `--section-h2-color` si hay color2 (la regla ::ng-deep
+  con !important lo anularía) → el gradiente inline manda. Paridad canvas↔landing.
+- **Descripción enriquecida**: `GalleryConfig.descriptionHtml` (fallback a `description` plano). Panel
+  usa `app-rich-text-editor`.
+- **Panel**: en "Contenido" se añadió "Estilo del título" (fuente/tamaño/Color 1/Color 2/ángulo/
+  intensidad). El acordeón genérico "Texto de Sección" se OCULTA para Galería (y seguía oculto para
+  Detalles); sus controles viven en "Contenido".
+- Retrocompatible: sin migración; configs previas se ven igual hasta editar.
+
+**PENDIENTE sugerido**: replicar "título bicolor + quitar Texto de Sección" en Detalles/Lugares/
+Vestimenta para consistencia (a confirmar con el usuario).
+
+---
+
+## Estado actual del proyecto: 2026-10-15
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: auto-alto de Vestimenta (Opción B) + fondos mobile/desktop independientes + decisión Galería
+
+**1. VESTIMENTA — alto de sección que crece con el contenido (Opción B).** Problema: la card de
+Vestimenta, posicionada con drag (position:absolute con alto fijo `h`), desbordaba/invadía la sección
+siguiente cuando el contenido (hasta 4 imágenes apiladas) excedía ese alto; y al cambiar de dispositivo
+o angostar la ventana, el reflow (imágenes 2×2 → vertical) agravaba el corte. Solución final tras
+varios intentos:
+- **La card de Vestimenta ya NO tiene alto fijo**: su alto lo manda el CONTENIDO. El `h` de drag se
+  dejó de aplicar (se limpió el `h` guardado de Valeria en BD: `JSON_REMOVE` de
+  `dresscode.cards[0].positions.{mobile,desktop}.card.h`). Drag de la card = posición + ANCHO (los
+  handles de alto se ocultan).
+- **Nuevo input `widthOnly` en `app-drag-box`** (compartido, opt-in; NO afecta hero/intro/invitación/
+  detalles/lugares): oculta handles de alto, ancla por el BORDE SUPERIOR al mover (el `y` = tope, no
+  centro), transform solo `translateX(-50%)`, no emite `h`.
+- **`pos()` de dresscode (card)**: ancla por el tope (`top:y%` + `translateX(-50%)`), sin height/
+  min-height.
+- **Lienzo del drag (`.dress-mini-inner` positioned)**: alto FIJO = `--canvas-vh`/`100svh`, respetando
+  el padding superior (top:48px, height calc(...-96px)). Es fijo a propósito para que los %/drag sean
+  estables (si el lienzo creciera, el top% daría más px → bucle). El drag-box y su frame usan
+  `height:auto` (solo en dress-mini positioned) para tomar alto natural.
+- **`installAutoHeight` (ResizeObserver)**: observa el `.example-card` (alto NATURAL, independiente
+  del min-height de la sección → sin bucle) y ajusta el `min-height` de la `.dress-mini` =
+  max(alto ventana, topePx + altoCard + padding). Responsive (re-dispara al reflow). min-height de la
+  sección = alto de ventana (lo acordado).
+- **Canvas**: `.preview-section-click[data-section^="dresscode:"]` añadido a la lista de exclusión del
+  min-height genérico (ya estaba details:/venues:); `--canvas-vh` en MOBILE = `canvasDeviceHeight()`
+  (alto del dispositivo, no clientHeight del viewport, que `max-height:100%` distorsionaba);
+  `setPreviewDevice` recalcula `--canvas-vh` al cambiar mobile↔desktop.
+- Comportamiento conocido residual (menor): a veces hay que recargar para que el alto se reajuste del
+  todo; aceptado por el usuario por ahora.
+
+**2. FONDO DE SECCIÓN — ajustes MÓVIL y ESCRITORIO independientes.** Problema: `MediaBackground` tenía
+un solo `fit`/`bannerWidth` compartido; al poner la base (móvil) en banner, la imagen de escritorio
+heredaba banner (no se expandía), y cambiar el "ajuste de escritorio" afectaba al móvil.
+- **Modelo**: `MediaBackground` + `fitDesktop?` y `bannerWidthDesktop?` (opcionales, retrocompatibles).
+- **`resolveMedia`**: en escritorio usa `fitDesktop ?? fit` y `bannerWidthDesktop ?? bannerWidth`; en
+  móvil SIEMPRE `fit`/`bannerWidth` (sus reglas de siempre). Configs previas sin *Desktop → idénticas.
+- **`BackgroundControlComponent`**: dos selectores — "Ajuste en móvil" (fit) y "Ajuste en escritorio"
+  (fitDesktop, arranca reflejando el de móvil). Sliders de ancho de banner por dispositivo.
+- Canvas y landing ya consumían el `fit`/`bannerWidth` RESUELTOS → se corrigen en ambos contextos sin
+  más cambios. **Sin migración de datos**: Valeria y todas las secciones se comportan igual hasta que
+  el usuario toque el nuevo ajuste de escritorio. Cero regresión.
+
+**3. GALERÍA — decisión: NO se añade drag ni resize del control.** Para no romper los estilos
+extensibles (polaroid/mosaico cambian el alto con el nº de fotos) ni el viewer (LightboxService).
+Pendientes documentados en PENDING (NO implementados): (a) migrar el texto por sección de Galería a
+helpers `sectionStyle` (hoy el acordeón "Texto de Sección" existe pero Galería lee del tema global);
+(b) drag opcional solo del encabezado/descripción + descripción enriquecida, si se retoma; (c) evaluar
+protección de imágenes en DevTools (alcance: solo medidas disuasorias; la descarga total no es evitable
+porque el navegador debe bajar la imagen para mostrarla).
+
+### Qué queda pendiente
+- Replicar el auto-alto Opción B (card sin alto fijo + ResizeObserver) en Detalles/Lugares si alguna
+  card crece de más (hoy solo Vestimenta lo tiene; en Detalles/Lugares el contenido rara vez excede).
+- Galería: pendientes (a)/(b)/(c) de arriba.
+- Protección de imágenes: documentar alcance en PENDING e implementar medidas disuasorias si se decide.
+- Residual: recarga ocasional para reajuste de alto en Vestimenta.
+
+---
+
+## Estado actual del proyecto: 2026-10-22 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Vestimenta como mini-secciones + fixes de banner/textura/grosor/acordeón
+
+**VESTIMENTA como MINI-SECCIONES por card** (espejo de Detalles/Lugares). Cada "ejemplo de vestimenta"
+= sección propia con encabezado/card arrastrables, fondo/estilo/drag propios. Resumen:
+- Modelo: `DresscodeCard` extendido con label/heading/descriptionHtml/imageSize/sectionStyle/cardStyle/
+  positions. Conserva images[] (hasta 4 por card).
+- Componente landing: reescrito al patrón mini-sección (dress-mini, bg-banner solo desktop = R3, fade
+  solo contenido, drag, lightbox preservado). Imágenes en cuadrícula 2×2 (grid 2 columnas; 1=centrada,
+  3=2+1 centrada, 4=2+2), `object-fit:contain` (PNG transparente), tamaño configurable small/medium/
+  large (+15% por nivel) vía `--dress-img-scale`.
+- Canvas-state: `selectedDresscodeIndex`. Builder: grupo colapsable con sub-entradas "Vestimenta N",
+  canvas por-card con `onlyIndex`, métodos selectDresscode/addDresscodeMini/removeDresscodeMini/
+  onDresscodeDrop/onDresscodePositionsChange.
+- Panel: acordeones Encabezado / Contenido (label/título+estilo con grosor/descripción enriquecida/
+  imágenes de ejemplo/tamaño) / Apariencia de Cards. Helpers dIdx2/dcard2/updateDCard2/dcStyle2/
+  updateDCStyle2. styleHolder redirige a la card de dresscode. Imágenes operan con dIdx2().
+- Migración: `migrateDresscodeToMiniSections` (idempotente, `_miniMigrated`).
+- Landing: `section-block-mini` (sin fondo/padding/video/overlay duplicados; sin appScrollReveal).
+- Backend sin cambios (passthrough vía spread preserva los campos nuevos).
+
+**Fixes acumulados (misma tanda, pre-Vestimenta):**
+- FIX banner mobile R3 en Detalles/Lugares: `isBannerBg()` y `miniBg()` ahora solo aplican la columna
+  de ancho `--sec-banner-w` en DESKTOP; en mobile la imagen va a `auto 100%` centrado (R3).
+- FIX textura del fondo global en canvas desktop: la textura se movía dentro del sticky (1 viewport) y
+  se "despegaba" al scrollear. Ahora es `.canvas-bg-texture-full` (absolute inset:0 sobre el scope).
+- Control "Grosor" del título añadido a Lugares (faltaba, Detalles ya lo tenía).
+- Menú colapsable (acordeón independiente): Detalles, Lugares y Vestimenta con chevron que colapsa/
+  expande sus sub-ítems. `groupExpanded` signal con los 3 grupos, ambos/todos expandidos por defecto.
+
+**Pendientes detectados (sin empezar):**
+- Drag-box: al redimensionar con los dots, el objeto se puede salir del lienzo (no limita bounds).
+- Al cambiar mobile↔desktop, el canvas no se mantiene en la sección seleccionada (salta a otra).
+- Bug del toolbar del canvas al cambiar Canvas↔Preview (scroll/salto).
+- Scroll-snap Fase 1: validar en landing real.
+- Script SQL para pasar diseño de Valeria a PROD (con método seguro, sin PowerShell).
+
+---
+
+## Estado actual del proyecto: 2026-10-22
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: scroll-snap (Fase 1) + 3 fixes de fondo/animación en mini-secciones (Detalles/Lugares)
+
+- **Transición entre secciones — Fase 1 (scroll-snap configurable):** nueva propiedad
+  `theme.sectionTransition{Mobile|Desktop}` (`free` / `snap-soft` = proximity / `snap-firm` =
+  mandatory). Control en Tema Global → "Navegación entre secciones" (chips por dispositivo). Render vía
+  clase `lp-snap-*` en `<html>` (la pone `LandingComponent.applySectionTransition()` según tema+ancho;
+  se re-evalúa en resize y se limpia en ngOnDestroy) + reglas en `styles.scss` (snap-align:start en
+  `#section-hero` y `.section-block`, `scroll-snap-stop:normal` para no atascar secciones largas). NO
+  aplica en builder/preview (iframe). Fase 2 (animaciones fade/slide) documentada en PENDING.
+  ⚠️ El scroll-snap SOLO se ve en la LANDING REAL (no en preview, que es iframe).
+
+- **FIX doble imagen de fondo en Detalles/Lugares (mini-secciones):** el fondo se pintaba 2 veces en la
+  landing: (1) el `.section-block` via `getSectionBg` + (2) cada `.details-mini`/`.venues-mini` via
+  `miniBg`. Fix: el `.section-block` de details/venues ya NO pinta fondo/padding/video/overlay (clase
+  `section-block-mini` que neutraliza padding/min-height/flex); cada mini-sección pinta su propio
+  fondo. Queda consistente con el canvas (que nunca duplicó).
+
+- **FIX "Ancho del banner" no hacía nada en Detalles/Lugares:** `miniBg` pintaba la imagen como
+  `background: ... auto 100%` ignorando `bannerWidth`. Fix: en modo banner `miniBg` inyecta variables
+  `--sec-bg-image/--sec-banner-w/--sec-ov` y un `::before`/`::after` en `.details-mini.bg-banner`/
+  `.venues-mini.bg-banner` pinta la COLUMNA CENTRADA de ancho `--sec-banner-w` (igual que el
+  `.section-block` normal). Helper `isBannerBg()` activa la clase. El slider ya surte efecto.
+
+- **FIX la animación de scroll (fade) afectaba al FONDO en la 1ª mini-sección:** el `appScrollReveal`
+  envolvía el `.section-inner` (que ahora contiene el fondo banner). Fix: se quitó el `appScrollReveal`
+  de details/venues en la landing; el fade lo aplica el PROPIO componente SOLO al contenido
+  (`.details-mini-inner`/`.venues-mini-inner`) vía un IntersectionObserver interno (clase `reveal-fade`
+  → `reveal-in`, SOLO opacidad para no romper el drag ni tocar el fondo). Nuevo `@Input() scrollAnim`
+  (del tema; 'none' lo desactiva). NOTA: las mini-secciones hacen fade de opacidad (no replican
+  slide/scale del tema, que usan transform y chocarían con el posicionamiento).
+
+- ⏳ PENDIENTE observado (sin empezar): en el CANVAS desktop, al scrollear de la carátula a la siguiente
+  sección, la TEXTURA del fondo global se "mueve" hacia arriba y deja un hueco abajo. Es tema del canvas
+  (no de la landing). Se revisa aparte.
+
+---
+
+## Estado actual del proyecto: 2026-10-21
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: opacidad de card unificada (solo color picker) + tamaño de icono en Lugares
+
+- **Opacidad de fondo de card UNIFICADA en todas las secciones:** se eliminó el control de opacidad
+  separado (slider "Opacidad fondo") que se multiplicaba con el alpha del color picker y hacía que el
+  fondo nunca quedara sólido al 100%. Ahora la opacidad la controla ÚNICAMENTE el alpha del color
+  picker. Se quitaron 6 sliders del props-panel (invitation, hero/countdown, itinerary, dresscode,
+  gifts, rsvp) y el binding `[style.--card-bg-opacity]` quedó fijo en `1` en los 8 componentes de
+  sección (details/venues/hero/invitation/itinerary/dresscode/gifts/rsvp). Los campos `cardBgOpacity`
+  viejos quedan en el config pero ya no se usan. Fondo de SECCIÓN no se tocó (solo tenía overlay/velo).
+
+- **Tamaño de icono/imagen del lugar (Lugares):** nuevo `VenueItem.iconSize` (small/medium/large) +
+  control de 3 chips "Tamaño de icono" en "Apariencia de Cards" (debajo de "Estilo de icono").
+  Escalas: small=100% (base), medium=115% (+15%), large=130% (+30%). Render vía `--venue-icon-scale`
+  (`calc(base * scale)` en width/height/font-size de `.venue-icon`). Retrocompatible.
+
+- ⚠️ Incidente resuelto esta sesión (NO dejó rastro en código): al intentar generar un script SQL para
+  pasar el diseño de Valeria a PROD, se probó el SQL contra la BD LOCAL y PowerShell corrompió los
+  acentos (mojibake). Se RECUPERÓ el config local al estado previo (0:59:55) reproduciendo la
+  transacción buena desde el binary log de MySQL con un contenedor `mariadb:11` efímero. Lección: para
+  generar/mover SQL con UTF-8 NO pasarlo por la consola de PowerShell; usar `docker cp` (binario) o
+  escribir el archivo dentro del contenedor. El script de PROD (solo config, por slug) quedó
+  pendiente de generar con ese método seguro.
+
+---
+
+## Estado actual del proyecto: 2026-10-17 (b)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Lugares mini-secciones + fixes del editor enriquecido + encabezados ocultables
+
+Tanda grande sobre la sección **Lugares** (replicando el modelo de Detalles) + fixes transversales del
+editor de texto enriquecido y del encabezado de sección. Detalle completo en
+`docs/TAREA-LUGARES-MINISECCIONES.md`. Todo compilado y desplegado en local; pendiente validación visual
+final del usuario.
+
+- **Lugares = mini-secciones por venue (A/B/C):** cada venue es su propia sección ("Lugar N") con
+  encabezado + card (objeto único) arrastrables, estilos/fondo/drag propios, retrocompatible sobre
+  `config.venues.items[]` (Opción A). Horario (icono reloj Material monocromático + color compartido),
+  botón "Cómo llegar" (icono mapa + props que heredan del tema), nombre y dirección con editor
+  enriquecido. Migración `migrateVenuesToMiniSections` (idempotente) copia el estilo global a cada venue.
+  Reorganización de acordeones: Encabezado / Contenido / Horario / Ubicación (dir+maps+botón) /
+  Apariencia de Cards. Horario va ANTES de la dirección.
+
+- **FIX editor enriquecido — fondo negro al pegar:** `rich-text-editor.component.ts` gana `onPaste` +
+  `sanitizePastedHtml` que depura el HTML pegado (quita background/box-shadow/border/line-height/
+  position/display/..., degrada `h1-h6` a `span`, elimina nodos basura y atributos `on*`). Causa: pegar
+  la dirección desde Google arrastraba `background-color: rgb(34,36,42)`. Red de seguridad CSS en
+  `.venue-name/.venue-address`. Dato Valeria local limpiado por `REPLACE`.
+
+- **FIX editor enriquecido — interlineado ignorado:** `execLineHeight` ahora limpia el `line-height`
+  inline de todos los descendientes del bloque antes de aplicar el elegido (un `<h1>` pegado con
+  `line-height: 1.75rem` fijo lo pisaba). Dato Valeria local limpiado por `REPLACE`.
+
+- **FIX Lugares — opacidad de card distinta al resto:** la card multiplicaba alpha-del-color ×
+  `cardBgOpacity`; los venues arrastraban `cardBgOpacity` 30/vacío de la migración. `getCardBgOpacity`
+  en venues ahora devuelve SIEMPRE 100 → la opacidad viene solo del alpha del color picker, como en las
+  demás secciones. Se quitó el slider de opacidad añadido por error al panel de Lugares. Dato Valeria
+  normalizado a 100 vía `scripts/migrate-valeria/fix-venue-card-opacity.js` (ignorado por git).
+
+- **Encabezado de sección ocultable:** si el usuario borra el título, NO se muestra el encabezado
+  (título+adorno+líneas). Backend `ensureConfigDefaults.js`: `||`→`??` en `title` de details/itinerary/
+  gallery/dresscode/gifts/rsvp (el `||` reponía el default al recibir `''`). Frontend: helper
+  `headingText()` (`?? default`) + `@if (headingText())` en itinerary/gallery/dresscode/gifts/register/
+  rsvp (details/venues ya lo tenían).
+
+- ⚠️ **PENDIENTE PROD:** al desplegar, replicar en el server los 3 fixes de datos de Valeria (fondo negro
+  de dirección, line-height fijo, cardBgOpacity→100).
+- ⚠️ Recordatorio: GUARDAR en el builder para persistir la migración de venues/cards de Valeria.
+
+---
+
+## Estado actual del proyecto: 2026-10-17
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: ajustes finales del props-panel de Detalles mini-secciones (validado)
+
+Pulido de la UX y fixes de render de la sección Detalles (mini-secciones por card). Validado por el
+usuario. Detalle completo en `docs/TAREA-DETALLES-MINISECCIONES.md`.
+
+- **Controles de texto junto a su campo:** estilo del Encabezado en el acordeón "Encabezado de la
+  sección" (UNIFICADO para todas las cards: 1ª edita `details.title`, las demás `card.heading` opcional);
+  estilo del Título junto al campo título.
+- **Contenido solo por el editor enriquecido:** se quitaron los controles de texto y el de alineación
+  duplicados del panel (ya están en la barra del editor).
+- **FIX gradiente bicolor del título:** `useTitleGradient(card)`/`getTitleGradient(card)` resuelven el
+  degradado desde `card.sectionStyle` con fallback al tema global (antes se desactivaba al tener color
+  propio y leía solo el global).
+- **FIX canvas no reflejaba el editor:** `[innerHTML]` crudo → Angular borraba los `style` inline del
+  editor. Ahora `safeContent()` con `bypassSecurityTrustHtml` (patrón hero/envelope); el tema global
+  queda como base heredable vía variables `--dc-*`.
+
+FEATURE DETALLES MINI-SECCIONES COMPLETO y validado. Falta: GUARDAR en el builder para persistir la
+migración Opción 2 de las cards de Valeria. Build OK, frontend reconstruido.
+
+---
+
+## Estado actual del proyecto: 2026-10-16 (d)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Detalles como MINI-SECCIONES por card (Entregas A y B; falta el drag = Entrega C)
+
+Rediseño de la sección Detalles: de 1 sección con N cards apiladas → N mini-secciones (una por card),
+cada una con lienzo/estilo propio y gestionables desde el menú de secciones. OPCIÓN A: se mantiene
+`config.details.cards[]` como almacén (retrocompatible). Documentación completa + plan por fases en
+`docs/TAREA-DETALLES-MINISECCIONES.md`. SIN commit (pendiente de validación del usuario).
+
+- **Modelo (models.ts):** `CardStyle` nueva + `DetailCard` con `label/heading/sectionStyle/cardStyle/
+  positions` (opcionales).
+- **Entrega A (landing, hecha):** `details.component.ts` reescrito; cada card = `<section .details-mini>`
+  con alto flexible, encabezado por card, estilos resueltos por card (fallback a sección/global), fondo
+  propio por card (`auto 100%`). `@Input() onlyIndex` para el canvas.
+- **Entrega B (builder, hecha):** menú con "Detalles" agrupador + sub-entradas "Detalle N" (renombrables,
+  reordenables dentro del grupo, con "+ Agregar Detalle" y eliminar con confirmación). Canvas pinta cada
+  card como bloque seleccionable (`onlyIndex`). Props-panel edita la card activa: contenido + Apariencia
+  de Card PROPIA + Estilo de Sección PROPIO (helpers redirigidos vía `styleHolder`). Signal
+  `selectedDetailIndex` en canvasState. Add/remove viejo eliminado del acordeón.
+- **Backend:** sin cambios (ensureConfigDefaults ya pasa `cards` completo).
+- **Fix post-B:** quitado el fallback de estilos a nivel sección en `details.component` (causaba que el
+  fondo apareciera en todas las cards con el toggle apagado). Migración Opción 2 en `migration.service`
+  (`migrateDetailsToMiniSections`, idempotente): copia una vez el estilo de sección + card globales a
+  cada card para no perder lo de Valeria. Botón eliminar del menú más visible. El usuario debe GUARDAR
+  para persistir la migración.
+- **Fix 2:** título con recuadro de color (gradiente aplicado sin la clase que lo recorta al texto) →
+  gateado por `useTitleGradient`. Fondo pequeño/cortado → `miniBg` usa `resolveMedia` (cover/banner/
+  overlay/override desktop) y `.details-mini.has-image-bg` toma alto de pantalla.
+- **Fix 3:** alto de mini-sección = pantalla para TODAS (`min-height: var(--canvas-vh,100svh)`, crece
+  con el contenido); quitado el slider de opacidad duplicado (el color-picker ya trae alfa).
+- **Entrega C (drag):** encabezado y card arrastrables/redimensionables como objetos únicos por card
+  (`card.positions`), lienzo acotado a 600/360 por dispositivo. Canvas pasa editable + persiste con
+  `onDetailPositionsChange`.
+- **Mejora props-panel:** controles de texto (Encabezado/Título/Contenido) movidos al acordeón
+  "Contenido" de cada Detalle; "Texto de Sección" oculto en Detalles. Heredan del Tema Global.
+
+FEATURE DETALLES MINI-SECCIONES COMPLETO (1-7 + fixes + mejora). Falta validación del usuario +
+Guardar para persistir la migración. Build OK, frontend reconstruido.
+
+---
+
+## Estado actual del proyecto: 2026-10-16 (c)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: indicador de scroll configurable (carátula) + fix tamaño de canvas al primer render
+
+- **Indicador de scroll (flechas de la carátula) configurable:** nuevo `HeroConfig.scrollIndicator`
+  (show/type/color/size/animation) + acordeón "Indicador de scroll" en Carátula. Fix de centrado
+  (`left:0;right:0`+flex en vez de left:50%+translateX) y de color (ahora configurable, antes se perdía
+  en fondos claros). 6 tipos de icono, 5 animaciones. Retrocompatible.
+- **Fix canvas no tomaba el dispositivo al 1er render:** `activeDevice` pasó a `computed` signal y se
+  reafirma el dispositivo + re-mide alto en rAF tras cargar la config. Antes el marco solo tomaba el
+  tamaño al cambiar de dispositivo manualmente.
+
+Build OK, frontend reconstruido. Pendiente: publicar a prod (push a deploy_prod) cuando se valide.
+
+---
+
 ## Estado actual del proyecto: 2026-10-16
 
 ### Rama activa: `feature/drag-elementos-secciones`

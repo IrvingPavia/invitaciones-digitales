@@ -42,7 +42,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
 
         <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [position]="posData('card')" [ngStyle]="pos('card')" (positionChange)="onPosChange('card', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
         @if (guest) {
-          <div class="invitation-card reveal" [class.positioned]="hasAnyPosition" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+          <div class="invitation-card reveal" [class.positioned]="hasAnyPosition" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño invitamos a</p>
               <h3 class="invitation-name"
@@ -70,7 +70,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
             </div>
           </div>
         } @else {
-          <div class="invitation-card reveal" [class.positioned]="hasAnyPosition" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="(config.cardBgOpacity ?? 100) / 100" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
+          <div class="invitation-card reveal" [class.positioned]="hasAnyPosition" [class.no-bg]="config.showCardBg === false" [style.border-radius]="getCardBorderRadius()" [style.--card-bg-opacity]="1" [style.border-style]="getCardBorderStyle()" [style.border-width.px]="getCardBorderWidth()" [style.box-shadow]="getCardBoxShadow()" [style.--card-bg]="getCardBgColor()" [style.border-color]="getCardBorderColor()" [class.neon-border]="getIsNeon()">
             <div class="invitation-card-inner">
               <p class="invitation-for">Con mucho cariño los invitamos a celebrar</p>
               <p style="color:rgba(255,255,255,0.5);font-size:14px;margin-top:8px">Escanea el código QR de tu invitación para ver tu nombre</p>

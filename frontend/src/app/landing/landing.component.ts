@@ -80,7 +80,7 @@ import { LandingGiftsComponent } from './sections/gifts/gifts.component';
 import { LandingRsvpComponent } from './sections/rsvp/rsvp.component';
 import { LandingRegisterComponent } from './sections/register/register.component';
 import { SectionDividerComponent } from './components/section-divider.component';
-import { SectionStyle, MediaBackground } from '../core/models/models';
+import { SectionStyle, MediaBackground, SectionTransition } from '../core/models/models';
 import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMedia } from '../core/utils/media-background.util';
 
 @Component({
@@ -165,34 +165,33 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
           </div>
         </div>
         @if (data()!.config.details.enabled && data()!.config.details.cards.length > 0) {
-          <div id="section-details" class="section-block" [style]="getSectionBg(data()!.config.details.sectionStyle)" [style.padding-top.px]="data()!.config.details.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.details.sectionStyle?.paddingBottom ?? 80">
+          <!-- MINI-SECCIONES: el fondo de cada detalle lo pinta el propio componente (.details-mini
+               via miniBg). El .section-block NO pinta fondo ni padding (evita la imagen de fondo
+               DUPLICADA que se veía detrás del banner). Solo conserva la transición superior (divider). -->
+          <div id="section-details" class="section-block section-block-mini">
             @if (data()!.config.details.sectionStyle?.dividerType && data()!.config.details.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.details.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.details.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.details.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.details.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.details.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.details.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (sectionMedia(data()!.config.details.sectionStyle).isVideo) {
-              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.details.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.details.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.details.sectionStyle).url" autoplay loop muted playsinline></video>
-            }
-            @if (sectionMedia(data()!.config.details.sectionStyle).hasMedia && sectionMedia(data()!.config.details.sectionStyle).overlay > 0) {
-              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.details.sectionStyle).overlay / 100"></div>
-            }
-            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
-              <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.details.sectionStyle" />
+            <!-- Sin appScrollReveal aquí: el fade lo aplica el componente SOLO al contenido de cada
+                 mini-sección (no al fondo banner), vía scrollAnim. Si envolviéramos el .section-inner
+                 el fondo también se desvanecería. -->
+            <div class="section-inner">
+              <app-landing-details [config]="data()!.config.details" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.details.sectionStyle" [scrollAnim]="data()!.config.theme.scrollAnimation || 'fade-up'" />
             </div>
           </div>
         }
         @if (data()!.config.venues.enabled && data()!.config.venues.items.length > 0) {
-          <div id="section-venues" class="section-block" [style]="getSectionBg(data()!.config.venues.sectionStyle)" [style.padding-top.px]="data()!.config.venues.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.venues.sectionStyle?.paddingBottom ?? 80">
+          <!-- MINI-SECCIONES: el fondo de cada lugar lo pinta el propio componente (.venues-mini
+               via miniBg). El .section-block NO pinta fondo ni padding (evita la imagen de fondo
+               DUPLICADA). Solo conserva la transición superior (divider). -->
+          <div id="section-venues" class="section-block section-block-mini">
             @if (data()!.config.venues.sectionStyle?.dividerType && data()!.config.venues.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.venues.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.venues.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.venues.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.venues.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.venues.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.venues.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (sectionMedia(data()!.config.venues.sectionStyle).isVideo) {
-              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.venues.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.venues.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.venues.sectionStyle).url" autoplay loop muted playsinline></video>
-            }
-            @if (sectionMedia(data()!.config.venues.sectionStyle).hasMedia && sectionMedia(data()!.config.venues.sectionStyle).overlay > 0) {
-              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.venues.sectionStyle).overlay / 100"></div>
-            }
-            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
-              <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.venues.sectionStyle" />
+            <!-- Sin appScrollReveal aquí (ver nota en Detalles): el fade lo aplica el componente solo al
+                 contenido de cada mini-sección, no al fondo banner. -->
+            <div class="section-inner">
+              <app-landing-venues [config]="data()!.config.venues" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.venues.sectionStyle" [scrollAnim]="data()!.config.theme.scrollAnimation || 'fade-up'" />
             </div>
           </div>
         }
@@ -229,18 +228,15 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
           </div>
         }
         @if (data()!.config.dresscode.enabled) {
-          <div id="section-dresscode" class="section-block" [style]="getSectionBg(data()!.config.dresscode.sectionStyle)" [style.padding-top.px]="data()!.config.dresscode.sectionStyle?.paddingTop ?? 80" [style.padding-bottom.px]="data()!.config.dresscode.sectionStyle?.paddingBottom ?? 80">
+          <!-- MINI-SECCIONES: el fondo de cada vestimenta lo pinta el propio componente (.dress-mini
+               via miniBg). El .section-block NO pinta fondo ni padding (clase section-block-mini).
+               El fade lo aplica el componente solo al contenido, no al fondo. -->
+          <div id="section-dresscode" class="section-block section-block-mini">
             @if (data()!.config.dresscode.sectionStyle?.dividerType && data()!.config.dresscode.sectionStyle?.dividerType !== 'none') {
               <app-section-divider [type]="data()!.config.dresscode.sectionStyle!.dividerType" [color]="getLandingBgColor()" [height]="data()!.config.dresscode.sectionStyle!.dividerHeight || 50" [flip]="data()!.config.dresscode.sectionStyle!.dividerFlip || false" [strokeColor]="data()!.config.dresscode.sectionStyle!.dividerStrokeColor || ''" [strokeWidth]="data()!.config.dresscode.sectionStyle!.dividerStrokeWidth || 0" [strokeOpacity]="data()!.config.dresscode.sectionStyle!.dividerStrokeOpacity ?? 1" />
             }
-            @if (sectionMedia(data()!.config.dresscode.sectionStyle).isVideo) {
-              <video class="section-bg-video" [class.bg-banner]="sectionMedia(data()!.config.dresscode.sectionStyle).fit === 'banner'" [style.--sec-banner-w]="sectionMedia(data()!.config.dresscode.sectionStyle).bannerWidth + '%'" [src]="sectionMedia(data()!.config.dresscode.sectionStyle).url" autoplay loop muted playsinline></video>
-            }
-            @if (sectionMedia(data()!.config.dresscode.sectionStyle).hasMedia && sectionMedia(data()!.config.dresscode.sectionStyle).overlay > 0) {
-              <div class="section-bg-overlay" [style.opacity]="sectionMedia(data()!.config.dresscode.sectionStyle).overlay / 100"></div>
-            }
-            <div [appScrollReveal]="data()!.config.theme.scrollAnimation || 'fade-up'" class="section-inner">
-              <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.dresscode.sectionStyle" />
+            <div class="section-inner">
+              <app-landing-dresscode [config]="data()!.config.dresscode" [styles]="data()!.config.globalStyles" [sectionStyle]="data()!.config.dresscode.sectionStyle" [scrollAnim]="data()!.config.theme.scrollAnimation || 'fade-up'" />
             </div>
           </div>
         }
@@ -472,6 +468,18 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
         padding-left: max(20px, calc(50vw - (var(--canvas-desktop-w, 600px) / 2)));
         padding-right: max(20px, calc(50vw - (var(--canvas-desktop-w, 600px) / 2)));
       }
+    }
+    /* Secciones MINI (Detalles/Lugares): cada mini-sección interna (.details-mini/.venues-mini)
+       maneja su propio fondo, padding, alto mínimo y centrado. El contenedor .section-block solo
+       aporta el ancho completo (margin negativo) y la transición superior. Se neutraliza su
+       padding/min-height/flex para NO duplicar espaciado ni fondo. */
+    .section-block-mini {
+      padding: 0 !important;
+      min-height: 0;
+      display: block;
+    }
+    @media (min-width: 768px) {
+      .section-block-mini { padding: 0 !important; }
     }
     /* ===== Override de texto por sección =====
        Encabezado (H2): .section-heading / h2 / .invitation-title
@@ -720,6 +728,9 @@ export class LandingComponent implements OnInit, OnDestroy {
   scrolled = false;
   bgLoaded = false;
   slug = '';
+  /** True si la landing corre dentro del builder (iframe, sin preview). El scroll-snap NO se
+      aplica en builder para no interferir con el canvas. */
+  private inBuilder = false;
 
   isOpenEvent(): boolean {
     return this.data()?.event?.event_mode === 'open';
@@ -821,9 +832,29 @@ export class LandingComponent implements OnInit, OnDestroy {
   @HostListener('window:scroll')
   onScroll() { this.scrolled = window.scrollY > 300; }
 
-  // Al redimensionar se re-evalua bannerWidth() (depende de window.innerHeight).
+  // Al redimensionar se re-evalua bannerWidth() (depende de window.innerHeight) y el modo de
+  // transición entre secciones (puede cambiar al cruzar el breakpoint mobile/desktop).
   @HostListener('window:resize')
-  onResize() { /* dispara deteccion de cambios para recalcular el ancho del banner */ }
+  onResize() { this.applySectionTransition(); }
+
+  /** Aplica el modo de transición entre secciones (Fase 1 = CSS scroll-snap) poniendo una clase
+      en el <html> (elemento de scroll del documento). Lee theme.sectionTransition{Mobile|Desktop}
+      según el ancho actual. NO se aplica en builder (iframe) para no interferir con el canvas.
+      Clases: 'lp-snap-soft' (proximity) / 'lp-snap-firm' (mandatory) / ninguna (free). */
+  private applySectionTransition() {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    root.classList.remove('lp-snap-soft', 'lp-snap-firm');
+    if (this.inBuilder) return; // en el canvas no se aplica
+    const theme = this.data()?.config?.theme;
+    if (!theme) return;
+    const mode: SectionTransition = (this.isDesktopWidth()
+      ? theme.sectionTransitionDesktop
+      : theme.sectionTransitionMobile) || 'free';
+    if (mode === 'snap-soft') root.classList.add('lp-snap-soft');
+    else if (mode === 'snap-firm') root.classList.add('lp-snap-firm');
+    // 'free' → sin clase (scroll normal)
+  }
 
   scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -866,6 +897,9 @@ export class LandingComponent implements OnInit, OnDestroy {
         // But in preview mode (?preview=1), show them normally
         const isPreview = this.route.snapshot.queryParams['preview'] === '1';
         const inBuilder = (window.self !== window.top && !isPreview) || this.route.snapshot.queryParams['builder'] === '1';
+        this.inBuilder = inBuilder;
+        // Aplicar el modo de transición entre secciones (scroll-snap) según el tema y dispositivo.
+        this.applySectionTransition();
         if (!inBuilder) {
           if (d.config.envelope.enabled) {
             this.showEnvelope.set(true);
@@ -923,6 +957,10 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.builderHighlightStyle?.remove();
     if (this.messageHandler) {
       window.removeEventListener('message', this.messageHandler);
+    }
+    // Quitar la clase de scroll-snap del <html> al salir de la landing.
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('lp-snap-soft', 'lp-snap-firm');
     }
     // Restore default favicon and title when leaving landing
     this.restoreFavicon();
@@ -1205,8 +1243,10 @@ export class LandingComponent implements OnInit, OnDestroy {
         break;
       }
     }
-    // Section Heading (H2) overrides
-    if (style.sectionHeadingColor) css += `; --section-h2-color: ${style.sectionHeadingColor}`;
+    // Section Heading (H2) overrides. Si hay color2 (título BICOLOR), NO se inyecta --section-h2-color:
+    // el componente pinta el gradiente inline (background-image + gradient-text) y la regla ::ng-deep
+    // con !important lo anularía. Sin color2, se inyecta el color plano como siempre.
+    if (style.sectionHeadingColor && !style.sectionHeadingColor2) css += `; --section-h2-color: ${style.sectionHeadingColor}`;
     if (style.sectionHeadingFont) css += `; --section-h2-font: ${this.getThemeFont(style.sectionHeadingFont)}`;
     if (style.sectionHeadingSize) css += `; --section-h2-size: ${style.sectionHeadingSize}px`;
     // Titles (h3) overrides
