@@ -1650,9 +1650,10 @@ import { ApiService } from '../../../../../core/services/api.service';
               </div>
             }
 
-            <!-- "Texto de Sección" NO se muestra en Detalles ni Galería: sus controles de texto
-                 (Encabezado/Título/Contenido) se movieron al acordeón "Contenido" de la sección. -->
-            @if (canvasState.selectedSection() !== 'details' && canvasState.selectedSection() !== 'gallery') {
+            <!-- "Texto de Sección" NO se muestra en Detalles/Lugares/Vestimenta/Galería: sus
+                 controles de texto (Encabezado/Título/Contenido) ya viven en el acordeón "Contenido"
+                 de cada sección, así que el acordeón genérico sería redundante. -->
+            @if (canvasState.selectedSection() !== 'details' && canvasState.selectedSection() !== 'venues' && canvasState.selectedSection() !== 'dresscode' && canvasState.selectedSection() !== 'gallery') {
             <div class="accordion" [class.open]="expanded['sec-txt']" (click)="toggle('sec-txt')">
               <div class="accordion-header"><span class="material-icons">{{ expanded['sec-txt'] ? 'expand_more' : 'chevron_right' }}</span><span>Texto de Seccion</span></div>
             </div>
