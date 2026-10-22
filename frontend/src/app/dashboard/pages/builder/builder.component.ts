@@ -57,10 +57,10 @@ interface BuilderSection {
           <span class="material-icons">redo</span>
         </button>
         <div class="builder-tb-sep"></div>
-        <button class="builder-device-btn" [class.active]="previewDevice() === 'mobile'" (click)="previewDevice.set('mobile')">
+        <button class="builder-device-btn" [class.active]="previewDevice() === 'mobile'" (click)="setPreviewDevice('mobile')">
           <span class="material-icons">phone_iphone</span>
         </button>
-        <button class="builder-device-btn" [class.active]="previewDevice() === 'desktop'" (click)="previewDevice.set('desktop')">
+        <button class="builder-device-btn" [class.active]="previewDevice() === 'desktop'" (click)="setPreviewDevice('desktop')">
           <span class="material-icons">monitor</span>
         </button>
         <!-- Selector de dispositivo (solo modo mobile). En escritorio va aquí en la toolbar;
@@ -921,14 +921,16 @@ interface BuilderSection {
       &.section-active { box-shadow: inset 3px 0 0 rgba(139,92,246,0.7), inset -3px 0 0 rgba(139,92,246,0.7), inset 6px 0 10px -3px rgba(139,92,246,0.3), inset -6px 0 10px -3px rgba(139,92,246,0.3); }
     }
     /* Hero/envelope/intro manejan su propio alto (margin negativo / overlays); no imponer el
-       min-height genérico ni el centrado flex. Las mini-secciones de DETALLES (data-section
-       "details:<id>") también: cada card (.details-mini) gestiona su propio min-height (var
-       --canvas-vh / 100svh), así que el wrapper no debe sumar otro alto. */
+       min-height genérico ni el centrado flex. Las mini-secciones de DETALLES/LUGARES/VESTIMENTA
+       (data-section "details:<id>" / "venues:<id>" / "dresscode:<id>") también: cada card
+       (.details-mini / .venue-mini / .dress-mini) gestiona su propio min-height (var --canvas-vh /
+       100svh) y crece con su contenido, así que el wrapper no debe imponer otro alto ni centrar. */
     .preview-section-click[data-section="hero"],
     .preview-section-click[data-section="envelope"],
     .preview-section-click[data-section="intro"],
     .preview-section-click[data-section^="details:"],
-    .preview-section-click[data-section^="venues:"] { min-height: 0; display: block; }
+    .preview-section-click[data-section^="venues:"],
+    .preview-section-click[data-section^="dresscode:"] { min-height: 0; display: block; }
     .preview-section-click[data-section="hero"] { overflow: visible; }
     /* Block pointer events on inner content so clicks go to the wrapper.
        Se excluye el envelope editable (.drag-enabled) para que el drag funcione. */
@@ -1419,7 +1421,19 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       const viewport = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
       const canvas = document.querySelector('.preview-mode-canvas') as HTMLElement | null;
       if (viewport && canvas) {
-        const h = viewport.clientHeight;
+        // En MOBILE el marco tiene un alto FIJO = alto del dispositivo seleccionado
+        // (canvasDeviceHeight). Ese es el "100svh" real del teléfono simulado, así que
+        // --canvas-vh debe valer EXACTAMENTE ese alto, NO el clientHeight del viewport
+        // (que `max-height:100%` y el alto del área del canvas distorsionan: en monitores
+        // altos quedaba mayor que el dispositivo → las mini-secciones nacían más largas que
+        // la ventana y el contenido parecía cortarse). En DESKTOP sí usamos el clientHeight
+        // del viewport (el canvas desktop se estira al área y scrollea).
+        let h: number;
+        if (this.previewDevice() === 'mobile') {
+          h = this.canvasDeviceHeight();
+        } else {
+          h = viewport.clientHeight;
+        }
         // Ignorar medidas de 0 (p. ej. cuando el canvas está oculto en modo preview):
         // conservaríamos el último alto válido para no colapsar la altura del hero/intro
         // al volver al modo canvas.
@@ -1528,6 +1542,71 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         this.sectionGlowRightValue.set(vpRect.right - areaRect.left);
       }
     }, 100);
+  }
+
+  /** data-section de la sección/mini-sección actualmente seleccionada en el canvas (para re-navegar
+      tras cambiar de dispositivo). Para Detalles/Lugares/Vestimenta devuelve "key:<id>" de la card/
+      ítem activo; para el resto, la propia key. null si no hay selección útil. */
+  private activeSectionDataAttr(): string | null {
+    const key = this.canvasState.selectedSection();
+    if (!key || key === '_theme') return null;
+    if (key === 'details') {
+      const i = this.canvasState.selectedDetailIndex();
+      const c = i >= 0 ? this.detailCards()[i] : null;
+      return c ? 'details:' + c.id : null;
+    }
+    if (key === 'venues') {
+      const i = this.canvasState.selectedVenueIndex();
+      const v = i >= 0 ? this.venueItems()[i] : null;
+      return v ? 'venues:' + v.id : null;
+    }
+    if (key === 'dresscode') {
+      const i = this.canvasState.selectedDresscodeIndex();
+      const d = i >= 0 ? this.dresscodeCards()[i] : null;
+      return d ? 'dresscode:' + d.id : null;
+    }
+    return key;
+  }
+
+  /** Cambia el dispositivo del canvas (mobile/desktop) MANTENIENDO la sección/mini-sección en la que
+      el usuario está editando: captura la sección activa antes de cambiar y re-navega a ella tras el
+      re-render (el viewport cambia de tamaño y el scroll se perdía → saltaba a otra sección). */
+  setPreviewDevice(device: 'mobile' | 'desktop') {
+    if (this.previewDevice() === device) return;
+    const target = this.activeSectionDataAttr();
+    this.previewDevice.set(device);
+    // --canvas-vh depende del dispositivo (mobile = alto del teléfono; desktop = alto del viewport).
+    // Recalcularlo YA para que el relayout de las secciones use el valor correcto antes del scroll.
+    requestAnimationFrame(() => this._applyCanvasHeight?.());
+    if (!target) return;
+    // El cambio de dispositivo recalcula el min-height de TODAS las secciones a la vez, así que la
+    // posición en px de la sección objetivo cambia (y el desfase se acumula cuanto más abajo esté).
+    // Para aterrizar EXACTO: esperar a que el relayout termine (doble rAF + un tick extra) y hacer el
+    // scroll SIN animación (instantáneo y preciso) midiendo con las alturas ya finales. Se reintenta
+    // un par de veces por si el relayout tarda más (imágenes/fuentes).
+    // Un solo salto tras el relayout (doble rAF). Los reintentos solo RE-posicionan si el objetivo
+    // se movió >2px (p.ej. si imágenes/fuentes tardaron en acomodar las alturas) → si el primer
+    // salto ya acertó, no hay parpadeo. Se hace sin animación (instantáneo y preciso).
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      this.scrollToSectionInstant(target);
+      setTimeout(() => this.scrollToSectionInstant(target, 2), 150);
+      setTimeout(() => this.scrollToSectionInstant(target, 2), 350);
+    }));
+  }
+
+  /** Scroll INSTANTÁNEO (sin animación) a una sección por su data-section. Se usa al cambiar de
+      dispositivo, donde el smooth + el relayout producían un aterrizaje impreciso. `threshold` evita
+      re-scrollear si ya está en el punto (quita el parpadeo de los reintentos). */
+  private scrollToSectionInstant(key: string, threshold = 0) {
+    const el = document.querySelector(`.preview-section-click[data-section="${key}"]`);
+    const container = document.querySelector('.builder-canvas-viewport');
+    if (!el || !container) return;
+    const elRect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const offset = elRect.top - containerRect.top + container.scrollTop;
+    // Si ya estamos prácticamente en el objetivo, no re-scrollear (evita el salto/parpadeo).
+    if (Math.abs(container.scrollTop - offset) <= threshold) return;
+    container.scrollTo({ top: offset, behavior: 'auto' });
   }
 
   private scrollToSection(key: string) {

@@ -42,7 +42,7 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
           }
 
           <div class="dress-grid">
-            <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [position]="posData(card,'card')" [ngStyle]="pos(card,'card')"
+            <app-drag-box [editable]="editable" [maxSize]="100" [posMargin]="0" [widthOnly]="true" [position]="posData(card,'card')" [ngStyle]="pos(card,'card')"
                           (positionChange)="onPosChange(card,'card',$event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
               <div class="example-card reveal"
                    [class.positioned]="hasAnyPosition(card)"
@@ -97,7 +97,10 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     .dress-mini {
       position: relative; padding: 48px 20px;
       min-height: var(--canvas-vh, 100svh);
-      display: flex; flex-direction: column; justify-content: center;
+      /* 'safe center': centra el contenido cuando cabe, pero si el contenido es MÁS ALTO que el
+         min-height, lo alinea al inicio y deja que la sección CREZCA (en vez de recortar/desbordar
+         por el centrado). Así la card nunca se sale de la sección. */
+      display: flex; flex-direction: column; justify-content: safe center;
     }
     /* BANNER: imagen de fondo en columna centrada --sec-banner-w (igual que .section-block normal). */
     .dress-mini.bg-banner::before {
@@ -116,11 +119,23 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     /* Fade-in SOLO del contenido (opacidad; sin transform). El fondo banner no se anima. */
     .dress-mini-inner.reveal-fade { opacity: 0; transition: opacity 0.8s ease; }
     .dress-mini-inner.reveal-fade.reveal-in { opacity: 1; }
-    /* Modo posicionado (drag): el inner cubre toda la mini-sección, acotado por dispositivo. */
-    .dress-mini.positioned .dress-mini-inner { position: absolute; top: 0; bottom: 0; max-width: none; margin: 0; }
-    .dress-mini.positioned .dress-mini-inner.canvas-desktop { left: 50%; right: auto; width: var(--canvas-desktop-w, 600px); transform: translateX(-50%); }
-    .dress-mini.positioned .dress-mini-inner.canvas-mobile { left: 50%; right: auto; width: var(--canvas-mobile-w, 360px); transform: translateX(-50%); }
+    /* Modo posicionado (drag): el inner es el LIENZO de referencia (data-drag-bounds) con alto FIJO
+       = alto de ventana (position:absolute; height FIJO). Es FIJO a propósito: los top%/left% de la
+       card se calculan sobre este lienzo estable. La SECCIÓN crece por JS (installAutoHeight) para
+       envolver la card cuando su contenido excede el lienzo; el lienzo NO crece con la sección (si
+       creciera, el top% daría más px y habría bucle). RESPETA el padding (top:48px) para que los
+       objetos no se posicionen en el padding ni invadan la sección anterior. */
+    .dress-mini.positioned .dress-mini-inner { position: absolute; top: 48px; left: 50%; height: calc(var(--canvas-vh, 100svh) - 96px); max-width: none; margin: 0; transform: translateX(-50%); }
+    .dress-mini.positioned .dress-mini-inner.canvas-desktop { width: var(--canvas-desktop-w, 600px); }
+    .dress-mini.positioned .dress-mini-inner.canvas-mobile { width: var(--canvas-mobile-w, 360px); }
     .dress-mini.positioned .dress-grid { display: block; max-width: none; margin: 0; }
+    /* La caja de drag (app-drag-box) y su frame usan height:100% por defecto, lo que recortaría el
+       contenido. Acotado SOLO a Vestimenta posicionada: usan height:auto para tomar el ALTO NATURAL
+       del contenido (la card no tiene alto fijo: su alto lo manda el nº de imágenes). El
+       ResizeObserver mide el .example-card (alto natural) y ajusta el min-height de la SECCIÓN para
+       envolverla, sin depender del alto del box ni del lienzo (sin bucle). */
+    .dress-mini.positioned ::ng-deep app-drag-box { height: auto; }
+    .dress-mini.positioned ::ng-deep app-drag-box .db-frame { height: auto; }
     .ad-guide { position: absolute; z-index: 50; pointer-events: none; }
     .ad-guide-v { top: 0; bottom: 0; width: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateX(-50%); }
     .ad-guide-h { left: 0; right: 0; height: 1px; background: rgba(157,110,231,0.9); box-shadow: 0 0 4px rgba(157,110,231,0.6); transform: translateY(-50%); }
@@ -144,17 +159,20 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     /* ===== CUADRÍCULA de imágenes de ejemplo (2 columnas: 2 arriba, 2 abajo) =====
        El tamaño base de cada celda escala con --dress-img-scale (small/medium/large). Con 1 imagen
        se centra; con 3, la 3ª (impar) ocupa ambas columnas centrada. PNG transparente: contain. */
+    /* FLEX con wrap: cada imagen tiene el ANCHO EXACTO del tamaño configurado (--dress-cell). Si en
+       una fila no caben 2 (card/ventana angosta), se ENVUELVEN solas a la siguiente línea (apilado
+       en vertical). Centrado horizontal. Así el tamaño (pequeño/mediano/grande) SÍ manda, y nunca
+       desbordan la card: cada celda se limita a max-width:100% (del contenedor). Distribución
+       natural: 1=centrada, 2=fila, 3=2+1, 4=2+2 (según quepan). */
     .example-images {
-      display: grid; grid-template-columns: repeat(2, auto); gap: 14px;
-      justify-content: center; align-items: start; margin-bottom: 16px;
+      --dress-cell: calc(130px * var(--dress-img-scale, 1));
+      display: flex; flex-wrap: wrap; gap: 14px;
+      justify-content: center; align-items: flex-start; margin-bottom: 16px;
     }
-    /* 1 imagen: una sola columna centrada. */
-    .example-images[data-count="1"] { grid-template-columns: auto; }
-    /* 3 imágenes: la tercera cruza las 2 columnas y se centra abajo. */
-    .example-images[data-count="3"] .example-img-wrapper:nth-child(3) { grid-column: 1 / -1; justify-self: center; }
     .example-img-wrapper {
-      width: calc(130px * var(--dress-img-scale, 1));
-      height: calc(170px * var(--dress-img-scale, 1));
+      flex: 0 0 var(--dress-cell);
+      width: var(--dress-cell); max-width: 100%;
+      aspect-ratio: 130 / 170;
       border-radius: 12px; overflow: hidden; cursor: pointer;
       img {
         width: 100%; height: 100%;
@@ -162,11 +180,6 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
         object-fit: contain; transition: transform 0.3s;
       }
       &:hover img { transform: scale(1.05); }
-    }
-    /* Si el ancho de la card no da para 2 columnas, apila en vertical (1 columna). */
-    @media (max-width: 420px) {
-      .example-images { grid-template-columns: auto; }
-      .example-images[data-count="3"] .example-img-wrapper:nth-child(3) { grid-column: auto; }
     }
     .example-title { font-family: var(--font-serif); margin-bottom: 8px; line-height: 1.4; padding: 0.1em 0; }
     .example-title.gradient-text { -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
@@ -201,6 +214,12 @@ export class LandingDresscodeComponent implements AfterViewInit, OnDestroy {
   guides: { x?: number; y?: number } | null = null;
 
   ngAfterViewInit() {
+    // AUTO-ALTO de la sección según el contenido (Opción B): cuando la card está posicionada
+    // (position:absolute, no aporta alto al padre) y su contenido crece —p. ej. las imágenes se
+    // apilan en vertical al angostar la ventana—, la sección NO crecía y la card invadía la
+    // siguiente sección. Un ResizeObserver mide el alto real de cada card posicionada y ajusta el
+    // min-height de su .dress-mini para contenerla. Es responsive: se re-dispara al reflow.
+    this.installAutoHeight();
     if (this.scrollAnim === 'none') return;
     if (typeof window !== 'undefined' && window.self !== window.top && !window.location.search.includes('preview=1')) return;
     const inners: NodeListOf<HTMLElement> = this.host.nativeElement.querySelectorAll('.dress-mini-inner');
@@ -212,7 +231,67 @@ export class LandingDresscodeComponent implements AfterViewInit, OnDestroy {
     }, { threshold: 0.12 });
     inners.forEach((el) => { el.classList.add('reveal-fade'); this.revealObserver!.observe(el); });
   }
-  ngOnDestroy() { this.revealObserver?.disconnect(); }
+  ngOnDestroy() {
+    this.revealObserver?.disconnect();
+    this.autoHeightObserver?.disconnect();
+  }
+
+  // ===== AUTO-ALTO de sección (Opción B) =====
+  private autoHeightObserver?: ResizeObserver;
+  /** Cuando la card está posicionada (absolute), no empuja el alto del padre. Si su contenido crece
+      (p. ej. imágenes 2×2 → vertical al angostar), la sección debe CRECER para contenerla.
+
+      CLAVE para evitar el bucle de crecimiento: el LIENZO del drag (.dress-mini-inner) tiene alto
+      FIJO = alto base de ventana (--canvas-vh / 100svh). Así el top% de la card se calcula SIEMPRE
+      sobre ese alto fijo y no cambia cuando la sección crece (si el lienzo creciera con la sección,
+      el top% daría más px, la card bajaría y el alto requerido crecería sin fin). El min-height de
+      la SECCIÓN se calcula como: tope de la card (top% del lienzo fijo) + alto NATURAL del contenido
+      de la card (scrollHeight, independiente del min-height de la sección) + respiro. Es estable y
+      responsive (el observer mide el contenido, no la sección). */
+  private installAutoHeight() {
+    if (typeof ResizeObserver === 'undefined') return;
+    const sections: NodeListOf<HTMLElement> = this.host.nativeElement.querySelectorAll('.dress-mini.positioned');
+    if (!sections.length) return;
+    const recalc = (section: HTMLElement) => {
+      const inner = section.querySelector('.dress-mini-inner') as HTMLElement | null;
+      const box = section.querySelector('.dress-grid app-drag-box') as HTMLElement | null;
+      const card = section.querySelector('.dress-grid .example-card') as HTMLElement | null;
+      if (!inner || !box || !card) return;
+      // Alto base de la ventana (lienzo fijo). En canvas = --canvas-vh; en landing = alto real del
+      // inner (que mide 100svh por CSS). NO se lee de la sección (que es la que crece).
+      const cssVh = getComputedStyle(section).getPropertyValue('--canvas-vh').trim();
+      const base = cssVh ? parseFloat(cssVh) : inner.clientHeight;
+      if (!base) return;
+      // Tope de la card = su top% (sobre el lienzo fijo) + el padding superior del lienzo (48px).
+      // box.style.top es "NN%" relativo al lienzo útil (que ya arranca tras el padding).
+      const topPct = parseFloat(box.style.top || '0') || 0;
+      const topPx = 48 + (topPct / 100) * base;
+      // Alto natural del contenido de la card (independiente del min-height de la sección).
+      const cardH = card.scrollHeight;
+      const padBottom = 48; // respiro inferior (= padding de .dress-mini)
+      // Alto que EXIGE el contenido: desde el tope de la card hasta su final + respiro.
+      const needed = Math.ceil(topPx + cardH + padBottom);
+      // La sección mide lo que pide el contenido, PERO nunca menos que el alto de ventana (el
+      // mínimo es la pantalla; si el contenido es más alto, crece). Esto da el comportamiento
+      // acordado: mínimo = ventana, y crece con el contenido sin cortar ni invadir la siguiente.
+      const target = Math.max(Math.round(base), needed);
+      const current = parseFloat(section.style.minHeight || '0') || 0;
+      // Solo escribir si cambió >1px (evita reflows/loops por redondeo).
+      if (Math.abs(target - current) > 1) section.style.minHeight = target + 'px';
+    };
+    this.autoHeightObserver = new ResizeObserver((entries) => {
+      for (const e of entries) {
+        const section = (e.target as HTMLElement).closest('.dress-mini.positioned') as HTMLElement | null;
+        if (section) recalc(section);
+      }
+    });
+    sections.forEach((section) => {
+      // Observamos el CONTENIDO (.example-card), cuyo alto natural NO depende del min-height de la
+      // sección → sin bucle. Reflowa al cambiar nº de imágenes o ancho de ventana.
+      const card = section.querySelector('.dress-grid .example-card') as HTMLElement | null;
+      if (card) { this.autoHeightObserver!.observe(card); recalc(section); }
+    });
+  }
 
   openImageViewer(images: string[], index: number) { this.lightbox.open(images, index); }
 
@@ -393,13 +472,25 @@ export class LandingDresscodeComponent implements AfterViewInit, OnDestroy {
     if (!this.hasAnyPosition(card)) return {};
     const r = this.resolvePos(card, key);
     const style: Record<string, string> = {
-      position: 'absolute', left: r.x + '%', top: r.y + '%',
-      right: 'auto', bottom: 'auto', transform: 'translate(-50%, -50%)', margin: '0',
+      position: 'absolute', left: r.x + '%',
+      right: 'auto', bottom: 'auto', margin: '0',
     };
     if (r.w != null) style['width'] = r.w + '%';
     else if (key === 'card') style['width'] = '80%';
     else style['width'] = 'max-content';
-    if (r.h != null) style['height'] = r.h + '%';
+    // CARD de Vestimenta: posición + ANCHO arrastrables, pero el ALTO lo manda el CONTENIDO (nº de
+    // imágenes). No se aplica height ni min-height: la card toma su alto natural. Se ancla por el
+    // BORDE SUPERIOR (el `y` guardado se trata como tope, no como centro) y crece hacia abajo; la
+    // sección crece con ella vía installAutoHeight. Así el drag es coherente (no hay alto fijo que
+    // desborde ni recalculo del centro que "salte"). El heading conserva el anclaje por el centro.
+    if (key === 'card') {
+      style['top'] = r.y + '%';
+      style['transform'] = 'translateX(-50%)';
+    } else {
+      style['top'] = r.y + '%';
+      style['transform'] = 'translate(-50%, -50%)';
+      if (r.h != null) style['height'] = r.h + '%';
+    }
     return style;
   }
   posData(card: DresscodeCard, key: string): ElementPosition | null {

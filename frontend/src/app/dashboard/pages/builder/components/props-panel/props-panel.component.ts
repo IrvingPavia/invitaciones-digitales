@@ -1351,23 +1351,29 @@ import { ApiService } from '../../../../../core/services/api.service';
 
                 <!-- IMÁGENES de ejemplo (de la card activa). -->
                 <div class="pf" style="margin-top:10px">
-                  <label>Imágenes de ejemplo ({{dc.images?.length || 0}}/4)</label>
-                  <div class="dress-slots-grid">
+                  <!-- Imágenes de ejemplo (hasta 4). Mismo estilo que Galería: header con botón
+                       +Subir / Eliminar(N) y cuadrícula de slots compactos. Subir acepta multi-selección. -->
+                  <div class="items-header">
+                    <span>Imágenes ({{dc.images?.length || 0}}/4)</span>
+                    @if (getSelectedDressImages(dIdx2()).length > 0) {
+                      <button class="photo-upload-btn delete" (click)="deleteSelectedDressImages(dIdx2());$event.stopPropagation()">Eliminar ({{getSelectedDressImages(dIdx2()).length}})</button>
+                    } @else {
+                      <button class="photo-upload-btn upload" [disabled]="(dc.images?.length || 0) >= 4" (click)="uploadDresscodeImage(dIdx2());$event.stopPropagation()">+ Subir</button>
+                    }
+                  </div>
+                  <div class="photo-slots-grid">
                     @for (img of dc.images || []; track img; let j=$index) {
-                      <div class="dress-slot filled" [class.selected]="isDressImageSelected(dIdx2(), j)" (click)="toggleDressImageSelect(dIdx2(), j);$event.stopPropagation()">
-                        <img [src]="img" alt="">
+                      <div class="photo-slot filled" [class.selected]="isDressImageSelected(dIdx2(), j)" (click)="toggleDressImageSelect(dIdx2(), j);$event.stopPropagation()">
+                        <img [src]="img" alt="" loading="lazy">
                         @if (isDressImageSelected(dIdx2(), j)) { <span class="slot-check"><span class="material-icons">check</span></span> }
                       </div>
                     }
                     @for (slot of getDressEmptySlots(dIdx2()); track $index) {
-                      <div class="dress-slot empty" (click)="uploadDresscodeImage(dIdx2());$event.stopPropagation()">
+                      <div class="photo-slot empty" (click)="uploadDresscodeImage(dIdx2());$event.stopPropagation()">
                         <span class="material-icons">add_photo_alternate</span>
                       </div>
                     }
                   </div>
-                  @if (getSelectedDressImages(dIdx2()).length > 0) {
-                    <button class="photo-upload-btn delete" style="margin-top:6px;width:100%" (click)="deleteSelectedDressImages(dIdx2());$event.stopPropagation()">Eliminar ({{getSelectedDressImages(dIdx2()).length}})</button>
-                  }
                 </div>
 
                 <!-- Tamaño de imágenes. -->
@@ -2490,18 +2496,25 @@ export class BuilderPropsPanelComponent {
   }
 
   uploadDresscodeImage(cardIndex: number) {
-    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
     input.onchange = () => {
-      const f = input.files?.[0]; if (!f) return;
-      this.api.uploadFile('images', f).subscribe({ next: (r) => {
-        const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
-        if (!cfg.dresscode.cards[cardIndex].images) cfg.dresscode.cards[cardIndex].images = [];
-        if (cfg.dresscode.cards[cardIndex].images.length < 4) {
-          cfg.dresscode.cards[cardIndex].images.push(r.url);
-          this.canvasState.notifyChange();
-          this.canvasState.triggerAutoSave();
-        }
-      }});
+      const files = input.files ? Array.from(input.files) : [];
+      if (!files.length) return;
+      const cfg0 = this.canvasState.getConfig(); if (!cfg0 || !cfg0.dresscode.cards?.[cardIndex]) return;
+      if (!cfg0.dresscode.cards[cardIndex].images) cfg0.dresscode.cards[cardIndex].images = [];
+      // Subir sólo hasta completar 4 (límite por card). Se suben en paralelo y se agregan al llegar.
+      const libres = Math.max(0, 4 - cfg0.dresscode.cards[cardIndex].images.length);
+      files.slice(0, libres).forEach((f) => {
+        this.api.uploadFile('images', f).subscribe({ next: (r) => {
+          const cfg = this.canvasState.getConfig(); if (!cfg || !cfg.dresscode.cards?.[cardIndex]) return;
+          if (!cfg.dresscode.cards[cardIndex].images) cfg.dresscode.cards[cardIndex].images = [];
+          if (cfg.dresscode.cards[cardIndex].images.length < 4) {
+            cfg.dresscode.cards[cardIndex].images.push(r.url);
+            this.canvasState.notifyChange();
+            this.canvasState.triggerAutoSave();
+          }
+        }});
+      });
     };
     input.click();
   }

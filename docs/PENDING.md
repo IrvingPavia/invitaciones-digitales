@@ -1,5 +1,41 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-15 — Auto-alto Vestimenta (Opción B) + fondos mobile/desktop independientes
+
+- [x] **Vestimenta: alto de sección crece con el contenido (Opción B).** La card ya NO tiene alto fijo
+  (su alto lo manda el contenido); drag de card = posición + ancho (handles de alto ocultos vía nuevo
+  input `widthOnly` en `app-drag-box`). Lienzo de drag con alto fijo (respeta padding) + ResizeObserver
+  (`installAutoHeight`) que mide el `.example-card` y ajusta el `min-height` de la sección. Se limpió el
+  `h` guardado de Valeria en BD. Canvas: dresscode añadido a la exclusión de min-height; `--canvas-vh`
+  en mobile = alto del dispositivo; recálculo al cambiar mobile↔desktop.
+- [x] **Fondo de sección: ajustes MÓVIL y ESCRITORIO independientes.** `MediaBackground` +
+  `fitDesktop?`/`bannerWidthDesktop?` (opcionales). `resolveMedia` usa *Desktop en escritorio (fallback
+  a los base) y SIEMPRE los base en móvil. `BackgroundControlComponent` con dos selectores
+  (móvil/escritorio). Retrocompatible: sin migración de datos, Valeria igual hasta que se toque el
+  ajuste de escritorio.
+
+### Pendientes de GALERÍA (NO implementados; decisión: no romper el control)
+- [ ] **Galería NO tiene drag ni resize del control** (decisión): rompería los estilos extensibles
+  (polaroid/mosaico cambian el alto con el nº de fotos) y el viewer (LightboxService). Se mantiene tal
+  cual.
+- [ ] **Texto de sección en Galería no surte efecto por sección**: el acordeón "Texto de Sección"
+  existe (genérico) pero el componente de Galería lee los estilos del TEMA GLOBAL, no de `sectionStyle`.
+  Pendiente: migrar título/descripción de Galería a helpers `sectionStyle` (prioridad sectionStyle >
+  tema), como se hizo en Detalles/Lugares/Vestimenta.
+- [ ] **Drag opcional solo del encabezado/descripción de Galería** + descripción enriquecida
+  (`descriptionHtml`), SIN tocar el control de galería. Solo si se retoma; de bajo riesgo si se limita
+  al heading.
+
+### Protección de imágenes en DevTools (evaluar / documentar)
+- [ ] **Alcance real (importante):** NO es posible impedir del todo la descarga de las imágenes del
+  cliente. El navegador DEBE descargar la imagen para mostrarla, así que siempre estará accesible en la
+  pestaña Network / caché del DevTools. Cualquiera con conocimientos técnicos puede obtenerla.
+- [ ] **Medidas DISUASORIAS implementables (frenan al usuario casual):** desactivar clic derecho sobre
+  las imágenes, desactivar arrastrar la imagen (`draggable=false` / `-webkit-user-drag:none`), overlay
+  transparente encima, `user-select:none`, servir sin extensión obvia. NO protegen contra un técnico.
+- [ ] **Única protección REAL del contenido:** marca de agua embebida en la imagen (altera la imagen).
+  Decidir con el usuario si se quiere como opción.
+
 ## Completado 2026-10-22 (b) — Vestimenta mini-secciones + fixes
 
 - [x] **Vestimenta como mini-secciones por card** (espejo de Detalles/Lugares): cada ejemplo = sección
@@ -15,6 +51,27 @@
 - [ ] Drag-box: al redimensionar con los dots el objeto se sale del lienzo (falta limitar a bounds).
 - [ ] Cambiar mobile↔desktop no mantiene la sección seleccionada en el canvas (salta de sección).
 - [ ] Toolbar del canvas hace un salto/scroll al alternar Canvas↔Preview.
+
+## Mejora futura (IDEA de negocio) — Diseño DESKTOP independiente / modo "full web"
+
+Contexto: hoy la invitación es de diseño VERTICAL tipo móvil. En desktop se muestra la misma columna
+de contenido centrada (ancho `--canvas-desktop-w` = 600px) con el fondo ambiental a los lados; las
+franjas laterales existen por la REGLA R3 de fondos banner (imagen vertical sin override desktop toma
+el alto de la ventana y el ancho va a proporción; si hay "imagen distinta para escritorio" sí se
+expande a todo el ancho).
+
+Idea a futuro (posible upsell con costo distinto): permitir un **diseño DESKTOP independiente** del
+móvil — que el cliente pueda armar una versión más "web" (layout más ancho / distinto posicionamiento)
+para escritorio, manteniendo el MISMO contenido de la invitación en ambos (textos, imágenes, datos),
+pero con disposición/estilo propio por dispositivo. Opción de "full web" (contenido a todo el ancho)
+como variante premium. El contenido es el mismo; cambia el layout/posicionamiento por dispositivo.
+
+Implicaciones técnicas (alto nivel, para cuando se retome): hoy `sectionStyle`/`positions` ya son por
+dispositivo en el drag (desktop/mobile) pero el ANCHO de columna (`--canvas-desktop-w`) y la estructura
+son compartidos. Un diseño desktop independiente requeriría: ancho de columna configurable por evento/
+plan, posiblemente `sectionStyle`/layout propios de desktop, y que el canvas desktop deje crecer el
+lienzo más allá de 600px cuando el modo "full web" esté activo. Mantener retrocompatibilidad (default =
+comportamiento actual de columna 600px). NO empezar hasta priorizarlo como feature de negocio.
 
 ## Mejora futura — Transición entre secciones Fase 2 (animaciones)
 

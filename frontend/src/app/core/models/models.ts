@@ -78,10 +78,19 @@ export interface MediaBackground {
   desktopOverride?: boolean;
   /** URL alterna solo para escritorio (cuando desktopOverride = true). */
   urlDesktop?: string;
-  /** Encuadre: 'cover' (llena), 'contain' (completa), 'banner' (columna centrada, solo desktop). */
+  /** Encuadre base (MÓVIL, y escritorio si no hay fitDesktop): 'cover' (llena), 'contain'
+      (completa), 'banner' (columna centrada). Es la regla de MÓVIL de siempre. */
   fit?: 'cover' | 'contain' | 'banner';
-  /** Ancho de la columna banner en % del contenedor (solo desktop, cuando fit='banner'). */
+  /** Ancho de la columna banner base (móvil) en % del contenedor, cuando fit='banner'. */
   bannerWidth?: number;
+  /** Encuadre SOLO para ESCRITORIO (independiente de móvil). Si se define, manda en escritorio;
+      si no, el escritorio cae a `fit` (retrocompatible: configs previas sin este campo se
+      comportan igual que antes). Pensado para imágenes horizontales de escritorio que deben
+      expandirse (cover) aunque el móvil use banner. */
+  fitDesktop?: 'cover' | 'contain' | 'banner';
+  /** Ancho de la columna banner SOLO para escritorio (cuando fitDesktop='banner'). Fallback a
+      bannerWidth si no se define. */
+  bannerWidthDesktop?: number;
   /** Posición del encuadre (p. ej. 'center center', 'top center'). */
   position?: string;
   /** Oscurecer la media (0-100): capa negra encima para legibilidad del texto. */

@@ -11,6 +11,70 @@
 
 ---
 
+## Estado actual del proyecto: 2026-10-15
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: auto-alto de Vestimenta (Opción B) + fondos mobile/desktop independientes + decisión Galería
+
+**1. VESTIMENTA — alto de sección que crece con el contenido (Opción B).** Problema: la card de
+Vestimenta, posicionada con drag (position:absolute con alto fijo `h`), desbordaba/invadía la sección
+siguiente cuando el contenido (hasta 4 imágenes apiladas) excedía ese alto; y al cambiar de dispositivo
+o angostar la ventana, el reflow (imágenes 2×2 → vertical) agravaba el corte. Solución final tras
+varios intentos:
+- **La card de Vestimenta ya NO tiene alto fijo**: su alto lo manda el CONTENIDO. El `h` de drag se
+  dejó de aplicar (se limpió el `h` guardado de Valeria en BD: `JSON_REMOVE` de
+  `dresscode.cards[0].positions.{mobile,desktop}.card.h`). Drag de la card = posición + ANCHO (los
+  handles de alto se ocultan).
+- **Nuevo input `widthOnly` en `app-drag-box`** (compartido, opt-in; NO afecta hero/intro/invitación/
+  detalles/lugares): oculta handles de alto, ancla por el BORDE SUPERIOR al mover (el `y` = tope, no
+  centro), transform solo `translateX(-50%)`, no emite `h`.
+- **`pos()` de dresscode (card)**: ancla por el tope (`top:y%` + `translateX(-50%)`), sin height/
+  min-height.
+- **Lienzo del drag (`.dress-mini-inner` positioned)**: alto FIJO = `--canvas-vh`/`100svh`, respetando
+  el padding superior (top:48px, height calc(...-96px)). Es fijo a propósito para que los %/drag sean
+  estables (si el lienzo creciera, el top% daría más px → bucle). El drag-box y su frame usan
+  `height:auto` (solo en dress-mini positioned) para tomar alto natural.
+- **`installAutoHeight` (ResizeObserver)**: observa el `.example-card` (alto NATURAL, independiente
+  del min-height de la sección → sin bucle) y ajusta el `min-height` de la `.dress-mini` =
+  max(alto ventana, topePx + altoCard + padding). Responsive (re-dispara al reflow). min-height de la
+  sección = alto de ventana (lo acordado).
+- **Canvas**: `.preview-section-click[data-section^="dresscode:"]` añadido a la lista de exclusión del
+  min-height genérico (ya estaba details:/venues:); `--canvas-vh` en MOBILE = `canvasDeviceHeight()`
+  (alto del dispositivo, no clientHeight del viewport, que `max-height:100%` distorsionaba);
+  `setPreviewDevice` recalcula `--canvas-vh` al cambiar mobile↔desktop.
+- Comportamiento conocido residual (menor): a veces hay que recargar para que el alto se reajuste del
+  todo; aceptado por el usuario por ahora.
+
+**2. FONDO DE SECCIÓN — ajustes MÓVIL y ESCRITORIO independientes.** Problema: `MediaBackground` tenía
+un solo `fit`/`bannerWidth` compartido; al poner la base (móvil) en banner, la imagen de escritorio
+heredaba banner (no se expandía), y cambiar el "ajuste de escritorio" afectaba al móvil.
+- **Modelo**: `MediaBackground` + `fitDesktop?` y `bannerWidthDesktop?` (opcionales, retrocompatibles).
+- **`resolveMedia`**: en escritorio usa `fitDesktop ?? fit` y `bannerWidthDesktop ?? bannerWidth`; en
+  móvil SIEMPRE `fit`/`bannerWidth` (sus reglas de siempre). Configs previas sin *Desktop → idénticas.
+- **`BackgroundControlComponent`**: dos selectores — "Ajuste en móvil" (fit) y "Ajuste en escritorio"
+  (fitDesktop, arranca reflejando el de móvil). Sliders de ancho de banner por dispositivo.
+- Canvas y landing ya consumían el `fit`/`bannerWidth` RESUELTOS → se corrigen en ambos contextos sin
+  más cambios. **Sin migración de datos**: Valeria y todas las secciones se comportan igual hasta que
+  el usuario toque el nuevo ajuste de escritorio. Cero regresión.
+
+**3. GALERÍA — decisión: NO se añade drag ni resize del control.** Para no romper los estilos
+extensibles (polaroid/mosaico cambian el alto con el nº de fotos) ni el viewer (LightboxService).
+Pendientes documentados en PENDING (NO implementados): (a) migrar el texto por sección de Galería a
+helpers `sectionStyle` (hoy el acordeón "Texto de Sección" existe pero Galería lee del tema global);
+(b) drag opcional solo del encabezado/descripción + descripción enriquecida, si se retoma; (c) evaluar
+protección de imágenes en DevTools (alcance: solo medidas disuasorias; la descarga total no es evitable
+porque el navegador debe bajar la imagen para mostrarla).
+
+### Qué queda pendiente
+- Replicar el auto-alto Opción B (card sin alto fijo + ResizeObserver) en Detalles/Lugares si alguna
+  card crece de más (hoy solo Vestimenta lo tiene; en Detalles/Lugares el contenido rara vez excede).
+- Galería: pendientes (a)/(b)/(c) de arriba.
+- Protección de imágenes: documentar alcance en PENDING e implementar medidas disuasorias si se decide.
+- Residual: recarga ocasional para reajuste de alto en Vestimenta.
+
+---
+
 ## Estado actual del proyecto: 2026-10-22 (b)
 
 ### Rama activa: `feature/drag-elementos-secciones`

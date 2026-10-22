@@ -123,7 +123,8 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     .venues-mini {
       position: relative; padding: 48px 20px;
       min-height: var(--canvas-vh, 100svh);
-      display: flex; flex-direction: column; justify-content: center;
+      /* 'safe center': centra si cabe; si el contenido es más alto, alinea al inicio y deja CRECER. */
+      display: flex; flex-direction: column; justify-content: safe center;
     }
     /* BANNER: imagen de fondo en COLUMNA CENTRADA de ancho --sec-banner-w (igual que el .section-block
        normal), para que el slider "Ancho del banner" controle el ancho de la franja. ::before = imagen

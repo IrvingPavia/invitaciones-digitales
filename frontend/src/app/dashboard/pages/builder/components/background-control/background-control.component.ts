@@ -82,14 +82,24 @@ import { isVideoUrl } from '../../../../../core/utils/media-background.util';
         </div>
       }
 
-      <!-- Ajuste -->
-      <div class="pf"><label>Ajuste en escritorio</label>
+      <!-- Ajuste MÓVIL (encuadre base). Define cómo se ve la imagen base en móvil. -->
+      <div class="pf"><label>Ajuste en móvil</label>
         <app-custom-select [options]="fitOptions" [value]="model?.fit || 'cover'" (valueChange)="setProp('fit', $event)"></app-custom-select>
       </div>
-      @if (model?.fit === 'banner') {
-        <div class="pf"><label>Ancho del banner ({{ model?.bannerWidth || 70 }}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="model?.bannerWidth || 70" (ngModelChange)="setProp('bannerWidth', +$event)"></div>
-        <p class="pf-hint">En "banner centrado" la imagen mantiene su proporción en una columna centrada; el slider define su ancho. Solo aplica en escritorio; en móvil ocupa todo el ancho.</p>
+      @if ((model?.fit || 'cover') === 'banner') {
+        <div class="pf"><label>Ancho del banner móvil ({{ model?.bannerWidth || 70 }}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="model?.bannerWidth || 70" (ngModelChange)="setProp('bannerWidth', +$event)"></div>
       }
+
+      <!-- Ajuste ESCRITORIO (independiente del móvil). Si no se toca, hereda el de móvil. -->
+      <div class="pf"><label>Ajuste en escritorio</label>
+        <app-custom-select [options]="fitOptions" [value]="effectiveDesktopFit()" (valueChange)="setProp('fitDesktop', $event)"></app-custom-select>
+      </div>
+      @if (effectiveDesktopFit() === 'banner') {
+        <div class="pf"><label>Ancho del banner escritorio ({{ effectiveDesktopBannerWidth() }}%)</label><input type="range" class="pinput-range" min="10" max="100" step="5" [ngModel]="effectiveDesktopBannerWidth()" (ngModelChange)="setProp('bannerWidthDesktop', +$event)"></div>
+        <p class="pf-hint">En "banner centrado" la imagen mantiene su proporción en una columna centrada; el slider define su ancho. Para imágenes horizontales de escritorio usa "Pantalla completa".</p>
+      }
+      <p class="pf-hint"><span class="material-icons">info</span> Móvil y escritorio tienen ajustes independientes. Si no cambias el de escritorio, usa el mismo que el de móvil.</p>
+
       <div class="pf"><label>Posición</label>
         <app-custom-select [options]="positionOptions" [value]="model?.position || 'center center'" (valueChange)="setProp('position', $event)"></app-custom-select>
       </div>
@@ -213,6 +223,16 @@ export class BackgroundControlComponent {
     (next as any)[prop] = value;
     this.model = next;
     this.modelChange.emit(next);
+  }
+
+  /** Fit EFECTIVO de escritorio para mostrar en el selector: fitDesktop si existe, si no el de
+      móvil (fit). Así el selector arranca reflejando lo que realmente se verá en escritorio. */
+  effectiveDesktopFit(): 'cover' | 'contain' | 'banner' {
+    return (this.model?.fitDesktop ?? this.model?.fit ?? 'cover') as 'cover' | 'contain' | 'banner';
+  }
+  /** Ancho de banner EFECTIVO de escritorio: bannerWidthDesktop ?? bannerWidth ?? 70. */
+  effectiveDesktopBannerWidth(): number {
+    return this.model?.bannerWidthDesktop ?? this.model?.bannerWidth ?? 70;
   }
 
   /** True si la url es video (para mostrar ícono en vez de miniatura). */

@@ -116,7 +116,9 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
       /* En el canvas, --canvas-vh = alto del dispositivo simulado; en la landing real la variable no
          existe → cae a 100svh (alto de la ventana). Así arranca con el alto de pantalla en ambos. */
       min-height: var(--canvas-vh, 100svh);
-      display: flex; flex-direction: column; justify-content: center;
+      /* 'safe center': centra si el contenido cabe; si es más alto que el min-height, alinea al inicio
+         y deja CRECER la sección (en vez de recortar/desbordar la card). */
+      display: flex; flex-direction: column; justify-content: safe center;
     }
     /* BANNER: la imagen de fondo se pinta en una COLUMNA CENTRADA de ancho --sec-banner-w (igual que
        el .section-block de las secciones normales), para que el slider "Ancho del banner" controle

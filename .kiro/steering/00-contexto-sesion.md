@@ -49,6 +49,45 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-15 — auto-alto Vestimenta (Opción B) + fondos mobile/desktop independientes + Galería (decisión)
+
+Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA.
+
+- **VESTIMENTA — alto de sección crece con el contenido (Opción B, tras varios intentos):**
+  - La card de Vestimenta **ya NO tiene alto fijo**: su alto lo manda el CONTENIDO. Drag de card =
+    posición + ANCHO. Nuevo input **`widthOnly`** en `app-drag-box` (opt-in, no afecta a otras
+    secciones): oculta handles de alto, ancla por el BORDE SUPERIOR (`y`=tope), `translateX(-50%)`, no
+    emite `h`.
+  - `pos()` de dresscode (card): `top:y%` + `translateX(-50%)`, sin height/min-height.
+  - Lienzo `.dress-mini-inner` positioned: alto FIJO = `--canvas-vh`/`100svh` (respeta padding:
+    `top:48px; height:calc(...-96px)`). FIJO a propósito (si crece → bucle del top%). El drag-box y su
+    frame usan `height:auto` SOLO en dress-mini positioned.
+  - **`installAutoHeight` (ResizeObserver)**: observa `.example-card` (alto natural, sin depender del
+    min-height de la sección → SIN bucle) y setea `min-height` de `.dress-mini` = max(altoVentana,
+    topePx + altoCard + 48). Responsive.
+  - Canvas: `dresscode:` añadido a la exclusión del min-height genérico; `--canvas-vh` mobile =
+    `canvasDeviceHeight()`; `setPreviewDevice` recalcula `--canvas-vh`.
+  - **BD**: se limpió el `h` guardado de Valeria (`JSON_REMOVE` de
+    `dresscode.cards[0].positions.{mobile,desktop}.card.h`).
+  - ⚠️ Residual menor: a veces hay que recargar para el reajuste de alto. Aceptado por ahora.
+  - ⚠️ LECCIÓN: drag con posición en % + "crecer con contenido" son incompatibles si el lienzo crece
+    (bucle). Solución: lienzo FIJO + la SECCIÓN crece por JS; medir el contenido natural, nunca el box.
+
+- **FONDO DE SECCIÓN — ajustes MÓVIL/ESCRITORIO independientes:**
+  - `MediaBackground` + `fitDesktop?` / `bannerWidthDesktop?` (opcionales, retrocompatibles).
+  - `resolveMedia`: escritorio usa `fitDesktop ?? fit` y `bannerWidthDesktop ?? bannerWidth`; móvil
+    SIEMPRE los base. `BackgroundControlComponent`: dos selectores (Ajuste móvil / Ajuste escritorio;
+    el de escritorio arranca reflejando el de móvil).
+  - Canvas y landing ya consumían el fit/bannerWidth RESUELTOS → corregidos en ambos sin más cambios.
+  - **SIN migración de datos**: Valeria/todas las secciones iguales hasta que se toque el ajuste
+    escritorio. Cero regresión. Bug resuelto: imagen de escritorio ahora se expande (cover) aunque el
+    móvil sea banner, y el ajuste de escritorio ya no afecta al móvil.
+
+- **GALERÍA — DECISIÓN: no se añade drag ni resize del control** (rompería polaroid/mosaico extensibles
+  y el viewer LightboxService). Pendientes documentados en PENDING (NO hechos): migrar texto por sección
+  de Galería a helpers `sectionStyle` (hoy lee del tema global); drag opcional solo del encabezado;
+  protección de imágenes en DevTools (solo disuasorio posible; la descarga total NO es evitable).
+
 ### 🔽 ACTUALIZACIÓN 2026-10-22 (b) — Vestimenta como mini-secciones + fixes (banner mobile/textura/grosor/acordeón)
 
 Rama `feature/drag-elementos-secciones`. Tanda COMMITEADA.
