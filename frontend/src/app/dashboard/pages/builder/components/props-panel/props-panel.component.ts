@@ -432,9 +432,35 @@ import { ApiService } from '../../../../../core/services/api.service';
             </div>
             @if (expanded['env-plain']) {
               <div class="accordion-body">
-                <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('envelope')?.plainTitle" (ngModelChange)="setSec('envelope','plainTitle',$event)"></div>
-                <div class="pf"><label>Subtitulo</label><input class="pinput" [ngModel]="sec('envelope')?.plainSubtitle" (ngModelChange)="setSec('envelope','plainSubtitle',$event)"></div>
-                <div class="pf"><label>Contenido</label>
+                <!-- ENCABEZADO (campo interno plainTitle) + su estilo (fuente/tamaño/color). -->
+                <div class="pf"><label>Encabezado</label><input class="pinput" [ngModel]="sec('envelope')?.plainTitle" (ngModelChange)="setSec('envelope','plainTitle',$event)"></div>
+                @if (sec('envelope')?.plainTitle) {
+                  <span class="pf-section-title">Estilo del encabezado</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global.</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="sec('envelope')?.plainTitleFont||''" (valueChange)="setSec('envelope','plainTitleFont',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{sec('envelope')?.plainTitleSize || ''}}px)</label><input type="number" class="pinput" [ngModel]="sec('envelope')?.plainTitleSize||''" (ngModelChange)="setSec('envelope','plainTitleSize',$event ? +$event : null)" min="12" max="96" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color</label><app-color-picker [value]="sec('envelope')?.plainTitleColor||''" (valueChange)="setSec('envelope','plainTitleColor',$event)"></app-color-picker></div>
+                }
+
+                <!-- TÍTULO (campo interno plainSubtitle) + su estilo con BICOLOR. -->
+                <div class="pf" style="margin-top:10px"><label>Título</label><input class="pinput" [ngModel]="sec('envelope')?.plainSubtitle" (ngModelChange)="setSec('envelope','plainSubtitle',$event)"></div>
+                @if (sec('envelope')?.plainSubtitle) {
+                  <span class="pf-section-title">Estilo del título</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global. Define dos colores para un título bicolor (degradado).</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="sec('envelope')?.plainSubtitleFont||''" (valueChange)="setSec('envelope','plainSubtitleFont',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{sec('envelope')?.plainSubtitleSize || ''}}px)</label><input type="number" class="pinput" [ngModel]="sec('envelope')?.plainSubtitleSize||''" (ngModelChange)="setSec('envelope','plainSubtitleSize',$event ? +$event : null)" min="10" max="96" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color 1</label><app-color-picker [value]="sec('envelope')?.plainSubtitleColor||''" (valueChange)="setSec('envelope','plainSubtitleColor',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="sec('envelope')?.plainSubtitleColor2||''" (valueChange)="setSec('envelope','plainSubtitleColor2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Ángulo ({{sec('envelope')?.plainSubtitleGradientAngle ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="sec('envelope')?.plainSubtitleGradientAngle ?? 135" (ngModelChange)="setSec('envelope','plainSubtitleGradientAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{sec('envelope')?.plainSubtitleGradientIntensity ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="sec('envelope')?.plainSubtitleGradientIntensity ?? 50" (ngModelChange)="setSec('envelope','plainSubtitleGradientIntensity',+$event)"></div>
+                  <div class="pf"><label>Grosor ({{sec('envelope')?.plainSubtitleFontWeight ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="sec('envelope')?.plainSubtitleFontWeight ?? 400" (ngModelChange)="setSec('envelope','plainSubtitleFontWeight',+$event)"></div>
+                }
+
+                <div class="pf" style="margin-top:10px"><label>Contenido</label>
                   <app-rich-text-editor [ngModel]="sec('envelope')?.plainContent" (ngModelChange)="setSec('envelope','plainContent',$event)" [placeholder]="'Escribe el contenido...'"></app-rich-text-editor>
                 </div>
                 <div class="pf"><label>Animacion de salida</label>
@@ -1436,19 +1462,67 @@ import { ApiService } from '../../../../../core/services/api.service';
 
         <!-- ===== GIFTS ===== -->
         @if (canvasState.selectedSection() === 'gifts') {
+          <!-- ===== ENCABEZADO DE LA SECCIÓN ===== -->
+          <div class="accordion" [class.open]="expanded['gifts-heading']" (click)="toggle('gifts-heading')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-heading'] ? 'expand_more' : 'chevron_right' }}</span><span>Encabezado de la sección</span></div>
+          </div>
+          @if (expanded['gifts-heading']) {
+            <div class="accordion-body">
+              <div class="pf"><label>Encabezado</label><input class="pinput" [ngModel]="sec('gifts')?.title" (ngModelChange)="setSec('gifts','title',$event)" placeholder="Vacío = sin encabezado"></div>
+              @if (sec('gifts')?.title) {
+                <span class="pf-section-title">Estilo del encabezado</span>
+                <p class="pf-hint">Deja vacío para heredar del Tema Global. Define dos colores para bicolor.</p>
+                <div class="pf"><label>Fuente</label>
+                  <app-custom-select [options]="themeFontOptions" [value]="ss('sectionHeadingFont')||''" (valueChange)="setSS('sectionHeadingFont',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Tamaño ({{ss('sectionHeadingSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('sectionHeadingSize')||''" (ngModelChange)="setSS('sectionHeadingSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+                <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('sectionHeadingColor')||''" (valueChange)="setSS('sectionHeadingColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('sectionHeadingColor2')||''" (valueChange)="setSS('sectionHeadingColor2',$event)"></app-color-picker></div>
+                <div class="pf"><label>Ángulo ({{ss('sectionHeadingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('sectionHeadingGradientAngle') ?? 135" (ngModelChange)="setSS('sectionHeadingGradientAngle',+$event)"></div>
+                <div class="pf"><label>Intensidad ({{ss('sectionHeadingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('sectionHeadingGradientIntensity') ?? 50" (ngModelChange)="setSS('sectionHeadingGradientIntensity',+$event)"></div>
+              }
+              <!-- Descripción ÚNICA de la sección (va debajo del encabezado; ya no en las cards). -->
+              <div class="pf" style="margin-top:10px"><label>Descripción de la sección</label>
+                <app-rich-text-editor [ngModel]="sec('gifts')?.descriptionHtml || sec('gifts')?.description || ''" (ngModelChange)="setSec('gifts','descriptionHtml',$event)" [placeholder]="'Descripción de la sección de regalos...'"></app-rich-text-editor>
+              </div>
+            </div>
+          }
+
+          <!-- ===== CARD MESA DE REGALOS ===== -->
           <div class="accordion" [class.open]="expanded['gifts-list']" (click)="toggle('gifts-list')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-list'] ? 'expand_more' : 'chevron_right' }}</span><span>Lista de Regalos</span></div>
+            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-list'] ? 'expand_more' : 'chevron_right' }}</span><span>Mesa de Regalos</span></div>
           </div>
           @if (expanded['gifts-list']) {
             <div class="accordion-body">
-              <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('gifts')?.title" (ngModelChange)="setSec('gifts','title',$event)"></div>
-              <div class="pf"><label>Descripcion</label><textarea class="pinput" style="min-height:40px" [ngModel]="sec('gifts')?.description" (ngModelChange)="setSec('gifts','description',$event)"></textarea></div>
-              <div class="pf"><label>Link</label><input class="pinput" [ngModel]="sec('gifts')?.link" (ngModelChange)="setSec('gifts','link',$event)" placeholder="https://..."></div>
-              <div class="pf"><label>Texto del boton</label><input class="pinput" [ngModel]="sec('gifts')?.buttonText" (ngModelChange)="setSec('gifts','buttonText',$event)"></div>
-              <div class="pf"><label>Icono de seccion</label>
+              <!-- Título de la card + estilo (bicolor) -->
+              <div class="pf"><label>Título de la card</label><input class="pinput" [ngModel]="sec('gifts')?.cardTitle" (ngModelChange)="setSec('gifts','cardTitle',$event)" placeholder="Ej. Tu presencia es mi mayor regalo"></div>
+              <span class="pf-section-title">Estilo del título</span>
+              <p class="pf-hint">Deja vacío para heredar del Tema Global. Define dos colores para bicolor.</p>
+              <div class="pf"><label>Fuente</label>
+                <app-custom-select [options]="themeFontOptions" [value]="ss('headingFont')||''" (valueChange)="setSS('headingFont',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Tamaño ({{ss('headingFontSize') || ''}}px)</label><input type="number" class="pinput" [ngModel]="ss('headingFontSize')||''" (ngModelChange)="setSS('headingFontSize',$event ? +$event : '')" min="12" max="96" placeholder="Hereda"></div>
+              <div class="pf"><label>Color 1</label><app-color-picker [value]="ss('headingColor')||''" (valueChange)="setSS('headingColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="ss('headingColor2')||''" (valueChange)="setSS('headingColor2',$event)"></app-color-picker></div>
+              <div class="pf"><label>Ángulo ({{ss('headingGradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="ss('headingGradientAngle') ?? 135" (ngModelChange)="setSS('headingGradientAngle',+$event)"></div>
+              <div class="pf"><label>Intensidad ({{ss('headingGradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="ss('headingGradientIntensity') ?? 50" (ngModelChange)="setSS('headingGradientIntensity',+$event)"></div>
+              <div class="pf"><label>Grosor ({{ss('headingFontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="ss('headingFontWeight') ?? 400" (ngModelChange)="setSS('headingFontWeight',+$event)"></div>
+
+              <div class="pf" style="margin-top:8px"><label>Link de la lista</label><input class="pinput" [ngModel]="sec('gifts')?.link" (ngModelChange)="setSec('gifts','link',$event)" placeholder="https://..."></div>
+              <div class="pf"><label>Texto del botón</label><input class="pinput" [ngModel]="sec('gifts')?.buttonText" (ngModelChange)="setSec('gifts','buttonText',$event)" placeholder="Ver Lista de Regalos"></div>
+              <span class="pf-section-title">Estilo del botón</span>
+              <p class="pf-hint">Deja vacío para usar el estilo del Tema Global.</p>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="giftsBtn('bgColor') || cfg()!.theme.buttonBg || '#d4a017'" (valueChange)="setGiftsBtn('bgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de texto</label><app-color-picker [value]="giftsBtn('textColor') || cfg()!.theme.buttonText || '#1a1a2e'" (valueChange)="setGiftsBtn('textColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="giftsBtn('borderColor') || ''" (valueChange)="setGiftsBtn('borderColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Radio borde ({{giftsBtn('borderRadius') ?? 30}}px)</label><input type="range" class="pinput-range" min="0" max="40" [ngModel]="giftsBtn('borderRadius') ?? 30" (ngModelChange)="setGiftsBtn('borderRadius',+$event)"></div>
+
+              <!-- Icono (estilo Lugares) -->
+              <div class="pf"><label>Icono</label>
                 <div class="btn-row">
                   <button class="chip" [class.active]="!sec('gifts')?.sectionIcon?.iconType || sec('gifts')?.sectionIcon?.iconType==='material'" (click)="setSectionIcon('gifts','material');$event.stopPropagation()">Default</button>
                   <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='emoji'" (click)="setSectionIcon('gifts','emoji');$event.stopPropagation()">Emoji</button>
+                  <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='image'" (click)="setSectionIcon('gifts','image');$event.stopPropagation()">Imagen</button>
                   <button class="chip" [class.active]="sec('gifts')?.sectionIcon?.iconType==='none'" (click)="setSectionIcon('gifts','none');$event.stopPropagation()">Sin icono</button>
                 </div>
               </div>
@@ -1461,11 +1535,54 @@ import { ApiService } from '../../../../../core/services/api.service';
                   </div>
                 </div>
               }
+              @if (sec('gifts')?.sectionIcon?.iconType === 'image') {
+                <div class="pf"><label>Imagen de icono</label>
+                  @if (sec('gifts')?.sectionIcon?.iconUrl) {
+                    <div class="icon-img-row">
+                      <div class="icon-img-preview"><img [src]="sec('gifts')?.sectionIcon?.iconUrl" alt="icono"></div>
+                      <button class="sm-btn" (click)="uploadGiftsIconImage('gifts');$event.stopPropagation()">Cambiar</button>
+                      <button class="delete-btn" (click)="setSectionIconProp('gifts','iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                    </div>
+                  } @else {
+                    <button class="sm-btn" (click)="uploadGiftsIconImage('gifts');$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                  }
+                </div>
+              }
+              @if (sec('gifts')?.sectionIcon?.iconType !== 'none') {
+                <div class="pf"><label>Tamaño de icono</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="(sec('gifts')?.iconSize || 'small') === 'small'" (click)="setSec('gifts','iconSize','small');$event.stopPropagation()">Pequeño</button>
+                    <button class="chip" [class.active]="sec('gifts')?.iconSize === 'medium'" (click)="setSec('gifts','iconSize','medium');$event.stopPropagation()">Mediano</button>
+                    <button class="chip" [class.active]="sec('gifts')?.iconSize === 'large'" (click)="setSec('gifts','iconSize','large');$event.stopPropagation()">Grande</button>
+                  </div>
+                </div>
+              }
+
+              <!-- Apariencia de la card (tipada cardStyle) -->
+              <span class="pf-section-title" style="margin-top:10px">Apariencia de la card</span>
+              <div class="toggle-row">
+                <span class="toggle-title">Fondo de card</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="giftsCS('showCardBg') !== false" (ngModelChange)="setGiftsCS('showCardBg',$event)"><span class="slider"></span></label>
+              </div>
+              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="giftsCS('cardBgColor') || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setGiftsCS('cardBgColor',$event)"></app-color-picker></div>
+              <div class="pf"><label>Radio borde ({{giftsCS('cardBorderRadius') ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="50" [ngModel]="giftsCS('cardBorderRadius') ?? 16" (ngModelChange)="setGiftsCS('cardBorderRadius',+$event)"></div>
+              <div class="pf"><label>Estilo borde</label>
+                <app-custom-select [options]="borderStyleOptions" [value]="giftsCS('cardBorderStyle') || 'none'" (valueChange)="setGiftsCS('cardBorderStyle',$event)"></app-custom-select>
+              </div>
+              <div class="pf"><label>Grosor borde ({{giftsCS('cardBorderWidth') ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="giftsCS('cardBorderWidth') ?? 1" (ngModelChange)="setGiftsCS('cardBorderWidth',+$event)"></div>
+              <div class="pf"><label>Color de borde</label><app-color-picker [value]="giftsCS('cardBorderColor') || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setGiftsCS('cardBorderColor',$event)"></app-color-picker></div>
+              @if (giftsCS('cardBorderStyle') === 'glow' || giftsCS('cardBorderStyle') === 'neon') {
+                <div class="pf"><label>Color sombra</label><app-color-picker [value]="giftsCS('cardGlowColor') || '#d4a017'" (valueChange)="setGiftsCS('cardGlowColor',$event)"></app-color-picker></div>
+              }
+              <div class="pf"><label>Forma de card</label>
+                <app-custom-select [options]="cardShapeOptions" [value]="giftsCS('cardShape') || 'standard'" (valueChange)="setGiftsCS('cardShape',$event)"></app-custom-select>
+              </div>
             </div>
           }
 
+          <!-- ===== CARD DATOS BANCARIOS (TRANSFERENCIA) ===== -->
           <div class="accordion" [class.open]="expanded['gifts-transfer']" (click)="toggle('gifts-transfer')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-transfer'] ? 'expand_more' : 'chevron_right' }}</span><span>Transferencia Bancaria</span></div>
+            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-transfer'] ? 'expand_more' : 'chevron_right' }}</span><span>Datos Bancarios</span></div>
           </div>
           @if (expanded['gifts-transfer']) {
             <div class="accordion-body">
@@ -1474,45 +1591,133 @@ import { ApiService } from '../../../../../core/services/api.service';
                 <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('gifts')?.transfer?.enabled" (ngModelChange)="setSecNested('gifts','transfer','enabled',$event)"><span class="slider"></span></label>
               </div>
               @if (sec('gifts')?.transfer?.enabled) {
-                <div class="pf"><label>Titulo</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.title" (ngModelChange)="setSecNested('gifts','transfer','title',$event)"></div>
-                <div class="pf"><label>Descripcion</label><textarea class="pinput sm" [ngModel]="sec('gifts')?.transfer?.description" (ngModelChange)="setSecNested('gifts','transfer','description',$event)"></textarea></div>
+                <p class="pf-hint">La card muestra icono + descripción + botón. Los datos bancarios se ven en un popup al pulsar el botón.</p>
+
+                <!-- Título de la card + su estilo PROPIO (bicolor) -->
+                <div class="pf"><label>Título de la card</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.title" (ngModelChange)="setSecNested('gifts','transfer','title',$event)" placeholder="Ej. Transferencia bancaria"></div>
+                @if (sec('gifts')?.transfer?.title) {
+                  <span class="pf-section-title">Estilo del título</span>
+                  <p class="pf-hint">Deja vacío para heredar del Tema Global. Define dos colores para bicolor.</p>
+                  <div class="pf"><label>Fuente</label>
+                    <app-custom-select [options]="themeFontOptions" [value]="transferTS('font')||''" (valueChange)="setTransferTS('font',$event)"></app-custom-select>
+                  </div>
+                  <div class="pf"><label>Tamaño ({{transferTS('size') || ''}}px)</label><input type="number" class="pinput" [ngModel]="transferTS('size')||''" (ngModelChange)="setTransferTS('size',$event ? +$event : null)" min="12" max="96" placeholder="Hereda"></div>
+                  <div class="pf"><label>Color 1</label><app-color-picker [value]="transferTS('color')||''" (valueChange)="setTransferTS('color',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Color 2 (degradado)</label><app-color-picker [value]="transferTS('color2')||''" (valueChange)="setTransferTS('color2',$event)"></app-color-picker></div>
+                  <div class="pf"><label>Ángulo ({{transferTS('gradientAngle') ?? 135}}°)</label><input type="range" class="pinput-range" min="0" max="360" [ngModel]="transferTS('gradientAngle') ?? 135" (ngModelChange)="setTransferTS('gradientAngle',+$event)"></div>
+                  <div class="pf"><label>Intensidad ({{transferTS('gradientIntensity') ?? 50}}%)</label><input type="range" class="pinput-range" min="0" max="100" [ngModel]="transferTS('gradientIntensity') ?? 50" (ngModelChange)="setTransferTS('gradientIntensity',+$event)"></div>
+                  <div class="pf"><label>Grosor ({{transferTS('fontWeight') ?? 400}})</label><input type="range" class="pinput-range" min="100" max="900" step="100" [ngModel]="transferTS('fontWeight') ?? 400" (ngModelChange)="setTransferTS('fontWeight',+$event)"></div>
+                }
+                <div class="pf" style="margin-top:8px"><label>Texto del botón</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.buttonText" (ngModelChange)="setSecNested('gifts','transfer','buttonText',$event)" placeholder="Ver datos bancarios"></div>
+                <span class="pf-section-title">Estilo del botón</span>
+                <p class="pf-hint">Deja vacío para usar el estilo del Tema Global.</p>
+                <div class="pf"><label>Color de fondo</label><app-color-picker [value]="transferBtn('bgColor') || cfg()!.theme.buttonBg || '#d4a017'" (valueChange)="setTransferBtn('bgColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color de texto</label><app-color-picker [value]="transferBtn('textColor') || cfg()!.theme.buttonText || '#1a1a2e'" (valueChange)="setTransferBtn('textColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color de borde</label><app-color-picker [value]="transferBtn('borderColor') || ''" (valueChange)="setTransferBtn('borderColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Radio borde ({{transferBtn('borderRadius') ?? 30}}px)</label><input type="range" class="pinput-range" min="0" max="40" [ngModel]="transferBtn('borderRadius') ?? 30" (ngModelChange)="setTransferBtn('borderRadius',+$event)"></div>
+
+                <!-- Icono (estilo Lugares) -->
+                <div class="pf"><label>Icono</label>
+                  <div class="btn-row">
+                    <button class="chip" [class.active]="!sec('gifts')?.transfer?.sectionIcon?.iconType || sec('gifts')?.transfer?.sectionIcon?.iconType==='material'" (click)="setTransferIcon('material');$event.stopPropagation()">Default</button>
+                    <button class="chip" [class.active]="sec('gifts')?.transfer?.sectionIcon?.iconType==='emoji'" (click)="setTransferIcon('emoji');$event.stopPropagation()">Emoji</button>
+                    <button class="chip" [class.active]="sec('gifts')?.transfer?.sectionIcon?.iconType==='image'" (click)="setTransferIcon('image');$event.stopPropagation()">Imagen</button>
+                    <button class="chip" [class.active]="sec('gifts')?.transfer?.sectionIcon?.iconType==='none'" (click)="setTransferIcon('none');$event.stopPropagation()">Sin icono</button>
+                  </div>
+                </div>
+                @if (sec('gifts')?.transfer?.sectionIcon?.iconType === 'emoji') {
+                  <div class="pf"><label>Emoji</label>
+                    <div class="emoji-grid">
+                      @for (e of giftEmojis; track e) {
+                        <button class="emoji-btn" [class.active]="sec('gifts')?.transfer?.sectionIcon?.icon === e" (click)="setTransferIconProp('icon',e);$event.stopPropagation()">{{e}}</button>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (sec('gifts')?.transfer?.sectionIcon?.iconType === 'image') {
+                  <div class="pf"><label>Imagen de icono</label>
+                    @if (sec('gifts')?.transfer?.sectionIcon?.iconUrl) {
+                      <div class="icon-img-row">
+                        <div class="icon-img-preview"><img [src]="sec('gifts')?.transfer?.sectionIcon?.iconUrl" alt="icono"></div>
+                        <button class="sm-btn" (click)="uploadGiftsIconImage('transfer');$event.stopPropagation()">Cambiar</button>
+                        <button class="delete-btn" (click)="setTransferIconProp('iconUrl','');$event.stopPropagation()"><span class="material-icons">close</span></button>
+                      </div>
+                    } @else {
+                      <button class="sm-btn" (click)="uploadGiftsIconImage('transfer');$event.stopPropagation()"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px">upload</span>Subir imagen</button>
+                    }
+                  </div>
+                }
+                @if (sec('gifts')?.transfer?.sectionIcon?.iconType !== 'none') {
+                  <div class="pf"><label>Tamaño de icono</label>
+                    <div class="btn-row">
+                      <button class="chip" [class.active]="(sec('gifts')?.transfer?.iconSize || 'small') === 'small'" (click)="setSecNested('gifts','transfer','iconSize','small');$event.stopPropagation()">Pequeño</button>
+                      <button class="chip" [class.active]="sec('gifts')?.transfer?.iconSize === 'medium'" (click)="setSecNested('gifts','transfer','iconSize','medium');$event.stopPropagation()">Mediano</button>
+                      <button class="chip" [class.active]="sec('gifts')?.transfer?.iconSize === 'large'" (click)="setSecNested('gifts','transfer','iconSize','large');$event.stopPropagation()">Grande</button>
+                    </div>
+                  </div>
+                }
+
+                <!-- Datos bancarios -->
+                <span class="pf-section-title" style="margin-top:10px">Datos de la cuenta</span>
                 <div class="pf"><label>Titular</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountName" (ngModelChange)="setSecNested('gifts','transfer','accountName',$event)"></div>
                 <div class="pf"><label>Banco</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.bank" (ngModelChange)="setSecNested('gifts','transfer','bank',$event)"></div>
                 <div class="pf"><label>Tipo de cuenta</label>
                   <app-custom-select [options]="accountTypeOptions" [value]="sec('gifts')?.transfer?.accountType||'cuenta'" (valueChange)="setSecNested('gifts','transfer','accountType',$event)"></app-custom-select>
                 </div>
-                <div class="pf"><label>Numero</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountNumber" (ngModelChange)="setSecNested('gifts','transfer','accountNumber',$event)"></div>
-                <div class="pf"><label>Animacion</label>
-                  <app-custom-select [options]="transferAnimOptions" [value]="sec('gifts')?.transfer?.animation||'none'" (valueChange)="setSecNested('gifts','transfer','animation',$event)"></app-custom-select>
+                <div class="pf"><label>Número</label><input class="pinput" [ngModel]="sec('gifts')?.transfer?.accountNumber" (ngModelChange)="setSecNested('gifts','transfer','accountNumber',$event)"></div>
+
+                <!-- Apariencia de la card/modal de transferencia -->
+                <span class="pf-section-title" style="margin-top:10px">Apariencia de la card / popup</span>
+                <div class="toggle-row">
+                  <span class="toggle-title">Fondo de card</span>
+                  <label class="toggle-switch"><input type="checkbox" [ngModel]="transferCS('showCardBg') !== false" (ngModelChange)="setTransferCS('showCardBg',$event)"><span class="slider"></span></label>
+                </div>
+                <div class="pf"><label>Color de fondo</label><app-color-picker [value]="transferCS('cardBgColor') || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setTransferCS('cardBgColor',$event)"></app-color-picker></div>
+                <div class="pf"><label>Radio borde ({{transferCS('cardBorderRadius') ?? 16}}px)</label><input type="range" class="pinput-range" min="0" max="50" [ngModel]="transferCS('cardBorderRadius') ?? 16" (ngModelChange)="setTransferCS('cardBorderRadius',+$event)"></div>
+                <div class="pf"><label>Estilo borde</label>
+                  <app-custom-select [options]="borderStyleOptions" [value]="transferCS('cardBorderStyle') || 'none'" (valueChange)="setTransferCS('cardBorderStyle',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Grosor borde ({{transferCS('cardBorderWidth') ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="transferCS('cardBorderWidth') ?? 1" (ngModelChange)="setTransferCS('cardBorderWidth',+$event)"></div>
+                <div class="pf"><label>Color de borde</label><app-color-picker [value]="transferCS('cardBorderColor') || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setTransferCS('cardBorderColor',$event)"></app-color-picker></div>
+                @if (transferCS('cardBorderStyle') === 'glow' || transferCS('cardBorderStyle') === 'neon') {
+                  <div class="pf"><label>Color sombra</label><app-color-picker [value]="transferCS('cardGlowColor') || '#d4a017'" (valueChange)="setTransferCS('cardGlowColor',$event)"></app-color-picker></div>
+                }
+                <div class="pf"><label>Forma de card</label>
+                  <app-custom-select [options]="cardShapeOptions" [value]="transferCS('cardShape') || 'standard'" (valueChange)="setTransferCS('cardShape',$event)"></app-custom-select>
                 </div>
               }
             </div>
           }
 
-          <div class="accordion" [class.open]="expanded['gifts-appear']" (click)="toggle('gifts-appear')">
-            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-appear'] ? 'expand_more' : 'chevron_right' }}</span><span>Apariencia de Cards</span></div>
+          <!-- ===== PARTÍCULAS DE LA SECCIÓN ===== -->
+          <div class="accordion" [class.open]="expanded['gifts-particles']" (click)="toggle('gifts-particles')">
+            <div class="accordion-header"><span class="material-icons">{{ expanded['gifts-particles'] ? 'expand_more' : 'chevron_right' }}</span><span>Partículas</span></div>
           </div>
-          @if (expanded['gifts-appear']) {
+          @if (expanded['gifts-particles']) {
             <div class="accordion-body">
               <div class="toggle-row">
-                <span class="toggle-title">Fondo de card</span>
-                <label class="toggle-switch"><input type="checkbox" [ngModel]="sec('gifts')?.showCardBg !== false" (ngModelChange)="setSec('gifts','showCardBg',$event)"><span class="slider"></span></label>
+                <span class="toggle-title">Activar partículas</span>
+                <label class="toggle-switch"><input type="checkbox" [ngModel]="giftsParticlesProp('enabled')" (ngModelChange)="setSecNested('gifts','particles','enabled',$event)"><span class="slider"></span></label>
               </div>
-              <div class="pf"><label>Color de fondo</label><app-color-picker [value]="sec('gifts')?.cardBgColor || cfg()!.theme.cardBg || 'rgba(0,0,0,0.85)'" (valueChange)="setSec('gifts','cardBgColor',$event)"></app-color-picker></div>
-              <div class="pf"><label>Radio borde ({{sec('gifts')?.cardBorderRadius||8}}px)</label><input type="range" class="pinput-range" min="0" max="24" [ngModel]="sec('gifts')?.cardBorderRadius||8" (ngModelChange)="setSec('gifts','cardBorderRadius',+$event)"></div>
-              <div class="pf"><label>Estilo borde</label>
-                <app-custom-select [options]="borderStyleOptions" [value]="sec('gifts')?.cardBorderStyle || 'none'" (valueChange)="setSec('gifts','cardBorderStyle',$event)"></app-custom-select>
-              </div>
-              <div class="pf"><label>Grosor borde ({{sec('gifts')?.cardBorderWidth ?? 1}}px)</label><input type="range" class="pinput-range" min="1" max="5" [ngModel]="sec('gifts')?.cardBorderWidth ?? 1" (ngModelChange)="setSec('gifts','cardBorderWidth',+$event)"></div>
-              <div class="pf"><label>Color de borde</label><app-color-picker [value]="sec('gifts')?.cardBorderColor || cfg()!.theme.cardBorder || 'rgba(212,160,23,0.3)'" (valueChange)="setSec('gifts','cardBorderColor',$event)"></app-color-picker></div>
-              @if (sec('gifts')?.cardBorderStyle === 'glow' || sec('gifts')?.cardBorderStyle === 'neon') {
-                <div class="pf"><label>Color sombra</label><app-color-picker [value]="sec('gifts')?.cardGlowColor || '#d4a017'" (valueChange)="setSec('gifts','cardGlowColor',$event)"></app-color-picker></div>
+              @if (giftsParticlesProp('enabled')) {
+                <div class="pf"><label>Tipo</label>
+                  <app-custom-select [options]="giftsParticleTypeOptions" [value]="giftsParticlesProp('type')||'sparkles'" (valueChange)="setSecNested('gifts','particles','type',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Dirección</label>
+                  <app-custom-select [options]="introParticleDirectionOptions" [value]="giftsParticlesProp('direction')||'up'" (valueChange)="setSecNested('gifts','particles','direction',$event)"></app-custom-select>
+                </div>
+                <div class="pf"><label>Color 1</label><app-color-picker [value]="giftsParticlesProp('color1')||'#d4a017'" (valueChange)="setSecNested('gifts','particles','color1',$event)"></app-color-picker></div>
+                <div class="pf"><label>Color 2</label><app-color-picker [value]="giftsParticlesProp('color2')||'#ffffff'" (valueChange)="setSecNested('gifts','particles','color2',$event)"></app-color-picker></div>
+                <p class="pf-hint">Los colores aplican a las partículas de formas; los tipos temáticos (🌸🎁🎀💖💵🪙) usan su emoji.</p>
+                <div class="pf"><label>Cantidad ({{giftsParticlesProp('quantity')||20}})</label><input type="range" class="pinput-range" min="5" max="80" [ngModel]="giftsParticlesProp('quantity')||20" (ngModelChange)="setSecNested('gifts','particles','quantity',+$event)"></div>
+                <div class="pf"><label>Velocidad ({{giftsParticlesProp('speed')||5}})</label><input type="range" class="pinput-range" min="1" max="10" [ngModel]="giftsParticlesProp('speed')||5" (ngModelChange)="setSecNested('gifts','particles','speed',+$event)"></div>
+                <div class="pf"><label>Tamaño ({{giftsParticlesProp('size')||4}})</label><input type="range" class="pinput-range" min="1" max="20" [ngModel]="giftsParticlesProp('size')||4" (ngModelChange)="setSecNested('gifts','particles','size',+$event)"></div>
+                <div class="pf"><label>Opacidad ({{giftsParticlesProp('opacity')||0.8}})</label><input type="range" class="pinput-range" min="0.1" max="1" step="0.1" [ngModel]="giftsParticlesProp('opacity')||0.8" (ngModelChange)="setSecNested('gifts','particles','opacity',+$event)"></div>
               }
-              <div class="pf"><label>Forma de card</label>
-                <app-custom-select [options]="cardShapeOptions" [value]="sec('gifts')?.cardShape || 'standard'" (valueChange)="setSec('gifts','cardShape',$event)"></app-custom-select>
-              </div>
             </div>
           }
+
+          <!-- Toggle "Estilo de Sección" genérico (fondo/transición/animación/ornamento) sigue abajo. -->
         }
 
         <!-- ===== RSVP ===== -->
@@ -2146,6 +2351,87 @@ export class BuilderPropsPanelComponent {
     this.canvasState.notifyChange();
   }
 
+  // ===== Icono de la card de TRANSFERENCIA (sectionIcon anidado en gifts.transfer) =====
+  setTransferIcon(iconType: string) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const t = (cfg as any).gifts?.transfer; if (!t) return;
+    if (!t.sectionIcon) t.sectionIcon = { iconType: 'material', icon: '', iconUrl: '' };
+    t.sectionIcon.iconType = iconType;
+    if (iconType === 'none') { t.sectionIcon.icon = ''; t.sectionIcon.iconUrl = ''; }
+    this.canvasState.isDirty.set(true); this.canvasState.notifyChange();
+  }
+  setTransferIconProp(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const t = (cfg as any).gifts?.transfer; if (!t) return;
+    if (!t.sectionIcon) t.sectionIcon = { iconType: 'emoji', icon: '', iconUrl: '' };
+    (t.sectionIcon as any)[prop] = value;
+    this.canvasState.isDirty.set(true); this.canvasState.notifyChange();
+  }
+  /** Sube una imagen como icono de la card de Regalos o de Transferencia. */
+  uploadGiftsIconImage(target: 'gifts' | 'transfer') {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      this.api.uploadFile('images', f).subscribe({ next: (r) => {
+        const cfg = this.canvasState.getConfig(); if (!cfg) return;
+        const holder = target === 'transfer' ? (cfg as any).gifts?.transfer : (cfg as any).gifts;
+        if (!holder) return;
+        if (!holder.sectionIcon) holder.sectionIcon = { iconType: 'image', icon: '', iconUrl: '' };
+        holder.sectionIcon.iconType = 'image';
+        holder.sectionIcon.iconUrl = r.url;
+        this.canvasState.notifyChange(); this.canvasState.triggerAutoSave();
+      }});
+    };
+    input.click();
+  }
+
+  // ===== Estilo de card tipado (cardStyle) para gifts y gifts.transfer =====
+  giftsCS(prop: string): any { return (this.sec('gifts')?.cardStyle || {})[prop] ?? null; }
+  setGiftsCS(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!(cfg as any).gifts.cardStyle) (cfg as any).gifts.cardStyle = {};
+    (cfg as any).gifts.cardStyle[prop] = value;
+    this.canvasState.notifyChange(); this.canvasState.triggerAutoSave();
+  }
+  transferCS(prop: string): any { return (this.sec('gifts')?.transfer?.cardStyle || {})[prop] ?? null; }
+  setTransferCS(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const t = (cfg as any).gifts?.transfer; if (!t) return;
+    if (!t.cardStyle) t.cardStyle = {};
+    t.cardStyle[prop] = value;
+    this.canvasState.notifyChange(); this.canvasState.triggerAutoSave();
+  }
+
+  // ===== Estilo del título de la card de Transferencia (titleStyle propio) =====
+  transferTS(prop: string): any { return (this.sec('gifts')?.transfer?.titleStyle || {})[prop] ?? null; }
+  setTransferTS(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const t = (cfg as any).gifts?.transfer; if (!t) return;
+    if (!t.titleStyle) t.titleStyle = {};
+    t.titleStyle[prop] = value;
+    this.canvasState.notifyChange(); this.canvasState.triggerAutoSave();
+  }
+
+  // ===== Estilo de botones (buttonStyle) de Mesa de Regalos y Transferencia =====
+  giftsBtn(prop: string): any { return (this.sec('gifts')?.buttonStyle || {})[prop] ?? null; }
+  setGiftsBtn(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    if (!(cfg as any).gifts.buttonStyle) (cfg as any).gifts.buttonStyle = {};
+    (cfg as any).gifts.buttonStyle[prop] = value;
+    this.canvasState.notifyChange(); this.canvasState.triggerAutoSave();
+  }
+  transferBtn(prop: string): any { return (this.sec('gifts')?.transfer?.buttonStyle || {})[prop] ?? null; }
+  setTransferBtn(prop: string, value: any) {
+    const cfg = this.canvasState.getConfig(); if (!cfg) return;
+    const t = (cfg as any).gifts?.transfer; if (!t) return;
+    if (!t.buttonStyle) t.buttonStyle = {};
+    t.buttonStyle[prop] = value;
+    this.canvasState.notifyChange(); this.canvasState.triggerAutoSave();
+  }
+
+  // ===== Partículas de la sección Regalos (lectura/escritura) =====
+  giftsParticlesProp(prop: string): any { return (this.sec('gifts')?.particles as any)?.[prop] ?? null; }
+
   applySectionPreset(preset: string) {
     const presets: Record<string, any> = {
       light: { bgType: 'solid', bgColor1: '#ffffff', headingColor: '#1a1a2e', contentColor: '#333333', dividerType: 'wave' },
@@ -2768,6 +3054,14 @@ export class BuilderPropsPanelComponent {
   introParticleTypeOptions: SelectOption[] = [
     {value:'sparkles',label:'Destellos'},{value:'snow',label:'Nieve'},{value:'fireflies',label:'Luciernagas'},
     {value:'bubbles',label:'Burbujas'},{value:'stars',label:'Estrellas'},{value:'confetti',label:'Confeti'}
+  ];
+
+  /** Tipos de partículas de la sección Regalos: los de la Intro + temáticos (emoji). */
+  giftsParticleTypeOptions: SelectOption[] = [
+    {value:'sparkles',label:'Destellos'},{value:'snow',label:'Nieve'},{value:'fireflies',label:'Luciernagas'},
+    {value:'bubbles',label:'Burbujas'},{value:'stars',label:'Estrellas'},{value:'confetti',label:'Confeti'},
+    {value:'flowers',label:'Florecitas 🌸'},{value:'gifts',label:'Cajitas de regalo 🎁'},{value:'bows',label:'Moñitos 🎀'},
+    {value:'hearts',label:'Corazoncitos 💖'},{value:'bills',label:'Billetitos 💵'},{value:'coins',label:'Moneditas 🪙'}
   ];
 
   introParticleDirectionOptions: SelectOption[] = [

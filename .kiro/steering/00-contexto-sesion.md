@@ -49,6 +49,45 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-15 (c) — rediseño sección REGALOS + fix encabezados largos
+
+Rama `feature/drag-elementos-secciones`. Tanda grande centrada en la sección **Regalos (gifts)**.
+Compilado + desplegado + verificado por el usuario; commiteado al cierre.
+
+- **Encabezado de sección separado del título de card.** Encabezado usa `sectionStyle.sectionHeading*`;
+  card Mesa de Regalos tiene `cardTitle` propio (campo NUEVO) con `heading*`. `title` legacy conservado.
+- **Descripción UNIFICADA** (`descriptionHtml` rich-text) debajo del encabezado, arrastrable (key
+  `description`); quitada de ambas cards.
+- **Datos Bancarios → modal** centrado (`.gifts-modal-overlay`, fixed, z-index 10000, patrón
+  `.dialog-overlay`; NO LightboxService): abre con botón, cierra con X/clic-fuera/Escape, copiar al
+  portapapeles. El popup NO se arrastra (siempre centrado).
+- **Título de Datos Bancarios con estilo INDEPENDIENTE** (`transfer.titleStyle: GiftsTitleStyle`), NO
+  compartido con Mesa de Regalos. Bicolor (color2+ángulo+intensidad)+peso+fuente+tamaño.
+- **Botones configurables por card** (`buttonStyle: GiftsButtonStyle`: bg/texto/borde/radio; fallback
+  al tema). Reusa el patrón de colores de Invitación.
+- **Iconos estilo Lugares** (preset/emoji/imagen subida) + `iconSize` en ambas cards.
+- **Partículas de sección** (motor de la Intro replicado, `generateParticles` + keyframes `gParticle*`):
+  genéricas (sparkles/snow/fireflies/bubbles/stars/confetti) + temáticas EMOJI 🌸🎁🎀💖💵🪙
+  (flowers/gifts/bows/hearts/bills/coins). DECISIÓN: emoji por ahora, SVG se evalúa después.
+- **Drag opción A**: encabezado / descripción / card Mesa de Regalos / card Datos Bancarios por
+  separado (keys heading/description/giftsCard/transferCard). Patrón Vestimenta (widthOnly + lienzo
+  fijo + installAutoHeight ResizeObserver). gifts añadido a exclusión de min-height del wrapper canvas.
+- **Cards flex column center** (fix: sin descripción el título quedaba en línea con el botón).
+- **Fix encabezados largos (8 secciones):** `overflow-wrap:break-word; word-break:break-word;
+  max-width:100%` en `.section-heading` de details/dresscode/gallery/gifts/itinerary/register/rsvp/
+  venues (+ quitado `white-space:nowrap` en gifts). Antes el encabezado se salía de pantalla.
+- **FIX canvas — título Datos Bancarios pisado (causa raíz):** las reglas
+  `.preview-section-click[style*="--section-heading-*"] ::ng-deep h3 { !important }` del canvas pisaban
+  TODOS los h3 de gifts (el panel escribe `--section-heading-*` en el wrapper para el título de Mesa de
+  Regalos). FIX: los 5 selectores `::ng-deep h3` (color/color2/weight/font/size) llevan ahora
+  `:not(.transfer-card-title)`. Verificado.
+- **Backend sin cambios:** `ensureConfigDefaults.js` usa `...(cfg.gifts||{})` y
+  `...(cfg.gifts?.transfer||{})` → preserva los campos nuevos automáticamente.
+- **Archivos tocados (12, todos frontend):** models.ts, builder.component.ts, props-panel.component.ts,
+  gifts/details/dresscode/gallery/itinerary/register/rsvp/venues/envelope .component.ts.
+- **Pendiente:** decidir emoji vs SVG en partículas; evaluar drag en Itinerario/RSVP si se pide.
+- **OJO build:** backtick en comentario dentro de `styles[]` de un componente ROMPE el build.
+
 ### 🔽 CIERRE DE SESIÓN 2026-10-15 — resumen completo + DÓNDE RETOMAR
 
 Rama `feature/drag-elementos-secciones`. TODO COMMITEADO Y PUSHEADO. Último commit: `ae3f092`.

@@ -304,8 +304,8 @@ interface BuilderSection {
                   }
                 }
                 @if (canvasState.config()?.gifts?.enabled) {
-                  <div class="preview-section-click" data-section="gifts" [class.section-active]="canvasState.selectedSection() === 'gifts'" [attr.style]="getSectionBgStyle('gifts')" (click)="selectSection('gifts'); $event.stopPropagation()">
-                    <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()?.globalStyles!" />
+                  <div class="preview-section-click" [class.drag-enabled]="canvasMode() === 'canvas'" data-section="gifts" [class.section-active]="canvasState.selectedSection() === 'gifts'" [attr.style]="getSectionBgStyle('gifts')" (click)="selectSection('gifts'); $event.stopPropagation()">
+                    <app-landing-gifts [config]="canvasState.config()!.gifts" [styles]="canvasState.config()?.globalStyles!" [sectionStyle]="canvasState.config()!.gifts.sectionStyle" [editable]="canvasMode() === 'canvas'" [previewDevice]="previewDevice()" (positionsChange)="onGiftsPositionsChange($event)" />
                   </div>
                 }
                 @if (canvasState.config()?.rsvp?.enabled) {
@@ -824,7 +824,7 @@ interface BuilderSection {
     .preview-section-click[style*="--section-h2-size"] ::ng-deep .invitation-title {
       font-size: var(--section-h2-size) !important;
     }
-    .preview-section-click[style*="--section-heading-color"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-color"] ::ng-deep h3:not(.transfer-card-title),
     .preview-section-click[style*="--section-heading-color"] ::ng-deep .example-title,
     .preview-section-click[style*="--section-heading-color"] ::ng-deep .venue-title,
     .preview-section-click[style*="--section-heading-color"] ::ng-deep .timeline-title,
@@ -838,7 +838,7 @@ interface BuilderSection {
       -webkit-text-fill-color: var(--section-heading-color) !important;
       background-image: none !important;
     }
-    .preview-section-click[style*="--section-heading-color2"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-color2"] ::ng-deep h3:not(.transfer-card-title),
     .preview-section-click[style*="--section-heading-color2"] ::ng-deep .example-title,
     .preview-section-click[style*="--section-heading-color2"] ::ng-deep .venue-title,
     .preview-section-click[style*="--section-heading-color2"] ::ng-deep .timeline-title,
@@ -851,7 +851,7 @@ interface BuilderSection {
       -webkit-text-fill-color: transparent !important;
       background-clip: text !important;
     }
-    .preview-section-click[style*="--section-heading-weight"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-weight"] ::ng-deep h3:not(.transfer-card-title),
     .preview-section-click[style*="--section-heading-weight"] ::ng-deep .example-title,
     .preview-section-click[style*="--section-heading-weight"] ::ng-deep .venue-title,
     .preview-section-click[style*="--section-heading-weight"] ::ng-deep .timeline-title,
@@ -861,7 +861,7 @@ interface BuilderSection {
     .preview-section-click[style*="--section-heading-weight"] ::ng-deep .invitation-subtitle {
       font-weight: var(--section-heading-weight) !important;
     }
-    .preview-section-click[style*="--section-heading-font"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-font"] ::ng-deep h3:not(.transfer-card-title),
     .preview-section-click[style*="--section-heading-font"] ::ng-deep .example-title,
     .preview-section-click[style*="--section-heading-font"] ::ng-deep .venue-title,
     .preview-section-click[style*="--section-heading-font"] ::ng-deep .timeline-title,
@@ -873,7 +873,7 @@ interface BuilderSection {
     .preview-section-click[style*="--section-heading-font"] ::ng-deep .gifts-desc {
       font-family: var(--section-heading-font) !important;
     }
-    .preview-section-click[style*="--section-heading-size"] ::ng-deep h3,
+    .preview-section-click[style*="--section-heading-size"] ::ng-deep h3:not(.transfer-card-title),
     .preview-section-click[style*="--section-heading-size"] ::ng-deep .example-title,
     .preview-section-click[style*="--section-heading-size"] ::ng-deep .venue-title,
     .preview-section-click[style*="--section-heading-size"] ::ng-deep .timeline-title,
@@ -928,6 +928,7 @@ interface BuilderSection {
     .preview-section-click[data-section="hero"],
     .preview-section-click[data-section="envelope"],
     .preview-section-click[data-section="intro"],
+    .preview-section-click[data-section="gifts"],
     .preview-section-click[data-section^="details:"],
     .preview-section-click[data-section^="venues:"],
     .preview-section-click[data-section^="dresscode:"] { min-height: 0; display: block; }
@@ -1977,6 +1978,15 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     const cfg = this.canvasState.getConfig();
     if (!cfg) return;
     (cfg.intro as any).positions = positions;
+    this.canvasState.isDirty.set(true);
+    this.scheduleAutoSave();
+  }
+
+  /** Persiste las posiciones de la sección Regalos (encabezado + cards) tras arrastrar. */
+  onGiftsPositionsChange(positions: any) {
+    const cfg = this.canvasState.getConfig();
+    if (!cfg) return;
+    (cfg.gifts as any).positions = positions;
     this.canvasState.isDirty.set(true);
     this.scheduleAutoSave();
   }
