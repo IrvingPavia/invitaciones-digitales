@@ -1,5 +1,25 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-15 (d) — UX builder mobile: drag táctil + auto-scroll + badge + centrado toolbar
+
+- [x] **Drag táctil en mobile en dos pasos** (`drag-box.component.ts`): tap para SELECCIONAR (sin
+  mover ni bloquear scroll); solo si ya está seleccionado se arrastra, tras micro-delay 180ms o
+  desplazamiento > 12px. Clave: `touch-action: none` en `.db-selected` (y `auto` en interactivo),
+  para que al mover un objeto seleccionado NO scrollee el canvas. Resuelve: scrollear rozaba objetos
+  y los descolocaba.
+- [x] **Auto-scroll a la sección que se edita** (`builder.component.ts`): al cambiar una propiedad,
+  si la sección no está visible, scroll suave hacia ella. Solo canvas mobile, debounce 250ms, no-op
+  si ya es visible. Enganchado en `registerAutoSave` (cada notifyChange).
+- [x] **Badge "Editando: <sección>"** (`builder.component.ts`): píldora flotante arriba del canvas
+  con el nombre legible (+ número en mini-secciones). Al tocarla re-centra el canvas.
+- [x] **Centrado de toolbar y badge respecto al área del canvas** (no la ventana): `@HostBinding`
+  espejo del layout + variables `--panel-left-w`/`--panel-right-w`; toolbar-center con transform
+  compensatorio; `.builder-canvas-area { position: relative }` para anclar el badge. Verificado.
+
+### Pendientes abiertos (UX builder)
+- [ ] Afinar valores táctiles si se sienten sensibles/lentos (delay 180ms, slops 8/12px).
+- [ ] Evaluar si el auto-scroll debe activarse también en desktop con canvas en modo mobile.
+
 ## Completado 2026-10-15 (c) — Rediseño sección REGALOS + fix encabezados largos
 
 - [x] **Encabezado de sección separado del título de card** (gifts). Encabezado usa

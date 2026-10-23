@@ -49,6 +49,32 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-15 (d) — UX builder mobile: drag táctil, auto-scroll, badge, centrado toolbar
+
+Rama `feature/drag-elementos-secciones`. 2 archivos: `drag-box.component.ts`, `builder.component.ts`.
+Compilado + desplegado + verificado. Pendiente de commit (va DESPUÉS del merge de deploy_prod `77cd982`).
+
+- **Drag táctil en mobile en dos pasos** (`drag-box.component.ts > onBodyTouchDown`): objeto NO
+  seleccionado → tap SOLO selecciona (no mueve, no bloquea scroll; si el dedo se mueve > TAP_SLOP=8px
+  es scroll). Objeto YA seleccionado → arrastra tras TOUCH_ARM_DELAY_MS=180ms (long-press corto) o
+  desplazamiento > TOUCH_DRAG_SLOP=12px. **CLAVE:** `.db-selected { touch-action: none }` (interactivo
+  = `auto`): sin esto el navegador decide "scroll" en el 1er touchmove y los preventDefault llegan
+  tarde → al mover un objeto seleccionado también scrolleaba. Mouse/desktop intactos.
+- **Auto-scroll a la sección editada** (`builder.component.ts > autoScrollToEditedSection`): enganchado
+  en `registerAutoSave` (cada notifyChange del props-panel). Solo canvas mobile, debounce 250ms, no-op
+  si la sección ya está visible. Usa `activeSectionDataAttr()` (resuelve mini-secciones) + scrollTo
+  suave sobre `.builder-canvas-viewport`. Timer en ngOnDestroy.
+- **Badge "Editando: <sección>"** (`.builder-editing-badge`): píldora morada flotante arriba del canvas
+  en modo canvas. `editingSectionLabel()` (nombre + número en mini-secciones). Tocarla →
+  `recenterEditedSection()`.
+- **Centrado toolbar + badge al ÁREA DEL CANVAS (no la ventana):** `@HostBinding` espejo del layout
+  (`host-wide`/`host-props-open`/`host-panel-hidden`/`host-preview`) + variables `--panel-left-w`/
+  `--panel-right-w` (mismos anchos del grid). `.builder-toolbar-center` con
+  `transform: translateX((--panel-left-w - --panel-right-w)/2)`. `.builder-canvas-area { position:
+  relative }` para anclar el badge (antes se anclaba al `:host` fixed y se centraba a la ventana).
+  Mobile: variables 0px + transform:none. Verificado.
+- **Pendiente:** afinar valores táctiles si molestan; evaluar auto-scroll en desktop con canvas mobile.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-15 (c) — rediseño sección REGALOS + fix encabezados largos
 
 Rama `feature/drag-elementos-secciones`. Tanda grande centrada en la sección **Regalos (gifts)**.

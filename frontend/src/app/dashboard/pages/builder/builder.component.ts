@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, AfterViewInit, signal, computed, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, signal, computed, HostListener, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -334,6 +334,15 @@ interface BuilderSection {
       </div>
       }
 
+      <!-- Indicador de sección en edición (visible en modo canvas, mobile). Refuerza el resaltado
+           morado de bordes, que pasa desapercibido. Al tocarlo, re-centra el canvas en la sección. -->
+      @if (canvasMode() === 'canvas' && editingSectionLabel()) {
+      <button class="builder-editing-badge" (click)="recenterEditedSection()" title="Ir a la sección en edición">
+        <span class="material-icons">edit</span>
+        <span class="editing-badge-text">Editando: {{ editingSectionLabel() }}</span>
+      </button>
+      }
+
       <!-- FAB toggle sections panel (hidden in preview mode) -->
       @if (canvasMode() === 'canvas') {
       <button class="builder-sections-fab" [class.active]="isSectionsPanelOpen()" (click)="toggleSectionsPanel()" title="Secciones">
@@ -373,12 +382,24 @@ interface BuilderSection {
       inset: 0;
       z-index: 200;
       overflow: hidden;
+      /* Anchos de los paneles (espejo del grid de .builder-layout). Se usan para centrar el grupo
+         central del TOOLBAR respecto al ÁREA DEL CANVAS (no a la ventana). Valores default: ningún
+         panel abierto. Las clases host-* los ajustan según el estado. */
+      --panel-left-w: 0px;
+      --panel-right-w: 0px;
       background: #0a0a14;
       height: 100%;
       height: 100dvh;
       max-height: 100dvh;
       overscroll-behavior: none;
     }
+    /* Anchos de panel por estado (deben coincidir con las columnas del grid de .builder-layout).
+       Panel izquierdo visible salvo panel-hidden/preview; panel derecho solo con props-open. */
+    :host:not(.host-panel-hidden):not(.host-preview) { --panel-left-w: 220px; }
+    :host.host-wide:not(.host-panel-hidden):not(.host-preview) { --panel-left-w: 240px; }
+    :host.host-props-open:not(.host-preview) { --panel-right-w: clamp(280px, 26vw, 400px); }
+    :host.host-wide.host-props-open:not(.host-preview) { --panel-right-w: clamp(280px, 24vw, 480px); }
+
     .builder-toolbar {
       display: flex; align-items: center;
       padding: 8px 16px; background: rgba(10,10,20,0.95);
@@ -388,7 +409,12 @@ interface BuilderSection {
     /* Tres grupos en una sola fila: izquierda (ancho natural), centro (crece y centra),
        derecha (empujada al borde por margin-left:auto del propio grupo via flex). */
     .builder-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; min-width: 0; }
-    .builder-toolbar-center { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1 1 auto; }
+    .builder-toolbar-center { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1 1 auto;
+      /* Alinear el grupo central con el CENTRO DEL ÁREA DEL CANVAS (no de la ventana): se desplaza
+         la mitad de la diferencia de anchos de los paneles. Si el panel derecho es más ancho que el
+         izquierdo, el centro del canvas está a la izquierda → offset negativo. */
+      transform: translateX(calc((var(--panel-left-w) - var(--panel-right-w)) / 2));
+      transition: transform 0.2s; }
     .builder-toolbar-right { display: flex; align-items: center; flex: 0 0 auto; }
     .builder-event-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .builder-back {
@@ -604,6 +630,9 @@ interface BuilderSection {
     .builder-canvas-area {
       display: flex; align-items: flex-start; justify-content: center;
       background: #06060e; padding: 16px; overflow: hidden; min-height: 0;
+      /* Ancla de posicionamiento para el badge "Editando" (position:absolute), para que se centre
+         respecto al ÁREA DEL CANVAS (esta columna del grid) y no respecto al :host/ventana. */
+      position: relative;
     }
     /* En modo mobile el marco del canvas tiene alto fijo (del dispositivo) y suele ser más corto
        que el área: lo centramos vertical y horizontalmente. En desktop el canvas es alto y
@@ -1006,6 +1035,20 @@ interface BuilderSection {
       &.active { background: rgba(239,68,68,0.85); box-shadow: 0 4px 12px rgba(239,68,68,0.4); }
       &.active .material-icons { transform: rotate(90deg); }
     }
+    /* Badge flotante "Editando: <sección>". Centrado arriba del canvas, por encima del contenido.
+       Refuerza el resaltado morado de bordes (poco perceptible) y da feedback de qué se edita. */
+    .builder-editing-badge {
+      position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 26;
+      display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - 100px);
+      padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(139,92,246,0.5);
+      background: rgba(139,92,246,0.92); color: #fff; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(139,92,246,0.45);
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+      transition: transform 0.2s, background 0.2s;
+      .material-icons { font-size: 15px; }
+      .editing-badge-text { overflow: hidden; text-overflow: ellipsis; }
+      &:hover { transform: translateX(-50%) scale(1.04); background: rgba(139,92,246,1); }
+    }
     .builder-props { padding: 14px; }
     .builder-section-badge {
       display: flex; align-items: center; gap: 8px;
@@ -1148,7 +1191,7 @@ interface BuilderSection {
       }
       .builder-toolbar-left { flex: 0 0 auto !important; }
       .builder-toolbar-right { order: 0; margin-left: auto; }
-      .builder-toolbar-center { order: 0; flex: 1; justify-content: center; gap: 2px !important; }
+      .builder-toolbar-center { order: 0; flex: 1; justify-content: center; gap: 2px !important; transform: none !important; }
       .builder-toolbar-center .builder-tb-sep { display: none; }
       .builder-toolbar-center .builder-device-btn { display: none; }
       .builder-toolbar-center .builder-device-select { display: none; }
@@ -1278,6 +1321,14 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
   }
+  // Espejo del estado del layout en el :host, para que el TOOLBAR (que vive fuera de .builder-layout)
+  // pueda alinear su grupo central con el ÁREA DEL CANVAS (columna central del grid) y no con la
+  // ventana completa. Los anchos de los paneles se derivan de estas clases en CSS (variables).
+  @HostBinding('class.host-wide') get hostWide() { return this.isWide(); }
+  @HostBinding('class.host-props-open') get hostPropsOpen() { return this.showProps() && this.canvasMode() === 'canvas'; }
+  @HostBinding('class.host-panel-hidden') get hostPanelHidden() { return !this.panelVisible(); }
+  @HostBinding('class.host-preview') get hostPreview() { return this.canvasMode() === 'preview'; }
+
   canvasMode = signal<'canvas' | 'preview'>('canvas');
   viewMode = signal<'edit' | 'preview'>('edit');
   saving = signal(false);
@@ -1385,8 +1436,11 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
       this.preloadCanvasMedia(v2?.intro?.background);
       this.preloadCanvasMedia(v2?.hero?.backgroundGif);
     });
-    // Register auto-save so props-panel changes trigger save
-    this.canvasState.registerAutoSave(() => this.scheduleAutoSave());
+    // Register auto-save so props-panel changes trigger save.
+    // Además, al editar una propiedad disparamos el auto-scroll del canvas hacia la sección que se
+    // está editando (solo canvas mobile y solo si no está visible), para que el usuario no pierda
+    // de vista el cambio cuando el canvas quedó scrolleado en otra sección.
+    this.canvasState.registerAutoSave(() => { this.scheduleAutoSave(); this.autoScrollToEditedSection(); });
     // Load related data
     this.loadItinerary();
     this.loadPhotos();
@@ -1467,6 +1521,7 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+    if (this.autoScrollTimer) clearTimeout(this.autoScrollTimer);
     this.canvasResizeObserver?.disconnect();
     // Restore scroll when leaving builder
     document.body.style.overflow = '';
@@ -1569,6 +1624,36 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
     return key;
   }
 
+  /** Etiqueta legible de la sección/mini-sección que se está editando, para el badge "Editando: …".
+      Devuelve '' si no hay selección útil (o es el Tema Global, que no vive en el canvas). Para
+      mini-secciones añade el número (ej. "Detalles · 2"). */
+  editingSectionLabel(): string {
+    const key = this.canvasState.selectedSection();
+    if (!key || key === '_theme') return '';
+    const base = this.sections().find(s => s.key === key)?.label
+      ?? ({ hero: 'Carátula', invitation: 'Invitación', envelope: 'Pantalla de Inicio', intro: 'Intro' } as Record<string, string>)[key]
+      ?? key;
+    if (key === 'details') {
+      const i = this.canvasState.selectedDetailIndex();
+      return i >= 0 ? `${base} · ${i + 1}` : base;
+    }
+    if (key === 'venues') {
+      const i = this.canvasState.selectedVenueIndex();
+      return i >= 0 ? `${base} · ${i + 1}` : base;
+    }
+    if (key === 'dresscode') {
+      const i = this.canvasState.selectedDresscodeIndex();
+      return i >= 0 ? `${base} · ${i + 1}` : base;
+    }
+    return base;
+  }
+
+  /** Re-centra el canvas en la sección que se está editando (al tocar el badge). Scroll suave. */
+  recenterEditedSection() {
+    const target = this.activeSectionDataAttr();
+    if (target) this.scrollToSection(target);
+  }
+
   /** Cambia el dispositivo del canvas (mobile/desktop) MANTENIENDO la sección/mini-sección en la que
       el usuario está editando: captura la sección activa antes de cambiar y re-navega a ella tras el
       re-render (el viewport cambia de tamaño y el scroll se perdía → saltaba a otra sección). */
@@ -1622,6 +1707,38 @@ export class BuilderComponent implements OnInit, OnDestroy, AfterViewInit {
         container.scrollTo({ top: offset, behavior: 'smooth' });
       }
     }, 50);
+  }
+
+  /** Timer del debounce del auto-scroll al editar una propiedad. */
+  private autoScrollTimer?: ReturnType<typeof setTimeout>;
+
+  /** Al editar una propiedad: si la sección que se está editando NO está visible en el viewport del
+      canvas, desplazar suavemente hasta ella. Así, en MOBILE (donde panel y canvas no se ven a la
+      vez) el usuario no "edita a ciegas" una sección que quedó fuera de pantalla.
+      - Solo en modo canvas mobile (previewDevice()==='mobile'); en desktop panel y canvas conviven.
+      - Debounce para no pelear con sliders continuos (espera a que el usuario pare).
+      - No-op si la sección ya está visible (no mover el canvas sin necesidad). */
+  private autoScrollToEditedSection() {
+    if (this.canvasMode() !== 'canvas') return;
+    if (this.previewDevice() !== 'mobile') return;
+    const target = this.activeSectionDataAttr();
+    if (!target) return;
+    if (this.autoScrollTimer) clearTimeout(this.autoScrollTimer);
+    this.autoScrollTimer = setTimeout(() => {
+      const el = document.querySelector(`.preview-section-click[data-section="${target}"]`) as HTMLElement | null;
+      const container = document.querySelector('.builder-canvas-viewport') as HTMLElement | null;
+      if (!el || !container) return;
+      const elRect = el.getBoundingClientRect();
+      const cRect = container.getBoundingClientRect();
+      // "Visible" = una parte razonable de la sección cae dentro del viewport. Si su inicio está
+      // por encima del tope o su tope ya pasó bien dentro del viewport, consideramos que el usuario
+      // la está viendo y no la movemos. Umbral: el tope de la sección dentro del viewport visible.
+      const topWithin = elRect.top >= cRect.top - 4 && elRect.top <= cRect.bottom - 40;
+      const coversViewport = elRect.top <= cRect.top && elRect.bottom >= cRect.bottom; // sección más alta que el viewport y lo llena
+      if (topWithin || coversViewport) return;
+      const offset = elRect.top - cRect.top + container.scrollTop;
+      container.scrollTo({ top: offset, behavior: 'smooth' });
+    }, 250);
   }
 
   async toggleCanvasMode() {
