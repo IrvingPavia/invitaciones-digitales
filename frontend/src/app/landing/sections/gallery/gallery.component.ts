@@ -155,7 +155,7 @@ import { LightboxService } from '../../../core/services/lightbox.service';
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; position: relative; z-index: 2; }
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; text-align: center; position: relative; z-index: 2; }
     .section-line { flex: 1; height: 1px; }
-    .section-heading { text-align: center; }
+    .section-heading { text-align: center; overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
     /* Título BICOLOR (degradado): el background-image (gradiente) se recorta al texto. */
     .section-heading.gradient-text { -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
     .gallery-desc { text-align: center; margin-bottom: 32px; position: relative; z-index: 2; }

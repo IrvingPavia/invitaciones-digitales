@@ -138,7 +138,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 32px; text-align: center; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
-    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
+    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
     .rsvp-card {
       position: relative; overflow: visible;
       border: 1px solid var(--theme-card-border, rgba(212,160,23,0.3));

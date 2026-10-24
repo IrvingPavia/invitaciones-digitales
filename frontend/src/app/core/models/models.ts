@@ -281,6 +281,21 @@ export interface EnvelopeConfig {
   /** Animacion de SALIDA del template Plano al tocar para continuar. Exclusiva del template 'plain'.
       Si no se define, usa 'fade' (desvanecer, sin desplazamiento lateral). */
   plainExitAnimation?: 'fade' | 'zoom-out' | 'zoom-in' | 'slide-up' | 'blur' | 'none';
+  /** ===== Estilo del ENCABEZADO del template Plano (lo que el panel llama "Encabezado";
+      internamente sigue siendo plainTitle). Opcionales/retrocompatibles: si no se definen,
+      heredan de globalStyles.titleStyle como antes. ===== */
+  plainTitleFont?: string;
+  plainTitleSize?: number;
+  plainTitleColor?: string;
+  /** ===== Estilo del TÍTULO del template Plano (lo que el panel llama "Título"; internamente
+      sigue siendo plainSubtitle). Soporta BICOLOR (degradado). Opcionales/retrocompatibles. ===== */
+  plainSubtitleFont?: string;
+  plainSubtitleSize?: number;
+  plainSubtitleColor?: string;
+  plainSubtitleColor2?: string;
+  plainSubtitleGradientAngle?: number;
+  plainSubtitleGradientIntensity?: number;
+  plainSubtitleFontWeight?: number;
 }
 
 export interface IntroParticlesConfig {
@@ -638,24 +653,78 @@ export interface DresscodeConfig {
   sectionStyle?: SectionStyle;
 }
 
+/** Estilo de un botón de la sección Regalos (color de fondo/texto/borde + radio). Opcional:
+    si no se define, el botón usa el estilo del tema (--theme-btn-*). */
+export interface GiftsButtonStyle {
+  bgColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  borderRadius?: number;
+}
+
+/** Estilo de un título (bicolor) propio de una card, independiente del tema/sección. */
+export interface GiftsTitleStyle {
+  font?: string;
+  size?: number;
+  color?: string;
+  color2?: string;
+  gradientAngle?: number;
+  gradientIntensity?: number;
+  fontWeight?: number;
+}
+
+/** Partículas decorativas a nivel de la sección Regalos (mismo motor que la Intro, con tipos
+    temáticos adicionales dibujados con emoji: flores, regalos, moños, corazones, billetes, monedas). */
+export interface GiftsParticlesConfig {
+  enabled: boolean;
+  type: 'sparkles' | 'snow' | 'fireflies' | 'bubbles' | 'stars' | 'confetti'
+      | 'flowers' | 'gifts' | 'bows' | 'hearts' | 'bills' | 'coins';
+  color1: string;
+  color2: string;
+  direction: 'up' | 'down' | 'left' | 'right';
+  quantity: number;   // 5-80
+  speed: number;      // 1-10
+  size: number;       // 1-20
+  opacity: number;    // 0.1-1
+}
+
 export interface GiftsConfig {
   enabled: boolean;
+  /** Encabezado de la SECCIÓN (h2). Dato legacy "title" (ej. "Sugerencia de regalo"). */
   title: string;
+  /** Título propio de la CARD Mesa de Regalos (separado del encabezado de sección). */
+  cardTitle?: string;
   description: string;
+  /** Descripción enriquecida de la card Mesa de Regalos. Si existe, manda sobre `description`. */
+  descriptionHtml?: string;
   link: string;
   buttonText: string;
   showCardBg?: boolean;
   cardBgOpacity?: number;
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
+  /** Estilo de la card Mesa de Regalos (tipado; antes se leía con casts `as any`). */
+  cardStyle?: CardStyle;
+  /** Estilo del botón de la card Mesa de Regalos. */
+  buttonStyle?: GiftsButtonStyle;
+  /** Tamaño del icono de la card Mesa de Regalos (small/medium/large), estilo venues. */
+  iconSize?: 'small' | 'medium' | 'large';
   transfer: TransferConfig;
   sectionStyle?: SectionStyle;
+  /** Partículas decorativas de toda la sección Regalos. */
+  particles?: GiftsParticlesConfig;
+  /** Posiciones (drag) de los objetos de la sección: 'heading', 'giftsCard', 'transferCard'. */
+  positions?: ElementPositions;
 }
 
 export interface TransferConfig {
   enabled: boolean;
   title: string;
   description: string;
+  /** Descripción enriquecida de la card de transferencia. Si existe, manda sobre `description`. */
+  descriptionHtml?: string;
+  /** Texto del botón que abre el modal con los datos bancarios. */
+  buttonText?: string;
   accountName: string;
   bank: string;
   accountType: 'tarjeta' | 'cuenta' | 'clabe';
@@ -664,6 +733,14 @@ export interface TransferConfig {
   showCardBg?: boolean;
   cardBorderRadius?: number;
   sectionIcon?: SectionIconConfig;
+  /** Estilo de la card/modal de transferencia (tipado). */
+  cardStyle?: CardStyle;
+  /** Estilo del botón de la card de transferencia. */
+  buttonStyle?: GiftsButtonStyle;
+  /** Estilo PROPIO del título de la card de transferencia (independiente del de Mesa de Regalos). */
+  titleStyle?: GiftsTitleStyle;
+  /** Tamaño del icono de la card de transferencia (small/medium/large). */
+  iconSize?: 'small' | 'medium' | 'large';
 }
 
 export interface RsvpConfig {

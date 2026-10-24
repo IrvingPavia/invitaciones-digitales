@@ -49,6 +49,72 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-15 (d) — UX builder mobile: drag táctil, auto-scroll, badge, centrado toolbar
+
+Rama `feature/drag-elementos-secciones`. 2 archivos: `drag-box.component.ts`, `builder.component.ts`.
+Compilado + desplegado + verificado. Pendiente de commit (va DESPUÉS del merge de deploy_prod `77cd982`).
+
+- **Drag táctil en mobile en dos pasos** (`drag-box.component.ts > onBodyTouchDown`): objeto NO
+  seleccionado → tap SOLO selecciona (no mueve, no bloquea scroll; si el dedo se mueve > TAP_SLOP=8px
+  es scroll). Objeto YA seleccionado → arrastra tras TOUCH_ARM_DELAY_MS=180ms (long-press corto) o
+  desplazamiento > TOUCH_DRAG_SLOP=12px. **CLAVE:** `.db-selected { touch-action: none }` (interactivo
+  = `auto`): sin esto el navegador decide "scroll" en el 1er touchmove y los preventDefault llegan
+  tarde → al mover un objeto seleccionado también scrolleaba. Mouse/desktop intactos.
+- **Auto-scroll a la sección editada** (`builder.component.ts > autoScrollToEditedSection`): enganchado
+  en `registerAutoSave` (cada notifyChange del props-panel). Solo canvas mobile, debounce 250ms, no-op
+  si la sección ya está visible. Usa `activeSectionDataAttr()` (resuelve mini-secciones) + scrollTo
+  suave sobre `.builder-canvas-viewport`. Timer en ngOnDestroy.
+- **Badge "Editando: <sección>"** (`.builder-editing-badge`): píldora morada flotante arriba del canvas
+  en modo canvas. `editingSectionLabel()` (nombre + número en mini-secciones). Tocarla →
+  `recenterEditedSection()`.
+- **Centrado toolbar + badge al ÁREA DEL CANVAS (no la ventana):** `@HostBinding` espejo del layout
+  (`host-wide`/`host-props-open`/`host-panel-hidden`/`host-preview`) + variables `--panel-left-w`/
+  `--panel-right-w` (mismos anchos del grid). `.builder-toolbar-center` con
+  `transform: translateX((--panel-left-w - --panel-right-w)/2)`. El BADGE vive en `.builder-layout`
+  (grid con ambos paneles), por eso se centraba a la ventana; se le dio el MISMO offset:
+  `translateX(calc(-50% + (--panel-left-w - --panel-right-w)/2))` (vars heredadas del :host; mobile
+  0px → centrado normal). Mobile toolbar: transform:none. Verificado.
+- **Pendiente:** afinar valores táctiles si molestan; evaluar auto-scroll en desktop con canvas mobile.
+
+### 🔽 ACTUALIZACIÓN 2026-10-15 (c) — rediseño sección REGALOS + fix encabezados largos
+
+Rama `feature/drag-elementos-secciones`. Tanda grande centrada en la sección **Regalos (gifts)**.
+Compilado + desplegado + verificado por el usuario; commiteado al cierre.
+
+- **Encabezado de sección separado del título de card.** Encabezado usa `sectionStyle.sectionHeading*`;
+  card Mesa de Regalos tiene `cardTitle` propio (campo NUEVO) con `heading*`. `title` legacy conservado.
+- **Descripción UNIFICADA** (`descriptionHtml` rich-text) debajo del encabezado, arrastrable (key
+  `description`); quitada de ambas cards.
+- **Datos Bancarios → modal** centrado (`.gifts-modal-overlay`, fixed, z-index 10000, patrón
+  `.dialog-overlay`; NO LightboxService): abre con botón, cierra con X/clic-fuera/Escape, copiar al
+  portapapeles. El popup NO se arrastra (siempre centrado).
+- **Título de Datos Bancarios con estilo INDEPENDIENTE** (`transfer.titleStyle: GiftsTitleStyle`), NO
+  compartido con Mesa de Regalos. Bicolor (color2+ángulo+intensidad)+peso+fuente+tamaño.
+- **Botones configurables por card** (`buttonStyle: GiftsButtonStyle`: bg/texto/borde/radio; fallback
+  al tema). Reusa el patrón de colores de Invitación.
+- **Iconos estilo Lugares** (preset/emoji/imagen subida) + `iconSize` en ambas cards.
+- **Partículas de sección** (motor de la Intro replicado, `generateParticles` + keyframes `gParticle*`):
+  genéricas (sparkles/snow/fireflies/bubbles/stars/confetti) + temáticas EMOJI 🌸🎁🎀💖💵🪙
+  (flowers/gifts/bows/hearts/bills/coins). DECISIÓN: emoji por ahora, SVG se evalúa después.
+- **Drag opción A**: encabezado / descripción / card Mesa de Regalos / card Datos Bancarios por
+  separado (keys heading/description/giftsCard/transferCard). Patrón Vestimenta (widthOnly + lienzo
+  fijo + installAutoHeight ResizeObserver). gifts añadido a exclusión de min-height del wrapper canvas.
+- **Cards flex column center** (fix: sin descripción el título quedaba en línea con el botón).
+- **Fix encabezados largos (8 secciones):** `overflow-wrap:break-word; word-break:break-word;
+  max-width:100%` en `.section-heading` de details/dresscode/gallery/gifts/itinerary/register/rsvp/
+  venues (+ quitado `white-space:nowrap` en gifts). Antes el encabezado se salía de pantalla.
+- **FIX canvas — título Datos Bancarios pisado (causa raíz):** las reglas
+  `.preview-section-click[style*="--section-heading-*"] ::ng-deep h3 { !important }` del canvas pisaban
+  TODOS los h3 de gifts (el panel escribe `--section-heading-*` en el wrapper para el título de Mesa de
+  Regalos). FIX: los 5 selectores `::ng-deep h3` (color/color2/weight/font/size) llevan ahora
+  `:not(.transfer-card-title)`. Verificado.
+- **Backend sin cambios:** `ensureConfigDefaults.js` usa `...(cfg.gifts||{})` y
+  `...(cfg.gifts?.transfer||{})` → preserva los campos nuevos automáticamente.
+- **Archivos tocados (12, todos frontend):** models.ts, builder.component.ts, props-panel.component.ts,
+  gifts/details/dresscode/gallery/itinerary/register/rsvp/venues/envelope .component.ts.
+- **Pendiente:** decidir emoji vs SVG en partículas; evaluar drag en Itinerario/RSVP si se pide.
+- **OJO build:** backtick en comentario dentro de `styles[]` de un componente ROMPE el build.
+
 ### 🔽 CIERRE DE SESIÓN 2026-10-15 — resumen completo + DÓNDE RETOMAR
 
 Rama `feature/drag-elementos-secciones`. TODO COMMITEADO Y PUSHEADO. Último commit: `ae3f092`.

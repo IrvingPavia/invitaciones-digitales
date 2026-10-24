@@ -115,12 +115,18 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
         <div class="plain-container" [class.editable]="editable" [class.bg-banner]="bannerActive" [class.plain-desktop]="plainDesktopFixed" [class.plain-mobile]="plainMobileFixed" [attr.data-exit]="config.plainExitAnimation || 'fade'" [style.--banner-w]="(config.splashBgBannerWidth || 70) + bannerUnit" data-drag-bounds (click)="onContainerClick()">
           @if (config.plainTitle) {
             <app-drag-box [editable]="editable" [position]="plainPosData('title')" [ngStyle]="plainPos('title')" (positionChange)="onPosChange('title', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
-              <h1 class="plain-title" [style.font-family]="getFontFamily(globalStyles?.titleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.titleStyle?.fontSize || 32" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="config.textColor || globalStyles?.titleStyle?.color || 'white'">{{ config.plainTitle }}</h1>
+              <h1 class="plain-title" [style.font-family]="plainTitleFont()" [style.font-size.px]="plainTitleSize()" [style.font-weight]="globalStyles?.titleStyle?.fontWeight || 400" [style.color]="plainTitleColor()">{{ config.plainTitle }}</h1>
             </app-drag-box>
           }
           @if (config.plainSubtitle) {
             <app-drag-box [editable]="editable" [position]="plainPosData('subtitle')" [ngStyle]="plainPos('subtitle')" (positionChange)="onPosChange('subtitle', $event)" (draggingChange)="dragging = $event" (guidesChange)="guides = $event">
-              <p class="plain-subtitle" [style.font-family]="getFontFamily(globalStyles?.subtitleStyle?.fontFamily)" [style.font-size.px]="globalStyles?.subtitleStyle?.fontSize || 16" [style.color]="config.textColor || globalStyles?.subtitleStyle?.color || 'rgba(255,255,255,0.7)'">{{ config.plainSubtitle }}</p>
+              <p class="plain-subtitle"
+                 [style.font-family]="plainSubtitleFont()"
+                 [style.font-size.px]="plainSubtitleSize()"
+                 [style.font-weight]="plainSubtitleWeight()"
+                 [style.background-image]="usePlainTitleGradient() ? getPlainTitleGradient() : null"
+                 [class.gradient-text]="usePlainTitleGradient()"
+                 [style.color]="!usePlainTitleGradient() ? plainSubtitleColor() : null">{{ config.plainSubtitle }}</p>
             </app-drag-box>
           }
           @if (config.plainContent) {
@@ -408,6 +414,8 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     .plain-subtitle {
       animation: splashTextIn 1s ease 0.4s both;
     }
+    /* Título BICOLOR (degradado): el background-image (gradiente) se recorta al texto. */
+    .plain-subtitle.gradient-text { -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
     /* La instrucción del template plano se posiciona vía su DragBox host,
        así que neutralizamos el position:absolute heredado de .instruction. */
     .plain-instruction {
@@ -571,6 +579,29 @@ export class LandingEnvelopeComponent {
 
   getTemplate(): string {
     return this.config.template || 'envelope';
+  }
+
+  // ===== Estilo del template PLANO (prioridad campo propio > globalStyles > default) =====
+  // ENCABEZADO (plainTitle): color/fuente/tamaño simples.
+  plainTitleFont(): string { return this.getFontFamily(this.config.plainTitleFont || this.globalStyles?.titleStyle?.fontFamily); }
+  plainTitleSize(): number { return this.config.plainTitleSize || this.globalStyles?.titleStyle?.fontSize || 32; }
+  plainTitleColor(): string { return this.config.plainTitleColor || this.config.textColor || this.globalStyles?.titleStyle?.color || 'white'; }
+  // TÍTULO (plainSubtitle): soporta BICOLOR (degradado).
+  plainSubtitleFont(): string { return this.getFontFamily(this.config.plainSubtitleFont || this.globalStyles?.subtitleStyle?.fontFamily); }
+  plainSubtitleSize(): number { return this.config.plainSubtitleSize || this.globalStyles?.subtitleStyle?.fontSize || 16; }
+  plainSubtitleColor(): string { return this.config.plainSubtitleColor || this.config.textColor || this.globalStyles?.subtitleStyle?.color || 'rgba(255,255,255,0.7)'; }
+  plainSubtitleWeight(): number { return this.config.plainSubtitleFontWeight || this.globalStyles?.subtitleStyle?.fontWeight || 400; }
+  /** True si el Título usa degradado (hay color2 propio). */
+  usePlainTitleGradient(): boolean { return !!this.config.plainSubtitleColor2; }
+  /** Gradiente del Título (color1 → color2) cuando hay color2. */
+  getPlainTitleGradient(): string {
+    const c1 = this.config.plainSubtitleColor || this.config.textColor || this.globalStyles?.subtitleStyle?.color || '#d4a017';
+    const c2 = this.config.plainSubtitleColor2;
+    if (!c2) return 'none';
+    const angle = this.config.plainSubtitleGradientAngle ?? 135;
+    const v = Math.max(0, Math.min(100, this.config.plainSubtitleGradientIntensity ?? 50));
+    const mid = 100 - v; const a = Math.max(0, mid - 25); const b = Math.min(100, mid + 25);
+    return `linear-gradient(${angle}deg, ${c1} 0%, ${c1} ${a}%, ${c2} ${b}%, ${c2} 100%)`;
   }
 
   getFontFamily(key?: string): string {

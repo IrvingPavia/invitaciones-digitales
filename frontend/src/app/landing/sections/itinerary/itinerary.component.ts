@@ -107,7 +107,7 @@ import { HeadingOrnamentComponent } from '../../components/heading-ornament.comp
     .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
     .section-header-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 48px; text-align: center; }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent); }
-    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; }
+    .section-heading { font-family: var(--font-script); font-size: clamp(28px, 5vw, 42px); color: var(--gold); text-align: center; overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
 
     /* --axis define el eje vertical donde se centran la linea y los circulos.
        La linea es CONTINUA (una sola, sin cortes intermedios entre actividades) y se le

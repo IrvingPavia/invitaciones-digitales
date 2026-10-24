@@ -1,5 +1,52 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-15 (d) — UX builder mobile: drag táctil + auto-scroll + badge + centrado toolbar
+
+- [x] **Drag táctil en mobile en dos pasos** (`drag-box.component.ts`): tap para SELECCIONAR (sin
+  mover ni bloquear scroll); solo si ya está seleccionado se arrastra, tras micro-delay 180ms o
+  desplazamiento > 12px. Clave: `touch-action: none` en `.db-selected` (y `auto` en interactivo),
+  para que al mover un objeto seleccionado NO scrollee el canvas. Resuelve: scrollear rozaba objetos
+  y los descolocaba.
+- [x] **Auto-scroll a la sección que se edita** (`builder.component.ts`): al cambiar una propiedad,
+  si la sección no está visible, scroll suave hacia ella. Solo canvas mobile, debounce 250ms, no-op
+  si ya es visible. Enganchado en `registerAutoSave` (cada notifyChange).
+- [x] **Badge "Editando: <sección>"** (`builder.component.ts`): píldora flotante arriba del canvas
+  con el nombre legible (+ número en mini-secciones). Al tocarla re-centra el canvas.
+- [x] **Centrado de toolbar y badge respecto al área del canvas** (no la ventana): `@HostBinding`
+  espejo del layout + variables `--panel-left-w`/`--panel-right-w`; toolbar-center Y badge con
+  transform compensatorio `translateX(calc(-50% + (--panel-left-w - --panel-right-w)/2))` (el badge
+  vive en `.builder-layout`, por eso se centraba a la ventana). Verificado.
+
+### Pendientes abiertos (UX builder)
+- [ ] Afinar valores táctiles si se sienten sensibles/lentos (delay 180ms, slops 8/12px).
+- [ ] Evaluar si el auto-scroll debe activarse también en desktop con canvas en modo mobile.
+
+## Completado 2026-10-15 (c) — Rediseño sección REGALOS + fix encabezados largos
+
+- [x] **Encabezado de sección separado del título de card** (gifts). Encabezado usa
+  `sectionStyle.sectionHeading*`; card Mesa de Regalos tiene `cardTitle` propio con `heading*`.
+- [x] **Descripción unificada** (`descriptionHtml` rich-text) debajo del encabezado, arrastrable;
+  quitada de ambas cards.
+- [x] **Datos Bancarios en modal** centrado (`.gifts-modal-overlay`, fixed, z-index 10000; NO
+  LightboxService): botón para abrir, cierra con X/clic-fuera/Escape, copiar al portapapeles.
+- [x] **Título de Datos Bancarios con estilo INDEPENDIENTE** (`transfer.titleStyle`), con bicolor.
+- [x] **Botones configurables por card** (`buttonStyle`: bg/texto/borde/radio, fallback al tema).
+- [x] **Iconos estilo Lugares** (preset/emoji/imagen) + `iconSize` en ambas cards.
+- [x] **Partículas de sección** (motor de la Intro replicado, keyframes `gParticle*`): genéricas
+  + temáticas emoji 🌸🎁🎀💖💵🪙. (Decisión: emoji por ahora.)
+- [x] **Drag opción A**: encabezado / descripción / card Mesa de Regalos / card Datos Bancarios por
+  separado (patrón Vestimenta: widthOnly + lienzo fijo + ResizeObserver). Popup NO se arrastra.
+- [x] **Cards flex column center** (fix alineación título/botón sin descripción).
+- [x] **Fix encabezados largos (8 secciones)**: `overflow-wrap/word-break/max-width:100%` en
+  `.section-heading` de details/dresscode/gallery/gifts/itinerary/register/rsvp/venues (y se quitó
+  `white-space:nowrap` en gifts). Antes el encabezado se salía de pantalla con texto largo.
+- [x] **Fix canvas — título Datos Bancarios pisado**: los 5 selectores `::ng-deep h3` del canvas
+  (`--section-heading-*` con `!important`) ahora llevan `:not(.transfer-card-title)`. Verificado.
+
+### Pendientes abiertos de REGALOS
+- [ ] Decidir si las partículas temáticas emoji se quedan o se migran a SVG.
+- [ ] Evaluar drag en Itinerario/RSVP si el usuario lo pide.
+
 ## Completado 2026-10-15 — Auto-alto Vestimenta (Opción B) + fondos mobile/desktop independientes
 
 - [x] **Vestimenta: alto de sección crece con el contenido (Opción B).** La card ya NO tiene alto fijo

@@ -44,10 +44,15 @@ import { DragBoxSelectionService } from './drag-box-selection.service';
   styles: [`
     :host { display: block; }
     .db-frame { position: relative; height: 100%; }
-    /* Interactividad solo en modo edición (canvas). En landing el frame es transparente. */
-    .db-interactive { cursor: move; user-select: none; -webkit-user-select: none; }
+    /* Interactividad solo en modo edición (canvas). En landing el frame es transparente.
+       touch-action: auto cuando NO está seleccionado → el navegador puede hacer scroll al deslizar
+       el dedo sobre el objeto (no se mueve por accidente). */
+    .db-interactive { cursor: move; user-select: none; -webkit-user-select: none; touch-action: auto; }
     .db-interactive:hover { outline: 1px dashed rgba(255,255,255,0.3); outline-offset: 2px; }
-    .db-selected { outline: 2px solid rgba(157,110,231,0.8) !important; outline-offset: 2px !important; }
+    /* Seleccionado → touch-action: none para que el gesto NO se convierta en scroll y el arrastre
+       táctil funcione limpio (si se deja en auto, el navegador inicia el scroll en el primer
+       touchmove y los preventDefault posteriores llegan tarde). */
+    .db-selected { outline: 2px solid rgba(157,110,231,0.8) !important; outline-offset: 2px !important; touch-action: none; }
     .db-dragging { outline: 2px solid rgba(157,110,231,1) !important; outline-offset: 2px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4); opacity: 0.92; }
     /* El contenido solo bloquea punteros durante la edición (evita selección nativa). */
     .db-content-locked { pointer-events: none; }
@@ -125,6 +130,17 @@ export class DragBoxComponent {
         mobile— y un umbral grande hacía que el objeto "brincara" entre guías sin dejar ajustar fino. */
   private readonly SNAP_X_THRESHOLD = 3;
   private readonly SNAP_Y_THRESHOLD = 1.2;
+
+  /** MOBILE — parámetros del flujo táctil en dos pasos (tap para seleccionar, luego arrastrar).
+      - TAP_SLOP: px de tolerancia para considerar un toque como "tap" (sin desplazamiento). Si el
+        dedo se mueve más que esto con el objeto NO seleccionado, es scroll y no selecciona.
+      - TOUCH_ARM_DELAY_MS: micro-delay tras tocar un objeto YA seleccionado antes de poder
+        arrastrarlo (long-press corto). Evita que un roce accidental lo mueva.
+      - TOUCH_DRAG_SLOP: si estando seleccionado el dedo se desplaza más que esto, se "arma" el
+        arrastre de inmediato aunque no haya pasado el delay (intención clara de mover). */
+  private readonly TAP_SLOP = 8;
+  private readonly TOUCH_ARM_DELAY_MS = 180;
+  private readonly TOUCH_DRAG_SLOP = 12;
   /** Límite inferior/superior del centro, derivado de posMargin (default 2 → 2 y 98). */
   private get MIN() { return this.posMargin; }
   private get MAX() { return 100 - this.posMargin; }
@@ -162,14 +178,67 @@ export class DragBoxComponent {
   }
   onBodyTouchDown(e: TouchEvent) {
     if (!this.editable) return;
-    e.stopPropagation();
-    this.markSelected();
+
+    // MOBILE: flujo en dos pasos para no mover por accidente al scrollear.
+    // - Si el objeto NO está seleccionado: este toque solo SELECCIONA (tap). No se arrastra ni se
+    //   bloquea el scroll; si el dedo se desplaza, es scroll normal del canvas.
+    // - Si YA está seleccionado: se puede arrastrar, pero tras un MICRO-DELAY (long-press corto) o
+    //   un desplazamiento confirmado, para evitar movimientos accidentales.
+    const wasSelected = this.selected;
     const t = e.touches[0];
-    this.initMove(t.clientX, t.clientY);
-    const onMove = (ev: TouchEvent) => { if (ev.cancelable) ev.preventDefault(); this.processMove(ev.touches[0].clientX, ev.touches[0].clientY); };
-    const onEnd = () => { this.endMove(); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); };
+    const downX = t.clientX, downY = t.clientY;
+
+    if (!wasSelected) {
+      // No preventDefault aquí: dejamos que el navegador decida (tap vs scroll).
+      e.stopPropagation();
+      let movedWhileUnselected = false;
+      const onPreMove = (ev: TouchEvent) => {
+        const tt = ev.touches[0];
+        if (Math.abs(tt.clientX - downX) > this.TAP_SLOP || Math.abs(tt.clientY - downY) > this.TAP_SLOP) {
+          movedWhileUnselected = true; // fue un scroll, no un tap
+        }
+      };
+      const onPreEnd = () => {
+        document.removeEventListener('touchmove', onPreMove);
+        document.removeEventListener('touchend', onPreEnd);
+        document.removeEventListener('touchcancel', onPreEnd);
+        // Tap limpio (sin desplazamiento) → solo seleccionar. Si hubo scroll, no hacer nada.
+        if (!movedWhileUnselected) this.markSelected();
+      };
+      document.addEventListener('touchmove', onPreMove, { passive: true });
+      document.addEventListener('touchend', onPreEnd);
+      document.addEventListener('touchcancel', onPreEnd);
+      return;
+    }
+
+    // Ya seleccionado: permitir arrastre con micro-delay / movimiento confirmado.
+    e.stopPropagation();
+    this.initMove(downX, downY);
+    let armed = false; // el drag "se arma" tras el delay o tras confirmar movimiento
+    const armTimer = window.setTimeout(() => { armed = true; }, this.TOUCH_ARM_DELAY_MS);
+
+    const onMove = (ev: TouchEvent) => {
+      const tt = ev.touches[0];
+      const dist = Math.max(Math.abs(tt.clientX - downX), Math.abs(tt.clientY - downY));
+      if (!armed) {
+        // Antes de armarse: si el dedo se mueve lo suficiente, lo tratamos como intención de
+        // arrastre y armamos de inmediato; si no, dejamos pasar el scroll (no preventDefault).
+        if (dist > this.TOUCH_DRAG_SLOP) { armed = true; window.clearTimeout(armTimer); }
+        else return;
+      }
+      if (ev.cancelable) ev.preventDefault();
+      this.processMove(tt.clientX, tt.clientY);
+    };
+    const onEnd = () => {
+      window.clearTimeout(armTimer);
+      this.endMove();
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    };
     document.addEventListener('touchmove', onMove, { passive: false });
     document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
   }
 
   private initMove(cx: number, cy: number) {
