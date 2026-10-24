@@ -59,9 +59,12 @@ merge de deploy_prod `77cd982`).
   anchos que el grid de `.builder-layout`) definidas por esas clases.
 - `.builder-toolbar-center` → `transform: translateX(calc((--panel-left-w - --panel-right-w)/2))`
   para alinear su centro con el del canvas. Mobile: variables 0px + `transform:none` (sin efecto).
-- `.builder-canvas-area { position: relative }`: el badge (`position:absolute`) se anclaba al `:host`
-  (position:fixed) y se centraba a la ventana. Con el area como ancla, su `left:50%` centra sobre el
-  canvas. Verificado por el usuario (toolbar y badge alineados sobre el teléfono).
+- Badge: vive dentro de `.builder-layout` (el grid que abarca ambos paneles), NO dentro de
+  `.builder-canvas-area`, así que su `left:50%` se centra a toda la ventana. Se le aplicó el MISMO
+  offset compensatorio que al toolbar:
+  `transform: translateX(calc(-50% + (--panel-left-w - --panel-right-w)/2))` (y el mismo en :hover).
+  Las variables `--panel-*` se heredan del `:host`. En mobile valen 0px → centrado normal. Verificado
+  por el usuario (toolbar y badge alineados sobre el teléfono).
 
 ---
 

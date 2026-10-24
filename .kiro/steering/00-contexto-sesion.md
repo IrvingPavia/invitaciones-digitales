@@ -70,9 +70,10 @@ Compilado + desplegado + verificado. Pendiente de commit (va DESPUÉS del merge 
 - **Centrado toolbar + badge al ÁREA DEL CANVAS (no la ventana):** `@HostBinding` espejo del layout
   (`host-wide`/`host-props-open`/`host-panel-hidden`/`host-preview`) + variables `--panel-left-w`/
   `--panel-right-w` (mismos anchos del grid). `.builder-toolbar-center` con
-  `transform: translateX((--panel-left-w - --panel-right-w)/2)`. `.builder-canvas-area { position:
-  relative }` para anclar el badge (antes se anclaba al `:host` fixed y se centraba a la ventana).
-  Mobile: variables 0px + transform:none. Verificado.
+  `transform: translateX((--panel-left-w - --panel-right-w)/2)`. El BADGE vive en `.builder-layout`
+  (grid con ambos paneles), por eso se centraba a la ventana; se le dio el MISMO offset:
+  `translateX(calc(-50% + (--panel-left-w - --panel-right-w)/2))` (vars heredadas del :host; mobile
+  0px → centrado normal). Mobile toolbar: transform:none. Verificado.
 - **Pendiente:** afinar valores táctiles si molestan; evaluar auto-scroll en desktop con canvas mobile.
 
 ### 🔽 ACTUALIZACIÓN 2026-10-15 (c) — rediseño sección REGALOS + fix encabezados largos

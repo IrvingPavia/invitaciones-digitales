@@ -13,8 +13,9 @@
 - [x] **Badge "Editando: <sección>"** (`builder.component.ts`): píldora flotante arriba del canvas
   con el nombre legible (+ número en mini-secciones). Al tocarla re-centra el canvas.
 - [x] **Centrado de toolbar y badge respecto al área del canvas** (no la ventana): `@HostBinding`
-  espejo del layout + variables `--panel-left-w`/`--panel-right-w`; toolbar-center con transform
-  compensatorio; `.builder-canvas-area { position: relative }` para anclar el badge. Verificado.
+  espejo del layout + variables `--panel-left-w`/`--panel-right-w`; toolbar-center Y badge con
+  transform compensatorio `translateX(calc(-50% + (--panel-left-w - --panel-right-w)/2))` (el badge
+  vive en `.builder-layout`, por eso se centraba a la ventana). Verificado.
 
 ### Pendientes abiertos (UX builder)
 - [ ] Afinar valores táctiles si se sienten sensibles/lentos (delay 180ms, slops 8/12px).

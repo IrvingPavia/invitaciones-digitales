@@ -630,9 +630,6 @@ interface BuilderSection {
     .builder-canvas-area {
       display: flex; align-items: flex-start; justify-content: center;
       background: #06060e; padding: 16px; overflow: hidden; min-height: 0;
-      /* Ancla de posicionamiento para el badge "Editando" (position:absolute), para que se centre
-         respecto al ÁREA DEL CANVAS (esta columna del grid) y no respecto al :host/ventana. */
-      position: relative;
     }
     /* En modo mobile el marco del canvas tiene alto fijo (del dispositivo) y suele ser más corto
        que el área: lo centramos vertical y horizontalmente. En desktop el canvas es alto y
@@ -1037,8 +1034,12 @@ interface BuilderSection {
     }
     /* Badge flotante "Editando: <sección>". Centrado arriba del canvas, por encima del contenido.
        Refuerza el resaltado morado de bordes (poco perceptible) y da feedback de qué se edita. */
+    /* El badge vive dentro de .builder-layout (grid que abarca ambos paneles), por eso left:50% se
+       centra respecto a TODA la ventana. Para centrarlo sobre el ÁREA DEL CANVAS se aplica el mismo
+       offset compensatorio que el toolbar: la mitad de la diferencia de anchos de panel. */
     .builder-editing-badge {
-      position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 26;
+      position: absolute; top: 8px; left: 50%; z-index: 26;
+      transform: translateX(calc(-50% + (var(--panel-left-w) - var(--panel-right-w)) / 2));
       display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - 100px);
       padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(139,92,246,0.5);
       background: rgba(139,92,246,0.92); color: #fff; cursor: pointer;
@@ -1047,7 +1048,7 @@ interface BuilderSection {
       transition: transform 0.2s, background 0.2s;
       .material-icons { font-size: 15px; }
       .editing-badge-text { overflow: hidden; text-overflow: ellipsis; }
-      &:hover { transform: translateX(-50%) scale(1.04); background: rgba(139,92,246,1); }
+      &:hover { transform: translateX(calc(-50% + (var(--panel-left-w) - var(--panel-right-w)) / 2)) scale(1.04); background: rgba(139,92,246,1); }
     }
     .builder-props { padding: 14px; }
     .builder-section-badge {
