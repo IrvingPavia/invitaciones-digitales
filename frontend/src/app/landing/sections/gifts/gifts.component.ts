@@ -17,9 +17,9 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
         <div class="gifts-particles" [attr.data-type]="particlesConfig.type" [attr.data-dir]="particlesConfig.direction">
           @for (p of particles; track $index) {
             @if (isEmojiParticle) {
-              <span class="particle particle-emoji" [style]="p">{{ emojiFor(particlesConfig.type) }}</span>
+              <div class="particle particle-emoji" [style]="p">{{ emojiFor(particlesConfig.type) }}</div>
             } @else {
-              <span class="particle" [style]="p"></span>
+              <div class="particle" [style]="p"></div>
             }
           }
         </div>
@@ -323,6 +323,40 @@ import { DragBoxComponent } from '../../../core/components/drag-box.component';
     [data-type="flowers"] .particle, [data-type="gifts"] .particle, [data-type="bows"] .particle,
     [data-type="hearts"] .particle, [data-type="bills"] .particle, [data-type="coins"] .particle {
       border-radius: 0; animation: gParticleEmoji linear infinite;
+    }
+    /* Overrides por DIRECCIÓN (igual que la Intro). Sin estos, sparkles/snow/bubbles/confetti
+       ignoraban la dirección 'down'/'left'/'right' configurada: con dir "down" las sparkles usaban
+       la animación base hacia arriba y el efecto no coincidía con lo elegido. */
+    [data-dir="down"][data-type="sparkles"] .particle { animation-name: gParticleDown; }
+    [data-dir="left"][data-type="sparkles"] .particle,
+    [data-dir="left"] [data-type="sparkles"] .particle { animation-name: gParticleLeft; }
+    [data-dir="right"][data-type="sparkles"] .particle,
+    [data-dir="right"] [data-type="sparkles"] .particle { animation-name: gParticleRight; }
+    [data-dir="left"][data-type="snow"] .particle { animation-name: gParticleLeft; }
+    [data-dir="right"][data-type="snow"] .particle { animation-name: gParticleRight; }
+    [data-dir="left"][data-type="bubbles"] .particle { animation-name: gParticleLeft; }
+    [data-dir="right"][data-type="bubbles"] .particle { animation-name: gParticleRight; }
+    [data-dir="left"][data-type="confetti"] .particle { animation-name: gParticleConfettiLeft; }
+    [data-dir="right"][data-type="confetti"] .particle { animation-name: gParticleConfettiRight; }
+    @keyframes gParticleLeft {
+      0% { opacity: 0; transform: translateX(0) translateY(0) scale(0.5); }
+      5% { opacity: var(--particle-opacity, 0.8); }
+      100% { opacity: 0; transform: translateX(-100vw) translateY(var(--drift, 0px)) scale(1); }
+    }
+    @keyframes gParticleRight {
+      0% { opacity: 0; transform: translateX(0) translateY(0) scale(0.5); }
+      5% { opacity: var(--particle-opacity, 0.8); }
+      100% { opacity: 0; transform: translateX(100vw) translateY(var(--drift, 0px)) scale(1); }
+    }
+    @keyframes gParticleConfettiLeft {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(1); }
+      10% { opacity: var(--particle-opacity, 0.8); }
+      100% { opacity: 0; transform: translateX(-100vw) rotate(var(--rotation, 720deg)) scale(0.5); }
+    }
+    @keyframes gParticleConfettiRight {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(1); }
+      10% { opacity: var(--particle-opacity, 0.8); }
+      100% { opacity: 0; transform: translateX(100vw) rotate(var(--rotation, 720deg)) scale(0.5); }
     }
     @keyframes gParticleUp {
       0% { opacity: 0; transform: translateY(0) translateX(0) scale(0.5); }
@@ -685,9 +719,22 @@ export class LandingGiftsComponent implements OnInit, DoCheck, AfterViewInit, On
   private lastParticlesKey = '';
 
   get particlesConfig(): GiftsParticlesConfig {
-    return this.config.particles || {
-      enabled: false, type: 'sparkles', color1: '#d4a017', color2: '#ffffff',
-      direction: 'up', quantity: 20, speed: 5, size: 4, opacity: 0.8,
+    // Merge con defaults CAMPO POR CAMPO (no solo cuando particles es null). Si el objeto guardado
+    // trae unos campos y no otros (p. ej. sin `type`), los faltantes toman el default. Antes, con
+    // `this.config.particles || {defaults}`, un objeto parcial se devolvía tal cual y `type` quedaba
+    // undefined → el contenedor tenía data-type="" y NINGÚN selector de animación casaba, así que
+    // las partículas quedaban con opacity:0 (invisibles) pese a estar enabled.
+    const p = this.config.particles;
+    return {
+      enabled: p?.enabled ?? false,
+      type: p?.type ?? 'sparkles',
+      color1: p?.color1 ?? '#d4a017',
+      color2: p?.color2 ?? '#ffffff',
+      direction: p?.direction ?? 'up',
+      quantity: p?.quantity ?? 20,
+      speed: p?.speed ?? 5,
+      size: p?.size ?? 4,
+      opacity: p?.opacity ?? 0.8,
     };
   }
   private readonly EMOJI_TYPES = ['flowers','gifts','bows','hearts','bills','coins'];

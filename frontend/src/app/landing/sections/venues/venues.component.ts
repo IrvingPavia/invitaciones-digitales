@@ -119,6 +119,9 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     }
   `,
   styles: [`
+    /* Custom element: sin display:block sería inline y el min-height:100svh de .venues-mini no se
+       propagaba a la landing (mini-sección más corta que el viewport). */
+    :host { display: block; }
     /* Alto mínimo = pantalla (dispositivo/desktop); crece con el contenido. En canvas usa --canvas-vh. */
     .venues-mini {
       position: relative; padding: 48px 20px;
@@ -142,9 +145,15 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
       background: rgba(0,0,0,var(--sec-ov, 0)); z-index: 0; pointer-events: none;
     }
     .venues-mini-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; width: 100%; }
-    /* Fade-in SOLO del contenido (opacidad; sin transform). El fondo banner no se anima. */
-    .venues-mini-inner.reveal-fade { opacity: 0; transition: opacity 0.8s ease; }
-    .venues-mini-inner.reveal-fade.reveal-in { opacity: 1; }
+    /* Fade-in del CONTENIDO (opacidad + leve desplazamiento hacia arriba, como fade-up). NO toca el
+       fondo banner (vive en la <section>, fuera de este inner) ni el drag (solo se aplica cuando NO
+       está posicionado). Curva suave para igualar el reveal de las secciones normales. */
+    .venues-mini-inner.reveal-fade { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.22,0.61,0.36,1), transform 0.9s cubic-bezier(0.22,0.61,0.36,1); }
+    .venues-mini-inner.reveal-fade.reveal-in { opacity: 1; transform: none; }
+    /* En posicionado el inner se centra con translateX(-50%); preservarlo (NO usar transform:none,
+       que lo descentraría). Solo se anima la opacidad en ese modo. */
+    .venues-mini.positioned .venues-mini-inner.reveal-fade,
+    .venues-mini.positioned .venues-mini-inner.reveal-fade.reveal-in { transform: translateX(-50%); }
     /* Modo posicionado (drag): el contenedor interno (data-drag-bounds) cubre toda la mini-sección y
        se acota a ancho FIJO por dispositivo (REGLA R1/R4) centrado. */
     .venues-mini.positioned .venues-mini-inner { position: absolute; top: 0; bottom: 0; max-width: none; margin: 0; }

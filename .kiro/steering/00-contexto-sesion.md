@@ -49,6 +49,41 @@ más específico, puedes decir **"Retoma la tarea de la Invitación Valeria"** o
 > Esto es una foto del momento. La fuente de verdad siempre es `DEVELOPMENT_LOG.md` +
 > `docs/PENDING.md` + git. Si algo aquí contradice esos archivos, mandan ellos.
 
+### 🔽 ACTUALIZACIÓN 2026-10-15 (e) — landing: alto secciones, partículas Regalos, scroll entre secciones, reveal
+
+Rama `feature/drag-elementos-secciones`. Enfocado en la LANDING REAL. Compilado + desplegado +
+verificado. Archivos: models.ts, builder.component.ts, props-panel.component.ts, landing.component.ts,
+details/dresscode/gifts/venues.component.ts, styles.scss + NUEVOS scroll-reveal.directive.ts y
+section-scroller.ts.
+
+- **Vestimenta min-height (landing):** `installAutoHeight()` usaba inner.clientHeight (100svh−96px)
+  como piso → sección corta. Fix: `floorVh` = alto REAL ventana (`window.innerHeight` landing /
+  `--canvas-vh` canvas), `lienzo` para la card sin cambios.
+- **Mini-secciones llenan viewport:** `:host{display:block}` en details/venues/dresscode (eran
+  custom elements inline → el 100svh de `.{x}-mini` no se propagaba).
+- **Partículas Regalos (gifts.component.ts):** (a) getter `particlesConfig` ahora merge campo-por-
+  campo con `??` (antes `config.particles||{defaults}` dejaba `type` undefined → `data-type=""` →
+  sin animación → opacity:0 invisible); (b) añadidos overrides de dirección `[data-dir="down"]`/
+  left/right + keyframes `gParticleLeft/Right/ConfettiLeft/Right` (como la Intro); (c) span→div.
+- **Scroll ACTIVO entre secciones (NUEVO):** type `SectionTransition` += `auto-soft`/`auto-strict`.
+  `SectionScroller` (section-scroller.ts) intercepta wheel/touch/teclado y anima (easeOutCubic/rAF).
+  Puntos de enganche = `#section-*` + CADA mini-sección (`.details-mini/.venues-mini/.dress-mini`),
+  descartando wrappers #section-details/venues/dresscode → engancha card por card. Secciones largas:
+  avanza por pasos (~0.85vh) dentro antes de saltar. Fix trackball rápido: durante animación se
+  consumen TODOS los wheel. Guards: no builder, no con envelope/intro; activa en onEnvelopeOpened/
+  onIntroDone; apaga en ngOnDestroy. Panel: "Libre"/"Guiado suave"/"Guiado firme" + `.pf-hint-list`.
+- **Snap CSS retirado del panel** (snap-soft/firm): nunca fiable; quedan en type/styles por retrocompat.
+  Se quitó `overflow-x:clip` del `:host` de la landing (rompía el snap).
+- **Reveal unificado (NUEVO scroll-reveal.directive.ts):** directiva a core/directives con stagger
+  (`revealStagger`); clases globales `.reveal-hidden/.reveal-in/.reveal-anim-*` en styles.scss.
+  Mini-secciones: fade+translateY (preserva translateX(-50%) en positioned). builder neutraliza
+  `.reveal-hidden`.
+- **PENDIENTES:** stagger por objeto (pospuesto, choca con `.reveal` de montaje); Fase B transiciones
+  animadas entre secciones; afinar contraste suave/firme. **IDEA usuario:** página de documentación/
+  tutoriales para clientes (spec futuro) — mientras, ir poniendo hints claros en propiedades.
+- **OJO build:** `querySelectorAll<T>()` sobre `nativeElement` (tipo any) rompe el build con TS2347
+  ("Untyped function calls may not accept type arguments") → usar `querySelectorAll(sel) as T[]`.
+
 ### 🔽 ACTUALIZACIÓN 2026-10-15 (d) — UX builder mobile: drag táctil, auto-scroll, badge, centrado toolbar
 
 Rama `feature/drag-elementos-secciones`. 2 archivos: `drag-box.component.ts`, `builder.component.ts`.

@@ -94,6 +94,9 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     }
   `,
   styles: [`
+    /* Custom element: sin display:block sería inline y el min-height:100svh de .dress-mini no se
+       propagaba a la landing (mini-sección más corta que el viewport). */
+    :host { display: block; }
     .dress-mini {
       position: relative; padding: 48px 20px;
       min-height: var(--canvas-vh, 100svh);
@@ -116,9 +119,14 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
       background: rgba(0,0,0,var(--sec-ov, 0)); z-index: 0; pointer-events: none;
     }
     .dress-mini-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; width: 100%; }
-    /* Fade-in SOLO del contenido (opacidad; sin transform). El fondo banner no se anima. */
-    .dress-mini-inner.reveal-fade { opacity: 0; transition: opacity 0.8s ease; }
-    .dress-mini-inner.reveal-fade.reveal-in { opacity: 1; }
+    /* Fade-in del CONTENIDO (opacidad + leve desplazamiento hacia arriba, como fade-up). El fondo
+       banner no se anima. En posicionado NO se desplaza (ver regla .positioned más abajo). */
+    .dress-mini-inner.reveal-fade { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.22,0.61,0.36,1), transform 0.9s cubic-bezier(0.22,0.61,0.36,1); }
+    .dress-mini-inner.reveal-fade.reveal-in { opacity: 1; transform: none; }
+    /* En posicionado el inner se centra con translateX(-50%); preservarlo (NO usar transform:none,
+       que lo descentraría). Solo se anima la opacidad en ese modo. */
+    .dress-mini.positioned .dress-mini-inner.reveal-fade,
+    .dress-mini.positioned .dress-mini-inner.reveal-fade.reveal-in { transform: translateX(-50%); }
     /* Modo posicionado (drag): el inner es el LIENZO de referencia (data-drag-bounds) con alto FIJO
        = alto de ventana (position:absolute; height FIJO). Es FIJO a propósito: los top%/left% de la
        card se calculan sobre este lienzo estable. La SECCIÓN crece por JS (installAutoHeight) para
@@ -257,24 +265,31 @@ export class LandingDresscodeComponent implements AfterViewInit, OnDestroy {
       const box = section.querySelector('.dress-grid app-drag-box') as HTMLElement | null;
       const card = section.querySelector('.dress-grid .example-card') as HTMLElement | null;
       if (!inner || !box || !card) return;
-      // Alto base de la ventana (lienzo fijo). En canvas = --canvas-vh; en landing = alto real del
-      // inner (que mide 100svh por CSS). NO se lee de la sección (que es la que crece).
+      // --canvas-vh existe en el canvas del builder (alto del dispositivo simulado); en la landing
+      // real NO existe.
       const cssVh = getComputedStyle(section).getPropertyValue('--canvas-vh').trim();
-      const base = cssVh ? parseFloat(cssVh) : inner.clientHeight;
-      if (!base) return;
-      // Tope de la card = su top% (sobre el lienzo fijo) + el padding superior del lienzo (48px).
-      // box.style.top es "NN%" relativo al lienzo útil (que ya arranca tras el padding).
+      const cssVhPx = cssVh ? parseFloat(cssVh) : 0;
+      // (1) ALTO DEL LIENZO (para ubicar el tope de la card vía su top%). Se conserva el valor que
+      //     ya usaba cada contexto (comportamiento validado): canvas = --canvas-vh; landing =
+      //     clientHeight del inner. box.style.top es "NN%" relativo a este lienzo.
+      const lienzo = cssVhPx ? cssVhPx : inner.clientHeight;
+      if (!lienzo) return;
+      // (2) PISO = ALTO REAL DE LA VENTANA/DISPOSITIVO. La sección NUNCA debe quedar más corta que la
+      //     pantalla. OJO: NO usar inner.clientHeight como piso (mide la ventana MENOS el padding de
+      //     96px → dejaba la sección ~96px más corta que el viewport, el bug reportado). En canvas =
+      //     --canvas-vh; en landing = window.innerHeight (alto real del viewport).
+      const floorVh = cssVhPx ? cssVhPx : (typeof window !== 'undefined' ? window.innerHeight : lienzo);
+      // Tope de la card = su top% (sobre el lienzo útil) + el padding superior (48px).
       const topPct = parseFloat(box.style.top || '0') || 0;
-      const topPx = 48 + (topPct / 100) * base;
+      const topPx = 48 + (topPct / 100) * lienzo;
       // Alto natural del contenido de la card (independiente del min-height de la sección).
       const cardH = card.scrollHeight;
       const padBottom = 48; // respiro inferior (= padding de .dress-mini)
       // Alto que EXIGE el contenido: desde el tope de la card hasta su final + respiro.
       const needed = Math.ceil(topPx + cardH + padBottom);
-      // La sección mide lo que pide el contenido, PERO nunca menos que el alto de ventana (el
-      // mínimo es la pantalla; si el contenido es más alto, crece). Esto da el comportamiento
-      // acordado: mínimo = ventana, y crece con el contenido sin cortar ni invadir la siguiente.
-      const target = Math.max(Math.round(base), needed);
+      // La sección mide lo que pide el contenido, PERO nunca menos que el alto REAL de la ventana
+      // (mínimo = pantalla; si el contenido es más alto, crece). Comportamiento acordado.
+      const target = Math.max(Math.round(floorVh), needed);
       const current = parseFloat(section.style.minHeight || '0') || 0;
       // Solo escribir si cambió >1px (evita reflows/loops por redondeo).
       if (Math.abs(target - current) > 1) section.style.minHeight = target + 'px';

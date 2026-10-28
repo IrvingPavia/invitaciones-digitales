@@ -1,5 +1,37 @@
 # 📋 Pendientes y Mejoras — Vitely
 
+## Completado 2026-10-15 (e) — Landing: alto de secciones, partículas Regalos, scroll entre secciones, reveal
+
+- [x] **Vestimenta min-height en landing**: el piso del auto-alto usaba el inner recortado (−96px);
+  ahora usa el alto real de la ventana. Mínimo = pantalla, crece con el contenido.
+- [x] **Mini-secciones (Detalles/Lugares/Vestimenta) llenan el viewport**: faltaba
+  `:host{display:block}` en los componentes (eran inline → el 100svh no se propagaba).
+- [x] **Partículas de Regalos visibles**: getter con merge de defaults campo por campo (type quedaba
+  undefined → data-type vacío → sin animación); + overrides de dirección (como la Intro); + div.
+- [x] **Scroll ACTIVO entre secciones** (`SectionScroller`): modos "Guiado suave"/"Guiado firme"
+  (type `auto-soft`/`auto-strict`). Engancha card por card en mini-secciones, respeta secciones
+  largas (avanza por pasos antes de saltar), robusto ante trackball rápido. No corre en builder ni
+  con envelope/intro. Verificado.
+- [x] **Reveal unificado**: `ScrollRevealDirective` a `core/directives/` con stagger + clases
+  globales; mini-secciones con fade+translateY.
+- [x] **Enganche CSS (snap-soft/snap-firm) retirado del panel** (no funcionaba fiable); se quitó
+  `overflow-x:clip` del :host de la landing.
+- [x] **Etiquetas del panel** de navegación orientadas al cliente + lista de ayuda por opción.
+
+### Pendientes abiertos (landing/animaciones)
+- [ ] **Stagger por objeto**: que dentro de cada sección los objetos entren escalonados (uno tras
+  otro), no de golpe. Pospuesto para no chocar con la animación `.reveal` de montaje de varias
+  secciones. Requiere unificar los 3 mecanismos de reveal (directiva + observers propios + `.reveal`).
+- [ ] **Fase B — transiciones animadas ENTRE secciones** (fade/slide al cambiar de sección), de la
+  mano con el scroll activo. No empezada.
+- [ ] Afinar diferencia entre "Guiado suave" y "Guiado firme" (hoy es leve) si se desea más contraste.
+
+### 💡 IDEA (usuario) — Documentación/Tutoriales para clientes
+- [ ] Página de ayuda + tutoriales que expliquen cada propiedad del builder y de la landing, para
+  usuarios no técnicos. Posible: tooltips contextuales en el panel + página de documentación
+  dedicada. Proyecto aparte (spec futuro). Como mejora intermedia barata: ir añadiendo textos de
+  ayuda (hint) claros en las propiedades menos obvias (ya hecho en "Navegación entre secciones").
+
 ## Completado 2026-10-15 (d) — UX builder mobile: drag táctil + auto-scroll + badge + centrado toolbar
 
 - [x] **Drag táctil en mobile en dos pasos** (`drag-box.component.ts`): tap para SELECCIONAR (sin

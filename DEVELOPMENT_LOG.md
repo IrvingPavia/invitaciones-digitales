@@ -11,7 +11,80 @@
 
 ---
 
-## Estado actual del proyecto: 2026-10-15 (d)
+## Estado actual del proyecto: 2026-10-15 (e)
+
+### Rama activa: `feature/drag-elementos-secciones`
+
+### Sesión: Alto de secciones en landing, partículas de Regalos, scroll entre secciones y reveal
+
+Tanda enfocada en la LANDING REAL (no el canvas). Todo compilado, desplegado y verificado por el
+usuario. Archivos: models.ts, builder.component.ts, props-panel.component.ts, landing.component.ts,
+details/dresscode/gifts/venues .component.ts, styles.scss + 2 nuevos (scroll-reveal.directive.ts,
+section-scroller.ts).
+
+**1. Vestimenta: min-height en landing (fix) — `dresscode.component.ts`:**
+- La sección quedaba ~96px más corta que el viewport. Causa: `installAutoHeight()` usaba como PISO
+  del min-height el `inner.clientHeight` (= 100svh − 96px de padding). Fix: separar el `lienzo`
+  (para ubicar la card, sin cambios) del `floorVh` (piso = alto REAL de la ventana:
+  `window.innerHeight` en landing / `--canvas-vh` en canvas). Ahora el mínimo es la pantalla y crece
+  con el contenido.
+
+**2. Mini-secciones (Detalles/Lugares/Vestimenta) no llenaban el viewport en landing (fix):**
+- Los componentes `app-landing-details/venues/dresscode` son custom elements SIN `:host{display:block}`
+  → eran `display:inline` y el `min-height:100svh` de su `.{x}-mini` no se propagaba. Fix: añadido
+  `:host{display:block}` a los tres. (Las secciones normales no sufren esto: su 100svh lo pone un
+  `<div>` block.)
+
+**3. Partículas de la sección Regalos no se veían (fix) — `gifts.component.ts`:**
+- (a) El getter `particlesConfig` hacía `config.particles || {defaults}`: con un objeto parcial
+  guardado (sin `type`), devolvía undefined en `type` → el contenedor quedaba con `data-type=""` y
+  NINGÚN selector de animación casaba → partículas con opacity:0 (invisibles). Fix: merge de defaults
+  CAMPO POR CAMPO (`??`).
+- (b) Faltaban los OVERRIDES de dirección que sí tiene la Intro (`[data-dir="down"]`/left/right).
+  Con dir "down" las sparkles usaban la animación base. Añadidos los overrides + keyframes
+  `gParticleLeft/Right/ConfettiLeft/Right`.
+- (c) `<span class="particle">` → `<div class="particle">` para igualar la estructura de la Intro.
+
+**4. Scroll-snap CSS (Enganche suave/firme): DESCARTADO del panel.**
+- Nunca funcionó de forma fiable (jerarquía anidada del snap CSS es frágil). Se QUITARON del
+  props-panel los chips "Enganche suave"/"Enganche firme". Los valores `snap-soft`/`snap-firm` SIGUEN
+  en el type y en styles.scss por retrocompatibilidad (configs viejas no rompen), pero ya no se
+  ofrecen. Se quitó el `overflow-x:clip` del `:host` de la landing (rompía cualquier snap) — el
+  scroll horizontal ya lo contienen html/body con `overflow-x:hidden`.
+
+**5. Scroll ACTIVO entre secciones (NUEVO) — `section-scroller.ts` + `landing.component.ts`:**
+- Nuevo type `SectionTransition` += `'auto-soft' | 'auto-strict'`. Clase `SectionScroller` que
+  intercepta rueda/touch/teclado y anima el scroll (easeOutCubic, rAF).
+- **Puntos de enganche = secciones normales (#section-*) + CADA mini-sección individual**
+  (`.details-mini/.venues-mini/.dress-mini`); se descartan los wrappers #section-details/venues/
+  dresscode. Así engancha card por card (Detalle 1→2, Lugar 1→2), antes se los brincaba.
+- **Secciones largas (galería/vestimenta):** AMBOS modos las dejan ver completas: si hay contenido
+  fuera del viewport en la dirección del gesto, avanza DENTRO de la sección por pasos (~0.85vh) y
+  solo engancha a la siguiente al llegar al borde.
+- **Fix trackball rápido:** durante la animación TODOS los eventos wheel se consumen y se ignoran
+  (antes dejaba pasar scroll nativo intermitente y se "atoraba").
+- Guards: no corre en builder ni con envelope/intro montados; se activa al desmontarse esos overlays
+  (`applySectionTransition()` llamado en `onEnvelopeOpened`/`onIntroDone`); se apaga en ngOnDestroy.
+- Panel: etiquetas orientadas al cliente **"Libre" / "Guiado suave" / "Guiado firme"** + lista de
+  ayuda (`.pf-hint-list`) con una línea por opción. Verificado por el usuario ("me encantó").
+
+**6. Reveal unificado (efectos de entrada) — `scroll-reveal.directive.ts` (NUEVO):**
+- `ScrollRevealDirective` promovida de inline (landing.component.ts) a `core/directives/`, con curvas
+  más suaves y soporte de STAGGER (input `revealStagger`). Clases movidas a styles.scss como globales
+  `.reveal-hidden`/`.reveal-in`/`.reveal-anim-*` + `prefers-reduced-motion`.
+- Mini-secciones (details/venues/dresscode): su reveal pasó de fade de opacidad plano a fade +
+  translateY (como fade-up), preservando el centrado `translateX(-50%)` en modo posicionado (drag).
+- builder.component.ts: neutraliza `.reveal-hidden` en el canvas (antes `.scroll-hidden`).
+- PENDIENTE: activar el stagger por objeto en cada sección (los objetos entran de golpe aún); se
+  pospuso para no chocar con la animación `.reveal` de montaje que ya traen varias secciones.
+
+**PENDIENTE ANOTADO (idea del usuario):** página de DOCUMENTACIÓN/TUTORIALES para clientes que
+explique cada propiedad del builder y la landing. Proyecto aparte (spec futuro): tooltips
+contextuales + página de ayuda dedicada.
+
+---
+
+## Estado anterior: 2026-10-15 (d)
 
 ### Rama activa: `feature/drag-elementos-secciones`
 

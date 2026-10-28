@@ -144,18 +144,23 @@ import { ApiService } from '../../../../../core/services/api.service';
         </div>
         @if (expanded['section-nav']) {
           <div class="accordion-body">
-            <p class="pf-hint">Cómo se pasa de una sección a otra al hacer scroll (a partir de la Carátula). "Enganche" hace que cada sección se acomode sola en la pantalla. Configurable por dispositivo.</p>
+            <p class="pf-hint">Define cómo se desplaza el visitante entre secciones al hacer scroll (desde la Carátula). Configurable por dispositivo.</p>
+            <ul class="pf-hint-list">
+              <li><b>Libre:</b> scroll normal, el visitante se mueve a su ritmo.</li>
+              <li><b>Guiado suave:</b> la página acompaña el scroll hacia la siguiente sección de forma fluida. Las secciones largas se ven completas antes de avanzar.</li>
+              <li><b>Guiado firme:</b> cada desplazamiento avanza una sección completa, de forma más marcada.</li>
+            </ul>
             <span class="pf-section-title">Móvil</span>
             <div class="btn-row">
               <button class="chip" [class.active]="(cfg()!.theme.sectionTransitionMobile || 'free') === 'free'" (click)="setTheme('sectionTransitionMobile','free');$event.stopPropagation()">Libre</button>
-              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionMobile === 'snap-soft'" (click)="setTheme('sectionTransitionMobile','snap-soft');$event.stopPropagation()">Enganche suave</button>
-              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionMobile === 'snap-firm'" (click)="setTheme('sectionTransitionMobile','snap-firm');$event.stopPropagation()">Enganche firme</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionMobile === 'auto-soft'" (click)="setTheme('sectionTransitionMobile','auto-soft');$event.stopPropagation()">Guiado suave</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionMobile === 'auto-strict'" (click)="setTheme('sectionTransitionMobile','auto-strict');$event.stopPropagation()">Guiado firme</button>
             </div>
             <span class="pf-section-title" style="margin-top:12px">Escritorio</span>
             <div class="btn-row">
               <button class="chip" [class.active]="(cfg()!.theme.sectionTransitionDesktop || 'free') === 'free'" (click)="setTheme('sectionTransitionDesktop','free');$event.stopPropagation()">Libre</button>
-              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionDesktop === 'snap-soft'" (click)="setTheme('sectionTransitionDesktop','snap-soft');$event.stopPropagation()">Enganche suave</button>
-              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionDesktop === 'snap-firm'" (click)="setTheme('sectionTransitionDesktop','snap-firm');$event.stopPropagation()">Enganche firme</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionDesktop === 'auto-soft'" (click)="setTheme('sectionTransitionDesktop','auto-soft');$event.stopPropagation()">Guiado suave</button>
+              <button class="chip" [class.active]="cfg()!.theme.sectionTransitionDesktop === 'auto-strict'" (click)="setTheme('sectionTransitionDesktop','auto-strict');$event.stopPropagation()">Guiado firme</button>
             </div>
           </div>
         }
@@ -1982,6 +1987,9 @@ import { ApiService } from '../../../../../core/services/api.service';
     .pf { margin-bottom:10px; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pf-section-title { display:block;font-size:11px;font-weight:600;color:rgba(139,92,246,0.8);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(139,92,246,0.15); }
     .pf-hint { font-size:10px;color:rgba(255,255,255,0.4);line-height:1.4;margin:2px 0 10px; }
+    .pf-hint-list { list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:6px; }
+    .pf-hint-list li { font-size:10px;color:rgba(255,255,255,0.45);line-height:1.4;padding-left:10px;border-left:2px solid rgba(139,92,246,0.3); }
+    .pf-hint-list li b { color:rgba(255,255,255,0.75);font-weight:600; }
     .pf-row { display:flex;gap:8px;margin-bottom:10px; }
     .pf-half { flex:1; label{display:block;font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px} }
     .pinput { width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.15);border-radius:6px;padding:7px 10px;color:white;font-size:12px;font-family:var(--font-sans); &:focus{outline:none;border-color:rgba(139,92,246,0.4)} }

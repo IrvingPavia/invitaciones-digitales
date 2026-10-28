@@ -750,7 +750,8 @@ interface BuilderSection {
     .preview-mode-canvas ::ng-deep .timeline-content { word-break: break-word !important; overflow-wrap: break-word !important; }
     .preview-mode-canvas ::ng-deep .timeline-item { max-width: 100% !important; }
     .preview-mode-canvas ::ng-deep .reveal { animation: none !important; opacity: 1 !important; transform: none !important; }
-    .preview-mode-canvas ::ng-deep .scroll-hidden { opacity: 1 !important; transform: none !important; }
+    .preview-mode-canvas ::ng-deep .scroll-hidden,
+    .preview-mode-canvas ::ng-deep .reveal-hidden { opacity: 1 !important; transform: none !important; }
     .preview-mode-canvas ::ng-deep .intro-overlay { position: relative !important; z-index: 1 !important; height: var(--canvas-vh, 640px); min-height: auto !important; inset: auto !important; overflow: hidden; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="fade"] { animation: builderFade 1s ease forwards !important; }
     .preview-mode-canvas ::ng-deep .intro-overlay.fade-out[data-transition="slide-up"] { animation: builderSlideUp 1s ease forwards !important; }
