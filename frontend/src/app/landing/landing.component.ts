@@ -3,34 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
 import { LandingData, Guest } from '../core/models/models';
-
-@Directive({
-  selector: '[appScrollReveal]',
-  standalone: true
-})
-export class ScrollRevealDirective implements OnInit, OnDestroy {
-  private el = inject(ElementRef);
-  private observer!: IntersectionObserver;
-  @Input() appScrollReveal: string = 'fade-up';
-
-  ngOnInit() {
-    const anim = this.appScrollReveal || 'fade-up';
-    if (anim === 'none') return; // no animation
-    // In builder mode, skip animations — show everything immediately
-    // But allow animations in preview mode (?preview=1)
-    if (window.self !== window.top && !window.location.search.includes('preview=1')) return;
-    this.el.nativeElement.classList.add('scroll-hidden', `scroll-anim-${anim}`);
-    this.observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        this.el.nativeElement.classList.add('scroll-visible');
-        this.observer.unobserve(this.el.nativeElement);
-      }
-    }, { threshold: 0.1 });
-    this.observer.observe(this.el.nativeElement);
-  }
-
-  ngOnDestroy() { this.observer?.disconnect(); }
-}
+import { ScrollRevealDirective } from '../core/directives/scroll-reveal.directive';
+import { SectionScroller } from './section-scroller';
 
 @Directive({
   selector: 'img[appLazyLoad]',
@@ -302,7 +276,12 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
     }
   `,
   styles: [`
-    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; overflow-x: clip; position: relative; }
+    /* NOTA: NO usar overflow-x:clip/hidden en el :host. Cualquier overflow distinto de visible aquí
+       convierte al :host en un contenedor de recorte que ROMPE el scroll-snap (el scroll-snap-type
+       está en <html> y los puntos de enganche .section-block son descendientes; un overflow
+       intermedio desalinea el snapport). El scroll horizontal que generan las secciones expandidas
+       (margin:-50vw) ya lo contienen html y body con overflow-x:hidden. */
+    :host { display: block; overscroll-behavior-y: contain; -webkit-user-select: none; user-select: none; position: relative; }
     .landing-bg-solid {
       position: fixed; inset: -10svh -5vw; z-index: 0;
       background: var(--landing-bg, #0d1117);
@@ -690,23 +669,8 @@ import { resolveMedia, resolveGlobalBackground, sectionStyleToMedia, ResolvedMed
       0%, 100% { opacity: 0.5; transform: scale(1); }
       50% { opacity: 1; transform: scale(1.15); }
     }
-    :host ::ng-deep .scroll-hidden {
-      opacity: 0;
-      transition: opacity 1.4s cubic-bezier(0.22, 0.61, 0.36, 1), transform 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
-    }
-    :host ::ng-deep .scroll-hidden.scroll-anim-fade-up { transform: translateY(80px); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-fade-in { transform: none; }
-    :host ::ng-deep .scroll-hidden.scroll-anim-slide-left { transform: translateX(-100px); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-slide-right { transform: translateX(100px); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-scale { transform: scale(0.8); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-fade-up.scroll-visible { transform: translateY(0); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-fade-in.scroll-visible { transform: none; }
-    :host ::ng-deep .scroll-hidden.scroll-anim-slide-left.scroll-visible { transform: translateX(0); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-slide-right.scroll-visible { transform: translateX(0); }
-    :host ::ng-deep .scroll-hidden.scroll-anim-scale.scroll-visible { transform: scale(1); }
-    :host ::ng-deep .scroll-visible {
-      opacity: 1;
-    }
+    /* Las clases de scroll-reveal se migraron a styles.scss (globales) como .reveal-hidden /
+       .reveal-in / .reveal-anim-*, compartidas por la ScrollRevealDirective unificada. */
   `]
 })
 export class LandingComponent implements OnInit, OnDestroy {
@@ -731,6 +695,9 @@ export class LandingComponent implements OnInit, OnDestroy {
   /** True si la landing corre dentro del builder (iframe, sin preview). El scroll-snap NO se
       aplica en builder para no interferir con el canvas. */
   private inBuilder = false;
+  /** Scroll ACTIVO entre secciones (modos 'auto-soft'/'auto-strict'). Lo activa/desactiva
+      applySectionTransition() según el tema. */
+  private sectionScroller = new SectionScroller();
 
   isOpenEvent(): boolean {
     return this.data()?.event?.event_mode === 'open';
@@ -845,12 +812,21 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
     root.classList.remove('lp-snap-soft', 'lp-snap-firm');
-    if (this.inBuilder) return; // en el canvas no se aplica
+    // El scroll ACTIVO no debe correr en el builder ni mientras el envelope/intro están montados
+    // (esos overlays ocupan la pantalla antes de que el usuario llegue a las secciones).
+    if (this.inBuilder || this.showEnvelope() || this.showIntro()) { this.sectionScroller.disable(); return; }
     const theme = this.data()?.config?.theme;
-    if (!theme) return;
+    if (!theme) { this.sectionScroller.disable(); return; }
     const mode: SectionTransition = (this.isDesktopWidth()
       ? theme.sectionTransitionDesktop
       : theme.sectionTransitionMobile) || 'free';
+    // Modos ACTIVOS (JS): activan el scroller y NO usan las clases de snap CSS (se pisarían).
+    if (mode === 'auto-soft' || mode === 'auto-strict') {
+      this.sectionScroller.enable(mode);
+      return;
+    }
+    // Modos pasivos (CSS) o libre: asegurarse de que el scroller esté apagado.
+    this.sectionScroller.disable();
     if (mode === 'snap-soft') root.classList.add('lp-snap-soft');
     else if (mode === 'snap-firm') root.classList.add('lp-snap-firm');
     // 'free' → sin clase (scroll normal)
@@ -873,6 +849,8 @@ export class LandingComponent implements OnInit, OnDestroy {
       this.showIntro.set(true);
     } else {
       this.heroEntering.set(true);
+      // Ya no hay overlay: si el tema usa scroll activo, actívalo ahora que se ven las secciones.
+      this.applySectionTransition();
     }
   }
 
@@ -880,6 +858,8 @@ export class LandingComponent implements OnInit, OnDestroy {
       visible detrás (se montó en fadingStart), así que no queda hueco de fondo vacío. */
   onIntroDone() {
     this.showIntro.set(false);
+    // Overlay desmontado: re-evaluar la transición (activa el scroll activo si corresponde).
+    this.applySectionTransition();
   }
 
   ngOnInit() {
@@ -958,10 +938,11 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (this.messageHandler) {
       window.removeEventListener('message', this.messageHandler);
     }
-    // Quitar la clase de scroll-snap del <html> al salir de la landing.
+    // Quitar la clase de scroll-snap del <html> y apagar el scroll activo al salir de la landing.
     if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('lp-snap-soft', 'lp-snap-firm');
     }
+    this.sectionScroller.disable();
     // Restore default favicon and title when leaving landing
     this.restoreFavicon();
   }

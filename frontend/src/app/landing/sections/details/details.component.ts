@@ -104,6 +104,10 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     }
   `,
   styles: [`
+    /* El componente es un custom element: sin esto sería display:inline y el min-height:100svh de
+       .details-mini NO se propagaba hacia la landing (la mini-sección quedaba más corta que el
+       viewport). display:block hace que el host ocupe el bloque completo y el 100svh surta efecto. */
+    :host { display: block; }
     /* Mini-sección de card: alto FLEXIBLE (no 100vh). El fondo se adapta a su alto; si la imagen no
        cuadra, se ve el fondo global fijo detrás. */
     /* Alto MÍNIMO = alto de la ventana (pantalla del dispositivo/desktop) para TODAS las
@@ -139,8 +143,10 @@ import { resolveMedia, sectionStyleToMedia } from '../../../core/utils/media-bac
     .details-mini-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; width: 100%; }
     /* Fade-in SOLO del contenido (opacidad; sin transform para no chocar con el posicionamiento/drag).
        El fondo banner NO se anima (vive en la <section>, fuera de este inner). */
-    .details-mini-inner.reveal-fade { opacity: 0; transition: opacity 0.8s ease; }
-    .details-mini-inner.reveal-fade.reveal-in { opacity: 1; }
+    .details-mini-inner.reveal-fade { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.22,0.61,0.36,1), transform 0.9s cubic-bezier(0.22,0.61,0.36,1); }
+    .details-mini-inner.reveal-fade.reveal-in { opacity: 1; transform: none; }
+    /* En modo posicionado (drag) NO desplazar: el transform pelearía con el posicionamiento absoluto. */
+    .details-mini.positioned .details-mini-inner.reveal-fade { transform: none; }
     /* En modo posicionado (drag): el contenedor interno (data-drag-bounds) cubre TODA la mini-sección
        para que los objetos (encabezado/card) absolutos se posicionen en % respecto a él (igual que
        .inv-fg). Se acota a un ancho FIJO por dispositivo (REGLA R1/R4) centrado, para que el drag

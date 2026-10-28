@@ -1727,7 +1727,42 @@ html.lp-snap-firm { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 html.lp-snap-soft #section-hero,
 html.lp-snap-firm #section-hero,
 html.lp-snap-soft .section-block,
-html.lp-snap-firm .section-block {
+html.lp-snap-firm .section-block,
+/* Mini-secciones individuales (Detalles/Lugares/Vestimenta): cada card es un punto de enganche
+   propio, igual que una sección normal. Sin esto, el snap saltaba el bloque entero. */
+html.lp-snap-soft .details-mini,
+html.lp-snap-firm .details-mini,
+html.lp-snap-soft .venues-mini,
+html.lp-snap-firm .venues-mini,
+html.lp-snap-soft .dress-mini,
+html.lp-snap-firm .dress-mini {
   scroll-snap-align: start;
   scroll-snap-stop: normal;
+}
+
+/* =====================================================================
+   SCROLL REVEAL UNIFICADO (ScrollRevealDirective) — efecto de ENTRADA
+   de objetos al hacer scroll. Globales para que apliquen tanto al
+   contenedor como a hijos proyectados (stagger). El estado inicial
+   oculta; .reveal-in revela. --reveal-delay escalona el stagger.
+   ===================================================================== */
+.reveal-hidden {
+  opacity: 0;
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms),
+    transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal-hidden.reveal-anim-fade-up { transform: translateY(48px); }
+.reveal-hidden.reveal-anim-fade-in { transform: none; }
+.reveal-hidden.reveal-anim-slide-left { transform: translateX(-72px); }
+.reveal-hidden.reveal-anim-slide-right { transform: translateX(72px); }
+.reveal-hidden.reveal-anim-scale { transform: scale(0.88); }
+/* Estado revelado: todas las variantes vuelven al origen. */
+.reveal-hidden.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-hidden { transition: opacity 0.4s ease var(--reveal-delay, 0ms); transform: none !important; }
 }

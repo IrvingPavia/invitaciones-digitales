@@ -98,9 +98,14 @@ export interface MediaBackground {
 }
 
 /** Modo de transición entre secciones de la landing (desde la Carátula hacia abajo).
-    Fase 1 (CSS scroll-snap): 'free' | 'snap-soft' | 'snap-firm'.
-    Fase 2 (futuro): se añadirán modos animados ('fade', 'slide', ...). */
-export type SectionTransition = 'free' | 'snap-soft' | 'snap-firm';
+    - 'free'        : scroll normal del navegador.
+    - 'snap-soft'   : CSS scroll-snap proximity (enganche suave pasivo).
+    - 'snap-firm'   : CSS scroll-snap mandatory (enganche firme pasivo).
+    - 'auto-soft'   : scroll ACTIVO (JS) — un empujón de rueda/swipe anima hacia la sección
+                      siguiente; si la sección es más alta que la pantalla, deja scrollear su
+                      contenido antes de enganchar.
+    - 'auto-strict' : scroll ACTIVO tipo "fullpage" — cada gesto salta a una sección completa. */
+export type SectionTransition = 'free' | 'snap-soft' | 'snap-firm' | 'auto-soft' | 'auto-strict';
 
 export interface ThemeConfig {
   cardBg: string;
